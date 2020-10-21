@@ -1,0 +1,49 @@
+version: "3.5"
+services:
+  django_stage:
+    image: sip/backend_stage
+    env_file:
+      - db.env
+      - django.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip_backend.settings
+#      - DB_HOST=db_stage
+#      - START_DATE_FOR_SCAN=2017-01-01  # start date for searching in Sentinel images
+#      - RABBITMQ_HOST=rabbitmq_stage
+#      - SENTINEL_DOWNLOAD=1   # prevent requesting to sentinel
+#      - FORCE_DOWNLOAD_IMG=0  # force downloading and preprocessing images even if file exists
+#      - PREPARE_TIF=1  # skip preprocessing images
+#      - ADD_TASKS=1  # skip adding tasks
+#      - MAKE_PREDICT=1  # skip predicting of clearcuts
+#      - CONVERT_TO_TIFF=1  # skip converting to tiff for uploading
+#      - UPLOAD_TO_MAPBOX=1  # skip uploading to mapbox server
+    volumes:
+      - ./:/code
+      - $HOME/sip_data:/media/sip_data/
+#    working_dir: /code
+    networks:
+      - sip
+#    links:
+#      - "db_stage"
+    expose:
+      - 9000
+    ports:
+      - "9001:9000"
+#    command: /bin/bash -c "exec invoke runbackend"
+    command: python manage.py runserver 0.0.0.0:9000
+
+#  db_stage:
+#    image: sip/postgis
+#    expose:
+#      - 5432
+#    ports:
+#      - "5433:5432"
+#    env_file:
+#      - db.env
+#    volumes:
+#      - $HOME/sip_data/db_data:/var/lib/postgresql/data
+#    networks:
+#      - sip
+
+networks:
+  sip
