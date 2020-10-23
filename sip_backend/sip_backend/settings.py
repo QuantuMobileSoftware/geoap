@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -75,8 +76,12 @@ WSGI_APPLICATION = 'sip_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('POSTGRES_DB', 'sip_db'),
+        'USER': os.getenv('POSTGRES_USER', 'sip_user'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'BpVHSZNE4j95iKJc'),
+        'HOST': os.getenv('DB_HOST', 'db_prod'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 

@@ -2,7 +2,7 @@
 
 # dependencies
 .idea
-/client/node_modules
+/frontend/node_modules
 __pycache__/
 static/
 
@@ -36,3 +36,6 @@ definitions/parsetab.py
 logs/*
 
 Screenshot*
+
+# dev
+_install/
