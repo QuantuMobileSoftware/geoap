@@ -39,3 +39,7 @@ Screenshot*
 
 # dev
 _install/
+
+# env files
+db.env
+django.env
