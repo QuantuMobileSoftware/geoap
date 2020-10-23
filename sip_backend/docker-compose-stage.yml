@@ -1,0 +1,58 @@
+version: "3.5"
+services:
+  django_stage:
+    image: sip/backend_stage
+    env_file:
+      - db.env
+      - django.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip_backend.settings
+      - DB_HOST=db_stage
+    volumes:
+      - ./:/code
+      - $HOME/sip_data:/media/sip_data/
+    networks:
+      - sip
+    expose:
+      - 9000
+    ports:
+      - "9001:9000"
+#    command: /bin/bash -c "exec invoke runbackend"
+    command: python manage.py runserver 0.0.0.0:9000
+
+  db_stage:
+    image: sip/postgis
+    expose:
+      - 5432
+    ports:
+      - "5433:5432"
+    env_file:
+      - db.env
+    volumes:
+      - $HOME/sip_data/db_data:/var/lib/postgresql/data
+    networks:
+      - sip
+
+  nginx_stage:
+    image: nginx:1.15.8
+    links:
+      - "django_stage"
+    expose:
+      - "8082"
+    ports:
+      - "8082:8082"
+    environment:
+      - VIRTUAL_HOST=sip1.quantumobile.com
+      - VIRTUAL_PORT=8082
+      - LETSENCRYPT_HOST=sip1.quantumobile.com
+      - LETSENCRYPT_EMAIL=o.tsiapa@quantumobile.com
+    volumes:
+      - ../nginx/nginx_stage.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/build:/frontend/build
+#      - ./db-data_stage/data:/var/lib/postgresql/data
+#      - /media/data:/media/data/
+    networks:
+      - sip
+
+networks:
+  sip:
