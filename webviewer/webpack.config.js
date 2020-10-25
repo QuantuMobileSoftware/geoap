@@ -52,6 +52,14 @@ module.exports = {
             "/api": {
                 target: "http://webserver:9000",
                 secure: false
+            },
+            "/results": {
+                target: "http://webserver:9000",
+                secure: false
+            },
+            "/tiles": {
+                target: "http://webserver:9000",
+                secure: false
             }
         }
     }
