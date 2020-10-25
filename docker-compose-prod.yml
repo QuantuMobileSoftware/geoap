@@ -1,0 +1,44 @@
+version: "3.5"
+services:
+
+  db:
+    image: postgres:10.12
+    volumes:
+      - ../db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=Foo0roo0
+    networks:
+      - sip
+
+  webapplication:
+    build:
+      context: ./webapplication
+      dockerfile: prod.Dockerfile
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip.settings-prod
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=Foo0roo0
+    command: /bin/bash -c "exec invoke run-prod"
+    depends_on:
+      - db
+    expose:
+      - 9000
+    ports:
+      - 80:9000
+    networks:
+      - sip
+
+  webserver:
+    build:
+      context: ./
+      dockerfile: ./webserver/prod.Dockerfile
+    expose:
+      - 9000
+    ports:
+      - "9000:9000"
+
+networks:
+  sip:
