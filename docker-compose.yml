@@ -59,5 +59,4 @@ services:
       - ./data:/home/jovyan/work
     environment:
       - JUPYTER_ENABLE_LAB=yes
-      - TEST_TILE_PATH=/home/jovyan/work/test_tile/L1C_T36UYA_A017393_20200705T083602_TCI.jp2
       
