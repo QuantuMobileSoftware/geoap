@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 
     # Local Apps
     'user',
+    'results',
 ]
 
 REST_FRAMEWORK = {
@@ -155,6 +156,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Media files
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/code/media/"
 
 # Session
 SESSION_COOKIE_AGE = 28800  # 8 hours, in seconds
