@@ -20,8 +20,4 @@ class FilesView(APIView):
         response['Content-Disposition'] = 'attachment; filename="{}"'.format(file_name)
         response['X-Accel-Redirect'] = file
         del response['Content-Type']
-        del response['Accept-Ranges']
-        del response['Set-Cookie']
-        del response['Cache-Control']
-        del response['Expires']
         return response
