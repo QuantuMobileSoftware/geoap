@@ -14,10 +14,10 @@ class FilesView(APIView):
         The parts are then rebuilt by NGINX and used with proxy_pass.
         """
         file_path = kwargs['file_path']
-        file_name = kwargs['file_name']
-        file = f'/file_download/{file_path}/{file_name}'
+        file = f'/file_download/{file_path}'
         response = HttpResponse()
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(file_name)
+        response['Content-Disposition'] = 'inline'
+        response['Accept-Ranges'] = 'bytes'
         response['X-Accel-Redirect'] = file
         del response['Content-Type']
         return response
