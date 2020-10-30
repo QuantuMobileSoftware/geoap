@@ -24,10 +24,6 @@ services:
     command: /bin/bash -c "exec invoke run-prod"
     depends_on:
       - db
-    expose:
-      - 9000
-    ports:
-      - 80:9000
     networks:
       - sip
 
@@ -35,10 +31,29 @@ services:
     build:
       context: ./
       dockerfile: ./webserver/prod.Dockerfile
+    volumes:
+      - ../data:/data
     expose:
-      - 9000
+      - 80
     ports:
-      - "9000:9000"
+      - "80:80"
+    depends_on:
+      - webapplication
+    networks:
+      - sip
 
+  jupyter:
+    build:
+      context: ./jupyter
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data:/home/jovyan/work
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    networks:
+      - sip
+  
 networks:
   sip:
