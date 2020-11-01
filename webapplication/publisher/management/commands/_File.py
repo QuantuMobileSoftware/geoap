@@ -7,31 +7,30 @@ import rasterio.warp
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.sites.models import Site
 from django.utils import timezone
-from ...models import Results
+from ...models import Result
 
 
 class File(metaclass=ABCMeta):
-    def __init__(self, path):
+    def __init__(self, path, basedir):
         self.path = path
+        self.basedir = basedir
 
     def filename(self):
         filename = os.path.basename(self.path)
         return filename
 
-    def modified(self):
+    def filepath(self):
+        filepath = os.path.relpath(self.path, self.basedir)
+        return filepath
+
+    def modifiedat(self):
         timestamp = os.path.getmtime(self.path)
         timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return timestamp
 
-    def abs_url(self):
-        current_site = Site.objects.get_current()
-        url = f"https://{current_site.domain}/results/{self.filename()}"
-        return url
-
     @abstractmethod
-    def type(self):
+    def layer_type(self):
         pass
 
     @abstractmethod
@@ -43,20 +42,19 @@ class File(metaclass=ABCMeta):
         pass
 
     def as_dict(self):
-        return dict(filename=self.filename(),
-                    modified=self.modified(),
-                    abs_url=self.abs_url(), )
+        return dict(filepath=self.filepath(),
+                    modifiedat=self.modifiedat(), )
 
 
 class Geojson(File):
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path, basedir):
+        super().__init__(path, basedir)
 
-    def type(self):
-        return Results.GEOJSON
+    def layer_type(self):
+        return Result.GEOJSON
 
     def rel_url(self):
-        return f"/results/{super().filename()}"
+        return f"/results/{super().filepath()}"
 
     def polygon(self):
         with open(self.path) as file:
@@ -66,7 +64,7 @@ class Geojson(File):
         return polygon
 
     def as_dict(self):
-        dict_ = dict(type=self.type(),
+        dict_ = dict(layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
                      polygon=self.polygon(), )
 
@@ -75,14 +73,14 @@ class Geojson(File):
 
 
 class Geotif(File):
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path, basedir):
+        super().__init__(path, basedir)
 
-    def type(self):
-        return Results.XYZ
+    def layer_type(self):
+        return Result.XYZ
 
     def rel_url(self):
-        return f"/tiles/{super().filename().split('.')[0]}/z/x/y/.png"
+        return f"/tiles/{super().filepath().split('.')[0]}" + "/{z}/{x}/{y}.png"
 
     def polygon(self):
         with rasterio.open(self.path) as dataset:
@@ -96,7 +94,7 @@ class Geotif(File):
         return polygon
 
     def as_dict(self):
-        dict_ = dict(type=self.type(),
+        dict_ = dict(layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
                      polygon=self.polygon(), )
 

@@ -3,37 +3,33 @@ from django.contrib.postgres.fields import JSONField
 from datetime import date
 
 
-class Results(models.Model):
-    filename = models.CharField(max_length=200, unique=True, db_index=True, verbose_name='Original filename')
-    modified = models.DateTimeField(verbose_name='File modification date')
-    abs_url = models.URLField(max_length=400, verbose_name='File absolute URL')
+class Result(models.Model):
+    filepath = models.CharField(max_length=200, unique=True, db_index=True, verbose_name='Original filepath')
+    modifiedat = models.DateTimeField(verbose_name='Original file modification date')
 
     STRING = 'STRING'
     GEOJSON = 'GEOJSON'
-    TMS = 'TMS'
     XYZ = 'XYZ'
 
-    TYPE_CHOICES = [
+    LAYER_TYPE_CHOICES = [
         (STRING, 'STRING'),
         (GEOJSON, 'GEOJSON'),
-        (TMS, 'TMS'),
         (XYZ, 'XYZ'),
     ]
-    type = models.CharField(
+    layer_type = models.CharField(
         max_length=7,
-        choices=TYPE_CHOICES,
+        choices=LAYER_TYPE_CHOICES,
         verbose_name='Layer type'
     )
 
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
-    rel_url = models.URLField(max_length=400, verbose_name='Relative domain URL')
+    rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
 
     # Filled in by a Data science engineer
-    properties = JSONField(null=True, verbose_name='Layer properties')
+    options = JSONField(null=True, verbose_name='Layer options')
     description = models.TextField(null=True, verbose_name='Layer description')
     released = models.BooleanField(default=False, verbose_name='Released')
 
     start_date = models.DateField(verbose_name='Start date', default=date.today)
     end_date = models.DateField(verbose_name='End date', default=date.today)
     name = models.CharField(max_length=200, null=True, verbose_name='Layer name')
-
