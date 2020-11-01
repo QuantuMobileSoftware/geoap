@@ -10,14 +10,28 @@ RUN apt-get update && apt-get upgrade -y\
     && apt-get install postgresql-client-13 -y\
     && apt-get install sqlite3 -y
 
-RUN wget https://download.osgeo.org/proj/proj-7.1.1.tar.gz \
-    && tar -xzf proj-7.1.1.tar.gz \
-    && cd proj-7.1.1 \
+# See https://docs.djangoproject.com/en/3.1/ref/contrib/gis/install/geolibs/
+
+RUN wget https://download.osgeo.org/geos/geos-3.8.1.tar.bz2 \
+    && tar -xjf geos-3.8.1.tar.bz2 \
+    && cd geos-3.8.1 \
     && ./configure \
     && make \
     && make install \
     && cd .. \
-    && rm -rf proj-7.1.1 proj-7.1.1.tar.gz
+    && rm -rf geos-3.8.1 geos-3.8.1.tar.bz2
+
+RUN wget https://download.osgeo.org/proj/proj-6.3.2.tar.gz \
+    && wget https://download.osgeo.org/proj/proj-datumgrid-1.8.tar.gz \
+    && tar -xzf proj-6.3.2.tar.gz \
+    && mkdir proj-6.3.2/nad && cd proj-6.3.2/nad \
+    && tar -xzf ../../proj-datumgrid-1.8.tar.gz \
+    && cd .. \
+    && ./configure \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf proj-6.3.2 proj-6.3.2.tar.gz proj-datumgrid-1.8.tar.gz
 
 RUN wget https://download.osgeo.org/gdal/3.1.4/gdal-3.1.4.tar.gz \
     && tar -xzf gdal-3.1.4.tar.gz \
