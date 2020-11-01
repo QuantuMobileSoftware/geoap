@@ -14,7 +14,7 @@ api_patterns = [
     path('logout', LogoutView.as_view(), name='rest_logout'),
     path('users/current', UserDetailsView.as_view(), name='rest_user_details'),
     path('docs', schema_view),
-    path("", include("results.urls")),
+    path("", include("publisher.urls")),
 ]
 
 urlpatterns = [
