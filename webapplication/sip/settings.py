@@ -25,7 +25,7 @@ SECRET_KEY = 'bnc-3!@tium@48wg*d(bdqqczssab=ykl2$30-%*%w9g3&945*'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '0.0.0.0', 'webapplication']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'webapplication']
 SITE_ID = 1
 
 

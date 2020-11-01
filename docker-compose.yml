@@ -62,4 +62,3 @@ services:
       - ./data:/home/jovyan/work
     environment:
       - JUPYTER_ENABLE_LAB=yes
-      
