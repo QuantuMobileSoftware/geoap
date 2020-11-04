@@ -5,6 +5,7 @@ import rasterio.features
 import rasterio.warp
 
 from abc import ABCMeta, abstractmethod
+from pathlib import Path
 from datetime import datetime
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
@@ -15,10 +16,11 @@ class File(metaclass=ABCMeta):
     def __init__(self, path, basedir):
         self.path = path
         self.basedir = basedir
+        self.srid = 'EPSG:4326'
 
     def filename(self):
-        filename = os.path.basename(self.path)
-        return filename
+        path = Path(self.path)
+        return path.stem
 
     def filepath(self):
         filepath = os.path.relpath(self.path, self.basedir)
@@ -87,7 +89,7 @@ class Geotif(File):
             mask = dataset.dataset_mask()
             # Extract feature shapes and values from the array.
             for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
-                geom = rasterio.warp.transform_geom(dataset.crs, 'EPSG:4326', geom, precision=6)
+                geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
                 polygon = json.dumps(geom)
 
         polygon = GEOSGeometry(polygon)
