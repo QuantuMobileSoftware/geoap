@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
     'rest_framework_swagger',
+    'flat_json_widget',
 
     # Local Apps
     'user',
@@ -141,10 +142,12 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 
+DATE_FORMAT = "Y-m-d"
+DATETIME_FORMAT = "Y-m-d H:i:s"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
