@@ -20,10 +20,9 @@ class Result(models.Model):
         max_length=7,
         choices=LAYER_TYPE_CHOICES,
         verbose_name='Layer type',
-        default='Unspecified',
     )
 
-    polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon', srid=4326)
+    polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
 
     # Filled in by a Data science engineer
