@@ -1,6 +1,5 @@
 from django.contrib.gis import admin
 from .models import Result
-# from django.contrib.postgres import fields
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
 
