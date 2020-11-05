@@ -7,12 +7,10 @@ class Result(models.Model):
     filepath = models.CharField(max_length=200, unique=True, db_index=True, verbose_name='Original filepath')
     modifiedat = models.DateTimeField(verbose_name='Original file modification date')
 
-    STRING = 'STRING'
     GEOJSON = 'GEOJSON'
     XYZ = 'XYZ'
 
     LAYER_TYPE_CHOICES = [
-        (STRING, 'STRING'),
         (GEOJSON, 'GEOJSON'),
         (XYZ, 'XYZ'),
     ]
