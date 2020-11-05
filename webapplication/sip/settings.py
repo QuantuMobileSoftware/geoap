@@ -185,3 +185,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Publisher app
+TILES_FOLDER = "./data/tiles"
+RESULTS_FOLDER = "./data/results"
