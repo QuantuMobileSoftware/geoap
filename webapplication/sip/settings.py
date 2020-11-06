@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'rest_framework_swagger',
     'flat_json_widget',
+    'drf_yasg',
 
     # Local Apps
     'user',
