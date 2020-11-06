@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:10.12
     volumes:
-      - ../db:/var/lib/postgresql/data
+      - /home/quantum/db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
