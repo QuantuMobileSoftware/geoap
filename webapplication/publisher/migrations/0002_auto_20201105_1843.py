@@ -34,4 +34,14 @@ class Migration(migrations.Migration):
             name='options',
             field=models.JSONField(blank=True, null=True, verbose_name='Layer options'),
         ),
+        migrations.AlterField(
+            model_name='result',
+            name='end_date',
+            field=models.DateField(blank=True, null=True, verbose_name='End date'),
+        ),
+        migrations.AlterField(
+            model_name='result',
+            name='start_date',
+            field=models.DateField(blank=True, null=True, verbose_name='Start date'),
+        ),
     ]
