@@ -12,7 +12,10 @@ https://docs.docker.com/compose/install/
 
 To run app make the next steps:
 ```
-cd sip/
+cd sip/webserver
+create .env based on the .env.dist
+
+cd ..
 docker-compose up -d
 ```
 Go to `localhost:3000`.

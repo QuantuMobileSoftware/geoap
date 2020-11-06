@@ -1,0 +1,56 @@
+proxy_cache_path  /data/nginx/cache     levels=1:2      keys_zone=MAPS:50m  inactive=24h    max_size=1g;
+
+upstream webapplication {
+    server webapplication:9000;
+}
+
+server {
+    listen       9000;
+    listen  [::]:9000;
+    server_name  ${SERVER_NAME};
+
+    rewrite ^/results/(.*)$ /api/files/results/$1 last;
+    rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+
+    location /api {
+        uwsgi_pass  webapplication;
+        include     /etc/nginx/uwsgi_params;
+    }
+    location /admin {
+        uwsgi_pass  webapplication;
+        include     /etc/nginx/uwsgi_params;
+    }
+    location /static {
+        uwsgi_pass  webapplication;
+        include     /etc/nginx/uwsgi_params;
+    }
+
+    location ~^/file_download/tiles/mapbox/(.*)/(.*)/(.*).png$ {
+        internal;
+        resolver 8.8.8.8 ipv6=off;
+        set $download_protocol "https";
+        set $download_host "api.mapbox.com";
+        set $download_path "styles/v1/mapbox/streets-v11/tiles";
+        set $args "";
+        set $args access_token=${ACCESS_TOKEN};
+        set $download_url $download_protocol://$download_host/$download_path/$1/$2/$3;
+
+        proxy_set_header Cookie '';
+        proxy_set_header Host $download_host;
+        proxy_set_header X-Forwarded-Proto $download_protocol;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Content-Disposition $upstream_http_content_disposition;
+
+        proxy_cache MAPS;
+        proxy_cache_valid 200 1d;
+        proxy_cache_use_stale  error timeout http_503 http_504;
+
+        proxy_pass $download_url$is_args$args;
+    }
+
+    location /file_download {
+        internal;
+        alias /data;
+    }
+}

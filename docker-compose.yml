@@ -53,7 +53,7 @@ services:
       - ./webserver/.env
     environment:
       - SERVER_NAME=soilmate.xyz
-    command: [nginx-debug, '-g', 'daemon off;']
+#    command: [nginx-debug, '-g', 'daemon off;']
 
   jupyter:
     build:
