@@ -28,8 +28,8 @@ class Result(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name='Layer description')
     released = models.BooleanField(default=False, verbose_name='Released')
 
-    start_date = models.DateField(verbose_name='Start date', default=date.today)
-    end_date = models.DateField(verbose_name='End date', default=date.today)
+    start_date = models.DateField(blank=True, null=True, verbose_name='Start date')
+    end_date = models.DateField(blank=True, null=True, verbose_name='End date')
     name = models.CharField(max_length=200, blank=True, null=True, verbose_name='Layer name')
 
     def __str__(self):

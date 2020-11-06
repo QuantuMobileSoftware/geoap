@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
                     f = self.file_factory.get_file_obj(path)
-                    if f is not None:
+                    if f:
                         files.append(f)
                 except Exception as ex:
                     logger.error(f"Error read {path}: {str(ex)}")
