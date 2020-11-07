@@ -41,7 +41,7 @@ services:
   webserver:
     image: nginx:1.19.3
     volumes:
-      - ./webserver/default.conf.template:/etc/nginx/templates/default.conf.template
+      - ./webserver/default.conf:/etc/nginx/conf.d/default.conf
       - ./data:/data
     expose:
       - 9000
@@ -49,9 +49,6 @@ services:
       - "9000:9000"
     depends_on:
       - webapplication
-    env_file:
-      - ./webserver/.env
-#    command: [nginx-debug, '-g', 'daemon off;']
 
   jupyter:
     build:

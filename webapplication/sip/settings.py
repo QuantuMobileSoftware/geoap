@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'rest_framework_swagger',
+    'flat_json_widget',
+    'drf_yasg',
 
     # Local Apps
     'user',
@@ -59,7 +60,6 @@ REST_FRAMEWORK = {
         'user.authentication.TokenAuthenticationWithQueryString',
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_PERMISSION_CLASSES': (
@@ -141,10 +141,12 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 
+DATE_FORMAT = "Y-m-d"
+DATETIME_FORMAT = "Y-m-d H:i:s"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -182,3 +184,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Publisher app
+TILES_FOLDER = "./data/tiles"
+RESULTS_FOLDER = "./data/results"

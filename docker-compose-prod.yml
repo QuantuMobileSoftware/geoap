@@ -2,9 +2,9 @@ version: "3.5"
 services:
 
   db:
-    image: postgres:10.12
+    image: postgis/postgis:13-3.0
     volumes:
-      - ../db:/var/lib/postgresql/data
+      - /home/quantum/db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
@@ -16,6 +16,8 @@ services:
     build:
       context: ./webapplication
       dockerfile: prod.Dockerfile
+    volumes:
+      - /home/quantum/sip:/data
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-prod
       - POSTGRES_DB=sip_db
@@ -32,7 +34,7 @@ services:
       context: ./
       dockerfile: ./webserver/prod.Dockerfile
     volumes:
-      - ../data:/data
+      - /home/quantum/sip:/data
     expose:
       - 80
     ports:
@@ -41,6 +43,8 @@ services:
       - webapplication
     networks:
       - sip
+    env_file:
+      - /home/quantum/webserver.env
 
   jupyter:
     build:
@@ -49,11 +53,11 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./data:/home/jovyan/work
+      - /home/quantum/sip:/home/jovyan/work
     environment:
       - JUPYTER_ENABLE_LAB=yes
     networks:
       - sip
-  
+
 networks:
   sip:

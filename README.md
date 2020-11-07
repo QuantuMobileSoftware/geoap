@@ -30,9 +30,11 @@ To run tests make the next:
 docker-compose exec webapplication ./manage.py test
 ```
 
+## API
+Go to  `localhost:9000/api/docs`
 
 ## Swagger
-Go to  `localhost:9000/api/docs`
+Go to  `localhost:9000/api/swagger`
 
 
 ## Admin
