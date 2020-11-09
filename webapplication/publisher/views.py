@@ -63,5 +63,8 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         if request.user.is_staff:
-            return super().destroy(request)
+            result = self.get_object()
+            result.to_be_deleted = True
+            result.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
