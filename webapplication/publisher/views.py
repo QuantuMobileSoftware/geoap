@@ -1,11 +1,12 @@
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
+
 
 class FilesView(APIView):
     """
@@ -64,6 +65,3 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         if request.user.is_staff:
             return super().destroy(request)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
-
-
-
