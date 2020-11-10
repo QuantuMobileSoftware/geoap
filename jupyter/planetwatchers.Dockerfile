@@ -193,7 +193,7 @@ WORKDIR $HOME
 ARG conda_env=python37
 ARG py_ver=3.7
 
-COPY requirements.txt requirements_37.txt /tmp/
+COPY requirements.txt requirements_planetwatchers.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
@@ -209,7 +209,7 @@ RUN $CONDA_DIR/envs/${conda_env}/bin/python -m ipykernel install --user --name=$
 
 
 # any additional pip installs
-RUN $CONDA_DIR/envs/${conda_env}/bin/pip install --requirement /tmp/requirements_37.txt && \
+RUN $CONDA_DIR/envs/${conda_env}/bin/pip install --requirement /tmp/requirements_planetwatchers.txt && \
                                                    fix-permissions $CONDA_DIR && \
                                                    fix-permissions /home/$NB_USER
 
