@@ -46,18 +46,5 @@ services:
     env_file:
       - /home/quantum/webserver.env
 
-  jupyter:
-    build:
-      context: ./jupyter
-      dockerfile: Dockerfile
-    ports:
-      - "8888:8888"
-    volumes:
-      - /home/quantum/sip:/home/jovyan/work
-    environment:
-      - JUPYTER_ENABLE_LAB=yes
-    networks:
-      - sip
-
 networks:
   sip:
