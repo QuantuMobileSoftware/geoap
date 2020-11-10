@@ -27,6 +27,7 @@ class Result(models.Model):
     options = JSONField(blank=True, null=True, verbose_name='Layer options')
     description = models.TextField(blank=True, null=True, verbose_name='Layer description')
     released = models.BooleanField(default=False, verbose_name='Released')
+    to_be_deleted = models.BooleanField(default=False, verbose_name='To be deleted')
 
     start_date = models.DateField(blank=True, null=True, verbose_name='Start date')
     end_date = models.DateField(blank=True, null=True, verbose_name='End date')
