@@ -42,4 +42,4 @@ class AOIResultsListAPIView(ListAPIView):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg])
         if self.request.user.is_staff:
             return self.queryset.filter(polygon__bboverlaps=area_of_interest.polygon)
-        return self.queryset.filter(polygon__overlaps=area_of_interest.polygon, released=True)
+        return self.queryset.filter(polygon__overlaps=area_of_interest.polygon, released=True, to_be_deleted=False)

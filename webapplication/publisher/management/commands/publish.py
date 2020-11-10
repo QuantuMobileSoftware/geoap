@@ -131,6 +131,6 @@ class Command(BaseCommand):
 
             rm_empty_dirs(self.tiles_folder)
 
-        except OSError as ex:  # TODO
+        except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
