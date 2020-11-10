@@ -123,7 +123,7 @@ class Command(BaseCommand):
                 filepath = os.path.join(self.results_folder, result.filepath)
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
-                Path.unlink(Path(self.results_folder) / Path(result.filepath))
+                Path.unlink(Path(filepath))
 
             logger.info("Deleting tiles finished")
 
@@ -131,6 +131,6 @@ class Command(BaseCommand):
 
             rm_empty_dirs(self.tiles_folder)
 
-        except OSError as ex:  # TODO
+        except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")

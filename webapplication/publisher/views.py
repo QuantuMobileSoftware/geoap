@@ -40,7 +40,7 @@ class ResultListAPIView(ListAPIView):
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        return self.queryset.filter(released=True)
+        return self.queryset.filter(released=True, to_be_deleted=False)
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -48,13 +48,11 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     http_method_names = ("get", "patch", 'delete')
-    # lookup_field = "id"
-    # lookup_url_kwarg = "pk"
 
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        return self.queryset.filter(released=True)
+        return self.queryset.filter(released=True, to_be_deleted=False)
 
     def patch(self, request, *args, **kwargs):
         if request.user.is_staff:

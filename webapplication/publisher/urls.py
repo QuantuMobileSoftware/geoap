@@ -4,5 +4,5 @@ from .views import FilesView, ResultListAPIView, ResultRetrieveUpdateDestroyAPIV
 urlpatterns = [
     path('files/<path:file_path>', FilesView.as_view(), name='get_file'),
     path('results', ResultListAPIView.as_view(), name='get_results'),
-    path('results/<int:pk>', ResultRetrieveUpdateDestroyAPIView.as_view(), name='rud_result')
+    path('results/<int:pk>', ResultRetrieveUpdateDestroyAPIView.as_view(), name='result')
 ]
