@@ -5,6 +5,7 @@ from .models import Result
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
 
+
 @admin.register(Result)
 class ResultAdmin(admin.OSMGeoAdmin):
 
