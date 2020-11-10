@@ -55,7 +55,7 @@ class File(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def polygon(self):
+    def bbox(self):
         pass
 
     @abstractmethod
@@ -74,22 +74,40 @@ class File(metaclass=ABCMeta):
 
 
 class Geojson(File):
+    def __init__(self, path, basedir):
+        super().__init__(path, basedir)
+
+    def _read_file(self):
+        with open(self.path) as file:
+            geojson = json.load(file)
+
+        self.name = geojson.get('name')
+        self.dateFrom = geojson.get('dateFrom')
+        self.dateTo = geojson.get('dateTo')
+
+        # Get features as iterable list
+        if geojson.get('features'):
+            self.features = geojson['features']
+        else:
+            self.features = [geojson]
+
     def layer_type(self):
         return Result.GEOJSON
 
     def rel_url(self):
         return f"/results/{super().filepath()}"
 
-    def polygon(self):
-        df = geopandas.read_file(self.path)
-        bbox = str(box(*df.total_bounds))
-        polygon = GEOSGeometry(bbox)
-        return polygon
+    def bbox(self):
+        df = geopandas.GeoDataFrame.from_features(self.features)
+        bound_box = str(box(*df.total_bounds))
+        bound_box = GEOSGeometry(bound_box)
+        return bound_box
+
 
     def as_dict(self):
         dict_ = dict(layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
-                     polygon=self.polygon(), )
+                     polygon=self.bbox(), )
 
         dict_.update(super().as_dict())
         return dict_
@@ -102,18 +120,18 @@ class Geotif(File):
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
 
-    def polygon(self):
-        polygon = None
+    def bbox(self):
+        bound_box = None
         with rasterio.open(self.path) as dataset:
             mask = dataset.dataset_mask()
             # Extract feature shapes and values from the array.
             for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
                 geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
-                polygon = json.dumps(geom)
-        if not polygon:
+                bound_box = json.dumps(geom)
+        if not bound_box:
             return
-        polygon = GEOSGeometry(polygon)
-        return polygon
+        bound_box = GEOSGeometry(bound_box)
+        return bound_box
 
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
@@ -140,7 +158,7 @@ class Geotif(File):
     def as_dict(self):
         dict_ = dict(layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
-                     polygon=self.polygon(), )
+                     polygon=self.bbox(), )
 
         dict_.update(super().as_dict())
         return dict_
