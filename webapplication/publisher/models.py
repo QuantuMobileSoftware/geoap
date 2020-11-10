@@ -1,6 +1,5 @@
 from django.contrib.gis.db import models
 from django.db.models import JSONField
-from datetime import date
 
 
 class Result(models.Model):

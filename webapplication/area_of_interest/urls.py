@@ -1,0 +1,8 @@
+from django.urls import path
+from .views import AoIListCreateAPIView, AoIRetrieveUpdateDestroyAPIView, AOIResultsListAPIView
+
+urlpatterns = [
+    path('aoi', AoIListCreateAPIView.as_view(), name='aoi'),
+    path('aoi/<int:pk>', AoIRetrieveUpdateDestroyAPIView.as_view(), name='rud_aoi'),
+    path('aoi/<int:pk>/results', AOIResultsListAPIView.as_view(), name='aoi_results')
+]

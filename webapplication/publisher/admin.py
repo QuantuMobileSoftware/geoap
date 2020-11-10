@@ -32,4 +32,3 @@ class ResultAdmin(admin.OSMGeoAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
-
