@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_auth',
     'flat_json_widget',
     'drf_yasg',
+    'rangefilter',
 
     # Local Apps
     'user',

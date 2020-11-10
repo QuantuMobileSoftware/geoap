@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import shutil
+import geopandas
 import rasterio
 import rasterio.features
 import rasterio.warp
@@ -9,6 +10,7 @@ import rasterio.warp
 from abc import ABCMeta, abstractmethod
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
+from shapely.geometry import box
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
 from ...models import Result
@@ -27,7 +29,7 @@ class FileFactory(object):
         elif path_lower.endswith(('.tif', '.tiff')):
             return Geotif(path, self.basedir)
         else:
-            return None
+            return
 
 
 class File(metaclass=ABCMeta):
@@ -79,10 +81,9 @@ class Geojson(File):
         return f"/results/{super().filepath()}"
 
     def polygon(self):
-        with open(self.path) as file:
-            asset = json.load(file)
-        polygon = str(asset['geometry'])
-        polygon = GEOSGeometry(polygon)
+        df = geopandas.read_file(self.path)
+        bbox = str(box(*df.total_bounds))
+        polygon = GEOSGeometry(bbox)
         return polygon
 
     def as_dict(self):
@@ -109,8 +110,8 @@ class Geotif(File):
             for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
                 geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
                 polygon = json.dumps(geom)
-        if polygon is None:
-            return None
+        if not polygon:
+            return
         polygon = GEOSGeometry(polygon)
         return polygon
 
