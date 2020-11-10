@@ -16,10 +16,10 @@ class ResultSerializer(serializers.ModelSerializer):
 class AoISerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
-        validated_data.pop('create_date', None)
+        validated_data.pop('createdat', None)
         return AoI.objects.create(**validated_data)
 
     class Meta:
         model = AoI
-        fields = ('id', 'name', 'polygon', 'create_date', 'description')
-        read_only_fields = ['create_date', ]
+        fields = ('id', 'name', 'polygon', 'createdat')
+        read_only_fields = ['createdat', ]
