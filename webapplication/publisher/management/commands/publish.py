@@ -3,6 +3,7 @@ import fcntl
 import os
 import os.path
 import tempfile
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -55,6 +56,7 @@ class Command(BaseCommand):
         files = self._read()
         self._update_or_create(files)
         self._clean(files)
+        self._delete()
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
@@ -113,3 +115,22 @@ class Command(BaseCommand):
         except Exception as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting finished")
+
+    def _delete(self):
+        to_delete = Result.objects.filter(to_be_deleted=True)
+        try:
+            for result in to_delete:
+                filepath = os.path.join(self.results_folder, result.filepath)
+                f = self.file_factory.get_file_obj(filepath)
+                f.delete_tiles(self.tiles_folder)
+                Path.unlink(Path(filepath))
+
+            logger.info("Deleting tiles finished")
+
+            to_delete.delete()
+
+            rm_empty_dirs(self.tiles_folder)
+
+        except OSError as ex:
+            logger.error(f"Error deleting: {str(ex)}")
+        logger.info(f"Deleting results files finished")
