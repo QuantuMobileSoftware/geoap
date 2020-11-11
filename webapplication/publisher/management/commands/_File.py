@@ -8,6 +8,7 @@ import rasterio.features
 import rasterio.warp
 
 from abc import ABCMeta, abstractmethod
+from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 from shapely.geometry import box
@@ -38,6 +39,10 @@ class File(metaclass=ABCMeta):
         self.basedir = basedir
         self.srid = 'EPSG:4326'
 
+        self.name = None
+        self.start_date = None
+        self.end_date = None
+
     def filename(self):
         return os.path.basename(self.path)
 
@@ -55,7 +60,7 @@ class File(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def bbox(self):
+    def polygon(self):
         pass
 
     @abstractmethod
@@ -69,27 +74,46 @@ class File(metaclass=ABCMeta):
         pass
 
     def as_dict(self):
-        return dict(filepath=self.filepath(),
-                    modifiedat=self.modifiedat(), )
+        dict_ = dict(filepath=self.filepath(),
+                     modifiedat=self.modifiedat(),
+                     layer_type=self.layer_type(),
+                     rel_url=self.rel_url(),
+                     polygon=self.polygon(), )
+
+        if self.name:
+            dict_['name'] = self.name
+        if self.start_date:
+            dict_['start_date'] = timestamp_parser.parse(self.start_date)
+        if self.end_date:
+            dict_['end_date'] = timestamp_parser.parse(self.end_date)
+
+        return dict_
 
 
 class Geojson(File):
     def __init__(self, path, basedir):
         super().__init__(path, basedir)
 
+        self.features = None
+
+        try:
+            self._read_file()
+        except Exception as ex:
+            logger.error(f"Cannot read file {self.path}: {str(ex)}")
+
     def _read_file(self):
         with open(self.path) as file:
             geojson = json.load(file)
 
-        self.name = geojson.get('name')
-        self.dateFrom = geojson.get('dateFrom')
-        self.dateTo = geojson.get('dateTo')
+            self.name = geojson.get('name')
+            self.start_date = geojson.get('start_date')
+            self.end_date = geojson.get('end_date')
 
-        # Get features as iterable list
-        if geojson.get('features'):
-            self.features = geojson['features']
-        else:
-            self.features = [geojson]
+            # Get features as iterable list
+            if geojson.get('features'):
+                self.features = geojson['features']
+            else:
+                self.features = [geojson]
 
     def layer_type(self):
         return Result.GEOJSON
@@ -97,47 +121,57 @@ class Geojson(File):
     def rel_url(self):
         return f"/results/{super().filepath()}"
 
-    def bbox(self):
+    def polygon(self):
+        if not self.features:
+            return
+
         df = geopandas.GeoDataFrame.from_features(self.features)
         bound_box = str(box(*df.total_bounds))
         bound_box = GEOSGeometry(bound_box)
         return bound_box
 
 
-    def as_dict(self):
-        dict_ = dict(layer_type=self.layer_type(),
-                     rel_url=self.rel_url(),
-                     polygon=self.bbox(), )
-
-        dict_.update(super().as_dict())
-        return dict_
-
-
 class Geotif(File):
+    def __init__(self, path, basedir):
+        super().__init__(path, basedir)
+
+        self.bound_box = None
+
+        try:
+            self._read_file()
+        except Exception as ex:
+            logger.error(f"Cannot read file {self.path}: {str(ex)}")
+
+    def _read_file(self):
+        with rasterio.open(self.path) as dataset:
+            mask = dataset.dataset_mask()
+            # Extract feature shapes and values from the array.
+            for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
+                geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
+                self.bound_box = json.dumps(geom)
+            tags = dataset.tags()
+
+            self.name = tags.get('name')
+            self.start_date = tags.get('start_date')
+            self.end_date = tags.get('end_date')
+
     def layer_type(self):
         return Result.XYZ
 
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
 
-    def bbox(self):
-        bound_box = None
-        with rasterio.open(self.path) as dataset:
-            mask = dataset.dataset_mask()
-            # Extract feature shapes and values from the array.
-            for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
-                geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
-                bound_box = json.dumps(geom)
-        if not bound_box:
+    def polygon(self):
+        if not self.bound_box:
             return
-        bound_box = GEOSGeometry(bound_box)
+        bound_box = GEOSGeometry(self.bound_box)
         return bound_box
 
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
-        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
+        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=2", self.path, save_path, ]
         process = Popen(command, stdout=PIPE)
         try:
             out, err = process.communicate(timeout=timeout)
@@ -155,10 +189,3 @@ class Geotif(File):
         except OSError as e:
             logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
-    def as_dict(self):
-        dict_ = dict(layer_type=self.layer_type(),
-                     rel_url=self.rel_url(),
-                     polygon=self.bbox(), )
-
-        dict_.update(super().as_dict())
-        return dict_
