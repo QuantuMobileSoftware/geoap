@@ -81,10 +81,12 @@ class Command(BaseCommand):
                 try:
                     result = Result.objects.get(filepath=file_dict['filepath'])
                     if result.modifiedat < file_dict['modifiedat']:
+
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
+
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
                     Result.objects.create(**file_dict)
