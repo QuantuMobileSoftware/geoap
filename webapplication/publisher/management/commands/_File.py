@@ -171,7 +171,7 @@ class Geotif(File):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
-        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=2", self.path, save_path, ]
+        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
         process = Popen(command, stdout=PIPE)
         try:
             out, err = process.communicate(timeout=timeout)
