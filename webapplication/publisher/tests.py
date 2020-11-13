@@ -312,17 +312,45 @@ class BaseTestCase(APITestCase):
     """
 
     def setUp(self):
+
+
         self.staff_user = self.create_user(username='test_staff_user', is_staff=True)
         self.not_staff_user = self.create_user(username='test_user')
-        self.test_path = Path(settings.BASE_DIR).parent / settings.TEST_RESULTS_FOLDER
+        self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
         self.test_path.mkdir(parents=True, exist_ok=True)
         self.create_test_geojson()
-        self.run_publisher()
+
+        self.command = Command()
+        self.command.handle()
+
+        results = Result.objects.all().order_by('id')
+
+        # delete kharkiv_zoo
+        result = results[0]
+        result.to_be_deleted = True
+        self.path_deleted = result.filepath
+        self.id_0_deleted = result.id
+        print('id_0_deleted: ', self.id_0_deleted, self.path_deleted)
+        result.save()
+
+        # kharkiv_park is released
+        self.result_1 = results[1]
+        self.result_1.released = True
+        print('result_id_1_released: ', self.result_1.id)
+        self.result_1.save()
+
+        # homilsha is released
+        self.result_2 = results[2]
+        self.result_2.released = True
+        print('id_2_released: ', self.result_2.id)
+        self.result_2.save()
+
+        self.command.handle()
 
     @classmethod
     def tearDownClass(cls):
-        if settings.TEST_RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.TEST_RESULTS_FOLDER).exists():
-            shutil.rmtree(Path(settings.BASE_DIR).parent / settings.TEST_RESULTS_FOLDER)
+        if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
+            shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
         super().tearDownClass()
 
     def create_user(self, username, is_staff=False, is_superuser=False):
@@ -356,30 +384,83 @@ class BaseTestCase(APITestCase):
             with open(f"{self.test_path}/{cnt}.geojson", 'w') as file:
                 geojson.dump(features[cnt], file)
 
-    def run_publisher(self):
-        c = Command()
-        c.handle()
 
-    def test_get_results_for_stuff(self):
+class ResultTestCase(BaseTestCase):
+
+    def test_get_results_list(self):
+        url = reverse('get_results')
         self.client.force_authenticate(user=self.staff_user)
-        url = reverse('get_results')
         response = self.client.get(url)
-
         content = json.loads(response.content)
-        print(content['count'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], 13)
+        self.assertEqual(content['count'], 12)
 
-    def test_get_results_for_not_staff(self):
         self.client.force_authenticate(user=self.not_staff_user)
-        url = reverse('get_results')
         response = self.client.get(url)
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], 0)
+        self.assertEqual(content['count'], 2)
 
-    def test_get_results_for_non_auth_user(self):
         self.client.force_authenticate(user=None)
-        url = reverse('get_results')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_result(self):
+        url = reverse('result', kwargs={'pk': self.result_1.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_patch_result(self):
+        url = reverse('result', kwargs={'pk': self.result_2.id})
+        data = {"description": "description_test",
+                "start_date": "2021-12-12",
+                "end_date": "2021-12-13",
+                "name": "test_name",
+                'to_be_deleted': True,
+                'filepath': 'new.geojson'
+                }
+        self.client.force_authenticate(user=None)
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        content = json.loads(response.content)
+        self.assertEqual(content['name'], 'test_name')
+        self.assertEqual(content['start_date'], '2021-12-12')
+        self.assertEqual(content['end_date'], '2021-12-13')
+        self.assertEqual(content['description'], 'description_test')
+        self.assertEqual(content['to_be_deleted'], self.result_2.to_be_deleted)
+        self.assertEqual(content['filepath'], self.result_2.filepath)
+
+    def test_delete_result(self):
+        url = reverse('result', kwargs={'pk': self.result_1.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        result = Result.objects.get(id=self.result_1.id)
+        self.assertEqual(result.to_be_deleted, True)
+        self.command._delete()

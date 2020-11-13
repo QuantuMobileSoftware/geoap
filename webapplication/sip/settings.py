@@ -190,4 +190,3 @@ LOGGING = {
 # Publisher app
 TILES_FOLDER = "./data/tiles"
 RESULTS_FOLDER = "./data/results"
-TEST_RESULTS_FOLDER = "./data/test_results"
