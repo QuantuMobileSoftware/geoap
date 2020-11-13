@@ -60,8 +60,10 @@ class Command(BaseCommand):
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
+        exclude = ['.ipynb_checkpoints', ]
         files = list()
-        for dirpath, _, filenames in os.walk(self.results_folder):
+        for dirpath, dirs, filenames in os.walk(self.results_folder):
+            dirs[:] = [d for d in dirs if d not in exclude]
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
