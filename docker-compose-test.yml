@@ -23,6 +23,5 @@ services:
       - POSTGRES_PASSWORD=eiJ2koo6
     volumes:
       - ./webapplication:/code
-      - ./data:/code/data
     depends_on:
       - db
