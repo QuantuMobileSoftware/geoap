@@ -7,11 +7,15 @@ import WidgetFactory from "./WidgetFactory";
 import UserModel from "./UserModel";
 import APIWrapper from "./APIWrapper";
 import createLoginForm from "./LoginForm";
+import MapModel from "./MapModel";
+import createMap from "./Map";
 
 const apiWrapper = new APIWrapper();
 const userModel = new UserModel(apiWrapper);
 const widgetFactory = new WidgetFactory();
 const loginForm = createLoginForm(widgetFactory, userModel);
+const mapModel = new MapModel(apiWrapper);
+const map = createMap(widgetFactory, mapModel);
 const root = Div();
 
 // TODO(adolgarev) replace with modal window
@@ -39,7 +43,7 @@ apiWrapper.addEventListener("error", (e) => {
 })
 
 userModel.addEventListener("loggedin", () => {
-    root.setChildren("loggedin", alertContainer);
+    root.setChildren(map, alertContainer);
 });
 userModel.addEventListener("loggedout", () => {
     root.setChildren(loginForm, alertContainer);
