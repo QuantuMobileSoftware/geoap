@@ -5,7 +5,9 @@ export default class APIWrapper extends EventTarget {
         if (xhr.status === 401) {
             this.dispatchEvent(new Event("forbidden"));
         } else {
-            console.error(xhr.responseText);
+            this.dispatchEvent(new CustomEvent("error", {
+                detail: JSON.parse(xhr.responseText)
+            }));
         }
     }
 
