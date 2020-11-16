@@ -38,10 +38,10 @@ class ResultAdmin(admin.OSMGeoAdmin):
 
 @admin.register(AoI)
 class AoIAdmin(admin.OSMGeoAdmin):
-    list_display = ('name', 'polygon', 'createdat',)
+    list_display = ('name', 'polygon', 'createdat', 'description')
     search_fields = ('name',)
     fieldsets = (('fieldsets_name', {
-        'fields': ('name', 'polygon')
+        'fields': ('name', 'polygon', 'description')
     }), )
 
     def get_actions(self, request):

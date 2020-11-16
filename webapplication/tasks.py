@@ -59,4 +59,5 @@ def run_prod(ctx):
 
 @task
 def test(ctx):
+    init_db(ctx)
     ctx.run('python -m manage test')

@@ -21,5 +21,5 @@ class AoISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AoI
-        fields = ('id', 'name', 'polygon', 'createdat')
+        fields = ('id', 'name', 'polygon', 'createdat', "description")
         read_only_fields = ['createdat', ]

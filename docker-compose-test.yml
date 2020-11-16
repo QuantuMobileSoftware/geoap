@@ -15,7 +15,7 @@ services:
     build:
       context: ./webapplication
       dockerfile: Dockerfile
-    command: /bin/bash -c "exec invoke run"
+    command: /bin/bash -c "exec invoke test"
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-test
       - POSTGRES_DB=sip_db
@@ -23,6 +23,6 @@ services:
       - POSTGRES_PASSWORD=eiJ2koo6
     volumes:
       - ./webapplication:/code
-      - ./data:/code/data
+      - ./data:/data
     depends_on:
       - db

@@ -2,11 +2,11 @@ import os
 import uuid
 import geojson
 import shutil
+import logging
 import json
 from pathlib import Path
 from geojson import Feature, Polygon, FeatureCollection, Point, LineString
 from datetime import datetime
-from django.test import TestCase
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.conf import settings
@@ -14,6 +14,9 @@ from django.urls import reverse
 from user.models import User
 from .management.commands.publish import Command
 from .models import Result, AoI
+from .serializers import AoISerializer
+
+logger = logging.getLogger('root')
 
 kharkiv_zoo = Polygon([
     [
@@ -288,22 +291,15 @@ osnova_lake = Polygon([
     ]
 ])
 
-point1 = Point((36.22372627258301, 49.9383227101154))
-point2 = Point((36.225571632385254, 49.93757694207898))
-point3 = Point((36.22698783874512, 49.935809149513695))
-point4 = Point((36.230034828186035, 49.93053300797301))
-
-line1 = LineString([(36.19377136230469, 50.01104862197962),
-                    (36.304664611816406, 49.98279931342137)])
-
-line2 = LineString([(36.171112060546875, 49.981916255086986),
-                    (36.25488281249999, 50.01082798858057)])
-
-line3 = LineString([(36.19377136230469, 48.03104862197962),
-                    (36.304664611816406, 48.98279931342137)])
-
-line4 = LineString([(36.171112060546875, 49.991916255086986),
-                    (36.25488281249999, 49.01082798858057)])
+# test_aoi = Polygon([
+#     [
+#         [36.076323010202323, 49.969789683188296],
+#         [36.335151277221932, 49.959225264126275],
+#         [36.344659254377753, 49.460584684398697],
+#         [36.077379452108524, 49.453189591055278],
+#         [36.076323010202323, 49.969789683188296]
+#     ]
+# ])
 
 
 class BaseTestCase(APITestCase):
@@ -311,156 +307,333 @@ class BaseTestCase(APITestCase):
     Base test case.
     """
 
-    def setUp(self):
+    # fixtures = 'publisher/results_fixtures.json'
 
+    # def setUp(self):
+    #     self.staff_user = self.create_user(username='test_staff_user', is_staff=True)
+    #     self.not_staff_user = self.create_user(username='test_user')
+    #     self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
+    #     self.test_path.mkdir(parents=True, exist_ok=True)
+    #     logger.info(f'test_path: {self.test_path}')
+    #     self.create_test_geojson()
+    #
+    #     self.command = Command()
+    #     self.command.handle()
+    #
+    #     results = Result.objects.all().order_by('id')
+    #
+    #     # mark record as released
+    #     self.result_released_1 = results[1]
+    #     self.result_released_1.released = True
+    #     logger.info(f'result_released_1.id: {self.result_released_1.id}')
+    #     self.result_released_1.save()
+    #
+    #     # mark record as released
+    #     self.result_released_2 = results[2]
+    #     self.result_released_2.released = True
+    #     logger.info(f'result_released_2.id: {self.result_released_2.id}')
+    #     self.result_released_2.save()
+    #
+    #     self.command.handle()
 
-        self.staff_user = self.create_user(username='test_staff_user', is_staff=True)
-        self.not_staff_user = self.create_user(username='test_user')
-        self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
-        self.test_path.mkdir(parents=True, exist_ok=True)
-        self.create_test_geojson()
+    # @classmethod
+    # def tearDownClass(cls):
+        # if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
+        #     shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
+        # super().tearDownClass()
 
-        self.command = Command()
-        self.command.handle()
-
-        results = Result.objects.all().order_by('id')
-
-        # delete kharkiv_zoo
-        result = results[0]
-        result.to_be_deleted = True
-        self.path_deleted = result.filepath
-        self.id_0_deleted = result.id
-        print('id_0_deleted: ', self.id_0_deleted, self.path_deleted)
-        result.save()
-
-        # kharkiv_park is released
-        self.result_1 = results[1]
-        self.result_1.released = True
-        print('result_id_1_released: ', self.result_1.id)
-        self.result_1.save()
-
-        # homilsha is released
-        self.result_2 = results[2]
-        self.result_2.released = True
-        print('id_2_released: ', self.result_2.id)
-        self.result_2.save()
-
-        self.command.handle()
-
-    @classmethod
-    def tearDownClass(cls):
-        if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
-            shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
-        super().tearDownClass()
-
-    def create_user(self, username, is_staff=False, is_superuser=False):
+    @staticmethod
+    def create_user(username, is_staff=False, is_superuser=False):
         """
         create_user
         """
         user = User.objects.create(username=username, is_staff=is_staff, is_superuser=is_superuser)
         return user
 
-    def generate_features(self):
-        polygons = [kharkiv_zoo, kharkiv_park, homilsha, hytor, osnova_lake]
-        points = [point1, point2, point3, point4]
-        lines = [line1, line2, line3, line4]
-
-        geometries = [*polygons, *points, *lines]
+    @staticmethod
+    def generate_features():
+        geometries = [
+            ('kharkiv_zoo', kharkiv_zoo),
+            ('kharkiv_park', kharkiv_park),
+            ('homilsha', homilsha),
+            ('hytor', hytor),
+            ('osnova_lake', osnova_lake)
+        ]
 
         acquired = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         properties = dict(acquired=acquired)
 
         features = list()
-        for geometry in geometries:
+        for geometry_name, geometry in geometries:
             id_ = str(uuid.uuid4())
             feature = Feature(id=id_, geometry=geometry, properties=properties)
-            features.append(feature)
+            features.append((geometry_name, feature))
         return features
 
     def create_test_geojson(self):
         features = self.generate_features()
 
         for cnt in range(len(features)):
-            with open(f"{self.test_path}/{cnt}.geojson", 'w') as file:
-                geojson.dump(features[cnt], file)
+            with open(f"{self.test_path}/{features[cnt][0]}.geojson", 'w') as file:
+                geojson.dump(features[cnt][1], file)
 
 
-class ResultTestCase(BaseTestCase):
+class ResultTestCase(APITestCase):
+    fixtures = ["publisher/fixtures/results_fixtures.json", ]
 
-    def test_get_results_list(self):
-        url = reverse('get_results')
-        self.client.force_authenticate(user=self.staff_user)
-        response = self.client.get(url)
-        content = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], 12)
+    def setUp(self):
+        self.staff_user = User.objects.get(id=1001)
+        self.not_staff_user = User.objects.get(id=1002)
+        self.result_released_1 = Result.objects.get(id=1001)
+        self.result_released_2 = Result.objects.get(id=1006)
 
-        self.client.force_authenticate(user=self.not_staff_user)
-        response = self.client.get(url)
-        content = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], 2)
-
-        self.client.force_authenticate(user=None)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_get_result(self):
-        url = reverse('result', kwargs={'pk': self.result_1.id})
-        self.client.force_authenticate(user=None)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        self.client.force_authenticate(user=self.not_staff_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.client.force_authenticate(user=self.staff_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_patch_result(self):
-        url = reverse('result', kwargs={'pk': self.result_2.id})
-        data = {"description": "description_test",
+        self.patch_data = {"description": "description_test",
                 "start_date": "2021-12-12",
                 "end_date": "2021-12-13",
                 "name": "test_name",
                 'to_be_deleted': True,
                 'filepath': 'new.geojson'
                 }
+
+    def test_get_results_list_as_not_auth_user(self):
+        url = reverse('get_results')
         self.client.force_authenticate(user=None)
-        response = self.client.patch(url, data)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_get_results_list_as_not_staff_user(self):
+        expected_results_len = 2
+        url = reverse('get_results')
         self.client.force_authenticate(user=self.not_staff_user)
-        response = self.client.patch(url, data)
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_results_list_as_staff_user(self):
+        expected_results_len = 6
+        url = reverse('get_results')
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_results_list_with_deleted_as_not_staff_user(self):
+        expected_results_len = 1
+        url = reverse('get_results')
+        self.client.force_authenticate(user=self.not_staff_user)
+        result = Result.objects.get(id=self.result_released_1.id)
+        result.to_be_deleted = True
+        result.save()
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_results_list_with_deleted_as_staff_user(self):
+        expected_results_len = 6
+        url = reverse('get_results')
+        self.client.force_authenticate(user=self.staff_user)
+        result = Result.objects.get(id=self.result_released_1.id)
+        result.to_be_deleted = True
+        result.save()
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_result_as_not_auth_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.client.force_authenticate(user=self.staff_user)
-        response = self.client.patch(url, data)
+    def test_get_result_as_not_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_get_result_as_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_result_deleted_as_not_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
+        self.client.force_authenticate(user=self.not_staff_user)
+        result = Result.objects.get(id=self.result_released_1.id)
+        result.to_be_deleted = True
+        result.save()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_result_deleted_as_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
+        self.client.force_authenticate(user=self.staff_user)
+        result = Result.objects.get(id=self.result_released_1.id)
+        result.to_be_deleted = True
+        result.save()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_patch_result_as_not_auth_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_2.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.patch(url, self.patch_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_patch_result_as_not_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_2.id})
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.patch(url, self.patch_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_patch_result_as_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_2.id})
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.patch(url, self.patch_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content)
         self.assertEqual(content['name'], 'test_name')
-        self.assertEqual(content['start_date'], '2021-12-12')
-        self.assertEqual(content['end_date'], '2021-12-13')
-        self.assertEqual(content['description'], 'description_test')
-        self.assertEqual(content['to_be_deleted'], self.result_2.to_be_deleted)
-        self.assertEqual(content['filepath'], self.result_2.filepath)
+        self.assertEqual(content['start_date'], self.patch_data['start_date'])
+        self.assertEqual(content['end_date'], self.patch_data['end_date'])
+        self.assertEqual(content['description'], self.patch_data['description'])
+        self.assertEqual(content['to_be_deleted'], self.result_released_2.to_be_deleted)
+        self.assertEqual(content['filepath'], self.result_released_2.filepath)
 
-    def test_delete_result(self):
-        url = reverse('result', kwargs={'pk': self.result_1.id})
+    def test_delete_result_as_not_auth_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         self.client.force_authenticate(user=None)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
+    
+    def test_delete_result_as_not_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
+    
+    def test_delete_result_as_staff_user(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        result = Result.objects.get(id=self.result_1.id)
+        result = Result.objects.get(id=self.result_released_1.id)
         self.assertEqual(result.to_be_deleted, True)
-        self.command._delete()
+
+
+
+
+    # def test_delete_result(self):
+    #     url = reverse('result', kwargs={'pk': self.result_released_1.id})
+    #
+    #
+    #
+    #
+    #     self.client.force_authenticate(user=self.staff_user)
+    #     result = Result.objects.get(id=self.result_released_1.id)
+    #     response = self.client.delete(url)
+    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # self.command._delete()
+        # self.assertEqual((self.test_path / Path(result.filepath)).exists(), False)
+
+
+class AOITestCase(APITestCase):
+    fixtures = ["publisher/fixtures/results_fixtures.json", ]
+
+    def setUp(self):
+        self.staff_user = User.objects.get(id=1001)
+        self.not_staff_user = User.objects.get(id=1002)
+        self.data_create = {
+            "name": "Aoi_test",
+            "polygon": "SRID=4326;POLYGON ((36.076323010202323 49.969789683188296, \
+            36.335151277221932 49.959225264126275, \
+            36.344659254377753 49.460584684398697, \
+            36.077379452108524 49.453189591055278, \
+            36.05232238267571 49.44714671586419, \
+            36.076323010202323 49.969789683188296))",
+            "description": "Aoi_test description"
+        }
+
+        self.data_patch = {
+            "name": "Aoi_test",
+            "polygon": "SRID=4326;POLYGON ((\
+            35.895191466414154 50.009453778741694, \
+            36.336338200246395 50.008199333053057, \
+            36.344659254377753 49.460584684398697, \
+            35.912753706054865 49.4508072987418, \
+            35.895191466414154 50.009453778741694\
+            ))",
+            "createdat": "2020-11-20",
+            "description": "Aoi_test new description"
+        }
+
+    def test_create_aoi_as_not_auth_user(self):
+        url = reverse('aoi_list_or_create')
+        self.client.force_authenticate(user=None)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_aoi_as_not_staff_user(self):
+        url = reverse('aoi_list_or_create')
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_aoi_as_staff_user(self):
+        url = reverse('aoi_list_or_create')
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_aoi_as_not_auth_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_aoi_as_not_staff_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_aoi_as_staff_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_putch_aoi_as_not_auth_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=None)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_putch_aoi_as_not_staff_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_putch_aoi_as_staff_user(self):
+        aoi = AoI.objects.create(**self.data_create)
+        aoi.polygon = self.data_patch['polygon']
+        serializer = AoISerializer(aoi)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content)
+        self.assertEqual(content['name'], self.data_patch['name'])
+        self.assertEqual(content['description'], self.data_patch['description'])
+        self.assertEqual(content['polygon'], serializer.data['polygon'])
+        self.assertEqual(content['createdat'], serializer.data['createdat'])
