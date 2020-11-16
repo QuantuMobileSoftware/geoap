@@ -11,7 +11,8 @@ export default function createMap(widgetFactory, mapModel) {
             height: "100%",
             position: "absolute",
             top: "0",
-            left: "0"
+            left: "0",
+            "z-index": "1",
         });
     map.componentDidMount = () => {
         const mymap = L.map(mapId, { zoomControl: false });

@@ -9,6 +9,7 @@ import APIWrapper from "./APIWrapper";
 import createLoginForm from "./LoginForm";
 import MapModel from "./MapModel";
 import createMap from "./Map";
+import createLayersSelector from "./LayersSelector";
 
 const apiWrapper = new APIWrapper();
 const userModel = new UserModel(apiWrapper);
@@ -16,6 +17,7 @@ const widgetFactory = new WidgetFactory();
 const loginForm = createLoginForm(widgetFactory, userModel);
 const mapModel = new MapModel(apiWrapper);
 const map = createMap(widgetFactory, mapModel);
+const layersSelector = createLayersSelector(widgetFactory, mapModel);
 const root = Div();
 
 const messageContainer = Div();
@@ -31,7 +33,7 @@ apiWrapper.addEventListener("error", (e) => {
 });
 
 userModel.addEventListener("loggedin", () => {
-    root.setChildren(map, messageContainer);
+    root.setChildren(map, layersSelector, messageContainer);
 });
 userModel.addEventListener("loggedout", () => {
     root.setChildren(loginForm, messageContainer);
