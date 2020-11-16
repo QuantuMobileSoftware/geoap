@@ -14,14 +14,22 @@ export default function createMap(widgetFactory, mapModel) {
             left: "0"
         });
     map.componentDidMount = () => {
-        const mymap = L.map(mapId);
+        const mymap = L.map(mapId, { zoomControl: false });
         mymap.fitBounds([[49.8704624780525, 37.0123590916912], [50.040247115589196, 36.737865323126336]]);
-        L.tileLayer("/tiles/mapbox/{z}/{x}/{y}.png", {
-            attribution: "Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>",
-            maxZoom: 18,
-            tileSize: 512,
-            zoomOffset: -1
-        }).addTo(mymap);
+        if (process.env.NODE_ENV === "development") {
+            L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors",
+                minZoom: 10,
+                maxZoom: 16
+            }).addTo(mymap);
+        } else {
+            L.tileLayer("/tiles/mapbox/{z}/{x}/{y}.png", {
+                attribution: "Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>",
+                maxZoom: 18,
+                tileSize: 512,
+                zoomOffset: -1
+            }).addTo(mymap);
+        }
     };
     return map;
 }
