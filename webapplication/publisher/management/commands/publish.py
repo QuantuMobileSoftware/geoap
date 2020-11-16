@@ -60,8 +60,10 @@ class Command(BaseCommand):
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
+        exclude = ['.ipynb_checkpoints', ]
         files = list()
-        for dirpath, _, filenames in os.walk(self.results_folder):
+        for dirpath, dirs, filenames in os.walk(self.results_folder):
+            dirs[:] = [d for d in dirs if d not in exclude]
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
@@ -81,10 +83,12 @@ class Command(BaseCommand):
                 try:
                     result = Result.objects.get(filepath=file_dict['filepath'])
                     if result.modifiedat < file_dict['modifiedat']:
+
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
+
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
                     Result.objects.create(**file_dict)
