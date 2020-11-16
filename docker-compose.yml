@@ -52,7 +52,7 @@ services:
 
   jupyter:
     build:
-      context: ./jupyter/Development
+      context: ./jupyter/example
       dockerfile: Dockerfile
     ports:
       - "8888:8888"
