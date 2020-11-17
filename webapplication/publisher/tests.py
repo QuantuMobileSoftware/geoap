@@ -387,13 +387,14 @@ class ResultTestCase(APITestCase):
         self.result_released_1 = Result.objects.get(id=1001)
         self.result_released_2 = Result.objects.get(id=1006)
 
-        self.patch_data = {"description": "description_test",
-                "start_date": "2021-12-12",
-                "end_date": "2021-12-13",
-                "name": "test_name",
-                'to_be_deleted': True,
-                'filepath': 'new.geojson'
-                }
+        self.patch_data = {
+            "description": "description_test",
+            "start_date": "2021-12-12",
+            "end_date": "2021-12-13",
+            "name": "test_name",
+            'to_be_deleted': True,
+            'filepath': 'new.geojson'
+            }
 
     def test_get_results_list_as_not_auth_user(self):
         url = reverse('get_results')
@@ -403,17 +404,16 @@ class ResultTestCase(APITestCase):
 
     def test_get_results_list_as_not_staff_user(self):
         expected_results_len = 2
-        url = reverse('get_results')
         self.client.force_authenticate(user=self.not_staff_user)
-        response = self.client.get(url)
-        content = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_staff_user(self):
         expected_results_len = 6
-        url = reverse('get_results')
         self.client.force_authenticate(user=self.staff_user)
+        self.get_results_list(expected_results_len)
+
+    def get_results_list(self, expected_results_len):
+        url = reverse('get_results')
         response = self.client.get(url)
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -421,20 +421,16 @@ class ResultTestCase(APITestCase):
 
     def test_get_results_list_with_deleted_as_not_staff_user(self):
         expected_results_len = 1
-        url = reverse('get_results')
         self.client.force_authenticate(user=self.not_staff_user)
-        result = Result.objects.get(id=self.result_released_1.id)
-        result.to_be_deleted = True
-        result.save()
-        response = self.client.get(url)
-        content = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.get_results_list_with_deleted(expected_results_len)
 
     def test_get_results_list_with_deleted_as_staff_user(self):
         expected_results_len = 6
-        url = reverse('get_results')
         self.client.force_authenticate(user=self.staff_user)
+        self.get_results_list_with_deleted(expected_results_len)
+
+    def get_results_list_with_deleted(self, expected_results_len):
+        url = reverse('get_results')
         result = Result.objects.get(id=self.result_released_1.id)
         result.to_be_deleted = True
         result.save()
@@ -462,22 +458,22 @@ class ResultTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_result_deleted_as_not_staff_user(self):
-        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         self.client.force_authenticate(user=self.not_staff_user)
-        result = Result.objects.get(id=self.result_released_1.id)
-        result.to_be_deleted = True
-        result.save()
-        response = self.client.get(url)
+        response = self.get_result_deleted()
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_result_deleted_as_staff_user(self):
-        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         self.client.force_authenticate(user=self.staff_user)
+        response = self.get_result_deleted()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def get_result_deleted(self):
+        url = reverse('result', kwargs={'pk': self.result_released_1.id})
         result = Result.objects.get(id=self.result_released_1.id)
         result.to_be_deleted = True
         result.save()
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return response
 
     def test_patch_result_as_not_auth_user(self):
         url = reverse('result', kwargs={'pk': self.result_released_2.id})
@@ -524,9 +520,6 @@ class ResultTestCase(APITestCase):
         result = Result.objects.get(id=self.result_released_1.id)
         self.assertEqual(result.to_be_deleted, True)
 
-
-
-
     # def test_delete_result(self):
     #     url = reverse('result', kwargs={'pk': self.result_released_1.id})
     #
@@ -559,7 +552,7 @@ class AOITestCase(APITestCase):
         }
 
         self.data_patch = {
-            "name": "Aoi_test",
+            "name": "Aoi_test_new",
             "polygon": "SRID=4326;POLYGON ((\
             35.895191466414154 50.009453778741694, \
             36.336338200246395 50.008199333053057, \
@@ -590,25 +583,25 @@ class AOITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_aoi_as_not_auth_user(self):
-        aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
         self.client.force_authenticate(user=None)
-        response = self.client.get(url)
+        response = self.get_aoi()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_aoi_as_not_staff_user(self):
-        aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
         self.client.force_authenticate(user=self.not_staff_user)
-        response = self.client.get(url)
+        response = self.get_aoi()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_aoi_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_aoi()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def get_aoi(self):
         aoi = AoI.objects.create(**self.data_create)
         url = reverse('aoi', kwargs={'pk': aoi.id})
-        self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return response
 
     def test_putch_aoi_as_not_auth_user(self):
         aoi = AoI.objects.create(**self.data_create)
@@ -637,3 +630,52 @@ class AOITestCase(APITestCase):
         self.assertEqual(content['description'], self.data_patch['description'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
         self.assertEqual(content['createdat'], serializer.data['createdat'])
+
+    def test_get_aoi_list_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_aoi_list()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_aoi_list_as_not_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.get_aoi_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_aoi_list_as_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_aoi_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def get_aoi_list(self):
+        AoI.objects.create(**self.data_create)
+        AoI.objects.create(**self.data_patch)
+        url = reverse('aoi_list_or_create')
+        response = self.client.get(url)
+        return response
+
+    def test_delete_aoi_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.delete_aoi()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_aoi_as_not_staff_user(self):
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.delete_aoi()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_aoi_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.delete_aoi()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def delete_aoi(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi', kwargs={'pk': aoi.id})
+        response = self.client.delete(url)
+        return response
