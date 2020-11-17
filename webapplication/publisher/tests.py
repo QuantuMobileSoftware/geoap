@@ -6,6 +6,7 @@ import logging
 import json
 from pathlib import Path
 from geojson import Feature, Polygon, FeatureCollection, Point, LineString
+from django.contrib.gis.geos import Polygon as DjPolygon
 from datetime import datetime
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -82,6 +83,14 @@ kharkiv_zoo = Polygon([
         ]
     ]
 ])
+kharkiv_zoo_bbox = DjPolygon((
+    (36.229713, 50.000664),
+    (36.229713, 50.004664),
+    (36.221033, 50.004664),
+    (36.221033, 50.000664),
+    (36.229713, 50.000664)
+    ), srid=4326)
+
 kharkiv_park = Polygon([
     [
         [
@@ -110,6 +119,14 @@ kharkiv_park = Polygon([
         ]
     ]
 ])
+kharkiv_park_bbox = DjPolygon((
+        (36.254153, 50.014854),
+        (36.254153, 50.026215),
+        (36.238704, 50.026215),
+        (36.238704, 50.014854),
+        (36.254153, 50.014854)
+), srid=4326)
+
 homilsha = Polygon([
     [
         [
@@ -134,62 +151,14 @@ homilsha = Polygon([
         ]
     ]
 ])
-slobozhanskiy_park = Polygon([
-    [
-        [
-            35.26233673095703,
-            50.099220760305094
-        ],
-        [
-            35.21324157714844,
-            50.0831414307389
-        ],
-        [
-            35.18165588378906,
-            50.05603665721485
-        ],
-        [
-            35.19023895263672,
-            50.04523455350427
-        ],
-        [
-            35.20774841308594,
-            50.03619419013074
-        ],
-        [
-            35.216331481933594,
-            50.026049316879906
-        ],
-        [
-            35.238990783691406,
-            50.03156310080887
-        ],
-        [
-            35.26851654052734,
-            50.04104532847993
-        ],
-        [
-            35.277099609375,
-            50.05206882001855
-        ],
-        [
-            35.282249450683594,
-            50.058902113365555
-        ],
-        [
-            35.28190612792969,
-            50.07102330352104
-        ],
-        [
-            35.27057647705078,
-            50.09701843132571
-        ],
-        [
-            35.26233673095703,
-            50.099220760305094
-        ]
-    ]
-])
+homilsha_bbox = DjPolygon((
+    (36.416588, 49.504924),
+    (36.416588, 49.639844),
+    (36.224327, 49.639844),
+    (36.224327, 49.504924),
+    (36.416588, 49.504924)
+), srid=4326)
+
 hytor = Polygon([
     [
         [
@@ -234,6 +203,14 @@ hytor = Polygon([
         ]
     ]
 ])
+hytor_bbox = DjPolygon((
+    (36.162572, 49.871517),
+    (36.162572, 49.888248),
+    (36.137638, 49.888248),
+    (36.137638, 49.871517),
+    (36.162572, 49.871517)
+), srid=4326)
+
 osnova_lake = Polygon([
     [
         [
@@ -290,6 +267,13 @@ osnova_lake = Polygon([
         ]
     ]
 ])
+osnova_lake_bbox = DjPolygon((
+    (36.230035, 49.925919),
+    (36.230035, 49.938323),
+    (36.215186, 49.938323),
+    (36.215186, 49.925919),
+    (36.230035, 49.925919)
+), srid=4326)
 
 # test_aoi = Polygon([
 #     [
@@ -302,53 +286,20 @@ osnova_lake = Polygon([
 # ])
 
 
-class BaseTestCase(APITestCase):
+class PublisherTestCase(APITestCase):
     """
     Base test case.
     """
+    def setUp(self):
+        self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
+        self.test_path.mkdir(parents=True, exist_ok=True)
+        logger.info(f'test_path: {self.test_path}')
 
-    # fixtures = 'publisher/results_fixtures.json'
-
-    # def setUp(self):
-    #     self.staff_user = self.create_user(username='test_staff_user', is_staff=True)
-    #     self.not_staff_user = self.create_user(username='test_user')
-    #     self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
-    #     self.test_path.mkdir(parents=True, exist_ok=True)
-    #     logger.info(f'test_path: {self.test_path}')
-    #     self.create_test_geojson()
-    #
-    #     self.command = Command()
-    #     self.command.handle()
-    #
-    #     results = Result.objects.all().order_by('id')
-    #
-    #     # mark record as released
-    #     self.result_released_1 = results[1]
-    #     self.result_released_1.released = True
-    #     logger.info(f'result_released_1.id: {self.result_released_1.id}')
-    #     self.result_released_1.save()
-    #
-    #     # mark record as released
-    #     self.result_released_2 = results[2]
-    #     self.result_released_2.released = True
-    #     logger.info(f'result_released_2.id: {self.result_released_2.id}')
-    #     self.result_released_2.save()
-    #
-    #     self.command.handle()
-
-    # @classmethod
-    # def tearDownClass(cls):
-        # if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
-        #     shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
-        # super().tearDownClass()
-
-    @staticmethod
-    def create_user(username, is_staff=False, is_superuser=False):
-        """
-        create_user
-        """
-        user = User.objects.create(username=username, is_staff=is_staff, is_superuser=is_superuser)
-        return user
+    @classmethod
+    def tearDownClass(cls):
+        if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
+            shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
+        super().tearDownClass()
 
     @staticmethod
     def generate_features():
@@ -370,12 +321,34 @@ class BaseTestCase(APITestCase):
             features.append((geometry_name, feature))
         return features
 
-    def create_test_geojson(self):
+    def create_geojson(self):
         features = self.generate_features()
 
         for cnt in range(len(features)):
             with open(f"{self.test_path}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
+
+    def test_publish_geojson(self):
+        geometries_bbox = {
+            'kharkiv_zoo': kharkiv_zoo_bbox,
+            'kharkiv_park': kharkiv_park_bbox,
+            'homilsha': homilsha_bbox,
+            'hytor': hytor_bbox,
+            'osnova_lake': osnova_lake_bbox
+        }
+        self.create_geojson()
+        self.command = Command()
+        self.command.handle()
+        results = Result.objects.all().order_by('filepath')
+        for result in results:
+            result_file = Path(result.filepath)
+            result_filename = result_file.stem
+            result_path = str(self.test_path / result_file)
+            self.assertEqual(result_path, result.rel_url)
+            self.assertEqual(result.layer_type, 'GEOJSON')
+            self.assertEqual(result.polygon.geom_type, 'Polygon')
+            self.assertEqual(result.polygon.srid, 4326)
+            self.assertEqual(str(result.polygon), geometries_bbox[result_filename].ewkt)
 
 
 class ResultTestCase(APITestCase):
@@ -520,13 +493,8 @@ class ResultTestCase(APITestCase):
         result = Result.objects.get(id=self.result_released_1.id)
         self.assertEqual(result.to_be_deleted, True)
 
-    # def test_delete_result(self):
+    # def delete_result(self):
     #     url = reverse('result', kwargs={'pk': self.result_released_1.id})
-    #
-    #
-    #
-    #
-    #     self.client.force_authenticate(user=self.staff_user)
     #     result = Result.objects.get(id=self.result_released_1.id)
     #     response = self.client.delete(url)
     #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
