@@ -119,7 +119,7 @@ class Geojson(File):
         return Result.GEOJSON
 
     def rel_url(self):
-        return f"/results/{super().filepath()}"
+        return f"{self.basedir}/{super().filepath()}"
 
     def polygon(self):
         if not self.features:
@@ -159,7 +159,7 @@ class Geotif(File):
         return Result.XYZ
 
     def rel_url(self):
-        return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
+        return f"{self.basedir}/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
 
     def polygon(self):
         if not self.bound_box:
