@@ -7,11 +7,13 @@ import rasterio
 import rasterio.features
 import rasterio.warp
 
+from pathlib import Path
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 from shapely.geometry import box
+from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
 from ...models import Result
@@ -119,7 +121,7 @@ class Geojson(File):
         return Result.GEOJSON
 
     def rel_url(self):
-        return f"{self.basedir}/{super().filepath()}"
+        return f"/{Path(settings.RESULTS_FOLDER).stem}/{super().filepath()}"
 
     def polygon(self):
         if not self.features:
@@ -159,7 +161,7 @@ class Geotif(File):
         return Result.XYZ
 
     def rel_url(self):
-        return f"{self.basedir}/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
+        return f"/{Path(settings.TILES_FOLDER).stem}/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
 
     def polygon(self):
         if not self.bound_box:

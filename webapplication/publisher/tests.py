@@ -5,6 +5,10 @@ import shutil
 import logging
 import json
 from pathlib import Path
+import numpy as np
+import rasterio
+from rasterio import Affine
+from rasterio.crs import CRS
 from geojson import Feature, Polygon, FeatureCollection, Point, LineString
 from django.contrib.gis.geos import Polygon as DjPolygon
 from datetime import datetime
@@ -275,6 +279,22 @@ osnova_lake_bbox = DjPolygon((
     (36.230035, 49.925919)
 ), srid=4326)
 
+geometries = [
+            ('kharkiv_zoo', kharkiv_zoo),
+            ('kharkiv_park', kharkiv_park),
+            ('homilsha', homilsha),
+            ('hytor', hytor),
+            ('osnova_lake', osnova_lake)
+        ]
+
+geometries_bbox = {
+    'kharkiv_zoo': kharkiv_zoo_bbox,
+    'kharkiv_park': kharkiv_park_bbox,
+    'homilsha': homilsha_bbox,
+    'hytor': hytor_bbox,
+    'osnova_lake': osnova_lake_bbox
+}
+
 # test_aoi = Polygon([
 #     [
 #         [36.076323010202323, 49.969789683188296],
@@ -286,31 +306,42 @@ osnova_lake_bbox = DjPolygon((
 # ])
 
 
-class PublisherTestCase(APITestCase):
+class PublisherBase(APITestCase):
     """
-    Base test case.
+    Base class for creating publisher test cases.
     """
     def setUp(self):
-        self.test_path = Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER
+        self.test_path = Path(settings.RESULTS_FOLDER)
         self.test_path.mkdir(parents=True, exist_ok=True)
         logger.info(f'test_path: {self.test_path}')
 
     @classmethod
     def tearDownClass(cls):
-        if settings.RESULTS_FOLDER and (Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER).exists():
-            shutil.rmtree(Path(settings.BASE_DIR).parent / settings.RESULTS_FOLDER)
+        if Path(settings.RESULTS_FOLDER).exists():
+            shutil.rmtree(Path(settings.RESULTS_FOLDER))
+
+        if Path(settings.TILES_FOLDER).exists():
+            shutil.rmtree(Path(settings.TILES_FOLDER))
         super().tearDownClass()
 
     @staticmethod
-    def generate_features():
-        geometries = [
-            ('kharkiv_zoo', kharkiv_zoo),
-            ('kharkiv_park', kharkiv_park),
-            ('homilsha', homilsha),
-            ('hytor', hytor),
-            ('osnova_lake', osnova_lake)
-        ]
+    def create_tiff(output_path):
+        kwargs = {
+            'driver': 'GTiff',
+            'dtype': 'uint8',
+            'nodata': None,
+            'width': 1880,
+            'height': 1795,
+            'count': 1,
+            'crs': CRS.from_epsg(32636),
+            'transform': Affine(10.0, 0.0, 768520.5912700305, 0.0, -10.0, 5549846.104763807)
+        }
+        raster = np.zeros((kwargs['width'], kwargs['height']), dtype=kwargs['dtype'])
+        with rasterio.open(output_path, 'w', **kwargs) as dst:
+            dst.write(raster, 1)
 
+    @staticmethod
+    def generate_features():
         acquired = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         properties = dict(acquired=acquired)
 
@@ -323,32 +354,79 @@ class PublisherTestCase(APITestCase):
 
     def create_geojson(self):
         features = self.generate_features()
-
         for cnt in range(len(features)):
             with open(f"{self.test_path}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
 
+
+class GeojsonPublisherTestCase(PublisherBase):
+
     def test_publish_geojson(self):
-        geometries_bbox = {
-            'kharkiv_zoo': kharkiv_zoo_bbox,
-            'kharkiv_park': kharkiv_park_bbox,
-            'homilsha': homilsha_bbox,
-            'hytor': hytor_bbox,
-            'osnova_lake': osnova_lake_bbox
-        }
         self.create_geojson()
-        self.command = Command()
-        self.command.handle()
+        command = Command()
+        command.handle()
         results = Result.objects.all().order_by('filepath')
         for result in results:
             result_file = Path(result.filepath)
             result_filename = result_file.stem
-            result_path = str(self.test_path / result_file)
+            result_path = str(Path('/') / self.test_path.stem / result_file)
             self.assertEqual(result_path, result.rel_url)
             self.assertEqual(result.layer_type, 'GEOJSON')
             self.assertEqual(result.polygon.geom_type, 'Polygon')
             self.assertEqual(result.polygon.srid, 4326)
             self.assertEqual(str(result.polygon), geometries_bbox[result_filename].ewkt)
+
+
+class GeotifPublisherTestCase(PublisherBase):
+
+    def test_publish_tiff(self):
+        tiff_name = Path('black_image.tif')
+        self.test_tif_path = self.test_path / tiff_name
+        self.create_tiff(self.test_tif_path)
+        command = Command()
+        command.handle()
+        results = Result.objects.all()
+        for result in results:
+            result_path = str(Path('/') / Path(settings.TILES_FOLDER).stem / tiff_name.stem / '{z}/{x}/{y}.png')
+            self.assertEqual(result_path, result.rel_url)
+            self.assertEqual(result.layer_type, 'XYZ')
+
+
+class DeleteGeotifPublisherTestCase(PublisherBase):
+    def test_delete_geojson_files_result(self):
+        tiff_name = Path('black_image.tif')
+        test_tile_result_path = Path('/') / Path(settings.TILES_FOLDER).stem / Path(tiff_name.stem)
+        logger.info(f'test_tile_result_path: {test_tile_result_path}')
+        self.test_tif_path = self.test_path / tiff_name
+        self.create_tiff(self.test_tif_path)
+        command = Command()
+        command.handle()
+        result = Result.objects.get(layer_type='XYZ')
+        logger.info(f'result.rel_url: {result.rel_url}')
+        result.to_be_deleted = True
+        result.save()
+        command._delete()
+        self.assertEqual(test_tile_result_path.exists(), False)
+
+
+class DeleteGeojsonPublisherTestCase(PublisherBase):
+    def test_delete_geotif_files_result(self):
+        test_geojson_result_path = Path('/') / Path(settings.RESULTS_FOLDER).stem
+        self.create_geojson()
+        command = Command()
+        command.handle()
+
+        results = Result.objects.filter(to_be_deleted=False)
+        for result in results:
+            result.to_be_deleted = True
+            result.save()
+
+        command._delete()
+        for result in results:
+            test_geojson_result_file = test_geojson_result_path / result.filepath
+            logger.info(f'test_geojson_result_file: {test_geojson_result_file}')
+            logger.info(f'result.rel_url: {result.rel_url}')
+            self.assertEqual(test_geojson_result_file.exists(), False)
 
 
 class ResultTestCase(APITestCase):
