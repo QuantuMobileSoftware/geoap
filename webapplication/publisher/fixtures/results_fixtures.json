@@ -1,0 +1,102 @@
+[
+  {
+    "model": "user.user",
+    "pk": 1001,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$WDlRMPwuQDWY$+oggAn0fe4p3ctPi33BaBjZwC+VpRxUPHOcYhoFw6G0=",
+      "last_login": "2020-11-16T11:14:31.380000Z",
+      "is_superuser": false,
+      "username": "test_staff",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2020-11-15T11:14:31.380000Z"
+    }
+  },
+  {
+    "model": "user.user",
+    "pk": 1002,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=",
+      "last_login": "2020-11-16T11:14:31.380000Z",
+      "is_superuser": false,
+      "username": "test_not_staff",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2020-11-15T11:14:31.380000Z"
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 1001,
+    "fields": {
+      "filepath": "homilsha.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "polygon": "SRID=4326;POLYGON ((36.416588 49.504924, 36.416588 49.639844, 36.224327 49.639844, 36.224327 49.504924, 36.416588 49.504924))",
+      "rel_url": "/results/homilsha.geojson",
+      "released": true
+    }
+  },
+    {
+    "model": "publisher.result",
+    "pk": 1002,
+    "fields": {
+      "filepath": "hytor.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "polygon": "SRID=4326;POLYGON ((36.162572 49.871517, 36.162572 49.888248, 36.137638 49.888248, 36.137638 49.871517, 36.162572 49.871517))",
+      "rel_url": "/results/hytor.geojson"
+    }
+  },
+    {
+    "model": "publisher.result",
+    "pk": 1003,
+    "fields": {
+      "filepath": "kharkiv_park.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "polygon": "SRID=4326;POLYGON ((36.254153 50.014854, 36.254153 50.026215, 36.238704 50.026215, 36.238704 50.014854, 36.254153 50.014854))",
+      "rel_url": "/results/kharkiv_park.geojson"
+    }
+  },
+    {
+    "model": "publisher.result",
+    "pk": 1004,
+    "fields": {
+      "filepath": "kharkiv_zoo.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "polygon": "SRID=4326;POLYGON ((36.229713 50.000664, 36.229713 50.004664, 36.221033 50.004664, 36.221033 50.000664, 36.229713 50.000664))",
+      "rel_url": "/results/kharkiv_zoo.geojson"
+    }
+  },
+    {
+    "model": "publisher.result",
+    "pk": 1005,
+    "fields": {
+      "filepath": "osnova_lake.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "polygon": "SRID=4326;POLYGON ((36.230035 49.925919, 36.230035 49.938323, 36.215186 49.938323, 36.215186 49.925919, 36.230035 49.925919))",
+      "rel_url": "/results/osnova_lake.geojson"
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 1006,
+    "fields": {
+      "filepath": "T36UYA_20200705T083559_TCI_tetleha.tif",
+      "modifiedat": "2020-11-10T15:07:51.835018Z",
+      "layer_type": "XYZ",
+      "polygon": "SRID=4326;POLYGON ((36.630593 49.987112, 36.622014 49.872935, 36.819203 49.866599, 36.828245 49.980749, 36.630593 49.987112))",
+      "rel_url": "/tiles/T36UYA_20200705T083559_TCI_tetleha/{z}/{x}/{y}.png",
+      "released": true
+    }
+  }
+]
