@@ -294,14 +294,6 @@ geometries_bbox = {
     'osnova_lake': osnova_lake_bbox
 }
 
-test_aoi = DjPolygon((
-    [35.895191466414154, 50.009453778741694],
-    [36.336338200246395, 50.008199333053057],
-    [36.344659254377753, 49.460584684398697],
-    [35.912753706054865, 49.4508072987418],
-    [35.895191466414154, 50.009453778741694]
-), srid=4326)
-
 
 class PublisherBase(APITestCase):
     """
@@ -330,7 +322,7 @@ class PublisherBase(APITestCase):
     def create_tiff(self):
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
-        self.test_tile_result_path = Path('/') / Path(settings.TILES_FOLDER).stem / self.tiff_name.stem
+        self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
         self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'
         logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
         logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
@@ -361,7 +353,7 @@ class PublisherBase(APITestCase):
         return features
 
     def create_geojson(self):
-        self.test_geojson_result_path = Path('/') / self.test_results_folder.stem
+        self.test_geojson_result_path = Path('/results')
         features = self.generate_features()
         for cnt in range(len(features)):
             with open(f"{self.test_results_folder}/{features[cnt][0]}.geojson", 'w') as file:
@@ -613,7 +605,6 @@ class AOITestCase(APITestCase):
             35.912753706054865 49.4508072987418 ,  \
             35.895191466414154 50.009453778741694 \
             ))",
-            "description": "Aoi_test description"
         }
 
         self.data_patch = {
@@ -626,7 +617,6 @@ class AOITestCase(APITestCase):
             35.895191466414154 50.009453778741694\
             ))",
             "createdat": "2020-11-20",
-            "description": "Aoi_test new description"
         }
 
     def test_create_aoi_as_not_auth_user(self):
@@ -692,7 +682,6 @@ class AOITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
-        self.assertEqual(content['description'], self.data_patch['description'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
         self.assertEqual(content['createdat'], serializer.data['createdat'])
 
