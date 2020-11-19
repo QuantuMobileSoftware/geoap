@@ -1,4 +1,3 @@
-import os
 import uuid
 import geojson
 import shutil
@@ -9,7 +8,7 @@ import numpy as np
 import rasterio
 from rasterio import Affine
 from rasterio.crs import CRS
-from geojson import Feature, Polygon, FeatureCollection, Point, LineString
+from geojson import Feature, Polygon
 from django.contrib.gis.geos import Polygon as DjPolygon
 from datetime import datetime
 from rest_framework.test import APITestCase
@@ -295,15 +294,13 @@ geometries_bbox = {
     'osnova_lake': osnova_lake_bbox
 }
 
-# test_aoi = Polygon([
-#     [
-#         [36.076323010202323, 49.969789683188296],
-#         [36.335151277221932, 49.959225264126275],
-#         [36.344659254377753, 49.460584684398697],
-#         [36.077379452108524, 49.453189591055278],
-#         [36.076323010202323, 49.969789683188296]
-#     ]
-# ])
+test_aoi = DjPolygon((
+    [35.895191466414154, 50.009453778741694],
+    [36.336338200246395, 50.008199333053057],
+    [36.344659254377753, 49.460584684398697],
+    [35.912753706054865, 49.4508072987418],
+    [35.895191466414154, 50.009453778741694]
+), srid=4326)
 
 
 class PublisherBase(APITestCase):
@@ -600,29 +597,22 @@ class ResultTestCase(APITestCase):
         result = Result.objects.get(id=self.result_released_1.id)
         self.assertEqual(result.to_be_deleted, True)
 
-    # def delete_result(self):
-    #     url = reverse('result', kwargs={'pk': self.result_released_1.id})
-    #     result = Result.objects.get(id=self.result_released_1.id)
-    #     response = self.client.delete(url)
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # self.command._delete()
-        # self.assertEqual((self.test_path / Path(result.filepath)).exists(), False)
-
 
 class AOITestCase(APITestCase):
-    fixtures = ["publisher/fixtures/results_fixtures.json", ]
+    fixtures = ["publisher/fixtures/results_bbox_fixtures.json", ]
 
     def setUp(self):
         self.staff_user = User.objects.get(id=1001)
         self.not_staff_user = User.objects.get(id=1002)
         self.data_create = {
             "name": "Aoi_test",
-            "polygon": "SRID=4326;POLYGON ((36.076323010202323 49.969789683188296, \
-            36.335151277221932 49.959225264126275, \
-            36.344659254377753 49.460584684398697, \
-            36.077379452108524 49.453189591055278, \
-            36.05232238267571 49.44714671586419, \
-            36.076323010202323 49.969789683188296))",
+            "polygon": "SRID=4326;POLYGON (( \
+            35.895191466414154 50.009453778741694 ,  \
+            36.336338200246395 50.008199333053057 ,  \
+            36.344659254377753 49.460584684398697 , \
+            35.912753706054865 49.4508072987418 ,  \
+            35.895191466414154 50.009453778741694 \
+            ))",
             "description": "Aoi_test description"
         }
 
@@ -753,4 +743,31 @@ class AOITestCase(APITestCase):
         aoi = AoI.objects.create(**self.data_create)
         url = reverse('aoi', kwargs={'pk': aoi.id})
         response = self.client.delete(url)
+        return response
+
+    def test_get_aoi_results_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_aoi_results()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_aoi_results_as_not_staff_user(self):
+        expected_results_len = 1
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.get_aoi_results()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def test_get_aoi_results_as_staff_user(self):
+        expected_results_len = 4
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_aoi_results()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content['count'], expected_results_len)
+
+    def get_aoi_results(self):
+        aoi = AoI.objects.create(**self.data_create)
+        url = reverse('aoi_results', kwargs={'pk': aoi.id})
+        response = self.client.get(url)
         return response
