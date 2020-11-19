@@ -9,7 +9,7 @@ services:
     environment:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
-      - POSTGRES_PASSWORD=eiJ2koo6
+      - POSTGRES_PASSWORD=ahx5Yaiv
 
   webapplication:
     build:
@@ -20,9 +20,8 @@ services:
       - DJANGO_SETTINGS_MODULE=sip.settings-test
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
-      - POSTGRES_PASSWORD=eiJ2koo6
+      - POSTGRES_PASSWORD=ahx5Yaiv
     volumes:
       - ./webapplication:/code
-      - ./data:/data
     depends_on:
       - db

@@ -59,4 +59,5 @@ def run_prod(ctx):
 
 @task
 def test(ctx):
+    wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
     ctx.run('python -m manage test')
