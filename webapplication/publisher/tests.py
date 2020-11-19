@@ -311,9 +311,9 @@ class PublisherBase(APITestCase):
     Base class for creating publisher test cases.
     """
     def setUp(self):
-        self.test_path = Path(settings.RESULTS_FOLDER)
-        self.test_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f'test_path: {self.test_path}')
+        self.test_results_folder = Path(settings.RESULTS_FOLDER)
+        self.test_results_folder.mkdir(parents=True, exist_ok=True)
+        logger.info(f'test_results_folder: {self.test_results_folder}')
 
     @classmethod
     def tearDownClass(cls):
@@ -325,7 +325,18 @@ class PublisherBase(APITestCase):
         super().tearDownClass()
 
     @staticmethod
-    def create_tiff(output_path):
+    def delete_all_files_in_folder(path):
+        for child in path.glob('*'):
+            if child.is_file():
+                child.unlink()
+
+    def create_tiff(self):
+        self.tiff_name = Path('black_image.tif')
+        self.test_tif_path = self.test_results_folder / self.tiff_name
+        self.test_tile_result_path = Path('/') / Path(settings.TILES_FOLDER).stem / self.tiff_name.stem
+        self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'
+        logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
+        logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
         kwargs = {
             'driver': 'GTiff',
             'dtype': 'uint8',
@@ -337,7 +348,7 @@ class PublisherBase(APITestCase):
             'transform': Affine(10.0, 0.0, 768520.5912700305, 0.0, -10.0, 5549846.104763807)
         }
         raster = np.zeros((kwargs['width'], kwargs['height']), dtype=kwargs['dtype'])
-        with rasterio.open(output_path, 'w', **kwargs) as dst:
+        with rasterio.open(self.test_tif_path, 'w', **kwargs) as dst:
             dst.write(raster, 1)
 
     @staticmethod
@@ -353,9 +364,10 @@ class PublisherBase(APITestCase):
         return features
 
     def create_geojson(self):
+        self.test_geojson_result_path = Path('/') / self.test_results_folder.stem
         features = self.generate_features()
         for cnt in range(len(features)):
-            with open(f"{self.test_path}/{features[cnt][0]}.geojson", 'w') as file:
+            with open(f"{self.test_results_folder}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
 
 
@@ -369,8 +381,8 @@ class GeojsonPublisherTestCase(PublisherBase):
         for result in results:
             result_file = Path(result.filepath)
             result_filename = result_file.stem
-            result_path = str(Path('/') / self.test_path.stem / result_file)
-            self.assertEqual(result_path, result.rel_url)
+            result_path = self.test_geojson_result_path / result_file
+            self.assertEqual(str(result_path), result.rel_url)
             self.assertEqual(result.layer_type, 'GEOJSON')
             self.assertEqual(result.polygon.geom_type, 'Polygon')
             self.assertEqual(result.polygon.srid, 4326)
@@ -380,25 +392,18 @@ class GeojsonPublisherTestCase(PublisherBase):
 class GeotifPublisherTestCase(PublisherBase):
 
     def test_publish_tiff(self):
-        tiff_name = Path('black_image.tif')
-        self.test_tif_path = self.test_path / tiff_name
-        self.create_tiff(self.test_tif_path)
+        self.create_tiff()
         command = Command()
         command.handle()
         results = Result.objects.all()
         for result in results:
-            result_path = str(Path('/') / Path(settings.TILES_FOLDER).stem / tiff_name.stem / '{z}/{x}/{y}.png')
-            self.assertEqual(result_path, result.rel_url)
+            self.assertEqual(str(self.test_tile_png_path), result.rel_url)
             self.assertEqual(result.layer_type, 'XYZ')
 
 
 class DeleteGeotifPublisherTestCase(PublisherBase):
-    def test_delete_geojson_files_result(self):
-        tiff_name = Path('black_image.tif')
-        test_tile_result_path = Path('/') / Path(settings.TILES_FOLDER).stem / Path(tiff_name.stem)
-        logger.info(f'test_tile_result_path: {test_tile_result_path}')
-        self.test_tif_path = self.test_path / tiff_name
-        self.create_tiff(self.test_tif_path)
+    def test_delete_geotif_files_result(self):
+        self.create_tiff()
         command = Command()
         command.handle()
         result = Result.objects.get(layer_type='XYZ')
@@ -406,12 +411,11 @@ class DeleteGeotifPublisherTestCase(PublisherBase):
         result.to_be_deleted = True
         result.save()
         command._delete()
-        self.assertEqual(test_tile_result_path.exists(), False)
+        self.assertEqual(self.test_tile_result_path.exists(), False)
 
 
 class DeleteGeojsonPublisherTestCase(PublisherBase):
-    def test_delete_geotif_files_result(self):
-        test_geojson_result_path = Path('/') / Path(settings.RESULTS_FOLDER).stem
+    def test_delete_geojson_files_result(self):
         self.create_geojson()
         command = Command()
         command.handle()
@@ -423,10 +427,35 @@ class DeleteGeojsonPublisherTestCase(PublisherBase):
 
         command._delete()
         for result in results:
-            test_geojson_result_file = test_geojson_result_path / result.filepath
+            test_geojson_result_file = self.test_geojson_result_path / result.filepath
             logger.info(f'test_geojson_result_file: {test_geojson_result_file}')
             logger.info(f'result.rel_url: {result.rel_url}')
             self.assertEqual(test_geojson_result_file.exists(), False)
+
+
+class CleanGeotifPublisherTestCase(PublisherBase):
+    def test_clean_geotif_files_result(self):
+        self.create_tiff()
+        command = Command()
+        command.handle()
+        logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
+        self.delete_all_files_in_folder(self.test_results_folder)
+        command.handle()
+        num_results = Result.objects.count()
+        self.assertEqual(num_results, 0)
+        self.assertEqual(self.test_tile_result_path.exists(), False)
+
+
+class CleanGeojsonPublisherTestCase(PublisherBase):
+    def test_clean_geojson_files_result(self):
+        self.create_geojson()
+        command = Command()
+        command.handle()
+        logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
+        self.delete_all_files_in_folder(self.test_results_folder)
+        command.handle()
+        num_results = Result.objects.count()
+        self.assertEqual(num_results, 0)
 
 
 class ResultTestCase(APITestCase):
