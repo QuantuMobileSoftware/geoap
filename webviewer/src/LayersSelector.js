@@ -23,20 +23,43 @@ export default function createLayersSelector(widgetFactory, mapModel) {
     button.addEventListener("click", () => {
         isOpen = !isOpen;
         if (isOpen) {
-            listContainer.setChildren("" + mapModel.layers);
+            mapModel.getLayers();
+            box.setChildren(button, listContainer);
         } else {
-            listContainer.setChildren();
+            box.setChildren(button);
         }
     });
 
-    box.componentDidMount = () => {
-        mapModel.getLayers();
-    };
     mapModel.addEventListener("layersupdated", () => {
-        console.log(mapModel.layers);
+        const layerElts = [];
+        mapModel.layers.forEach(x => {
+            const layerElt = Div().setStyle({
+                height: "2em",
+                "padding-left": "1em",
+                "padding-right": "1em",
+                "padding-top": "0.5em",
+                cursor: "pointer",
+                "border-top": "1px solid rgb(237, 235, 233)",
+                "vertical-align": "baseline",
+                "background": "white"
+            }).setChildren(x.filepath);
+            layerElt.addEventListener("click", () => {
+                mapModel.selectLayer(x);
+                layerElts.forEach(x => {
+                    x.updateStyle({
+                        background: "white"
+                    });
+                })
+                layerElt.updateStyle({
+                    background: "rgb(237, 235, 233)"
+                });
+            });
+            layerElts.push(layerElt);
+        });
+        listContainer.setChildren(layerElts);
     });
 
-    box.setChildren(button, listContainer);
+    box.setChildren(button);
 
     return box;
 }
