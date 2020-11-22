@@ -24,11 +24,11 @@ export default class UserModel extends EventTarget {
     }
 
     getUserDetails() {
-        this.apiWrapper.sendGetRequest("/users/current", (err, userDetails) => {
+        this.apiWrapper.sendGetRequest("/users/current", (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("loggedout"));
             } else {
-                this.userDetails = userDetails;
+                this.userDetails = res;
                 this.dispatchEvent(new Event("loggedin"));
             }
         });
