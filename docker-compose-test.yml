@@ -4,8 +4,6 @@ services:
     image: postgis/postgis:13-3.0
     expose:
       - 5432
-    ports:
-      - "5433:5432"
     environment:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip

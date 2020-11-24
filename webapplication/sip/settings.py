@@ -188,5 +188,7 @@ LOGGING = {
 }
 
 # Publisher app
-TILES_FOLDER = "./data/tiles"
-RESULTS_FOLDER = "./data/results"
+TILES_FOLDER = "/data/tiles"
+RESULTS_FOLDER = "/data/results"
+SATELLITE_IMAGES_FOLDER = "/data/satellite_imagery"
+STORE_SATELLITE_IMAGES_DAYS = 90
