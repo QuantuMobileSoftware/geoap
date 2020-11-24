@@ -1,6 +1,6 @@
 "use strict";
 
-import { Div, createElement } from "@adolgarev/domwrapper";
+import { Div, Span, createElement } from "@adolgarev/domwrapper";
 
 export default class WidgetFactory {
 
@@ -60,5 +60,21 @@ export default class WidgetFactory {
 
     createPasswordField(placeholder) {
         return this.createTextField(placeholder, "password");
+    }
+
+    createErrorMessageBar(message, onCloseCb) {
+        return Div().setStyle({
+            width: "22em",
+            position: "fixed",
+            "z-index": "2",
+            top: "15%",
+            left: "50%",
+            "margin-left": "-11em",
+            padding: "0.5em",
+            "background-color": "rgb(253, 231, 233)",
+            "height": "2em"
+        }).addEventListener("click", () => {
+            onCloseCb();
+        }).setChildren(message);
     }
 }

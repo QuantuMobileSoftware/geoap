@@ -16,7 +16,7 @@ export default function createLoginForm(widgetFactory, userModel) {
         right: "0",
         margin: "auto",
         height: "300px",
-        width: "19em"
+        width: "22em"
     }).setChildren(usernameField, passwordField, loginButton);
     return box;
 }

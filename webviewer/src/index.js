@@ -9,6 +9,7 @@ import APIWrapper from "./APIWrapper";
 import createLoginForm from "./LoginForm";
 import MapModel from "./MapModel";
 import createMap from "./Map";
+import createLayersSelector from "./LayersSelector";
 
 const apiWrapper = new APIWrapper();
 const userModel = new UserModel(apiWrapper);
@@ -16,39 +17,30 @@ const widgetFactory = new WidgetFactory();
 const loginForm = createLoginForm(widgetFactory, userModel);
 const mapModel = new MapModel(apiWrapper);
 const map = createMap(widgetFactory, mapModel);
+const layersSelector = createLayersSelector(widgetFactory, mapModel);
 const root = Div();
 
-// TODO(adolgarev) replace with modal window
-const alertContainer = Div();
-const errorContainer = Div().setStyle({
-    width: "22em",
-    position: "fixed",
-    "z-index": "2",
-    top: "30%",
-    left: "50%",
-    "margin-left": "-11em",
-    padding: "0.1em",
-    //            border: "1px solid #383838",
-    "background-color": "white",
-    color: "red",
-    "text-align": "center"
-}).addEventListener("click", () => {
-    alertContainer.setChildren();
-});
+const messageContainer = Div();
 apiWrapper.addEventListener("error", (e) => {
     if (e.detail.non_field_errors) {
-        errorContainer.setChildren(e.detail.non_field_errors[0]);
-        alertContainer.setChildren(errorContainer);
+        messageContainer.setChildren(
+            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0],
+            () => {
+                messageContainer.setChildren();
+            }
+        ));
     }
-})
+});
 
 userModel.addEventListener("loggedin", () => {
-    root.setChildren(map, alertContainer);
+    root.setChildren(map, layersSelector, messageContainer);
 });
 userModel.addEventListener("loggedout", () => {
-    root.setChildren(loginForm, alertContainer);
+    root.setChildren(loginForm, messageContainer);
 });
-userModel.getUserDetails();
+root.componentDidMount = () => {
+    userModel.getUserDetails();
+};
 
 window.addEventListener("DOMContentLoaded", () => {
     render(root, document.getElementsByTagName("body")[0]);
