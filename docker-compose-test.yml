@@ -1,0 +1,25 @@
+version: "3"
+services:
+  db:
+    image: postgis/postgis:13-3.0
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=ahx5Yaiv
+
+  webapplication:
+    build:
+      context: ./webapplication
+      dockerfile: Dockerfile
+    command: /bin/bash -c "exec invoke test"
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip.settings-test
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=ahx5Yaiv
+    volumes:
+      - ./webapplication:/code
+    depends_on:
+      - db

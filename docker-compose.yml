@@ -21,7 +21,7 @@ services:
       - POSTGRES_PASSWORD=eiJ2koo6
     volumes:
       - ./webapplication:/code
-      - ./data:/code/data
+      - ./data:/data
     depends_on:
       - db
 
@@ -52,7 +52,7 @@ services:
 
   jupyter:
     build:
-      context: ./jupyter
+      context: ./jupyter/example
       dockerfile: Dockerfile
     ports:
       - "8888:8888"
