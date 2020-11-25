@@ -37,11 +37,13 @@ class ResultListAPIView(ListAPIView):
     queryset = Result.objects.all()
     http_method_names = ['get']
     serializer_class = ResultSerializer
+    pagination_class = None
 
     def get_queryset(self):
+        queryset = super().get_queryset()
         if self.request.user.is_staff:
-            return self.queryset
-        return self.queryset.filter(released=True, to_be_deleted=False)
+            return queryset
+        return queryset.filter(released=True, to_be_deleted=False)
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -73,6 +75,7 @@ class AoIListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated, ]
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
+    pagination_class = None
 
 
 class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
