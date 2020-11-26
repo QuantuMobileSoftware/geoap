@@ -1,6 +1,6 @@
+git+ssh://git@github.com/QuantuMobileSoftware/sentinel2tools.git@master
 geojson==2.5.0
 rasterio==1.1.8
 Shapely==1.7.1
 pyproj==2.6.1.post1
-requests==2.24.0
 
