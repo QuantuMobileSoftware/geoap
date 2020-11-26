@@ -100,6 +100,7 @@ class AOIResultsListAPIView(ListAPIView):
     serializer_class = ResultSerializer
     queryset = Result.objects.all()
     lookup_url_kwarg = "pk"
+    pagination_class = None
 
     def get_queryset(self):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg])
