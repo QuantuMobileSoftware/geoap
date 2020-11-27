@@ -1,4 +1,12 @@
 FROM jupyter/scipy-notebook:45bfe5a474fa
+USER root
+
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    gcc libspatialindex-dev python3-dev
+
+USER $NB_UID
 
 COPY requirements.txt requirements_37.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt && \
