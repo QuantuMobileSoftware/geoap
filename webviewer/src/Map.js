@@ -40,10 +40,27 @@ export default function createMap(widgetFactory, mapModel) {
             layer.remove();
         }
         const l = mapModel.selectedLayer;
+        var selectedLayer = null;
         if (l.layer_type === "GEOJSON") {
             layer = L.geoJSON(undefined, {
                 style: (feature) => {
                     return feature.properties.style;
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.addEventListener("click", () => {
+                        if (selectedLayer != null && selectedLayer.setStyle) {
+                            selectedLayer.setStyle({
+                                fillOpacity: 0.2
+                            });
+                        }
+                        if (layer.setStyle) {
+                            layer.setStyle({
+                                fillOpacity: 0.7
+                            });
+                        }
+                        selectedLayer = layer;
+                        mapModel.selectFeature(feature);
+                    });
                 }
             });
             const xhr = new XMLHttpRequest();
