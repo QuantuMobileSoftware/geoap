@@ -18,4 +18,8 @@ They creates and stores in mounted `/results` directory `.geojson` and `.tif` fi
 `geotiff.ipynb` loads test tile by unique url (if it doesn't exist in `sentinel/` folder) and uses it
 for next `.tif` generation. 
 
+5. For using library [sentinel2tools](https://github.com/QuantuMobileSoftware/sentinel2tools)
+provide last actual commit, for ex: `git+https://github.com/QuantuMobileSoftware/sentinel2tools.git@<last-commit>`
+
+
 
