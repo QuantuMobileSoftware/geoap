@@ -8,6 +8,7 @@ export default class MapModel extends EventTarget {
         this.apiWrapper = apiWrapper;
         this.layers = null;
         this.selectedLayer = null;
+        this.selectedFeature = null;
     }
 
     getLayers() {
@@ -32,6 +33,11 @@ export default class MapModel extends EventTarget {
     selectLayer(layer) {
         this.selectedLayer = layer;
         this.dispatchEvent(new Event("layerselected"));
+    }
+
+    selectFeature(feature) {
+        this.selectedFeature = feature;
+        this.dispatchEvent(new Event("featureselected"));
     }
 
 }
