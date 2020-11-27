@@ -6,6 +6,8 @@ import geopandas
 import rasterio
 import rasterio.features
 import rasterio.warp
+from osgeo import gdal, gdalconst
+from pathlib import Path
 
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
@@ -169,20 +171,34 @@ class Geotif(File):
 
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+        path = Path(self.path)
+        suf = path.suffix
+        stem = path.stem
+        temp_dir = Path(self.basedir).parent / 'temp'
+        temp_dir.mkdir(exist_ok=True)
+        tmp_file = temp_dir / f'{stem}_3857{suf}'
         logger.info(f"Generating tiles for {self.path}")
 
-        with rasterio.open(self.path) as src:
-            crs = str(src.crs)
+        logger.info(f'self.path: {self.path}')
+        logger.info(f'temp_file: {tmp_file}')
+        logger.info(f'save_path: {save_path}')
+
+        gdal.Warp(str(tmp_file),
+                  self.path,
+                  resampleAlg=gdalconst.GRIORA_Cubic,
+                  outputType=gdal.GDT_Byte,
+                  dstSRS='EPSG:3857'
+                  )
 
         command = ["gdal2tiles.py",
                    "--xyz",
                    "--webviewer=none",
                    "--processes=6",
-                   "--resampling=lanczos",
                    "--zoom=10-16",
-                   # f"--s_srs={crs}",
-                   "--verbose",
-                   self.path, save_path, ]
+                   str(tmp_file),
+                   save_path,
+                   ]
+
         process = Popen(command, stdout=PIPE)
         try:
             out, err = process.communicate(timeout=timeout)
@@ -193,10 +209,11 @@ class Geotif(File):
             out, err = process.communicate()
             logger.info(f"Process state: {out}, err: {err}")
 
+        shutil.rmtree(temp_dir)
+
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         try:
             shutil.rmtree(delete_path)
         except OSError as e:
             logger.error(f"Error delete {delete_path} tile: {e.strerror}")
-
