@@ -41,7 +41,11 @@ export default function createMap(widgetFactory, mapModel) {
         }
         const l = mapModel.selectedLayer;
         if (l.layer_type === "GEOJSON") {
-            layer = L.geoJSON();
+            layer = L.geoJSON(undefined, {
+                style: (feature) => {
+                    return feature.properties.style;
+                }
+            });
             const xhr = new XMLHttpRequest();
             xhr.open("GET", l.rel_url);
             xhr.onload = () => {

@@ -486,7 +486,7 @@ class ResultTestCase(APITestCase):
         response = self.client.get(url)
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def test_get_results_list_with_deleted_as_not_staff_user(self):
         expected_results_len = 1
@@ -506,7 +506,7 @@ class ResultTestCase(APITestCase):
         response = self.client.get(url)
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def test_get_result_as_not_auth_user(self):
         url = reverse('result', kwargs={'pk': self.result_released_1.id})
@@ -696,7 +696,7 @@ class AOITestCase(APITestCase):
         response = self.get_aoi_list()
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def test_get_aoi_list_as_staff_user(self):
         expected_results_len = 2
@@ -704,7 +704,7 @@ class AOITestCase(APITestCase):
         response = self.get_aoi_list()
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def get_aoi_list(self):
         AoI.objects.create(**self.data_create)
@@ -745,7 +745,7 @@ class AOITestCase(APITestCase):
         response = self.get_aoi_results()
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def test_get_aoi_results_as_staff_user(self):
         expected_results_len = 4
@@ -753,7 +753,7 @@ class AOITestCase(APITestCase):
         response = self.get_aoi_results()
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content['count'], expected_results_len)
+        self.assertEqual(len(content), expected_results_len)
 
     def get_aoi_results(self):
         aoi = AoI.objects.create(**self.data_create)

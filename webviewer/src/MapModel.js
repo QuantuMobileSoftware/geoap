@@ -15,7 +15,7 @@ export default class MapModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                this.layers = res.results;
+                this.layers = res;
                 this.layers.forEach(x => {
                     const wkt = new Wkt.Wkt();
                     wkt.read(x.polygon.split(";")[1]);
