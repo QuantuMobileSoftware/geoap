@@ -8,6 +8,7 @@ import rasterio.features
 import rasterio.warp
 from osgeo import gdal, gdalconst
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
@@ -172,30 +173,26 @@ class Geotif(File):
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         path = Path(self.path)
-        suf = path.suffix
-        stem = path.stem
-        temp_dir = Path(self.basedir).parent / 'temp'
-        temp_dir.mkdir(exist_ok=True)
-        tmp_file = temp_dir / f'{stem}_3857{suf}'
-        logger.info(f"Generating tiles for {self.path}")
 
-        logger.info(f'self.path: {self.path}')
-        logger.info(f'temp_file: {tmp_file}')
-        logger.info(f'save_path: {save_path}')
+        tmp_file = NamedTemporaryFile()
+        name = str(Path(tmp_file.name).with_suffix(path.suffix))
+        tmp_file.name = name
 
-        gdal.Warp(str(tmp_file),
+        logger.info(f'Starting creating to {tmp_file.name}')
+        gdal.Warp(tmp_file.name,
                   self.path,
                   resampleAlg=gdalconst.GRIORA_Cubic,
                   outputType=gdal.GDT_Byte,
                   dstSRS='EPSG:3857'
                   )
 
+        logger.info(f"Starting generat tiles for {self.path}")
         command = ["gdal2tiles.py",
                    "--xyz",
                    "--webviewer=none",
                    "--processes=6",
                    "--zoom=10-16",
-                   str(tmp_file),
+                   tmp_file.name,
                    save_path,
                    ]
 
@@ -209,7 +206,8 @@ class Geotif(File):
             out, err = process.communicate()
             logger.info(f"Process state: {out}, err: {err}")
 
-        shutil.rmtree(temp_dir)
+        Path.unlink(Path(tmp_file.name))
+        tmp_file.close()
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
