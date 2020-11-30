@@ -12,6 +12,7 @@ from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 from shapely.geometry import box
+from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
 from ...models import Result
@@ -54,6 +55,10 @@ class File(metaclass=ABCMeta):
         timestamp = os.path.getmtime(self.path)
         timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return timestamp
+
+    def file_size(self):
+        stat = os.stat(self.path)
+        return stat.st_size
 
     @abstractmethod
     def layer_type(self):
@@ -116,9 +121,13 @@ class Geojson(File):
                 self.features = [geojson]
 
     def layer_type(self):
+        if self.file_size() > settings.MAX_GEOJSON_SIZE:
+            return Result.MVT
         return Result.GEOJSON
 
     def rel_url(self):
+        if self.file_size() > settings.MAX_GEOJSON_SIZE:
+            return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
 
     def polygon(self):
@@ -129,6 +138,35 @@ class Geojson(File):
         bound_box = str(box(*df.total_bounds))
         bound_box = GEOSGeometry(bound_box)
         return bound_box
+
+    def generate_tiles(self, tiles_folder, timeout=60*5):
+        if self.file_size() < settings.MAX_GEOJSON_SIZE:
+            return
+        save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+        logger.info(f"Generating tiles for {self.path}")
+
+        command = ["ogr2ogr", "-f", "MVT", "-dsco", "MINZOOM=10", "-dsco", "MAXZOOM=16", "-dsco", 'COMPRESS=NO',
+                   save_path,
+                   self.path,
+                   ]
+        process = Popen(command, stdout=PIPE)
+        try:
+            out, err = process.communicate(timeout=timeout)
+            logger.info(f"Process output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            logger.error(f"Process error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            logger.info(f"Process state: {out}, err: {err}")
+
+    def delete_tiles(self, tiles_folder):
+        if self.file_size() < settings.MAX_GEOJSON_SIZE:
+            return
+        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+        try:
+            shutil.rmtree(delete_path)
+        except OSError as e:
+            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
 
 class Geotif(File):
