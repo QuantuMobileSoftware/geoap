@@ -2,4 +2,5 @@ results
 tiles
 satellite_imagery
 .ipynb_checkpoints
+.secret
 mapboxcache
