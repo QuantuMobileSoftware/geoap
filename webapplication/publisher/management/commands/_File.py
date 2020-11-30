@@ -94,6 +94,18 @@ class File(metaclass=ABCMeta):
 
         return dict_
 
+    @staticmethod
+    def run_process(command, timeout):
+        process = Popen(command, stdout=PIPE)
+        try:
+            out, err = process.communicate(timeout=timeout)
+            logger.info(f"Process output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            logger.error(f"Process error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            logger.info(f"Process state: {out}, err: {err}")
+
 
 class Geojson(File):
     def __init__(self, path, basedir):
@@ -149,15 +161,7 @@ class Geojson(File):
                    save_path,
                    self.path,
                    ]
-        process = Popen(command, stdout=PIPE)
-        try:
-            out, err = process.communicate(timeout=timeout)
-            logger.info(f"Process output: {out}, err: {err}")
-        except TimeoutExpired as te:
-            logger.error(f"Process error: {str(te)}. Killing process...")
-            process.kill()
-            out, err = process.communicate()
-            logger.info(f"Process state: {out}, err: {err}")
+        self.run_process(command, timeout)
 
     def delete_tiles(self, tiles_folder):
         if self.file_size() < settings.MAX_GEOJSON_SIZE:
@@ -210,15 +214,7 @@ class Geotif(File):
         logger.info(f"Generating tiles for {self.path}")
 
         command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
-        process = Popen(command, stdout=PIPE)
-        try:
-            out, err = process.communicate(timeout=timeout)
-            logger.info(f"Process output: {out}, err: {err}")
-        except TimeoutExpired as te:
-            logger.error(f"Process error: {str(te)}. Killing process...")
-            process.kill()
-            out, err = process.communicate()
-            logger.info(f"Process state: {out}, err: {err}")
+        self.run_process(command, timeout)
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
