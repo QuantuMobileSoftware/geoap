@@ -7,7 +7,6 @@ import rasterio
 import rasterio.features
 import rasterio.warp
 from osgeo import gdal, gdalconst
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from abc import ABCMeta, abstractmethod
@@ -172,18 +171,17 @@ class Geotif(File):
 
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        path = Path(self.path)
 
-        with NamedTemporaryFile(suffix=path.suffix) as tmp_file:
-            logger.info(f'Starting creating to {tmp_file.name}')
+        with NamedTemporaryFile(suffix=".tif") as tmp_file:
+            logger.info(f"Changing projection to Web Mercator for {self.path}")
             gdal.Warp(tmp_file.name,
                       self.path,
                       resampleAlg=gdalconst.GRIORA_Cubic,
                       outputType=gdal.GDT_Byte,
-                      dstSRS='EPSG:3857'
+                      dstSRS="EPSG:3857"
                       )
 
-            logger.info(f"Starting generat tiles for {self.path}")
+            logger.info(f"Generating tiles for {self.path}")
             command = ["gdal2tiles.py",
                        "--xyz",
                        "--webviewer=none",
@@ -196,12 +194,12 @@ class Geotif(File):
             process = Popen(command, stdout=PIPE)
             try:
                 out, err = process.communicate(timeout=timeout)
-                logger.info(f"Process output: {out}, err: {err}")
+                logger.info(f"gdal2tiles.py output: {out}, err: {err}")
             except TimeoutExpired as te:
-                logger.error(f"Process error: {str(te)}. Killing process...")
+                logger.error(f"gdal2tiles.py error: {str(te)}. Killing process...")
                 process.kill()
                 out, err = process.communicate()
-                logger.info(f"Process state: {out}, err: {err}")
+                logger.info(f"gdal2tiles.py output: {out}, err: {err}")
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
