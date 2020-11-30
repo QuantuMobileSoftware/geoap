@@ -174,40 +174,34 @@ class Geotif(File):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         path = Path(self.path)
 
-        tmp_file = NamedTemporaryFile()
-        name = str(Path(tmp_file.name).with_suffix(path.suffix))
-        tmp_file.name = name
+        with NamedTemporaryFile(suffix=path.suffix) as tmp_file:
+            logger.info(f'Starting creating to {tmp_file.name}')
+            gdal.Warp(tmp_file.name,
+                      self.path,
+                      resampleAlg=gdalconst.GRIORA_Cubic,
+                      outputType=gdal.GDT_Byte,
+                      dstSRS='EPSG:3857'
+                      )
 
-        logger.info(f'Starting creating to {tmp_file.name}')
-        gdal.Warp(tmp_file.name,
-                  self.path,
-                  resampleAlg=gdalconst.GRIORA_Cubic,
-                  outputType=gdal.GDT_Byte,
-                  dstSRS='EPSG:3857'
-                  )
+            logger.info(f"Starting generat tiles for {self.path}")
+            command = ["gdal2tiles.py",
+                       "--xyz",
+                       "--webviewer=none",
+                       "--processes=6",
+                       "--zoom=10-16",
+                       tmp_file.name,
+                       save_path,
+                       ]
 
-        logger.info(f"Starting generat tiles for {self.path}")
-        command = ["gdal2tiles.py",
-                   "--xyz",
-                   "--webviewer=none",
-                   "--processes=6",
-                   "--zoom=10-16",
-                   tmp_file.name,
-                   save_path,
-                   ]
-
-        process = Popen(command, stdout=PIPE)
-        try:
-            out, err = process.communicate(timeout=timeout)
-            logger.info(f"Process output: {out}, err: {err}")
-        except TimeoutExpired as te:
-            logger.error(f"Process error: {str(te)}. Killing process...")
-            process.kill()
-            out, err = process.communicate()
-            logger.info(f"Process state: {out}, err: {err}")
-
-        Path.unlink(Path(tmp_file.name))
-        tmp_file.close()
+            process = Popen(command, stdout=PIPE)
+            try:
+                out, err = process.communicate(timeout=timeout)
+                logger.info(f"Process output: {out}, err: {err}")
+            except TimeoutExpired as te:
+                logger.error(f"Process error: {str(te)}. Killing process...")
+                process.kill()
+                out, err = process.communicate()
+                logger.info(f"Process state: {out}, err: {err}")
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
