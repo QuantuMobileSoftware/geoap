@@ -167,20 +167,20 @@ class Geotif(File):
         bound_box = GEOSGeometry(self.bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=60*5):
+    def generate_tiles(self, tiles_folder, timeout=60*60*3):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
-        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
+        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=2", self.path, save_path, ]
         process = Popen(command, stdout=PIPE)
         try:
             out, err = process.communicate(timeout=timeout)
             logger.info(f"Process output: {out}, err: {err}")
+            if not os.path.isdir(save_path):
+                raise RuntimeError(f"gdal2tiles did not generated tiles for {save_path}: directory not exists")
         except TimeoutExpired as te:
-            logger.error(f"Process error: {str(te)}. Killing process...")
             process.kill()
-            out, err = process.communicate()
-            logger.info(f"Process state: {out}, err: {err}")
+            raise RuntimeError(f"gdal2tiles did not generated tiles for {save_path}: {str(te)}")
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
