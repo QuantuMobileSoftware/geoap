@@ -8,7 +8,7 @@ import numpy as np
 import rasterio
 from rasterio import Affine
 from rasterio.crs import CRS
-from geojson import Feature, Polygon
+from geojson import Feature, FeatureCollection, Polygon
 from django.contrib.gis.geos import Polygon as DjPolygon
 from datetime import datetime
 from rest_framework.test import APITestCase
@@ -304,14 +304,14 @@ class PublisherBase(APITestCase):
         self.test_results_folder.mkdir(parents=True, exist_ok=True)
         logger.info(f'test_results_folder: {self.test_results_folder}')
 
-    @classmethod
-    def tearDownClass(cls):
-        if Path(settings.RESULTS_FOLDER).exists():
-            shutil.rmtree(Path(settings.RESULTS_FOLDER))
-
-        if Path(settings.TILES_FOLDER).exists():
-            shutil.rmtree(Path(settings.TILES_FOLDER))
-        super().tearDownClass()
+    # @classmethod
+    # def tearDownClass(cls):
+    #     if Path(settings.RESULTS_FOLDER).exists():
+    #         shutil.rmtree(Path(settings.RESULTS_FOLDER))
+    #
+    #     if Path(settings.TILES_FOLDER).exists():
+    #         shutil.rmtree(Path(settings.TILES_FOLDER))
+    #     super().tearDownClass()
 
     @staticmethod
     def delete_all_files_in_folder(path):
@@ -358,6 +358,21 @@ class PublisherBase(APITestCase):
         for cnt in range(len(features)):
             with open(f"{self.test_results_folder}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
+
+    def create_big_geojson(self):
+        self.test_geojson_result_path = Path('/results')
+        feature_list = [feature_obj[1] for feature_obj in self.generate_features()]
+        for cnt in range(10):
+            feature_list += feature_list
+        feature_collection = FeatureCollection(feature_list)
+        with open(f"{self.test_results_folder}/big.geojson", 'w') as file:
+            geojson.dump(feature_collection, file)
+
+class BigGeojsonPublisherTestCase(PublisherBase):
+    def test_publish_big_geojson(self):
+        self.create_big_geojson()
+        command = Command()
+        command.handle()
 
 
 class GeojsonPublisherTestCase(PublisherBase):
