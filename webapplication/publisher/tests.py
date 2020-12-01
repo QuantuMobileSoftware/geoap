@@ -304,14 +304,18 @@ class PublisherBase(APITestCase):
         self.test_results_folder.mkdir(parents=True, exist_ok=True)
         logger.info(f'test_results_folder: {self.test_results_folder}')
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     if Path(settings.RESULTS_FOLDER).exists():
-    #         shutil.rmtree(Path(settings.RESULTS_FOLDER))
-    #
-    #     if Path(settings.TILES_FOLDER).exists():
-    #         shutil.rmtree(Path(settings.TILES_FOLDER))
-    #     super().tearDownClass()
+        self.test_tile_folder = Path(settings.TILES_FOLDER)
+        self.test_tile_folder.mkdir(parents=True, exist_ok=True)
+        logger.info(f'test_tile_folder: {self.test_tile_folder}')
+
+    @classmethod
+    def tearDownClass(cls):
+        if Path(settings.RESULTS_FOLDER).exists():
+            shutil.rmtree(Path(settings.RESULTS_FOLDER))
+
+        if Path(settings.TILES_FOLDER).exists():
+            shutil.rmtree(Path(settings.TILES_FOLDER))
+        super().tearDownClass()
 
     @staticmethod
     def delete_all_files_in_folder(path):
@@ -323,7 +327,7 @@ class PublisherBase(APITestCase):
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
         self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
-        self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'
+        self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'  # FIXME
         logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
         logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
         kwargs = {
@@ -360,12 +364,18 @@ class PublisherBase(APITestCase):
                 geojson.dump(features[cnt][1], file)
 
     def create_big_geojson(self):
-        self.test_geojson_result_path = Path('/results')
+        self.big_geojson_name = Path('big.geojson')
+        self.geojson_path = self.test_results_folder / self.big_geojson_name
+        self.mvt_path = self.test_tile_folder / self.big_geojson_name.stem
+        self.mvt_rel_url = Path('/tiles') / self.big_geojson_name.stem / '{z}/{x}/{y}.pbf'
+        logger.info(f'mvt_path: {self.mvt_path}')
+        logger.info(f'mvt_rel_url: {self.mvt_rel_url}')
+
         feature_list = [feature_obj[1] for feature_obj in self.generate_features()]
         for cnt in range(10):
             feature_list += feature_list
         feature_collection = FeatureCollection(feature_list)
-        with open(f"{self.test_results_folder}/big.geojson", 'w') as file:
+        with open(self.geojson_path, 'w') as file:
             geojson.dump(feature_collection, file)
 
 class BigGeojsonPublisherTestCase(PublisherBase):
@@ -373,6 +383,45 @@ class BigGeojsonPublisherTestCase(PublisherBase):
         self.create_big_geojson()
         command = Command()
         command.handle()
+        results = Result.objects.all().order_by('filepath')
+        for result in results:
+            self.assertEqual(str(self.mvt_rel_url), result.rel_url)
+            self.assertEqual(result.layer_type, 'MVT')
+            self.assertEqual(result.polygon.geom_type, 'Polygon')
+            self.assertEqual(result.polygon.srid, 4326)
+            self.assertEqual(self.mvt_path.exists(), True)
+
+
+class CleanBigGeojsonPublisherTestCase(PublisherBase):
+    def test_clean_geojson_files_result(self):
+        self.create_big_geojson()
+        command = Command()
+        command.handle()
+        logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
+        self.delete_all_files_in_folder(self.test_results_folder)
+        logger.info(f'Result.filepath: {Result.objects.all()[0].filepath}')
+        command.handle()
+        num_results = Result.objects.count()
+        self.assertEqual(num_results, 0)
+        self.assertEqual(self.mvt_path.exists(), False)
+
+
+class DeleteBigGeojsonPublisherTestCase(PublisherBase):
+    def test_delete_geojson_files_result(self):
+        self.create_big_geojson()
+        command = Command()
+        command.handle()
+
+        results = Result.objects.filter(to_be_deleted=False)
+        for result in results:
+            result.to_be_deleted = True
+            result.save()
+
+        command._delete()
+        self.assertEqual(self.geojson_path.exists(), False)
+        self.assertEqual(self.mvt_path.exists(), False)
+        self.assertEqual(Result.objects.filter(to_be_deleted=True).count(), 0)
+
 
 
 class GeojsonPublisherTestCase(PublisherBase):

@@ -76,7 +76,12 @@ class File(metaclass=ABCMeta):
         pass
 
     def delete_tiles(self, tiles_folder):
-        pass
+        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+        try:
+            logger.info(f'Deleting {delete_path} tiles')
+            shutil.rmtree(delete_path)
+        except OSError as e:
+            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
     def as_dict(self):
         dict_ = dict(filepath=self.filepath(),
@@ -156,21 +161,19 @@ class Geojson(File):
             return
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
+        import time
+        # time.sleep(100)
 
-        command = ["ogr2ogr", "-f", "MVT", "-dsco", "MINZOOM=10", "-dsco", "MAXZOOM=16", "-dsco", 'COMPRESS=NO',
+        command = ["ogr2ogr",
+                   "-f", "MVT",
+                   "-dsco", "MINZOOM=10",
+                   "-dsco", "MAXZOOM=16",
+                   "-dsco", 'COMPRESS=NO',
+                   '-mapFieldType', 'DateTime=String',
                    save_path,
                    self.path,
                    ]
         self.run_process(command, timeout)
-
-    def delete_tiles(self, tiles_folder):
-        if self.file_size() < settings.MAX_GEOJSON_SIZE:
-            return
-        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        try:
-            shutil.rmtree(delete_path)
-        except OSError as e:
-            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
 
 class Geotif(File):
@@ -216,10 +219,4 @@ class Geotif(File):
         command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
         self.run_process(command, timeout)
 
-    def delete_tiles(self, tiles_folder):
-        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        try:
-            shutil.rmtree(delete_path)
-        except OSError as e:
-            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
