@@ -3,4 +3,5 @@ tiles
 satellite_imagery
 .ipynb_checkpoints
 .secret
+res
 mapboxcache
