@@ -137,13 +137,16 @@ class Geojson(File):
             else:
                 self.features = [geojson]
 
+    def _need_create_mvt(self):
+        return self.file_size() > settings.MIN_GEOJSON_SIZE_FOR_MVT_CREATE
+
     def layer_type(self):
-        if self.file_size() > settings.MAX_GEOJSON_SIZE:
+        if self._need_create_mvt:
             return Result.MVT
         return Result.GEOJSON
 
     def rel_url(self):
-        if self.file_size() > settings.MAX_GEOJSON_SIZE:
+        if self._need_create_mvt:
             return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
 
@@ -157,23 +160,20 @@ class Geojson(File):
         return bound_box
 
     def generate_tiles(self, tiles_folder, timeout=60*5):
-        if self.file_size() < settings.MAX_GEOJSON_SIZE:
-            return
-        save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        logger.info(f"Generating tiles for {self.path}")
-        import time
-        # time.sleep(100)
+        if self._need_create_mvt:
+            save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+            logger.info(f"Generating tiles for {self.path}")
 
-        command = ["ogr2ogr",
-                   "-f", "MVT",
-                   "-dsco", "MINZOOM=10",
-                   "-dsco", "MAXZOOM=16",
-                   "-dsco", 'COMPRESS=NO',
-                   '-mapFieldType', 'DateTime=String',
-                   save_path,
-                   self.path,
-                   ]
-        self.run_process(command, timeout)
+            command = ["ogr2ogr",
+                       "-f", "MVT",
+                       "-dsco", "MINZOOM=10",
+                       "-dsco", "MAXZOOM=16",
+                       "-dsco", 'COMPRESS=NO',
+                       '-mapFieldType', 'DateTime=String',
+                       save_path,
+                       self.path,
+                       ]
+            self.run_process(command, timeout)
 
 
 class Geotif(File):
@@ -218,5 +218,3 @@ class Geotif(File):
 
         command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
         self.run_process(command, timeout)
-
-

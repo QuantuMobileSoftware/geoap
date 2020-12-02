@@ -327,7 +327,7 @@ class PublisherBase(APITestCase):
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
         self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
-        self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'  # FIXME
+        self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'
         logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
         logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
         kwargs = {
