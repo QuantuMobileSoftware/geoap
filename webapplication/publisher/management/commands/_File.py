@@ -6,7 +6,7 @@ import geopandas
 import rasterio
 import rasterio.features
 import rasterio.warp
-from osgeo import gdal, gdalconst
+from osgeo import gdal, gdalconst, osr
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -92,6 +92,18 @@ class File(metaclass=ABCMeta):
 
         return dict_
 
+    @staticmethod
+    def run_process(command, timeout):
+        process = Popen(command, stdout=PIPE)
+        try:
+            out, err = process.communicate(timeout=timeout)
+            logger.info(f"Process output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            logger.error(f"Process error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            logger.info(f"Process state: {out}, err: {err}")
+
 
 class Geojson(File):
     def __init__(self, path, basedir):
@@ -174,34 +186,41 @@ class Geotif(File):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         path = Path(self.path)
 
-        with NamedTemporaryFile(suffix=path.suffix) as tmp_file:
-            logger.info(f'Starting creating to {tmp_file.name}')
-            gdal.Warp(tmp_file.name,
-                      self.path,
-                      resampleAlg=gdalconst.GRIORA_Cubic,
-                      outputType=gdal.GDT_Byte,
-                      dstSRS='EPSG:3857'
-                      )
+        dataset = gdal.Open(self.path)
+        proj = osr.SpatialReference(wkt=dataset.GetProjection())
+        epsg = proj.GetAttrValue('AUTHORITY', 1)
+        if epsg != '3857':
+            with NamedTemporaryFile(suffix=path.suffix) as tmp_file:
+                logger.info(f'Starting creating {tmp_file.name}')
+                gdal.Warp(tmp_file.name,
+                          dataset,
+                          resampleAlg=gdalconst.GRIORA_Cubic,
+                          outputType=gdal.GDT_Byte,
+                          dstSRS='EPSG:3857'
+                          )
+                command = ["gdal2tiles.py",
+                           "--xyz",
+                           "--webviewer=none",
+                           "--processes=6",
+                           "--zoom=10-16",
+                           tmp_file.name,
+                           save_path,
+                           ]
+                logger.info(f"Starting generat tiles for {self.path}")
+                self.run_process(command, timeout)
 
-            logger.info(f"Starting generat tiles for {self.path}")
+        else:
             command = ["gdal2tiles.py",
                        "--xyz",
                        "--webviewer=none",
                        "--processes=6",
                        "--zoom=10-16",
-                       tmp_file.name,
+                       self.path,
                        save_path,
                        ]
 
-            process = Popen(command, stdout=PIPE)
-            try:
-                out, err = process.communicate(timeout=timeout)
-                logger.info(f"Process output: {out}, err: {err}")
-            except TimeoutExpired as te:
-                logger.error(f"Process error: {str(te)}. Killing process...")
-                process.kill()
-                out, err = process.communicate()
-                logger.info(f"Process state: {out}, err: {err}")
+            logger.info(f"Starting generat tiles for {self.path}")
+            self.run_process(command, timeout)
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
