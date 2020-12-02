@@ -31,21 +31,33 @@ export default function createMap(widgetFactory, mapModel) {
             }).addTo(map);
         }
 
-        const mvtLayer = L.vectorGrid.protobuf("/tiles/ClearCut-2020-11-25-1/{z}/{x}/{y}.pbf", {
-            // rendererFactory: L.canvas.tile,
+        const mvtLayer = L.vectorGrid.protobuf("/tiles/clearcut/{z}/{x}/{y}.pbf", {
+            rendererFactory: L.canvas.tile,
             maxZoom: 16,
             vectorTileLayerStyles: {
-                "ClearCut-2020-11-25": (properties) => {
-                    return {
-                        color: "green",
-                        fill: true
+                "ClearCut-2020-12-02": (properties) => {
+                    if (typeof properties.style === "string") {
+                        properties.style = JSON.parse(properties.style);
                     }
+                    if (typeof properties.data === "string") {
+                        properties.data = JSON.parse(properties.data);
+                    }
+                    if (typeof properties.layout === "string") {
+                        properties.layout = JSON.parse(properties.layout);
+                    }
+                    if (properties.style === undefined) {
+                        properties.style = {};
+                    }
+                    if (properties.style.fill === undefined) {
+                        properties.style.fill = true;
+                    }
+                    return properties.style;
                 }
             },
             interactive: true
         }).addTo(map);
         mvtLayer.addEventListener("click", (x) => {
-            console.log(x.layer.properties);
+            mapModel.selectFeature(x.layer);
         });
         map.fitBounds([[49.8704624780525, 37.0123590916912], [50.040247115589196, 36.737865323126336]]);
     };
