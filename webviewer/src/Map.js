@@ -31,11 +31,11 @@ export default function createMap(widgetFactory, mapModel) {
             }).addTo(map);
         }
 
-        const mvtLayer = L.vectorGrid.protobuf("/tiles/clearcut/{z}/{x}/{y}.pbf", {
+        const mvtLayer = L.vectorGrid.protobuf("/tiles/clearcut/ClearCut-2020-12-02/{z}/{x}/{y}.pbf", {
             rendererFactory: L.canvas.tile,
             maxZoom: 16,
             vectorTileLayerStyles: {
-                "ClearCut-2020-12-02": (properties) => {
+                "default": (properties) => {
                     if (typeof properties.style === "string") {
                         properties.style = JSON.parse(properties.style);
                     }
