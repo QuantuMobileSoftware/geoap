@@ -185,7 +185,6 @@ class Geotif(File):
     def generate_tiles(self, tiles_folder, timeout=60*5):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         path = Path(self.path)
-
         dataset = gdal.Open(self.path)
         proj = osr.SpatialReference(wkt=dataset.GetProjection())
         epsg = proj.GetAttrValue('AUTHORITY', 1)
