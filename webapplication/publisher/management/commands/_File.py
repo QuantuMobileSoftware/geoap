@@ -168,13 +168,8 @@ class Geojson(File):
         if self._need_create_mvt:
             save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
             logger.info(f"Generating tiles for {self.path}")
-            if os.path.exists(save_path):
-                try:
-                    logger.info(f'Path {save_path} exists')
-                    logger.info(f'Deleting {save_path}')
-                    shutil.rmtree(save_path)
-                except OSError:
-                    logger.error(f"Error when deleting {save_path}.", exc_info=True)
+            os.makedirs(save_path, exist_ok=True)
+            shutil.rmtree(save_path)
             command = ["ogr2ogr",
                        "-f", "MVT",
                        "-dsco", "MINZOOM=10",
