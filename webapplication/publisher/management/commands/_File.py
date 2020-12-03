@@ -9,8 +9,7 @@ import rasterio.warp
 
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
-import subprocess
-from subprocess import PIPE, TimeoutExpired, CalledProcessError
+from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 from shapely.geometry import box
 from django.conf import settings
@@ -44,7 +43,6 @@ class File(metaclass=ABCMeta):
         self.name = None
         self.start_date = None
         self.end_date = None
-        self.state = 0
 
     def filename(self):
         return os.path.basename(self.path)
@@ -103,18 +101,19 @@ class File(metaclass=ABCMeta):
         return dict_
 
     def run_process(self, command, timeout):
+        process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
         try:
-            result = subprocess.run(command, timeout=timeout, stdout=PIPE, stderr=PIPE, encoding='utf-8')
-            self.state = result.returncode
-            logger.info(f'self.state: {self.state}')
-            if result.returncode != 0:
-                raise CalledProcessError(result.returncode, result.args)
-
-        except TimeoutExpired:
-            logger.error('Time out, process run too long', exc_info=True)
-            self.state = -1
-        except CalledProcessError:
-            logger.error('"Process error."', exc_info=True)
+            out, err = process.communicate(timeout=timeout)
+            if process.returncode != 0:
+                logger.error(f"Failed {command} output: {out}, err: {err}")
+                raise Exception(f"Failed to run process")
+            logger.info(f"Success {command} output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            logger.error(f"Failed {command} error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            logger.info(f"Failed {command} output: {out}, err: {err}")
+            raise
 
 
 class Geojson(File):
@@ -144,7 +143,7 @@ class Geojson(File):
 
     @property
     def _need_create_mvt(self):
-        return self._file_size_bytes() > settings.MIN_GEOJSON_SIZE_FOR_MVT_CREATE
+        return self._file_size_bytes() > settings.MIN_GEOJSON_SIZE_TO_CREATE_MVT_BYTES
 
     def layer_type(self):
         if self._need_create_mvt:
@@ -165,7 +164,7 @@ class Geojson(File):
         bound_box = GEOSGeometry(bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATING):
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         if self._need_create_mvt:
             save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
             logger.info(f"Generating tiles for {self.path}")
@@ -225,7 +224,7 @@ class Geotif(File):
         bound_box = GEOSGeometry(self.bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATING):
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
