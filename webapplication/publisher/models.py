@@ -8,10 +8,12 @@ class Result(models.Model):
     modifiedat = models.DateTimeField(verbose_name='Original file modification date')
 
     GEOJSON = 'GEOJSON'
+    MVT = 'MVT'
     XYZ = 'XYZ'
 
     LAYER_TYPE_CHOICES = [
         (GEOJSON, 'GEOJSON'),
+        (MVT, 'MVT'),
         (XYZ, 'XYZ'),
     ]
     layer_type = models.CharField(
