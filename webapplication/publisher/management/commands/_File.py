@@ -7,7 +7,6 @@ import rasterio
 import rasterio.features
 import rasterio.warp
 from osgeo import gdal, gdalconst, osr
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from abc import ABCMeta, abstractmethod
@@ -229,41 +228,33 @@ class Geotif(File):
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        path = Path(self.path)
         dataset = gdal.Open(self.path)
+        command = ["gdal2tiles.py",
+                    "--xyz",
+                    "--webviewer=none",
+                    "--processes=6",
+                    "--zoom=10-16",
+                    self.path,
+                    save_path,
+                    ]
+
         proj = osr.SpatialReference(wkt=dataset.GetProjection())
-        epsg = proj.GetAttrValue('AUTHORITY', 1)
-        if epsg != '3857':
-            with NamedTemporaryFile(suffix=path.suffix) as tmp_file:
-                logger.info(f'Starting creating {tmp_file.name}')
+        epsg = proj.GetAttrValue("AUTHORITY", 1)
+        if epsg != "3857":
+            with NamedTemporaryFile(suffix=".tif") as tmp_file:
+                logger.info(f"Changing projection to Web Mercator for {self.path}")
                 gdal.Warp(tmp_file.name,
                           dataset,
                           resampleAlg=gdalconst.GRIORA_Cubic,
                           outputType=gdal.GDT_Byte,
-                          dstSRS='EPSG:3857',
+                          dstSRS="EPSG:3857",
                           dstNodata=0
                           )
-                command = ["gdal2tiles.py",
-                           "--xyz",
-                           "--webviewer=none",
-                           "--processes=6",
-                           "--zoom=10-16",
-                           tmp_file.name,
-                           save_path,
-                           ]
-                logger.info(f"Starting generat tiles for {self.path}")
+                command[5] = tmp_file.name
+                logger.info(f"Generating tiles for {self.path}")
                 self.run_process(command, timeout)
         else:
-            command = ["gdal2tiles.py",
-                       "--xyz",
-                       "--webviewer=none",
-                       "--processes=6",
-                       "--zoom=10-16",
-                       self.path,
-                       save_path,
-                       ]
-
-            logger.info(f"Starting generat tiles for {self.path}")
+            logger.info(f"Generating tiles for {self.path}")
             self.run_process(command, timeout)
 
     def delete_tiles(self, tiles_folder):
