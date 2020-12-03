@@ -378,6 +378,7 @@ class PublisherBase(APITestCase):
         with open(self.geojson_path, 'w') as file:
             geojson.dump(feature_collection, file)
 
+
 class BigGeojsonPublisherTestCase(PublisherBase):
     def test_publish_big_geojson(self):
         self.create_big_geojson()
@@ -421,7 +422,6 @@ class DeleteBigGeojsonPublisherTestCase(PublisherBase):
         self.assertEqual(self.geojson_path.exists(), False)
         self.assertEqual(self.mvt_path.exists(), False)
         self.assertEqual(Result.objects.filter(to_be_deleted=True).count(), 0)
-
 
 
 class GeojsonPublisherTestCase(PublisherBase):

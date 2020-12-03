@@ -29,6 +29,7 @@ def instance_already_running(label='default'):
 
     return already_running
 
+
 def rm_empty_dirs(folder):
     """
        Remove empty dirs and sub dirs
@@ -86,13 +87,19 @@ class Command(BaseCommand):
 
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
-                        Result.objects.filter(id=result.id).update(**file_dict)
-                        logger.info(f"Object {file_dict['filepath']} was UPDATED")
+                        if file.state == 0:
+                            Result.objects.filter(id=result.id).update(**file_dict)
+                            logger.info(f"Object {file_dict['filepath']} was UPDATED")
+                        else:
+                            logger.info(f"Object {file_dict['filepath']} was NOT UPDATED because state = {file.state}")
 
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
-                    Result.objects.create(**file_dict)
-                    logger.info(f"Object {file_dict['filepath']} was CREATED")
+                    if file.state == 0:
+                        Result.objects.create(**file_dict)
+                        logger.info(f"Object {file_dict['filepath']} was CREATED")
+                    else:
+                        logger.info(f"Object {file_dict['filepath']} was NOT CREATED because state = {file.state}")
             except Exception as ex:
                 logger.error(f"Error for {file_dict['filepath']}: {str(ex)}")
         logger.info(f"Updating or creating finished")
@@ -101,8 +108,8 @@ class Command(BaseCommand):
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
-        logger.info(f"Deleting {to_delete.count()} objects. FILEPATHS: "
-                          f"{[file.filepath for file in to_delete]}")
+        logger.info(f"Deleting {to_delete.count()} objects.")
+        logger.info(f"FILEPATHS: {[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
 

@@ -9,7 +9,8 @@ import rasterio.warp
 
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
-from subprocess import Popen, PIPE, TimeoutExpired
+import subprocess
+from subprocess import PIPE, TimeoutExpired, CalledProcessError
 from datetime import datetime
 from shapely.geometry import box
 from django.conf import settings
@@ -43,6 +44,7 @@ class File(metaclass=ABCMeta):
         self.name = None
         self.start_date = None
         self.end_date = None
+        self.state = 0
 
     def filename(self):
         return os.path.basename(self.path)
@@ -99,17 +101,16 @@ class File(metaclass=ABCMeta):
 
         return dict_
 
-    @staticmethod
-    def run_process(command, timeout):
-        process = Popen(command, stdout=PIPE)
+    def run_process(self, command, timeout):
         try:
-            out, err = process.communicate(timeout=timeout)
-            logger.info(f"Process output: {out}, err: {err}")
-        except TimeoutExpired as te:
-            logger.error(f"Process error: {str(te)}. Killing process...")
-            process.kill()
-            out, err = process.communicate()
-            logger.info(f"Process state: {out}, err: {err}")
+            result = subprocess.run(command, timeout=timeout, stdout=PIPE, stderr=PIPE, encoding='utf-8')
+            self.state = result.returncode
+            logger.info(f'self.state: {self.state}')
+        except TimeoutExpired:
+            logger.error('Time out, process run too long', exc_info=True)
+            self.state = -1
+        except CalledProcessError:
+            logger.error('"Process error."', exc_info=True)
 
 
 class Geojson(File):
@@ -137,6 +138,7 @@ class Geojson(File):
             else:
                 self.features = [geojson]
 
+    @property
     def _need_create_mvt(self):
         return self.file_size() > settings.MIN_GEOJSON_SIZE_FOR_MVT_CREATE
 
@@ -170,6 +172,7 @@ class Geojson(File):
                        "-dsco", "MAXZOOM=16",
                        "-dsco", 'COMPRESS=NO',
                        '-mapFieldType', 'DateTime=String',
+                       '-lco', 'NAME=default',
                        save_path,
                        self.path,
                        ]
