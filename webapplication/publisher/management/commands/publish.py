@@ -88,7 +88,6 @@ class Command(BaseCommand):
                         file.generate_tiles(self.tiles_folder)
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
-
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
                     Result.objects.create(**file_dict)

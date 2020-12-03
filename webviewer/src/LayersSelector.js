@@ -32,7 +32,17 @@ export default function createLayersSelector(widgetFactory, mapModel) {
 
     mapModel.addEventListener("layersupdated", () => {
         const layerElts = [];
-        mapModel.layers.forEach(x => {
+        const layers = mapModel.layers.slice();
+        layers.sort((a, b) => {
+            if (a.filepath < b.filepath) {
+                return -1;
+            }
+            if (a.filepath > b.filepath) {
+                return 1;
+            }
+            return 0;
+        })
+        layers.forEach(x => {
             const layerElt = Div().setStyle({
                 height: "2em",
                 "padding-left": "1em",

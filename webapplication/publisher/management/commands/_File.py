@@ -12,6 +12,7 @@ from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 from shapely.geometry import box
+from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
 from ...models import Result
@@ -55,6 +56,10 @@ class File(metaclass=ABCMeta):
         timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return timestamp
 
+    def _file_size_bytes(self):
+        stat = os.stat(self.path)
+        return stat.st_size
+
     @abstractmethod
     def layer_type(self):
         pass
@@ -71,7 +76,13 @@ class File(metaclass=ABCMeta):
         pass
 
     def delete_tiles(self, tiles_folder):
-        pass
+        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+        if os.path.exists(delete_path):
+            try:
+                logger.info(f'Deleting {delete_path} tiles')
+                shutil.rmtree(delete_path)
+            except OSError as e:
+                logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
     def as_dict(self):
         dict_ = dict(filepath=self.filepath(),
@@ -88,6 +99,21 @@ class File(metaclass=ABCMeta):
             dict_['end_date'] = timestamp_parser.parse(self.end_date)
 
         return dict_
+
+    def run_process(self, command, timeout):
+        process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+        try:
+            out, err = process.communicate(timeout=timeout)
+            if process.returncode != 0:
+                logger.error(f"Failed {command} output: {out}, err: {err}")
+                raise Exception(f"Failed to run process")
+            logger.info(f"Success {command} output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            logger.error(f"Failed {command} error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            logger.info(f"Failed {command} output: {out}, err: {err}")
+            raise
 
 
 class Geojson(File):
@@ -115,10 +141,18 @@ class Geojson(File):
             else:
                 self.features = [geojson]
 
+    @property
+    def _need_create_mvt(self):
+        return self._file_size_bytes() > settings.MIN_GEOJSON_SIZE_TO_CREATE_MVT_BYTES
+
     def layer_type(self):
+        if self._need_create_mvt:
+            return Result.MVT
         return Result.GEOJSON
 
     def rel_url(self):
+        if self._need_create_mvt:
+            return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
 
     def polygon(self):
@@ -129,6 +163,24 @@ class Geojson(File):
         bound_box = str(box(*df.total_bounds))
         bound_box = GEOSGeometry(bound_box)
         return bound_box
+
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
+        if self._need_create_mvt:
+            save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
+            logger.info(f"Generating tiles for {self.path}")
+            os.makedirs(save_path, exist_ok=True)
+            shutil.rmtree(save_path)
+            command = ["ogr2ogr",
+                       "-f", "MVT",
+                       "-dsco", "MINZOOM=10",
+                       "-dsco", "MAXZOOM=16",
+                       "-dsco", 'COMPRESS=NO',
+                       '-mapFieldType', 'DateTime=String',
+                       '-lco', 'NAME=default',
+                       save_path,
+                       self.path,
+                       ]
+            self.run_process(command, timeout)
 
 
 class Geotif(File):
@@ -167,25 +219,9 @@ class Geotif(File):
         bound_box = GEOSGeometry(self.bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=60*60*3):
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
-        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=2", self.path, save_path, ]
-        process = Popen(command, stdout=PIPE)
-        try:
-            out, err = process.communicate(timeout=timeout)
-            logger.info(f"Process output: {out}, err: {err}")
-            if not os.path.isdir(save_path):
-                raise RuntimeError(f"gdal2tiles did not generated tiles for {save_path}: directory not exists")
-        except TimeoutExpired as te:
-            process.kill()
-            raise RuntimeError(f"gdal2tiles did not generated tiles for {save_path}: {str(te)}")
-
-    def delete_tiles(self, tiles_folder):
-        delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        try:
-            shutil.rmtree(delete_path)
-        except OSError as e:
-            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
-
+        command = ["gdal2tiles.py", "--xyz", "--webviewer=none", "--zoom=10-16", self.path, save_path, ]
+        self.run_process(command, timeout)
