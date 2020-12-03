@@ -58,7 +58,7 @@ class File(metaclass=ABCMeta):
         timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return timestamp
 
-    def file_size(self):
+    def _file_size_bytes(self):
         stat = os.stat(self.path)
         return stat.st_size
 
@@ -79,11 +79,12 @@ class File(metaclass=ABCMeta):
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
-        try:
-            logger.info(f'Deleting {delete_path} tiles')
-            shutil.rmtree(delete_path)
-        except OSError as e:
-            logger.error(f"Error delete {delete_path} tile: {e.strerror}")
+        if os.path.exists(delete_path):
+            try:
+                logger.info(f'Deleting {delete_path} tiles')
+                shutil.rmtree(delete_path)
+            except OSError as e:
+                logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
     def as_dict(self):
         dict_ = dict(filepath=self.filepath(),
@@ -106,6 +107,9 @@ class File(metaclass=ABCMeta):
             result = subprocess.run(command, timeout=timeout, stdout=PIPE, stderr=PIPE, encoding='utf-8')
             self.state = result.returncode
             logger.info(f'self.state: {self.state}')
+            if result.returncode != 0:
+                raise CalledProcessError(result.returncode, result.args)
+
         except TimeoutExpired:
             logger.error('Time out, process run too long', exc_info=True)
             self.state = -1
@@ -140,7 +144,7 @@ class Geojson(File):
 
     @property
     def _need_create_mvt(self):
-        return self.file_size() > settings.MIN_GEOJSON_SIZE_FOR_MVT_CREATE
+        return self._file_size_bytes() > settings.MIN_GEOJSON_SIZE_FOR_MVT_CREATE
 
     def layer_type(self):
         if self._need_create_mvt:
@@ -161,11 +165,17 @@ class Geojson(File):
         bound_box = GEOSGeometry(bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=60*5):
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATING):
         if self._need_create_mvt:
             save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
             logger.info(f"Generating tiles for {self.path}")
-
+            if os.path.exists(save_path):
+                try:
+                    logger.info(f'Path {save_path} exists')
+                    logger.info(f'Deleting {save_path}')
+                    shutil.rmtree(save_path)
+                except OSError:
+                    logger.error(f"Error when deleting {save_path}.", exc_info=True)
             command = ["ogr2ogr",
                        "-f", "MVT",
                        "-dsco", "MINZOOM=10",
@@ -215,7 +225,7 @@ class Geotif(File):
         bound_box = GEOSGeometry(self.bound_box)
         return bound_box
 
-    def generate_tiles(self, tiles_folder, timeout=60*5):
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATING):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         logger.info(f"Generating tiles for {self.path}")
 
