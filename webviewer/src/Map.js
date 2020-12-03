@@ -30,36 +30,6 @@ export default function createMap(widgetFactory, mapModel) {
                 zoomOffset: -1
             }).addTo(map);
         }
-
-        const mvtLayer = L.vectorGrid.protobuf("/tiles/clearcut/ClearCut-2020-12-02/{z}/{x}/{y}.pbf", {
-            rendererFactory: L.canvas.tile,
-            maxZoom: 16,
-            vectorTileLayerStyles: {
-                "default": (properties) => {
-                    if (typeof properties.style === "string") {
-                        properties.style = JSON.parse(properties.style);
-                    }
-                    if (typeof properties.data === "string") {
-                        properties.data = JSON.parse(properties.data);
-                    }
-                    if (typeof properties.layout === "string") {
-                        properties.layout = JSON.parse(properties.layout);
-                    }
-                    if (properties.style === undefined) {
-                        properties.style = {};
-                    }
-                    if (properties.style.fill === undefined) {
-                        properties.style.fill = true;
-                    }
-                    return properties.style;
-                }
-            },
-            interactive: true
-        }).addTo(map);
-        mvtLayer.addEventListener("click", (x) => {
-            mapModel.selectFeature(x.layer);
-        });
-        map.fitBounds([[49.8704624780525, 37.0123590916912], [50.040247115589196, 36.737865323126336]]);
     };
     var layer = null;
     mapModel.addEventListener("layerselected", () => {
@@ -107,11 +77,40 @@ export default function createMap(widgetFactory, mapModel) {
                 console.error("Failed to request " + l.rel_url);
             };
             xhr.send();
+        } else if (l.layer_type === "MVT") {
+            layer = L.vectorGrid.protobuf(l.rel_url, {
+                rendererFactory: L.canvas.tile,
+                maxZoom: 16,
+                vectorTileLayerStyles: {
+                    "default": (properties) => {
+                        if (typeof properties.style === "string") {
+                            properties.style = JSON.parse(properties.style);
+                        }
+                        if (typeof properties.data === "string") {
+                            properties.data = JSON.parse(properties.data);
+                        }
+                        if (typeof properties.layout === "string") {
+                            properties.layout = JSON.parse(properties.layout);
+                        }
+                        if (properties.style === undefined) {
+                            properties.style = {};
+                        }
+                        if (properties.style.fill === undefined) {
+                            properties.style.fill = true;
+                        }
+                        return properties.style;
+                    }
+                },
+                interactive: true
+            });
+            layer.addEventListener("click", (x) => {
+                mapModel.selectFeature(x.layer);
+            });
         } else if (l.layer_type === "XYZ") {
             layer = L.tileLayer(l.rel_url, {
                 minZoom: 10,
                 maxZoom: 16
-            })
+            });
         }
         layer.addTo(map);
         map.fitBounds(l.boundingCoordinates);
