@@ -195,7 +195,8 @@ class Geotif(File):
                           dataset,
                           resampleAlg=gdalconst.GRIORA_Cubic,
                           outputType=gdal.GDT_Byte,
-                          dstSRS='EPSG:3857'
+                          dstSRS='EPSG:3857',
+                          dstNodata=0
                           )
                 command = ["gdal2tiles.py",
                            "--xyz",
