@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from user.models import User
 from django.utils import timezone
 
 
@@ -57,3 +59,12 @@ class AoI(models.Model):
         verbose_name_plural = 'Areas of interest'
         ordering = ['name']
 
+
+class ACL(models.Model):
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE)
+    restrict_projects_to = ArrayField(models.CharField(max_length=20), blank=True)
+
+    class Meta:
+        verbose_name = 'Access Control List'
+        verbose_name_plural = 'Access Control Lists'
+        ordering = ['user_id']
