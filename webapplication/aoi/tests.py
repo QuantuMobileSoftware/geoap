@@ -37,19 +37,19 @@ class AOITestCase(APITestCase):
         }
 
     def test_create_aoi_as_not_auth_user(self):
-        url = reverse('aoi_list_or_create')
+        url = reverse('aoi:aoi_list_or_create')
         self.client.force_authenticate(user=None)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_aoi_as_not_staff_user(self):
-        url = reverse('aoi_list_or_create')
+        url = reverse('aoi:aoi_list_or_create')
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_aoi_as_staff_user(self):
-        url = reverse('aoi_list_or_create')
+        url = reverse('aoi:aoi_list_or_create')
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -71,20 +71,20 @@ class AOITestCase(APITestCase):
 
     def get_aoi(self):
         aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi', kwargs={'pk': aoi.id})
         response = self.client.get(url)
         return response
 
     def test_putch_aoi_as_not_auth_user(self):
         aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi', kwargs={'pk': aoi.id})
         self.client.force_authenticate(user=None)
         response = self.client.patch(url, self.data_patch)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_putch_aoi_as_not_staff_user(self):
         aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi', kwargs={'pk': aoi.id})
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.client.patch(url, self.data_patch)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -93,7 +93,7 @@ class AOITestCase(APITestCase):
         aoi = AoI.objects.create(**self.data_create)
         aoi.polygon = self.data_patch['polygon']
         serializer = AoISerializer(aoi)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi', kwargs={'pk': aoi.id})
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.patch(url, self.data_patch)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -126,7 +126,7 @@ class AOITestCase(APITestCase):
     def get_aoi_list(self):
         AoI.objects.create(**self.data_create)
         AoI.objects.create(**self.data_patch)
-        url = reverse('aoi_list_or_create')
+        url = reverse('aoi:aoi_list_or_create')
         response = self.client.get(url)
         return response
 
@@ -147,7 +147,7 @@ class AOITestCase(APITestCase):
 
     def delete_aoi(self):
         aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi', kwargs={'pk': aoi.id})
         response = self.client.delete(url)
         return response
 
@@ -174,6 +174,6 @@ class AOITestCase(APITestCase):
 
     def get_aoi_results(self):
         aoi = AoI.objects.create(**self.data_create)
-        url = reverse('aoi_results', kwargs={'pk': aoi.id})
+        url = reverse('aoi:aoi_results', kwargs={'pk': aoi.id})
         response = self.client.get(url)
         return response
