@@ -21,7 +21,7 @@ class Result(models.Model):
         verbose_name='Layer type',
     )
 
-    polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
+    bounding_polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
 
     # Filled in by a Data science engineer

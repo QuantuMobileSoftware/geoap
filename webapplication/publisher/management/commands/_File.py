@@ -67,7 +67,7 @@ class File(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def polygon(self):
+    def bounding_polygon(self):
         pass
 
     @abstractmethod
@@ -91,7 +91,7 @@ class File(metaclass=ABCMeta):
                      modifiedat=self.modifiedat(),
                      layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
-                     polygon=self.polygon(), )
+                     bounding_polygon=self.bounding_polygon(), )
 
         if self.name:
             dict_['name'] = self.name
@@ -157,7 +157,7 @@ class Geojson(File):
             return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
 
-    def polygon(self):
+    def bounding_polygon(self):
         if not self.features:
             return
 
@@ -215,7 +215,7 @@ class Geotif(File):
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
 
-    def polygon(self):
+    def bounding_polygon(self):
         if not self.bound_box:
             return
         bound_box = GEOSGeometry(self.bound_box)

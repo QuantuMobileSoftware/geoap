@@ -38,7 +38,7 @@
       "filepath": "homilsha.geojson",
       "modifiedat": "2020-11-16T11:14:31.380000Z",
       "layer_type": "GEOJSON",
-      "polygon": "SRID=4326;POLYGON ((36.416588 49.504924 , 36.416588 49.639844 , 36.224327 49.639844 , 36.224327 49.504924, 36.416588 49.504924))",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.416588 49.504924 , 36.416588 49.639844 , 36.224327 49.639844 , 36.224327 49.504924, 36.416588 49.504924))",
       "rel_url": "/results/homilsha.geojson",
       "released": true
     }
@@ -50,7 +50,7 @@
       "filepath": "hytor.geojson",
       "modifiedat": "2020-11-16T11:14:31.380000Z",
       "layer_type": "GEOJSON",
-      "polygon": "SRID=4326;POLYGON (( 36.162572 49.871517 ,  36.162572 49.888248 ,  36.137638 49.888248 ,  36.137638 49.871517 ,  36.162572 49.871517 ))",
+      "bounding_polygon": "SRID=4326;POLYGON (( 36.162572 49.871517 ,  36.162572 49.888248 ,  36.137638 49.888248 ,  36.137638 49.871517 ,  36.162572 49.871517 ))",
       "rel_url": "/results/hytor.geojson"
     }
   },
@@ -61,7 +61,7 @@
       "filepath": "kharkiv_park.geojson",
       "modifiedat": "2020-11-16T11:14:31.380000Z",
       "layer_type": "GEOJSON",
-      "polygon": "SRID=4326;POLYGON ((36.254153 50.014854, 36.254153 50.026215, 36.238704 50.026215, 36.238704 50.014854, 36.254153 50.014854))",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.254153 50.014854, 36.254153 50.026215, 36.238704 50.026215, 36.238704 50.014854, 36.254153 50.014854))",
       "rel_url": "/results/kharkiv_park.geojson"
     }
   },
@@ -72,7 +72,7 @@
       "filepath": "kharkiv_zoo.geojson",
       "modifiedat": "2020-11-16T11:14:31.380000Z",
       "layer_type": "GEOJSON",
-      "polygon": "SRID=4326;POLYGON ((36.229713 50.000664, 36.229713 50.004664, 36.221033 50.004664, 36.221033 50.000664, 36.229713 50.000664))",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.229713 50.000664, 36.229713 50.004664, 36.221033 50.004664, 36.221033 50.000664, 36.229713 50.000664))",
       "rel_url": "/results/kharkiv_zoo.geojson"
     }
   },
@@ -83,7 +83,7 @@
       "filepath": "osnova_lake.geojson",
       "modifiedat": "2020-11-16T11:14:31.380000Z",
       "layer_type": "GEOJSON",
-      "polygon": "SRID=4326;POLYGON ((36.230035 49.925919, 36.230035 49.938323, 36.215186 49.938323, 36.215186 49.925919, 36.230035 49.925919))",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.230035 49.925919, 36.230035 49.938323, 36.215186 49.938323, 36.215186 49.925919, 36.230035 49.925919))",
       "rel_url": "/results/osnova_lake.geojson"
     }
   }
