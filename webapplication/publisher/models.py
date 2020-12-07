@@ -41,3 +41,8 @@ class Result(models.Model):
         verbose_name = 'Result'
         verbose_name_plural = 'Results'
         ordering = ['-modifiedat']
+
+        permissions = (
+            ('read_result', 'Can read result'),
+        )
+        
