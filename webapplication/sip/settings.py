@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # Local Apps
     'user',
     'publisher',
+    'aoi'
 ]
 
 REST_FRAMEWORK = {
