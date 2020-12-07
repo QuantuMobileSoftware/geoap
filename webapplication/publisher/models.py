@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from user.models import User
 
 
 class Result(models.Model):
@@ -41,3 +43,13 @@ class Result(models.Model):
         verbose_name = 'Result'
         verbose_name_plural = 'Results'
         ordering = ['-modifiedat']
+
+
+class ACL(models.Model):
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE)
+    restrict_projects_to = ArrayField(models.CharField(max_length=20), blank=True)
+
+    class Meta:
+        verbose_name = 'Access Control List'
+        verbose_name_plural = 'Access Control Lists'
+        ordering = ['user_id']
