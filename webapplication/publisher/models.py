@@ -46,8 +46,8 @@ class Result(models.Model):
 
 
 class ACL(models.Model):
-    user_id = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='user name')
-    restrict_projects_to = ArrayField(models.CharField(max_length=20), blank=True, verbose_name='restrict projects to')
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='User name')
+    restrict_projects_to = ArrayField(models.CharField(max_length=20), blank=True, verbose_name='Restrict projects to')
 
     def __str__(self):
         return self.user_id.username
