@@ -387,8 +387,8 @@ class BigGeojsonPublisherTestCase(PublisherBase):
         for result in results:
             self.assertEqual(str(self.mvt_rel_url), result.rel_url)
             self.assertEqual(result.layer_type, 'MVT')
-            self.assertEqual(result.polygon.geom_type, 'Polygon')
-            self.assertEqual(result.polygon.srid, 4326)
+            self.assertEqual(result.bounding_polygon.geom_type, 'Polygon')
+            self.assertEqual(result.bounding_polygon.srid, 4326)
             self.assertEqual(self.mvt_path.exists(), True)
 
 
@@ -436,9 +436,9 @@ class GeojsonPublisherTestCase(PublisherBase):
             result_path = self.test_geojson_result_path / result_file
             self.assertEqual(str(result_path), result.rel_url)
             self.assertEqual(result.layer_type, 'GEOJSON')
-            self.assertEqual(result.polygon.geom_type, 'Polygon')
-            self.assertEqual(result.polygon.srid, 4326)
-            self.assertEqual(str(result.polygon), geometries_bbox[result_filename].ewkt)
+            self.assertEqual(result.bounding_polygon.geom_type, 'Polygon')
+            self.assertEqual(result.bounding_polygon.srid, 4326)
+            self.assertEqual(str(result.bounding_polygon), geometries_bbox[result_filename].ewkt)
 
 
 class GeotifPublisherTestCase(PublisherBase):
