@@ -1,7 +1,7 @@
 from django.contrib.gis import admin
 from rangefilter.filter import DateRangeFilter
 
-from .models import Result
+from .models import Result, ACL
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
 
@@ -28,6 +28,19 @@ class ResultAdmin(admin.OSMGeoAdmin):
             'widget': FlatJsonWidget,
         },
     }
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
+@admin.register(ACL)
+class ACLAdmin(admin.OSMGeoAdmin):
+    list_display = ('user_id', 'restrict_projects_to')
+    list_filter = ('user_id', 'restrict_projects_to')
+    search_fields = ('restrict_projects_to', )
 
     def get_actions(self, request):
         actions = super().get_actions(request)
