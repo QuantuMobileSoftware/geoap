@@ -84,7 +84,6 @@ class Command(BaseCommand):
                 try:
                     result = Result.objects.get(filepath=file_dict['filepath'])
                     if result.modifiedat < file_dict['modifiedat']:
-
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
                         Result.objects.filter(id=result.id).update(**file_dict)
@@ -102,7 +101,7 @@ class Command(BaseCommand):
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
         logger.info(f"Deleting {to_delete.count()} objects. FILEPATHS: "
-                          f"{[file.filepath for file in to_delete]}")
+                    f"{[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
 
