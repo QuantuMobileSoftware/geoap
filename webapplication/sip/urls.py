@@ -13,6 +13,7 @@ api_patterns = [
     path('logout', LogoutView.as_view(), name='rest_logout'),
     path('users/current', UserDetailsView.as_view(), name='rest_user_details'),
     path('', include("publisher.urls")),
+    path('', include("aoi.urls")),
 ]
 api_patterns.extend(doc_urls)
 
