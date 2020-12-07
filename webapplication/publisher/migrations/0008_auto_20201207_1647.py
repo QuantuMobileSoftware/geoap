@@ -15,5 +15,11 @@ class Migration(migrations.Migration):
             model_name='result',
             old_name='polygon',
             new_name='bounding_polygon'
-        )
+        ),
+
+        migrations.AlterField(
+            model_name='result',
+            name='bounding_polygon',
+            field=django.contrib.gis.db.models.fields.PolygonField(srid=4326, verbose_name='Bounding polygon'),
+        ),
     ]
