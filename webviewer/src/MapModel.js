@@ -19,7 +19,7 @@ export default class MapModel extends EventTarget {
                 this.layers = res;
                 this.layers.forEach(x => {
                     const wkt = new Wkt.Wkt();
-                    wkt.read(x.polygon.split(";")[1]);
+                    wkt.read(x.bounding_polygon.split(";")[1]);
                     x.boundingCoordinates = [];
                     wkt.toJson().coordinates[0].forEach(longlat => {
                         x.boundingCoordinates.push([longlat[1], longlat[0]]);
