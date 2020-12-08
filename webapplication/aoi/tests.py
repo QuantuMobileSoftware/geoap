@@ -100,7 +100,7 @@ class AOITestCase(APITestCase):
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
-        self.assertEqual(content['createdat'], serializer.data['createdat'])
+        self.assertEqual(content['createdat'][:-11], serializer.data['createdat'][:-11])
 
     def test_get_aoi_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
