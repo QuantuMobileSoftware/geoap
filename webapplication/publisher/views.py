@@ -41,7 +41,7 @@ class ResultListAPIView(ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.request.user.is_staff:
-            return queryset
+            return queryset.filter(to_be_deleted=False)
         return queryset.filter(released=True, to_be_deleted=False)
 
 
@@ -53,7 +53,7 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return self.queryset
+            return self.queryset.filter(to_be_deleted=False)
         return self.queryset.filter(released=True, to_be_deleted=False)
 
     def patch(self, request, *args, **kwargs):

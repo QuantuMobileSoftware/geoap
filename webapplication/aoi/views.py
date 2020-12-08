@@ -22,16 +22,6 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = AoISerializer
     http_method_names = ("get", "patch", 'delete')
 
-    def patch(self, request, *args, **kwargs):
-        if request.user.is_staff:
-            return super().patch(request)
-        return Response({}, status=status.HTTP_403_FORBIDDEN)
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_staff:
-            return super().destroy(request)
-        return Response({}, status=status.HTTP_403_FORBIDDEN)
-
 
 class AOIResultsListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated, ]
@@ -42,6 +32,7 @@ class AOIResultsListAPIView(ListAPIView):
 
     def get_queryset(self):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg])
-        if self.request.user.is_staff:
-            return self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon, to_be_deleted=False)
-        return self.queryset.filter(bounding_polygon__overlaps=area_of_interest.polygon, released=True, to_be_deleted=False)
+        qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon, to_be_deleted=False)
+        if not self.request.user.is_staff:
+            qs = qs.filter(released=True)
+        return qs
