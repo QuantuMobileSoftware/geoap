@@ -33,7 +33,7 @@ class AOITestCase(APITestCase):
             35.912753706054865 49.4508072987418, \
             35.895191466414154 50.009453778741694\
             ))",
-            "createdat": "2020-11-20",
+            "createdat": "2020-11-20T00:00:00.000000Z",
         }
 
     def test_create_aoi_as_not_auth_user(self):
