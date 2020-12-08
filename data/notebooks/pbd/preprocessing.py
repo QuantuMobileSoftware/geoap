@@ -1,12 +1,12 @@
 import os
-from os.path import join, basename, dirname
-
 import rasterio
 import numpy as np
 
+from os.path import join, basename, dirname
+
 
 def preprocess_sentinel_raw_data(save_path, tile_folder, aoi_mask=None):
-    '''
+    """
     Prepare raster for the following processing. Crop Sentinel-2 tile to fit the given AoI.
 
         Parameters:
@@ -16,7 +16,7 @@ def preprocess_sentinel_raw_data(save_path, tile_folder, aoi_mask=None):
 
         Returns:
             out_path (str): Path to preprocessed raster.
-    '''
+    """
     img, metadata = extract_and_merge_bands(tile_folder)
     raster_path = join(
         save_path,
@@ -68,7 +68,7 @@ def merge_bands(rgb_name, b8_name):
     band, metadata = read_raster(rgb_name)
     bands.append(band)
 
-    band, _ = read_raster(rgb_name)
+    band, _ = read_raster(b8_name)
     band = scale_img(band)
     bands.append(band)
 
