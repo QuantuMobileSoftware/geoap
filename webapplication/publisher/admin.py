@@ -16,7 +16,7 @@ class ResultAdmin(admin.OSMGeoAdmin):
 
     fieldsets = (
         ('Fill by Publisher', {
-            'fields': ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'polygon', )
+            'fields': ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'bounding_polygon', )
         }),
         ('Fill by Data Scientist', {
             'fields': ('name', 'options', 'description', 'start_date', 'end_date', 'released', )
