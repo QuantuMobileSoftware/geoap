@@ -9,7 +9,7 @@ from flat_json_widget.widgets import FlatJsonWidget
 @admin.register(Result)
 class ResultAdmin(admin.OSMGeoAdmin):
 
-    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released', )
+    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released')
     list_filter = ('layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', )
     search_fields = ('filepath', 'name', 'description', 'options', )
     readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', )
@@ -19,7 +19,7 @@ class ResultAdmin(admin.OSMGeoAdmin):
             'fields': ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'bounding_polygon', )
         }),
         ('Fill by Data Scientist', {
-            'fields': ('name', 'options', 'description', 'start_date', 'end_date', 'released', )
+            'fields': ('name', 'options', 'description', 'start_date', 'end_date', 'released', 'to_be_deleted')
         }),
     )
 
