@@ -32,6 +32,9 @@ def add_permissions(apps, schema_editor):
         {"codename": "change_result", "name": "Can change result", "content_type": result_def_content_type},
         {"codename": "delete_result", "name": "Can delete result", "content_type": result_def_content_type},
         {"codename": "view_result", "name": "Can view result", "content_type": result_def_content_type},
+        {"codename": "view_unreleased_result", "name": "Can view unreleased result",
+         "content_type": result_def_content_type
+         },
     ]
 
     permission_list = []
@@ -60,7 +63,8 @@ def add_groups(apps, schema_editor):
     db_alias = schema_editor.connection.alias
 
     # Adding 'Data science engineer' group
-    permissions_code_names = ["add_aoi", "change_aoi", "delete_aoi", "view_aoi", "change_result", "view_result"]
+    permissions_code_names = ["add_aoi", "change_aoi", "delete_aoi", "view_aoi", "change_result", "view_result",
+                              "view_unreleased_result"]
     ds_permissions = permission.objects.using(db_alias).filter(codename__in=permissions_code_names)
     ds_group, created = group.objects.get_or_create(name="Data_science_engineer")
     ds_group.permissions.set(ds_permissions)
