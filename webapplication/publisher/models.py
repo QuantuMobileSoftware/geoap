@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from user.models import User
 
 
 class Result(models.Model):
@@ -21,7 +23,7 @@ class Result(models.Model):
         verbose_name='Layer type',
     )
 
-    polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
+    bounding_polygon = models.PolygonField(spatial_index=True, verbose_name='Bounding polygon')
     rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
 
     # Filled in by a Data science engineer
@@ -41,3 +43,21 @@ class Result(models.Model):
         verbose_name = 'Result'
         verbose_name_plural = 'Results'
         ordering = ['-modifiedat']
+
+
+class ACL(models.Model):
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='User name')
+    restrict_projects_to = ArrayField(models.CharField(max_length=20), blank=True, verbose_name='Restrict projects to')
+
+    def __str__(self):
+        return self.user_id.username
+
+    def save(self, *args, **kwargs):
+        for i in range(len(self.restrict_projects_to)):
+            self.restrict_projects_to[i] = str(self.restrict_projects_to[i]).upper()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Access Control List'
+        verbose_name_plural = 'Access Control Lists'
+        ordering = ['user_id']
