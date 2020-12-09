@@ -1,5 +1,11 @@
 FROM jupyter/scipy-notebook:45bfe5a474fa
 
+USER root
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    gcc libspatialindex-dev python3-dev
+
 COPY requirements.txt requirements_37.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt && \
     fix-permissions $CONDA_DIR && \
@@ -16,6 +22,8 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/$conda_env python=$py_ver ipyt
 RUN $CONDA_DIR/envs/${conda_env}/bin/python -m ipykernel install --user --name=${conda_env} && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
+
+USER $NB_UID
 
 
 # any additional pip installs
