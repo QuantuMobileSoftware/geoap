@@ -10,7 +10,6 @@ from rasterio import Affine
 from rasterio.crs import CRS
 from geojson import Feature, FeatureCollection, Polygon
 from django.contrib.gis.geos import Polygon as DjPolygon
-from django.contrib.auth.models import Group
 from datetime import datetime
 from rest_framework.test import APITestCase
 from rest_framework import status
