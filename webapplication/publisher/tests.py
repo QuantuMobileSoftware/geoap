@@ -10,12 +10,14 @@ from rasterio import Affine
 from rasterio.crs import CRS
 from geojson import Feature, FeatureCollection, Polygon
 from django.contrib.gis.geos import Polygon as DjPolygon
+from django.contrib.auth.models import Group
 from datetime import datetime
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.conf import settings
 from django.urls import reverse
 from user.models import User
+from user.tests import UserBase
 from .management.commands.publish import Command
 from .models import Result
 
@@ -510,10 +512,11 @@ class CleanGeojsonPublisherTestCase(PublisherBase):
         self.assertEqual(num_results, 0)
 
 
-class ResultTestCase(APITestCase):
-    fixtures = ["publisher/fixtures/results_fixtures.json", ]
+class ResultTestCase(APITestCase, UserBase):
+    fixtures = ["user/fixtures/user_fixtures.json", "publisher/fixtures/results_fixtures.json"]
 
     def setUp(self):
+        self.add_users_to_groups()
         self.staff_user = User.objects.get(id=1001)
         self.not_staff_user = User.objects.get(id=1002)
         self.result_released_1 = Result.objects.get(id=1001)
