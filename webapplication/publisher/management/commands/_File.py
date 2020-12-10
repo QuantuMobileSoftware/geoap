@@ -172,13 +172,18 @@ class Geojson(File):
             logger.info(f"Generating tiles for {self.path}")
             os.makedirs(save_path, exist_ok=True)
             shutil.rmtree(save_path)
-            command = ["ogr2ogr",
-                       "-f", "MVT",
-                       "-dsco", "MINZOOM=10",
-                       "-dsco", "MAXZOOM=16",
-                       "-dsco", 'COMPRESS=NO',
-                       '-mapFieldType', 'DateTime=String',
-                       '-lco', 'NAME=default',
+            command = ["tippecanoe",
+                       "-l", "default",
+                       "--no-feature-limit",
+                       "--no-tile-size-limit",
+                       "--exclude-all",
+                       "--minimum-zoom=10",
+                       "--maximum-zoom=16",
+                       "--no-tile-compression",
+                       "--include=style",
+                       "--include=data",
+                       "--include=layout",
+                       "--output-to-directory",
                        save_path,
                        self.path,
                        ]

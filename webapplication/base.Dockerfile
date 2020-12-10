@@ -42,6 +42,14 @@ RUN wget https://download.osgeo.org/gdal/3.1.4/gdal-3.1.4.tar.gz \
     && cd .. \
     && rm -rf gdal-3.1.4 gdal-3.1.4.tar.gz
 
+RUN git clone https://github.com/mapbox/tippecanoe.git \
+    && cd tippecanoe \
+    && git checkout tags/1.36.0 \
+    && make -j \
+    && make install \
+    && cd .. \
+    && rm -rf tippecanoe
+
 RUN ldconfig
 
 # docker build -f base.Dockerfile -t quantumobile/sip-base:`date +%s` .
