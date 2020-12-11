@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "20170916_074939_0f17_aoi",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": null, "is_garden": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 36.291928109568119, 49.657394693785427 ], [ 36.647463752236064, 49.601614175067731 ], [ 36.618270209729602, 49.529151632060625 ], [ 36.264819820097834, 49.594315789441112 ], [ 36.291928109568119, 49.657394693785427 ] ] ] } }
+]
+}
