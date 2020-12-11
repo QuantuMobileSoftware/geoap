@@ -5,12 +5,14 @@ from django.urls import reverse
 from user.models import User
 from .models import AoI
 from .serializers import AoISerializer
+from user.tests import UserBase
 
 
-class AOITestCase(APITestCase):
-    fixtures = ["aoi/fixtures/results_bbox_fixtures.json", ]
+class AOITestCase(APITestCase, UserBase):
+    fixtures = ["user/fixtures/user_fixtures.json", "aoi/fixtures/results_bbox_fixtures.json"]
 
     def setUp(self):
+        self.add_users_to_groups()
         self.staff_user = User.objects.get(id=1001)
         self.not_staff_user = User.objects.get(id=1002)
         self.data_create = {
