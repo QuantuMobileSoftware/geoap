@@ -10,4 +10,4 @@ class ResultSerializer(serializers.ModelSerializer):
         model = Result
         fields = ('id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options', 'description',
                   'released', 'start_date', 'end_date', 'name', 'to_be_deleted')
-        read_only_fields = ['filepath', 'fmodifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted']
+        read_only_fields = ['filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted']

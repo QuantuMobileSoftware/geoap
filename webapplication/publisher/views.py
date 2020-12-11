@@ -6,6 +6,7 @@ from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
+from user.permissions import ModelPermissions
 
 
 class FilesView(APIView):
@@ -32,7 +33,7 @@ class ResultListAPIView(ListAPIView):
     """
     Get list of all results for stuff or list of all results with released=True for not staff authenticated users.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = (ModelPermissions,)
     queryset = Result.objects.all()
     http_method_names = ['get']
     serializer_class = ResultSerializer
@@ -40,31 +41,24 @@ class ResultListAPIView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user.is_staff:
+        if self.request.user.has_perm('publisher.view_unreleased_result'):
             return queryset.filter(to_be_deleted=False)
         return queryset.filter(released=True, to_be_deleted=False)
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (ModelPermissions,)
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     http_method_names = ("get", "patch", 'delete')
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if self.request.user.has_perm('publisher.view_unreleased_result'):
             return self.queryset.filter(to_be_deleted=False)
         return self.queryset.filter(released=True, to_be_deleted=False)
 
-    def patch(self, request, *args, **kwargs):
-        if request.user.is_staff:
-            return super().patch(request)
-        return Response({}, status=status.HTTP_403_FORBIDDEN)
-
     def destroy(self, request, *args, **kwargs):
-        if request.user.is_staff:
-            result = self.get_object()
-            result.to_be_deleted = True
-            result.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({}, status=status.HTTP_403_FORBIDDEN)
+        result = self.get_object()
+        result.to_be_deleted = True
+        result.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
