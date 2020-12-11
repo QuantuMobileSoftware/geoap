@@ -655,7 +655,7 @@ class ResultTestCase(APITestCase, UserBase):
         self.assertEqual(result.to_be_deleted, True)
         
         
-class ResultRestrictedAclTestCase(APITestCase):
+class ResultRestrictedAclTestCase(APITestCase, UserBase):
     fixtures = [
         "user/fixtures/user_fixtures.json",
         "publisher/fixtures/acl_fixtures.json",
@@ -663,6 +663,7 @@ class ResultRestrictedAclTestCase(APITestCase):
     ]
     
     def setUp(self):
+        self.add_users_to_groups()
         self.staff_user = User.objects.get(id=1001)
         self.ex_2_user = User.objects.get(id=1002)
         self.ex_3_user = User.objects.get(id=1003)
