@@ -137,4 +137,3 @@ def extract_tci(raster_path, temp_save_path, results_dir):
         shutil.move(temp_save_path, os.path.join(results_dir, os.path.basename(temp_save_path)))
     except Exception as ex:
         print(f"Error while moving: {str(ex)}")
-        
