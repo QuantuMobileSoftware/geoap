@@ -6,6 +6,8 @@ from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
+from .filters import IsOwnerOrDataSinceEngineerFilterBackend
+from .permissions import ResultPermission
 
 
 class FilesView(APIView):
@@ -32,11 +34,12 @@ class ResultListAPIView(ListAPIView):
     """
     Get list of all results for stuff or list of all results with released=True for not staff authenticated users.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
     queryset = Result.objects.all()
     http_method_names = ['get']
     serializer_class = ResultSerializer
     pagination_class = None
+    filter_backends = (IsOwnerOrDataSinceEngineerFilterBackend, )
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -46,7 +49,7 @@ class ResultListAPIView(ListAPIView):
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated, ResultPermission)
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     http_method_names = ("get", "patch", 'delete')

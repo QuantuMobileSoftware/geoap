@@ -21,7 +21,7 @@ from .models import Result
 
 logger = logging.getLogger('root')
 
-kharkiv_zoo = Polygon([
+kharkiv_zoo = Polygon((
     [
         [
             36.22615098953247,
@@ -83,8 +83,8 @@ kharkiv_zoo = Polygon([
             36.22615098953247,
             50.00466363354688
         ]
-    ]
-])
+    ],
+))
 kharkiv_zoo_bbox = DjPolygon((
     (36.229713, 50.000664),
     (36.229713, 50.004664),
@@ -93,7 +93,7 @@ kharkiv_zoo_bbox = DjPolygon((
     (36.229713, 50.000664)
     ), srid=4326)
 
-kharkiv_park = Polygon([
+kharkiv_park = Polygon((
     [
         [
             36.247501373291016,
@@ -119,8 +119,8 @@ kharkiv_park = Polygon([
             36.247501373291016,
             50.02621473960805
         ]
-    ]
-])
+    ],
+))
 kharkiv_park_bbox = DjPolygon((
         (36.254153, 50.014854),
         (36.254153, 50.026215),
@@ -129,7 +129,7 @@ kharkiv_park_bbox = DjPolygon((
         (36.254153, 50.014854)
 ), srid=4326)
 
-homilsha = Polygon([
+homilsha = Polygon((
     [
         [
             36.224327087402344,
@@ -151,8 +151,8 @@ homilsha = Polygon([
             36.224327087402344,
             49.50492429349325
         ]
-    ]
-])
+    ],
+))
 homilsha_bbox = DjPolygon((
     (36.416588, 49.504924),
     (36.416588, 49.639844),
@@ -161,7 +161,7 @@ homilsha_bbox = DjPolygon((
     (36.416588, 49.504924)
 ), srid=4326)
 
-hytor = Polygon([
+hytor = Polygon((
     [
         [
             36.14845275878906,
@@ -203,8 +203,8 @@ hytor = Polygon([
             36.14845275878906,
             49.888247779192504
         ]
-    ]
-])
+    ],
+))
 hytor_bbox = DjPolygon((
     (36.162572, 49.871517),
     (36.162572, 49.888248),
@@ -213,7 +213,7 @@ hytor_bbox = DjPolygon((
     (36.162572, 49.871517)
 ), srid=4326)
 
-osnova_lake = Polygon([
+osnova_lake = Polygon((
     [
         [
             36.22372627258301,
@@ -267,8 +267,8 @@ osnova_lake = Polygon([
             36.22372627258301,
             49.9383227101154
         ]
-    ]
-])
+    ],
+))
 osnova_lake_bbox = DjPolygon((
     (36.230035, 49.925919),
     (36.230035, 49.938323),
@@ -651,3 +651,54 @@ class ResultTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         result = Result.objects.get(id=self.result_released_1.id)
         self.assertEqual(result.to_be_deleted, True)
+        
+        
+class ResultRestrictedAclTestCase(APITestCase):
+    fixtures = [
+        "user/fixtures/user_fixtures.json",
+        "publisher/fixtures/acl_fixtures.json",
+        "publisher/fixtures/results_restricted_acl_fixtures.json"
+    ]
+    
+    def setUp(self):
+        self.staff_user = User.objects.get(id=1001)
+        self.ex_2_user = User.objects.get(id=1002)
+        self.ex_3_user = User.objects.get(id=1003)
+        self.all_results_user = User.objects.get(id=1004)
+        self.all_results_no_acl_user = User.objects.get(id=1005)
+        
+        self.patch_data = {
+            "description": "description_test",
+            "start_date": "2021-12-12",
+            "end_date": "2021-12-13",
+            "name": "test_name",
+            'to_be_deleted': True,
+            'filepath': 'example/new.geojson'
+            }
+        
+    def test_get_results_list_as_ex_2_user(self):
+        expected_results_len = 3
+        self.client.force_authenticate(user=self.ex_2_user)
+        self.get_results_list(expected_results_len)
+        
+    def test_get_results_list_as_ex_3_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.ex_3_user)
+        self.get_results_list(expected_results_len)
+        
+    def test_get_results_list_as_all_results_user(self):
+        expected_results_len = 6
+        self.client.force_authenticate(user=self.all_results_user)
+        self.get_results_list(expected_results_len)
+        
+    def test_get_results_list_as_all_results_no_acl_user(self):
+        expected_results_len = 6
+        self.client.force_authenticate(user=self.all_results_no_acl_user)
+        self.get_results_list(expected_results_len)
+        
+    def get_results_list(self, expected_results_len):
+        url = reverse('get_results')
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
