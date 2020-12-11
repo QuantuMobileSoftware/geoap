@@ -511,7 +511,7 @@ class CleanGeojsonPublisherTestCase(PublisherBase):
         self.assertEqual(num_results, 0)
 
 
-class ResultTestCase(APITestCase, UserBase):
+class ResultTestCase(UserBase):
     fixtures = ["user/fixtures/user_fixtures.json", "publisher/fixtures/results_fixtures.json"]
 
     def setUp(self):
@@ -655,29 +655,12 @@ class ResultTestCase(APITestCase, UserBase):
         self.assertEqual(result.to_be_deleted, True)
         
         
-class ResultRestrictedAclTestCase(APITestCase, UserBase):
+class ResultRestrictedAclTestCase(UserBase):
     fixtures = [
         "user/fixtures/user_fixtures.json",
         "publisher/fixtures/acl_fixtures.json",
         "publisher/fixtures/results_restricted_acl_fixtures.json"
     ]
-    
-    def setUp(self):
-        self.add_users_to_groups()
-        self.staff_user = User.objects.get(id=1001)
-        self.ex_2_user = User.objects.get(id=1002)
-        self.ex_3_user = User.objects.get(id=1003)
-        self.all_results_user = User.objects.get(id=1004)
-        self.all_results_no_acl_user = User.objects.get(id=1005)
-        
-        self.patch_data = {
-            "description": "description_test",
-            "start_date": "2021-12-12",
-            "end_date": "2021-12-13",
-            "name": "test_name",
-            'to_be_deleted': True,
-            'filepath': 'example/new.geojson'
-            }
         
     def test_get_results_list_as_ex_2_user(self):
         expected_results_len = 3
