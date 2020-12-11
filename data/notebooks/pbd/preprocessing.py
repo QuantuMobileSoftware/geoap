@@ -1,6 +1,7 @@
 import os
 import rasterio
 import numpy as np
+import shutil
 
 from os.path import join, basename, dirname
 
@@ -18,6 +19,7 @@ def preprocess_sentinel_raw_data(save_path, tile_folder, aoi_mask=None):
             out_path (str): Path to preprocessed raster.
     """
     img, metadata = extract_and_merge_bands(tile_folder)
+    
     raster_path = join(
         save_path,
         basename(tile_folder) + ".tif"
@@ -114,3 +116,25 @@ def save_raster(raster, meta, save_path):
         os.makedirs(directory)
     with rasterio.open(save_path, "w", **meta) as dest:
         dest.write(raster)
+
+def extract_tci(raster_path, temp_save_path, results_dir): 
+    """
+    Extracting from cropped image TCI bands to show in Results
+    """
+    
+    with rasterio.open(raster_path) as src:
+        meta = src.meta        
+        meta.update({
+            'count': 3, 
+            'nodata': 0,
+        })
+        tci = src.read((1, 2, 3))        
+        with rasterio.open(temp_save_path, "w", **meta) as dest:
+            dest.write(tci)
+            
+    os.makedirs(results_dir, exist_ok=True)
+    try:
+        shutil.move(temp_save_path, os.path.join(results_dir, os.path.basename(temp_save_path)))
+    except Exception as ex:
+        print(f"Error while moving: {str(ex)}")
+        
