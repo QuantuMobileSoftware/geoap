@@ -11,6 +11,7 @@ import MapModel from "./MapModel";
 import createMap from "./Map";
 import createLayersSelector from "./LayersSelector";
 import createFeatureDetails from "./FeatureDetails";
+import createLayerDetails from "./LayerDetails";
 
 const apiWrapper = new APIWrapper();
 const userModel = new UserModel(apiWrapper);
@@ -20,6 +21,7 @@ const mapModel = new MapModel(apiWrapper);
 const map = createMap(widgetFactory, mapModel);
 const layersSelector = createLayersSelector(widgetFactory, mapModel);
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
+const layerDetails = createLayerDetails(widgetFactory, mapModel);
 const root = Div();
 
 const messageContainer = Div();
@@ -35,7 +37,7 @@ apiWrapper.addEventListener("error", (e) => {
 });
 
 userModel.addEventListener("loggedin", () => {
-    root.setChildren(map, layersSelector, featureDetails, messageContainer);
+    root.setChildren(map, layersSelector, featureDetails, layerDetails, messageContainer);
 });
 userModel.addEventListener("loggedout", () => {
     root.setChildren(loginForm, messageContainer);
