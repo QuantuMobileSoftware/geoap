@@ -64,6 +64,11 @@ export default function createLayersSelector(widgetFactory, mapModel) {
                     background: "rgb(237, 235, 233)"
                 });
             });
+            if (mapModel.selectedLayer !== null && mapModel.selectedLayer.id === x.id) {
+                layerElt.updateStyle({
+                    background: "rgb(237, 235, 233)"
+                });
+            }
             layerElts.push(layerElt);
         });
         listContainer.setChildren(layerElts);
