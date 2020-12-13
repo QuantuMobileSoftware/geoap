@@ -41,8 +41,8 @@ export default function createLayersSelector(widgetFactory, mapModel) {
                 return 1;
             }
             return 0;
-        })
-        layers.forEach(x => {
+        });
+        layers.forEach(layer => {
             const layerElt = Div().setStyle({
                 height: "2em",
                 "padding-left": "1em",
@@ -52,19 +52,24 @@ export default function createLayersSelector(widgetFactory, mapModel) {
                 "border-top": "1px solid rgb(237, 235, 233)",
                 "vertical-align": "baseline",
                 "background": "white"
-            }).setChildren(x.filepath);
+            }).setChildren(layer.filepath);
+            layerElt.layer = layer;
             layerElt.addEventListener("click", () => {
-                mapModel.selectLayer(x);
-                layerElts.forEach(x => {
-                    x.updateStyle({
-                        background: "white"
-                    });
-                })
-                layerElt.updateStyle({
-                    background: "rgb(237, 235, 233)"
+                mapModel.selectLayer(layer);
+                layerElts.forEach(elt => {
+                    if (mapModel.isLayerSelected(elt.layer)) {
+                        elt.updateStyle({
+                            background: "rgb(237, 235, 233)"
+                        });
+                    }
+                    else {
+                        elt.updateStyle({
+                            background: "white"
+                        });
+                    }
                 });
             });
-            if (mapModel.selectedLayer !== null && mapModel.selectedLayer.id === x.id) {
+            if (mapModel.isLayerSelected(layer)) {
                 layerElt.updateStyle({
                     background: "rgb(237, 235, 233)"
                 });

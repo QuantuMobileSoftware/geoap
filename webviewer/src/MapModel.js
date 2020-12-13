@@ -7,7 +7,9 @@ export default class MapModel extends EventTarget {
         super();
         this.apiWrapper = apiWrapper;
         this.layers = null;
-        this.selectedLayer = null;
+        this.foregroundLayer = null;
+        this.foregroundLayerOptions = {};
+        this.backgroundLayer = null;
         this.selectedFeature = null;
     }
 
@@ -31,8 +33,22 @@ export default class MapModel extends EventTarget {
     }
 
     selectLayer(layer) {
-        this.selectedLayer = layer;
+        this.backgroundLayer = this.foregroundLayer;
+        this.foregroundLayer = layer;
+        this.foregroundLayerOptions = {};
         this.dispatchEvent(new Event("layerselected"));
+    }
+
+    updateForegroundLayerOptions(options) {
+        this.foregroundLayerOptions = options;
+        this.dispatchEvent(new Event("foregroundlayeroptionsupdated"));
+    }
+
+    isLayerSelected(layer) {
+        return (this.backgroundLayer !== null
+            && this.backgroundLayer.id === layer.id)
+            || (this.foregroundLayer !== null
+            && this.foregroundLayer.id === layer.id);
     }
 
     selectFeature(feature) {
