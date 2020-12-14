@@ -197,10 +197,15 @@ class Geotif(File):
 
     def _read_file(self):
         with rasterio.open(self.path) as dataset:
-            geometry = box(*dataset.bounds)
-            project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
-                                                  pyproj.CRS(self.crs), always_xy=True).transform
-            self.bound_box = str(transform(project, geometry))
+
+            bound_box = box(*dataset.bounds)
+
+            if str(dataset.crs).lower() != self.crs:
+                project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
+                                                      pyproj.CRS(self.crs), always_xy=True).transform
+                bound_box = str(transform(project, bound_box))
+
+            self.bound_box = bound_box
 
             tags = dataset.tags()
             self.name = tags.get('name')
@@ -217,13 +222,13 @@ class Geotif(File):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         dataset = gdal.Open(self.path)
         command = ["gdal2tiles.py",
-                    "--xyz",
-                    "--webviewer=none",
-                    "--processes=6",
-                    "--zoom=10-16",
-                    self.path,
-                    save_path,
-                    ]
+                   "--xyz",
+                   "--webviewer=none",
+                   "--processes=6",
+                   "--zoom=10-16",
+                   self.path,
+                   save_path,
+                   ]
 
         proj = osr.SpatialReference(wkt=dataset.GetProjection())
         epsg = proj.GetAttrValue("AUTHORITY", 1)
