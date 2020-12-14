@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import geopandas
+import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
@@ -13,6 +14,7 @@ from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
+from shapely.ops import transform
 from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -40,7 +42,9 @@ class File(metaclass=ABCMeta):
     def __init__(self, path, basedir):
         self.path = path
         self.basedir = basedir
-        self.srid = 'EPSG:4326'
+
+        self.bound_box = None
+        self.crs = "epsg:4326"
 
         self.name = None
         self.start_date = None
@@ -67,15 +71,17 @@ class File(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def bounding_polygon(self):
-        pass
-
-    @abstractmethod
     def rel_url(self):
         pass
 
     def generate_tiles(self, tiles_folder, **kwargs):
         pass
+
+    def bounding_polygon(self):
+        if not self.bound_box:
+            return
+        bound_box = GEOSGeometry(self.bound_box)
+        return bound_box
 
     def delete_tiles(self, tiles_folder):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
@@ -122,8 +128,6 @@ class Geojson(File):
     def __init__(self, path, basedir):
         super().__init__(path, basedir)
 
-        self.features = None
-
         try:
             self._read_file()
         except Exception as ex:
@@ -137,11 +141,12 @@ class Geojson(File):
             self.start_date = geojson.get('start_date')
             self.end_date = geojson.get('end_date')
 
-            # Get features as iterable list
-            if geojson.get('features'):
-                self.features = geojson['features']
-            else:
-                self.features = [geojson]
+        df = geopandas.read_file(self.path)
+        if str(df.crs) != self.crs:
+            logger.info(f"{self.path}: {df.crs}. Transform to {self.crs}")
+            df.to_crs(self.crs, inplace=True)
+
+        self.bound_box = str(box(*df.total_bounds))
 
     @property
     def _need_create_mvt(self):
@@ -156,15 +161,6 @@ class Geojson(File):
         if self._need_create_mvt:
             return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
-
-    def bounding_polygon(self):
-        if not self.features:
-            return
-
-        df = geopandas.GeoDataFrame.from_features(self.features)
-        bound_box = str(box(*df.total_bounds))
-        bound_box = GEOSGeometry(bound_box)
-        return bound_box
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         if self._need_create_mvt:
@@ -194,8 +190,6 @@ class Geotif(File):
     def __init__(self, path, basedir):
         super().__init__(path, basedir)
 
-        self.bound_box = None
-
         try:
             self._read_file()
         except Exception as ex:
@@ -203,13 +197,12 @@ class Geotif(File):
 
     def _read_file(self):
         with rasterio.open(self.path) as dataset:
-            mask = dataset.dataset_mask()
-            # Extract feature shapes and values from the array.
-            for geom, _ in rasterio.features.shapes(mask, transform=dataset.transform):
-                geom = rasterio.warp.transform_geom(dataset.crs, self.srid, geom, precision=6)
-                self.bound_box = json.dumps(geom)
-            tags = dataset.tags()
+            geometry = box(*dataset.bounds)
+            project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
+                                                  pyproj.CRS(self.crs), always_xy=True).transform
+            self.bound_box = str(transform(project, geometry))
 
+            tags = dataset.tags()
             self.name = tags.get('name')
             self.start_date = tags.get('start_date')
             self.end_date = tags.get('end_date')
@@ -219,12 +212,6 @@ class Geotif(File):
 
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
-
-    def bounding_polygon(self):
-        if not self.bound_box:
-            return
-        bound_box = GEOSGeometry(self.bound_box)
-        return bound_box
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
