@@ -19,4 +19,3 @@ class UserBase:
         user.groups.add(group)
         user = User.objects.get(id=1005)
         user.groups.add(group)
-        
