@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import ACL
 
 
-class ResultPermission(BasePermission):
+class ResultByACLPermission(BasePermission):
     
     def has_object_permission(self, request, view, obj):
         try:
