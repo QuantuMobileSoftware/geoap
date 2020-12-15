@@ -77,4 +77,20 @@ export default class WidgetFactory {
             onCloseCb();
         }).setChildren(message);
     }
+
+    createRangeInput(min, max, value, onValueChangeCb) {
+        const inputElt = createElement("input")
+            .setAttribute("type", "range")
+            .setAttribute("min", min)
+            .setAttribute("max", max)
+            .setAttribute("value", value);
+        const cb = () => {
+            const value = inputElt.getDOMElement().value;
+            inputElt.setAttribute("value", value);
+            onValueChangeCb(value);
+        };
+        inputElt.addEventListener("click", cb);
+        inputElt.addEventListener("touchend", cb);
+        return inputElt;
+    }
 }

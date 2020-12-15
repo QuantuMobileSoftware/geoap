@@ -2,18 +2,21 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
 from .filters import ResultsByACLFilterBackend
 from user.permissions import ModelPermissions
+from user.authentication import TokenAuthenticationWithQueryString
 
 
 class FilesView(APIView):
     """
     Get files from local storage.
     """
+    authentication_classes = [SessionAuthentication, TokenAuthenticationWithQueryString, BasicAuthentication]
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs) -> HttpResponse:
