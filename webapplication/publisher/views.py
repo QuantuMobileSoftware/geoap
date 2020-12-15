@@ -6,7 +6,7 @@ from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
-from .filters import IsOwnerOrDataSinceEngineerFilterBackend
+from .filters import ResultsByACLFilterBackend
 from user.permissions import ModelPermissions
 
 
@@ -39,7 +39,7 @@ class ResultListAPIView(ListAPIView):
     http_method_names = ['get']
     serializer_class = ResultSerializer
     pagination_class = None
-    filter_backends = (IsOwnerOrDataSinceEngineerFilterBackend, )
+    filter_backends = (ResultsByACLFilterBackend,)
 
     def get_queryset(self):
         queryset = super().get_queryset()

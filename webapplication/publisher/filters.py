@@ -10,7 +10,7 @@ def filter_for_results_by_acl(restrict_projects_to):
     return reduce(or_, (Q(filepath__istartswith=result_path) for result_path in restrict_projects_to))
 
 
-class IsOwnerOrDataSinceEngineerFilterBackend(filters.BaseFilterBackend):
+class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     """
     Filter that only allows users to see their own objects.
     """
