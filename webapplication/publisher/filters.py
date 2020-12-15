@@ -12,7 +12,12 @@ def filter_for_results_by_acl(restrict_projects_to):
 
 class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     """
-    Filter that only allows users to see their own objects.
+    Filter that only allows users to see Result objects if Result.filepath starts with any of items stored in
+    ACL.restrict_projects_to field and ACL.user_id == request.user.id,
+    or
+    request.user.id not in ACL table,
+    or
+    record from ACL table where ACL.user_id == request.user.id has empty  restrict_projects_to field
     """
     def filter_queryset(self, request, queryset, view):
         try:
