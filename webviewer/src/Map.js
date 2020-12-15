@@ -31,25 +31,30 @@ export default function createMap(widgetFactory, mapModel) {
             }).addTo(map);
         }
     };
-    var layer = null;
+    var backgroundLayer = null;
+    var foregroundLayer = null;
     mapModel.addEventListener("layerselected", () => {
         if (map === null) {
             return;
         }
-        if (layer !== null) {
-            layer.remove();
+        if (backgroundLayer !== null) {
+            backgroundLayer.remove();
         }
-        const l = mapModel.selectedLayer;
-        var selectedLayer = null;
+        if (foregroundLayer !== null) {
+            backgroundLayer = foregroundLayer;
+            backgroundLayer.setOpacity(1);
+        }
+        const l = mapModel.foregroundLayer;
+        var selectedLeafletLayer = null;
         if (l.layer_type === "GEOJSON") {
-            layer = L.geoJSON(undefined, {
+            foregroundLayer = L.geoJSON(undefined, {
                 style: (feature) => {
                     return feature.properties.style;
                 },
                 onEachFeature: (feature, layer) => {
                     layer.addEventListener("click", () => {
-                        if (selectedLayer != null && selectedLayer.setStyle) {
-                            selectedLayer.setStyle({
+                        if (selectedLeafletLayer != null && selectedLeafletLayer.setStyle) {
+                            selectedLeafletLayer.setStyle({
                                 fillOpacity: 0.2
                             });
                         }
@@ -58,7 +63,7 @@ export default function createMap(widgetFactory, mapModel) {
                                 fillOpacity: 0.7
                             });
                         }
-                        selectedLayer = layer;
+                        selectedLeafletLayer = layer;
                         mapModel.selectFeature(feature);
                     });
                 }
@@ -70,7 +75,7 @@ export default function createMap(widgetFactory, mapModel) {
                     console.error(xhr.responseText);
                 } else {
                     const jsonResponse = JSON.parse(xhr.responseText);
-                    layer.addData(jsonResponse);
+                    foregroundLayer.addData(jsonResponse);
                 }
             };
             xhr.onerror = () => {
@@ -78,7 +83,7 @@ export default function createMap(widgetFactory, mapModel) {
             };
             xhr.send();
         } else if (l.layer_type === "MVT") {
-            layer = L.vectorGrid.protobuf(l.rel_url, {
+            foregroundLayer = L.vectorGrid.protobuf(l.rel_url, {
                 rendererFactory: L.canvas.tile,
                 maxZoom: 16,
                 vectorTileLayerStyles: {
@@ -103,17 +108,29 @@ export default function createMap(widgetFactory, mapModel) {
                 },
                 interactive: true
             });
-            layer.addEventListener("click", (x) => {
+            foregroundLayer.addEventListener("click", (x) => {
                 mapModel.selectFeature(x.layer);
             });
         } else if (l.layer_type === "XYZ") {
-            layer = L.tileLayer(l.rel_url, {
+            foregroundLayer = L.tileLayer(l.rel_url, {
                 minZoom: 10,
                 maxZoom: 16
             });
         }
-        layer.addTo(map);
+        foregroundLayer.addTo(map);
         map.fitBounds(l.boundingCoordinates);
     });
+
+    mapModel.addEventListener("foregroundlayeroptionsupdated", () => {
+        if (foregroundLayer === null) {
+            return;
+        }
+        if (mapModel.foregroundLayerOptions.opacity !== undefined) {
+            foregroundLayer.setOpacity(mapModel.foregroundLayerOptions.opacity);
+        } else {
+            foregroundLayer.setOpacity(1);
+        }
+    });
+
     return mapElt;
 }
