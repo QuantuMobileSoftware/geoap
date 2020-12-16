@@ -1,8 +1,9 @@
+from rest_framework.test import APITestCase
 from django.contrib.auth.models import Group
 from .models import User
 
 
-class UserBase:
+class UserBase(APITestCase):
     
     @staticmethod
     def add_users_to_groups():
@@ -19,3 +20,11 @@ class UserBase:
         user.groups.add(group)
         user = User.objects.get(id=1005)
         user.groups.add(group)
+        
+    def setUp(self):
+        self.add_users_to_groups()
+        self.staff_user = User.objects.get(id=1001)
+        self.ex_2_user = User.objects.get(id=1002)
+        self.ex_3_user = User.objects.get(id=1003)
+        self.all_results_user = User.objects.get(id=1004)
+        self.all_results_no_acl_user = User.objects.get(id=1005)

@@ -2,6 +2,7 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, L
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
+from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI
 from .serializers import AoISerializer
 from user.permissions import ModelPermissions
@@ -25,6 +26,7 @@ class AOIResultsListAPIView(ListAPIView):
     permission_classes = (ModelPermissions,)
     serializer_class = ResultSerializer
     queryset = Result.objects.all()
+    filter_backends = (ResultsByACLFilterBackend,)
     lookup_url_kwarg = "pk"
     pagination_class = None
 
