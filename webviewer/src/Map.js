@@ -2,6 +2,14 @@
 
 import { Div } from "@adolgarev/domwrapper/src";
 
+function setOpacity(leafletLayer, value) {
+    if (leafletLayer.setOpacity !== undefined) {
+        leafletLayer.setOpacity(value);
+    } else {
+        leafletLayer.setStyle({opacity: value, fillOpacity: value * 0.2});
+    }
+}
+
 export default function createMap(widgetFactory, mapModel) {
     const mapId = widgetFactory.generateRandomId("Map");
     const mapElt = Div()
@@ -42,7 +50,7 @@ export default function createMap(widgetFactory, mapModel) {
         }
         if (foregroundLayer !== null) {
             backgroundLayer = foregroundLayer;
-            backgroundLayer.setOpacity(1);
+            setOpacity(backgroundLayer, 1);
         }
         const l = mapModel.foregroundLayer;
         var selectedLeafletLayer = null;
@@ -126,9 +134,9 @@ export default function createMap(widgetFactory, mapModel) {
             return;
         }
         if (mapModel.foregroundLayerOptions.opacity !== undefined) {
-            foregroundLayer.setOpacity(mapModel.foregroundLayerOptions.opacity);
+            setOpacity(foregroundLayer, mapModel.foregroundLayerOptions.opacity);
         } else {
-            foregroundLayer.setOpacity(1);
+            setOpacity(foregroundLayer, 1);
         }
     });
 
