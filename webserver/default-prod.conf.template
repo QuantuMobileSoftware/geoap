@@ -9,6 +9,11 @@ server {
     listen  [::]:80;
     server_name  localhost;
 
+    gzip on;
+    gzip_types      text/plain application/xml application/javascript;
+    gzip_proxied    no-cache no-store private expired auth;
+    gzip_min_length 1000;
+
     location / {
         root   /usr/share/nginx/html;
         index  index.html index.htm;
