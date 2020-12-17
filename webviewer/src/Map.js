@@ -76,6 +76,8 @@ export default function createMap(widgetFactory, mapModel) {
                     });
                 }
             });
+            // Make a closure here as layer can be changed before data is loaded
+            const leafletLayer = foregroundLayer;
             const xhr = new XMLHttpRequest();
             xhr.open("GET", l.rel_url);
             xhr.onload = () => {
@@ -83,7 +85,7 @@ export default function createMap(widgetFactory, mapModel) {
                     console.error(xhr.responseText);
                 } else {
                     const jsonResponse = JSON.parse(xhr.responseText);
-                    foregroundLayer.addData(jsonResponse);
+                    leafletLayer.addData(jsonResponse);
                 }
             };
             xhr.onerror = () => {
