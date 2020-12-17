@@ -7,6 +7,8 @@ from rest_framework import status
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer
+from .filters import ResultsByACLFilterBackend
+from .permissions import ResultByACLPermission
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
 
@@ -41,6 +43,7 @@ class ResultListAPIView(ListAPIView):
     http_method_names = ['get']
     serializer_class = ResultSerializer
     pagination_class = None
+    filter_backends = (ResultsByACLFilterBackend,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -50,7 +53,7 @@ class ResultListAPIView(ListAPIView):
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, ResultByACLPermission)
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     http_method_names = ("get", "patch", 'delete')

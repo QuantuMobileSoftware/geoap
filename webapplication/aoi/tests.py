@@ -1,5 +1,4 @@
 import json
-from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
 from user.models import User
@@ -8,7 +7,7 @@ from .serializers import AoISerializer
 from user.tests import UserBase
 
 
-class AOITestCase(APITestCase, UserBase):
+class AOITestCase(UserBase):
     fixtures = ["user/fixtures/user_fixtures.json", "aoi/fixtures/results_bbox_fixtures.json"]
 
     def setUp(self):
@@ -179,3 +178,39 @@ class AOITestCase(APITestCase, UserBase):
         url = reverse('aoi:aoi_results', kwargs={'pk': aoi.id})
         response = self.client.get(url)
         return response
+    
+    
+class AOIResultRestrictedAclTestCase(UserBase):
+    fixtures = [
+        "user/fixtures/user_fixtures.json",
+        "publisher/fixtures/acl_fixtures.json",
+        "publisher/fixtures/results_restricted_acl_fixtures.json",
+        "aoi/fixtures/aoi_fixtures.json"
+    ]
+    
+    def test_get_aoi_results_as_ex_2_user(self):
+        expected_results_len = 3
+        self.client.force_authenticate(user=self.ex_2_user)
+        self.get_aoi_results(expected_results_len)
+
+    def test_get_aoi_results_as_ex_3_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.ex_3_user)
+        self.get_aoi_results(expected_results_len)
+
+    def test_get_aoi_results_as_all_results_user(self):
+        expected_results_len = 5
+        self.client.force_authenticate(user=self.all_results_user)
+        self.get_aoi_results(expected_results_len)
+    
+    def test_get_aoi_results_as_all_results_no_acl_user(self):
+        expected_results_len = 5
+        self.client.force_authenticate(user=self.all_results_no_acl_user)
+        self.get_aoi_results(expected_results_len)
+        
+    def get_aoi_results(self, expected_results_len):
+        url = reverse('aoi:aoi_results', kwargs={'pk': 1001})
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
