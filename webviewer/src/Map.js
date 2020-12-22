@@ -74,7 +74,10 @@ export default function createMap(widgetFactory, mapModel) {
                         selectedLeafletLayer = layer;
                         mapModel.selectFeature(feature);
                     });
-                }
+                    if (feature.properties.style.title) {
+                        layer.bindPopup(feature.properties.style.title)
+                    }
+                },
             });
             // Make a closure here as layer can be changed before data is loaded
             const leafletLayer = foregroundLayer;
