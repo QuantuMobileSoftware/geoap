@@ -73,6 +73,10 @@ class File(metaclass=ABCMeta):
     @abstractmethod
     def rel_url(self):
         pass
+    
+    @abstractmethod
+    def styles_url(self):
+        pass
 
     def generate_tiles(self, tiles_folder, **kwargs):
         pass
@@ -97,7 +101,9 @@ class File(metaclass=ABCMeta):
                      modifiedat=self.modifiedat(),
                      layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
-                     bounding_polygon=self.bounding_polygon(), )
+                     bounding_polygon=self.bounding_polygon(),
+                     styles_url=self.styles_url(),
+                     )
 
         if self.name:
             dict_['name'] = self.name
@@ -141,12 +147,12 @@ class Geojson(File):
             self.start_date = geojson.get('start_date')
             self.end_date = geojson.get('end_date')
 
-        df = geopandas.read_file(self.path)
-        if str(df.crs) != self.crs:
-            logger.info(f"{self.path}: {df.crs}. Transform to {self.crs}")
-            df.to_crs(self.crs, inplace=True)
+        self.df = geopandas.read_file(self.path)
+        if str(self.df.crs) != self.crs:
+            logger.info(f"{self.path}: {self.df.crs}. Transform to {self.crs}")
+            self.df.to_crs(self.crs, inplace=True)
 
-        self.bound_box = str(box(*df.total_bounds))
+        self.bound_box = str(box(*self.df.total_bounds))
 
     @property
     def _need_create_mvt(self):
@@ -161,7 +167,45 @@ class Geojson(File):
         if self._need_create_mvt:
             return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
+    
+    def styles_url(self):
+        if self._need_create_mvt:
+            return f"/tiles/{os.path.splitext(super().filepath())[0]}" + '/style.json'
+    
+    @staticmethod
+    def create_mvt_style(df, output_path):
+        
+        def get_color(row):
+            if row and isinstance(row, dict) and 'color' in dict(row).keys():
+                return row['color']
 
+        if 'style' not in df.columns:
+            return
+        colors_list = df['style'].apply(get_color).dropna().unique().tolist()
+        if len(colors_list) > 0:
+            style_dict = dict(version=1, name='default_style', layers=[])
+    
+            for i, color in enumerate(colors_list):
+                print(color)
+                layer = {
+                    "id": f"id{i}",
+                    "type": "fill",
+                    "source-layer": "default",
+                    "filter": [
+                        "==",
+                        "style",
+                        '{"color":"%(color)s"}' % {"color": color}
+                    ],
+                    "paint": {
+                        "fill-color": color,
+                        "fill-opacity": 0.75
+                    }
+                }
+                style_dict['layers'].append(layer)
+
+            with open(output_path, "w") as outfile:
+                json.dump(style_dict, outfile)
+        
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         if self._need_create_mvt:
             save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
@@ -184,6 +228,7 @@ class Geojson(File):
                        self.path,
                        ]
             self.run_process(command, timeout)
+            self.create_mvt_style(self.df, f'{save_path}/style.json')
 
 
 class Geotif(File):
@@ -217,6 +262,9 @@ class Geotif(File):
 
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
+    
+    def styles_url(self):
+        return
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         save_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
