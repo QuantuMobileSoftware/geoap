@@ -15,7 +15,6 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from django.conf import settings
 from django.urls import reverse
-from user.models import User
 from user.tests import UserBase
 from .management.commands.publish import Command
 from .models import Result
@@ -511,7 +510,7 @@ class CleanGeojsonPublisherTestCase(PublisherBase):
         self.assertEqual(num_results, 0)
 
 
-class ResultTestCase(APITestCase, UserBase):
+class ResultTestCase(UserBase):
     fixtures = [
         "user/fixtures/user_fixtures.json",
         "publisher/fixtures/acl_fixtures.json",
@@ -519,13 +518,7 @@ class ResultTestCase(APITestCase, UserBase):
     ]
 
     def setUp(self):
-        self.add_users_to_groups()
-        self.staff_user = User.objects.get(id=1001)
-        self.ex_2_user = User.objects.get(id=1002)
-        self.ex_3_user = User.objects.get(id=1003)
-        self.all_results_user = User.objects.get(id=1004)
-        self.all_results_no_acl_user = User.objects.get(id=1005)
-        
+        super().setUp()
         self.result = Result.objects.get(id=1001)
 
         self.patch_data = {

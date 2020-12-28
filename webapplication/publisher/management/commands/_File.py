@@ -248,9 +248,9 @@ class Geotif(File):
             if str(dataset.crs).lower() != self.crs:
                 project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
                                                       pyproj.CRS(self.crs), always_xy=True).transform
-                bound_box = str(transform(project, bound_box))
+                bound_box = transform(project, bound_box)
 
-            self.bound_box = bound_box
+            self.bound_box = str(bound_box)
 
             tags = dataset.tags()
             self.name = tags.get('name')
