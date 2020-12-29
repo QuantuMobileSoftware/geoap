@@ -77,7 +77,7 @@ export default function createMap(widgetFactory, mapModel) {
                     if (feature.properties.label) {
                         layer.bindPopup(feature.properties.label)
                     }
-                },
+                }
             });
             // Make a closure here as layer can be changed before data is loaded
             const leafletLayer = foregroundLayer;
