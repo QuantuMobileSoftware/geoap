@@ -74,8 +74,8 @@ export default function createMap(widgetFactory, mapModel) {
                         selectedLeafletLayer = layer;
                         mapModel.selectFeature(feature);
                     });
-                    if (feature.properties.style.popup_text) {
-                        layer.bindPopup(feature.properties.style.popup_text)
+                    if (feature.properties.label) {
+                        layer.bindPopup(feature.properties.label)
                     }
                 },
             });
