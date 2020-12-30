@@ -9,7 +9,7 @@ export default class WidgetFactory {
     }
 
     createButton(params) {
-      return createElement("button", params);
+        return createElement("button", params);
     }
 
     createTextField(placeholder, typeOverride) {
@@ -18,7 +18,7 @@ export default class WidgetFactory {
             .setAttribute("for", inputEltId)
             .setChildren(placeholder);
         const inputElt = createElement("input")
-            .setAttribute("type", typeOverride? typeOverride : "text")
+            .setAttribute("type", typeOverride ? typeOverride : "text")
             .setAttribute("value", "")
             .setStyle({
                 id: inputEltId,
