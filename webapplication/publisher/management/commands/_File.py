@@ -179,6 +179,7 @@ class Geojson(File):
                        "--include=style",
                        "--include=data",
                        "--include=layout",
+                       "--include=label",
                        "--output-to-directory",
                        save_path,
                        self.path,
