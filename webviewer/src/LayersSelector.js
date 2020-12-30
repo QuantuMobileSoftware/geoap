@@ -15,7 +15,8 @@ const sortFunction = (a, b) => {
 export default function createLayersSelector(widgetFactory, mapModel) {
   const box = Div({ class: "layers" });
   const listContainer = Div({ class: "layers__container" });
-  const relativeContainer = Div({ class: "relative" });
+  const relativeContainer = Div({ class: "relative" })
+    .setChildren(listContainer);
 
   const button = widgetFactory
     .createButton({ type: "button", class: "button layers__button" })
@@ -65,7 +66,7 @@ export default function createLayersSelector(widgetFactory, mapModel) {
 
       layerElts.push(layerElt);
     });
-    relativeContainer.setChildren(listContainer.setChildren(layerElts));
+    listContainer.setChildren(layerElts);
   });
 
   box.setChildren(button);
