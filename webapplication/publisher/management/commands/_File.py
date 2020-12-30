@@ -49,6 +49,7 @@ class File(metaclass=ABCMeta):
         self.name = None
         self.start_date = None
         self.end_date = None
+        self.style_created = False
 
     def filename(self):
         return os.path.basename(self.path)
@@ -169,24 +170,26 @@ class Geojson(File):
         return f"/results/{super().filepath()}"
     
     def styles_url(self):
-        if self._need_create_mvt:
-            return f"/tiles/{os.path.splitext(super().filepath())[0]}" + '/style.json'
+        return f"/tiles/{os.path.splitext(super().filepath())[0]}" + '/style.json'
     
     @staticmethod
     def create_mvt_style(df, output_path):
+        """
+        read data frame and create style.json if need it.
+        return: True if style.json was created else return False
+        """
         
         def get_color(row):
             if row and isinstance(row, dict) and 'color' in dict(row).keys():
                 return row['color']
 
         if 'style' not in df.columns:
-            return
+            return False
         colors_list = df['style'].apply(get_color).dropna().unique().tolist()
         if len(colors_list) > 0:
             style_dict = dict(version=1, name='default_style', layers=[])
     
             for i, color in enumerate(colors_list):
-                print(color)
                 layer = {
                     "id": f"id{i}",
                     "type": "fill",
@@ -205,6 +208,8 @@ class Geojson(File):
 
             with open(output_path, "w") as outfile:
                 json.dump(style_dict, outfile)
+            return True
+        return False
         
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         if self._need_create_mvt:
@@ -228,7 +233,7 @@ class Geojson(File):
                        self.path,
                        ]
             self.run_process(command, timeout)
-            self.create_mvt_style(self.df, f'{save_path}/style.json')
+            self.style_created = self.create_mvt_style(self.df, f'{save_path}/style.json')
 
 
 class Geotif(File):
