@@ -175,8 +175,11 @@ class Geojson(File):
     @staticmethod
     def create_mvt_style(df, output_path):
         """
-        read data frame and create style.json if need it.
+        read GeoDataFrame object and create style.json if need it.
         return: True if style.json was created else return False
+        @param df: GeoDataFrame
+        @param output_path: str or Path
+        @return: bool
         """
         
         def get_color(row):
