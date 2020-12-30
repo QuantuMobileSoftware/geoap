@@ -8,24 +8,8 @@ export default class WidgetFactory {
         return prefix + Math.random().toString(36).substring(7);
     }
 
-    createButton(value) {
-        return createElement("input")
-            .setAttribute("value", value)
-            .setAttribute("type", "button")
-            .setStyle({
-                margin: "1em",
-                "background-color": "rgb(0, 120, 212)",
-                "border-color": "rgb(0, 120, 212)",
-                "border-width": "1px",
-                "border-radius": "2px",
-                "border-style": "solid",
-                "height": "2em",
-                "color": "rgb(255, 255, 255)",
-                "padding-left": "1em",
-                "padding-right": "1em",
-                "vertical-align": "baseline",
-                "appearance": "none"
-            });
+    createButton(params) {
+      return createElement("button", params);
     }
 
     createTextField(placeholder, typeOverride) {
