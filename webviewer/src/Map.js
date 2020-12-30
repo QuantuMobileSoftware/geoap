@@ -123,6 +123,12 @@ export default function createMap(widgetFactory, mapModel) {
             });
             foregroundLayer.addEventListener("click", (x) => {
                 mapModel.selectFeature(x.layer);
+                if (x.layer.properties.label) {
+                    L.popup()
+                        .setContent(x.layer.properties.label)
+                        .setLatLng(x.latlng)
+                        .openOn(map);
+                }
             });
         } else if (l.layer_type === "XYZ") {
             foregroundLayer = L.tileLayer(l.rel_url, {
