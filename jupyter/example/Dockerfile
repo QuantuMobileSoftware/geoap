@@ -42,4 +42,4 @@ ENV PATH $CONDA_DIR/envs/${conda_env}/bin:$PATH
 ENV CONDA_DEFAULT_ENV ${conda_env}
 
 # github token: https://github.com/settings/tokens
-RUN git clone https://72976594646dea5629c7605bfe505166391faa07@github.com/QuantuMobileSoftware/sip /home/$NB_USER/git
+RUN git clone https://72976594646dea5629c7605bfe505166391faa07@github.com/QuantuMobileSoftware/sip /home/$NB_USER/sip
