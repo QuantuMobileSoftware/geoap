@@ -86,10 +86,16 @@ class Command(BaseCommand):
                     if result.modifiedat < file_dict['modifiedat']:
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
+                        if not file.style_created:
+                            logger.info(f'style.json was not created for {file.filename()}')
+                            file_dict['styles_url'] = None
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
+                    if not file.style_created:
+                        logger.info(f'style.json was not created for {file.filename()}')
+                        file_dict['styles_url'] = None
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
             except Exception as ex:
