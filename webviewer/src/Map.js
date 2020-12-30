@@ -22,7 +22,7 @@ export default function createMap(widgetFactory, mapModel) {
             left: "0",
             "z-index": "1",
         });
-    var map = null;
+    let map = null;
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { zoomControl: false });
         if (process.env.NODE_ENV === "development") {
@@ -39,8 +39,8 @@ export default function createMap(widgetFactory, mapModel) {
             }).addTo(map);
         }
     };
-    var backgroundLayer = null;
-    var foregroundLayer = null;
+    let backgroundLayer = null;
+    let foregroundLayer = null;
     mapModel.addEventListener("layerselected", () => {
         if (map === null) {
             return;
@@ -53,7 +53,7 @@ export default function createMap(widgetFactory, mapModel) {
             setOpacity(backgroundLayer, 1);
         }
         const l = mapModel.foregroundLayer;
-        var selectedLeafletLayer = null;
+        let selectedLeafletLayer = null;
         if (l.layer_type === "GEOJSON") {
             foregroundLayer = L.geoJSON(undefined, {
                 style: (feature) => {

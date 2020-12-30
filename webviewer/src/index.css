@@ -1,6 +1,179 @@
-
-@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Source+Sans+Pro:400,400i,600,600i&subset=cyrillic');
+@import url("https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Source+Sans+Pro:400,400i,600,600i&subset=cyrillic");
 body {
-	font-family: "Source Sans Pro", sans-serif;
-	font-weight: 400;
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 400;
+  background: #2c3338;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.button {
+  background-color: rgb(0, 120, 212);
+  border: 1px solid rgb(0, 120, 212);
+  border-radius: 3px;
+  color: rgb(255, 255, 255);
+  padding: 10px;
+  appearance: none;
+  min-width: 70px;
+  transition: all 0.3s ease-in-out;
+  outline: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: rgb(0, 120, 212, 0.8);
+  border-color: rgb(0, 120, 212, 0.8);
+}
+
+.button--login {
+  margin-top: 15px;
+  width: 100%;
+}
+
+/* login form  */
+.login-container {
+  margin: auto;
+  width: 320px;
+  padding: 20px;
+  border-radius: 3px;
+  background: #282e33;
+  border-top: 3px solid #434a52;
+  border-bottom: 3px solid #434a52;
+}
+
+.input {
+  margin-bottom: 15px;
+}
+
+.input__label,
+.range__label {
+  color: rgb(255, 255, 255);
+  font-family: "Source Sans Pro";
+  font-size: 15px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.range__label {
+  color: #282e33;
+}
+
+.input__field {
+  border: 1px solid rgb(96, 94, 92);
+  width: 100%;
+  appearance: none;
+  padding: 10px;
+  border-radius: 3px;
+  outline: none;
+  background-color: #3b4148;
+  color: #f3f0f0;
+}
+
+/* error message */
+.error {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  padding: 10px;
+  background-color: rgba(253, 47, 64, 0.876);
+  border-radius: 3px;
+}
+
+.error__message {
+  font-size: 20px;
+  color: rgb(255, 255, 255);
+  margin-right: 20px;
+}
+
+.error__close {
+  position: relative;
+  opacity: 0.7;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.error__close:hover {
+  opacity: 1;
+}
+
+.error__close:before,
+.error__close:after {
+  position: absolute;
+  left: 11px;
+  content: " ";
+  height: 22px;
+  width: 2px;
+  background-color: #fff;
+}
+
+.error__close:before {
+  transform: rotate(45deg);
+}
+
+.error__close:after {
+  transform: rotate(-45deg);
+}
+
+/* layers  */
+.relative {
+  position: absolute;
+  top: 50px;
+  border-radius: 3px;
+  box-shadow: 0px 10px 30px -20px;
+}
+
+.layers {
+  position: fixed;
+  top: 50px;
+  left: 50px;
+  z-index: 10;
+  background-color: white;
+}
+
+.layers__container {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 3px;
+}
+
+.layers__item {
+  padding: 10px;
+  font-size: 16px;
+  border-top: 1px solid rgb(237, 235, 233);
+  background-color: rgb(255, 255, 255);
+  cursor: pointer;
+}
+
+.layers__item:hover {
+  background-color: rgb(237, 235, 233);
+}
+
+/* details  */
+
+.details {
+  position: fixed;
+  bottom: 50px;
+  left: 50px;
+  z-index: 10;
+  background-color: white;
+}
+
+.details__options {
+  padding: 10px;
+  border-top: 1px solid rgb(237, 235, 233);
+  border-radius: 3px;
 }
