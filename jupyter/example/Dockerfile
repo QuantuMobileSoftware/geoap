@@ -12,10 +12,6 @@ RUN pip install --requirement /tmp/requirements.txt && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
-RUN pip install jupyter_contrib_nbextensions jupyterlab-git && \
-    jupyter labextension install @jupyterlab/git && \
-    jupyter lab build
-
 # environment name, python 3.x version
 ARG conda_env=python37
 ARG py_ver=3.7
