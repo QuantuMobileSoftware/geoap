@@ -2,29 +2,33 @@
 
 import { Div } from "@adolgarev/domwrapper";
 
-export default function createLayersSelector(widgetFactory, mapModel) {
-    const box = Div().setStyle({
-        position: "fixed",
-        top: "1em",
-        left: "1em",
-        "z-index": "100",
-        "background-color": "white"
-    });
+const sortFunction = (a, b) => {
+    if (a.filepath < b.filepath) {
+        return -1;
+    }
+    if (a.filepath > b.filepath) {
+        return 1;
+    }
+    return 0;
+};
 
-    const button = Div().setStyle({
-        height: "3em",
-        padding: "1em 2em",
-        cursor: "pointer"
-    }).setChildren("Layers");
-    
-    const listContainer = Div().setStyle({
-    });
+export default function createLayersSelector(widgetFactory, mapModel) {
+    const box = Div({ class: "layers" });
+    const listContainer = Div({ class: "layers__container" });
+    const relativeContainer = Div({ class: "relative" })
+        .setChildren(listContainer);
+
+    const button = widgetFactory
+        .createButton({ type: "button", class: "button layers__button" })
+        .setChildren("Layers");
+
     let isOpen = false;
+
     button.addEventListener("click", () => {
         isOpen = !isOpen;
         if (isOpen) {
             mapModel.getLayers();
-            box.setChildren(button, listContainer);
+            box.setChildren(button, relativeContainer);
         } else {
             box.setChildren(button);
         }
@@ -32,48 +36,34 @@ export default function createLayersSelector(widgetFactory, mapModel) {
 
     mapModel.addEventListener("layersupdated", () => {
         const layerElts = [];
-        const layers = mapModel.layers.slice();
-        layers.sort((a, b) => {
-            if (a.filepath < b.filepath) {
-                return -1;
-            }
-            if (a.filepath > b.filepath) {
-                return 1;
-            }
-            return 0;
-        });
-        layers.forEach(layer => {
-            const layerElt = Div().setStyle({
-                height: "2em",
-                "padding-left": "1em",
-                "padding-right": "1em",
-                "padding-top": "0.5em",
-                cursor: "pointer",
-                "border-top": "1px solid rgb(237, 235, 233)",
-                "vertical-align": "baseline",
-                "background": "white"
-            }).setChildren(layer.filepath);
+        const sortedLayers = mapModel.layers.slice().sort(sortFunction);
+
+        sortedLayers.forEach((layer) => {
+            const layerElt = Div({ class: "layers__item" }).setChildren(
+                layer.filepath
+            );
+
             layerElt.layer = layer;
             layerElt.addEventListener("click", () => {
                 mapModel.selectLayer(layer);
-                layerElts.forEach(elt => {
+                layerElts.forEach((elt) => {
                     if (mapModel.isLayerSelected(elt.layer)) {
                         elt.updateStyle({
-                            background: "rgb(237, 235, 233)"
+                            background: "rgb(237, 235, 233)",
                         });
-                    }
-                    else {
+                    } else {
                         elt.updateStyle({
-                            background: "white"
+                            background: "white",
                         });
                     }
                 });
             });
             if (mapModel.isLayerSelected(layer)) {
                 layerElt.updateStyle({
-                    background: "rgb(237, 235, 233)"
+                    background: "rgb(237, 235, 233)",
                 });
             }
+
             layerElts.push(layerElt);
         });
         listContainer.setChildren(layerElts);
