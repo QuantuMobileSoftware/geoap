@@ -3,28 +3,28 @@
 import { Div } from "@adolgarev/domwrapper";
 
 export default function createLayerDetails(widgetFactory, mapModel) {
-  const box = Div({ class: "details" });
+    const box = Div({ class: "fixed fixed--bl" });
 
-  const layerOptionsContainer = Div({ class: "details__options" });
+    const layerOptionsContainer = Div({ class: "details__options" });
 
-  mapModel.addEventListener("layerselected", () => {
-    const input = widgetFactory.createRangeInput(
-      0,
-      100,
-      100,
-      (value) => {
-        mapModel.updateForegroundLayerOptions({
-          opacity: value / 100,
-        });
-      },
-      "range__input"
-    );
-    const label = Div({ class: "range__label" }).setChildren("Opacity");
-    layerOptionsContainer.setChildren(label, input);
-    box.setChildren(layerOptionsContainer);
-  });
+    mapModel.addEventListener("layerselected", () => {
+        const input = widgetFactory.createRangeInput(
+            0,
+            100,
+            100,
+            (value) => {
+                mapModel.updateForegroundLayerOptions({
+                    opacity: value / 100,
+                });
+            },
+            "range__input"
+        );
+        const label = Div({ class: "range__label" }).setChildren("Opacity");
+        layerOptionsContainer.setChildren(label, input);
+        box.setChildren(layerOptionsContainer);
+    });
 
-  box.setChildren();
+    box.setChildren();
 
-  return box;
+    return box;
 }
