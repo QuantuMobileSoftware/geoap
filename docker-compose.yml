@@ -62,10 +62,9 @@ services:
       - ${LOCAL_WORKING_DIR}:/home/jovyan/work
     environment:
       - JUPYTER_ENABLE_LAB=yes
+      - NOTEBOOK_PASSWORD=argon2:$argon2id$v=19$m=10240,t=10,p=8$Cfx8QuGthz224RKGPWA4uw$J0e17gE3zzRZGpLa/z6a+g
     container_name: pbd_jupyter
     command: "start-notebook.sh \
     --NotebookApp.password=${NOTEBOOK_PASSWORD} \
     "
-    env_file:
-      - .env
     restart: always
