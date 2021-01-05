@@ -22,3 +22,11 @@ class JupyterNotebook(models.Model):
     password = models.CharField(max_length=128)
     path_to_a_notebook = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Jupyter Notebook'
+        verbose_name_plural = 'Jupyter Notebooks'
+        ordering = ['name']
