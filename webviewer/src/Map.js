@@ -6,41 +6,35 @@ function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
         leafletLayer.setOpacity(value);
     } else {
-        leafletLayer.setStyle({opacity: value, fillOpacity: value * 0.2});
+        leafletLayer.setStyle({ opacity: value, fillOpacity: value * 0.2 });
     }
 }
 
 export default function createMap(widgetFactory, mapModel) {
     const mapId = widgetFactory.generateRandomId("Map");
-    const mapElt = Div()
-        .setAttribute("id", mapId)
-        .setStyle({
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: "0",
-            left: "0",
-            "z-index": "1",
-        });
-    var map = null;
+    const mapElt = Div({ id: mapId, class: "map" });
+
+    let map = null;
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { zoomControl: false });
         if (process.env.NODE_ENV === "development") {
             L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors",
-                maxZoom: 16
+                attribution:
+                    "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors",
+                maxZoom: 16,
             }).addTo(map);
         } else {
             L.tileLayer("/tiles/mapbox/{z}/{x}/{y}.png", {
-                attribution: "Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>",
+                attribution:
+                    "Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>",
                 maxZoom: 16,
                 tileSize: 512,
-                zoomOffset: -1
+                zoomOffset: -1,
             }).addTo(map);
         }
     };
-    var backgroundLayer = null;
-    var foregroundLayer = null;
+    let backgroundLayer = null;
+    let foregroundLayer = null;
     mapModel.addEventListener("layerselected", () => {
         if (map === null) {
             return;
@@ -53,7 +47,7 @@ export default function createMap(widgetFactory, mapModel) {
             setOpacity(backgroundLayer, 1);
         }
         const l = mapModel.foregroundLayer;
-        var selectedLeafletLayer = null;
+        let selectedLeafletLayer = null;
         if (l.layer_type === "GEOJSON") {
             foregroundLayer = L.geoJSON(undefined, {
                 style: (feature) => {
@@ -61,23 +55,26 @@ export default function createMap(widgetFactory, mapModel) {
                 },
                 onEachFeature: (feature, layer) => {
                     layer.addEventListener("click", () => {
-                        if (selectedLeafletLayer != null && selectedLeafletLayer.setStyle) {
+                        if (
+                            selectedLeafletLayer != null &&
+                            selectedLeafletLayer.setStyle
+                        ) {
                             selectedLeafletLayer.setStyle({
-                                fillOpacity: 0.2
+                                fillOpacity: 0.2,
                             });
                         }
                         if (layer.setStyle) {
                             layer.setStyle({
-                                fillOpacity: 0.7
+                                fillOpacity: 0.7,
                             });
                         }
                         selectedLeafletLayer = layer;
                         mapModel.selectFeature(feature);
                     });
                     if (feature.properties.label) {
-                        layer.bindPopup(feature.properties.label)
+                        layer.bindPopup(feature.properties.label);
                     }
-                }
+                },
             });
             // Make a closure here as layer can be changed before data is loaded
             const leafletLayer = foregroundLayer;
@@ -100,7 +97,7 @@ export default function createMap(widgetFactory, mapModel) {
                 rendererFactory: L.canvas.tile,
                 maxZoom: 16,
                 vectorTileLayerStyles: {
-                    "default": (properties) => {
+                    default: (properties) => {
                         if (typeof properties.style === "string") {
                             properties.style = JSON.parse(properties.style);
                         }
@@ -117,9 +114,9 @@ export default function createMap(widgetFactory, mapModel) {
                             properties.style.fill = true;
                         }
                         return properties.style;
-                    }
+                    },
                 },
-                interactive: true
+                interactive: true,
             });
             foregroundLayer.addEventListener("click", (x) => {
                 mapModel.selectFeature(x.layer);
@@ -133,7 +130,7 @@ export default function createMap(widgetFactory, mapModel) {
         } else if (l.layer_type === "XYZ") {
             foregroundLayer = L.tileLayer(l.rel_url, {
                 minZoom: 10,
-                maxZoom: 16
+                maxZoom: 16,
             });
         }
         foregroundLayer.addTo(map);
@@ -145,7 +142,10 @@ export default function createMap(widgetFactory, mapModel) {
             return;
         }
         if (mapModel.foregroundLayerOptions.opacity !== undefined) {
-            setOpacity(foregroundLayer, mapModel.foregroundLayerOptions.opacity);
+            setOpacity(
+                foregroundLayer,
+                mapModel.foregroundLayerOptions.opacity
+            );
         } else {
             setOpacity(foregroundLayer, 1);
         }
