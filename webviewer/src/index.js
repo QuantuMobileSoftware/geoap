@@ -26,36 +26,36 @@ const root = Div({ class: "container" });
 
 const messageContainer = Div();
 apiWrapper.addEventListener("error", (e) => {
-  if (e.detail.non_field_errors) {
-    messageContainer.setChildren(
-      widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
-        messageContainer.setChildren();
-      })
-    );
-  }
+    if (e.detail.non_field_errors) {
+        messageContainer.setChildren(
+            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
+                messageContainer.setChildren();
+            })
+        );
+    }
 });
 
 userModel.addEventListener("loggedin", () => {
-  // remove loggedout error if it was previously set
-  messageContainer.setChildren();
+    // remove loggedout error if it was previously set
+    messageContainer.setChildren();
 
-  root.setChildren(
-    map,
-    layersSelector,
-    featureDetails,
-    layerDetails,
-    messageContainer
-  );
+    root.setChildren(
+        map,
+        layersSelector,
+        featureDetails,
+        layerDetails,
+        messageContainer
+    );
 });
 
 userModel.addEventListener("loggedout", () => {
-  root.setChildren(loginForm, messageContainer);
+    root.setChildren(loginForm, messageContainer);
 });
 
 root.componentDidMount = () => {
-  userModel.getUserDetails();
+    userModel.getUserDetails();
 };
 
 window.addEventListener("DOMContentLoaded", () => {
-  render(root, document.getElementsByTagName("body")[0]);
+    render(root, document.getElementsByTagName("body")[0]);
 });
