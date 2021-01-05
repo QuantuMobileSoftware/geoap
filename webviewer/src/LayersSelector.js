@@ -13,10 +13,11 @@ const sortFunction = (a, b) => {
 };
 
 export default function createLayersSelector(widgetFactory, mapModel) {
-    const box = Div({ class: "layers" });
+    const box = Div({ class: "fixed fixed--tl" });
     const listContainer = Div({ class: "layers__container" });
-    const relativeContainer = Div({ class: "relative" })
-        .setChildren(listContainer);
+    const relativeContainer = Div({ class: "relative" }).setChildren(
+        listContainer
+    );
 
     const button = widgetFactory
         .createButton({ type: "button", class: "button layers__button" })
