@@ -22,26 +22,36 @@ const map = createMap(widgetFactory, mapModel);
 const layersSelector = createLayersSelector(widgetFactory, mapModel);
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 const layerDetails = createLayerDetails(widgetFactory, mapModel);
-const root = Div();
+const root = Div({ class: "container" });
 
 const messageContainer = Div();
 apiWrapper.addEventListener("error", (e) => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
-            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0],
-            () => {
+            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
                 messageContainer.setChildren();
-            }
-        ));
+            })
+        );
     }
 });
 
 userModel.addEventListener("loggedin", () => {
-    root.setChildren(map, layersSelector, featureDetails, layerDetails, messageContainer);
+    // remove loggedout error if it was previously set
+    messageContainer.setChildren();
+
+    root.setChildren(
+        map,
+        layersSelector,
+        featureDetails,
+        layerDetails,
+        messageContainer
+    );
 });
+
 userModel.addEventListener("loggedout", () => {
     root.setChildren(loginForm, messageContainer);
 });
+
 root.componentDidMount = () => {
     userModel.getUserDetails();
 };
