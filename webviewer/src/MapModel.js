@@ -19,14 +19,14 @@ export default class MapModel extends EventTarget {
                 this.dispatchEvent(new Event("error"));
             } else {
                 this.layers = res;
-                this.layers.forEach(x => {
+                this.layers.forEach((x) => {
                     const wkt = new Wkt.Wkt();
                     wkt.read(x.bounding_polygon.split(";")[1]);
                     x.boundingCoordinates = [];
-                    wkt.toJson().coordinates[0].forEach(longlat => {
+                    wkt.toJson().coordinates[0].forEach((longlat) => {
                         x.boundingCoordinates.push([longlat[1], longlat[0]]);
                     });
-                })
+                });
                 this.dispatchEvent(new Event("layersupdated"));
             }
         });
@@ -45,10 +45,12 @@ export default class MapModel extends EventTarget {
     }
 
     isLayerSelected(layer) {
-        return (this.backgroundLayer !== null
-            && this.backgroundLayer.id === layer.id)
-            || (this.foregroundLayer !== null
-            && this.foregroundLayer.id === layer.id);
+        return (
+            (this.backgroundLayer !== null &&
+                this.backgroundLayer.id === layer.id) ||
+            (this.foregroundLayer !== null &&
+                this.foregroundLayer.id === layer.id)
+        );
     }
 
     selectFeature(feature) {
@@ -56,4 +58,23 @@ export default class MapModel extends EventTarget {
         this.dispatchEvent(new Event("featureselected"));
     }
 
+    sendAoi(data, callback) {
+        this.apiWrapper.sendPostRequest("/aoi", data, (err, res) => {
+            if (err) {
+                this.dispatchEvent(new Event("error"));
+            } else {
+                callback(null, res);
+            }
+        });
+    }
+
+    updateAoi(data, id, callback) {
+        this.apiWrapper.sendPatchRequest(`/aoi/${id}`, data, (err, res) => {
+            if (err) {
+                this.dispatchEvent(new Event("error"));
+            } else {
+                callback(null, res);
+            }
+        });
+    }
 }

@@ -31,6 +31,12 @@ module.exports = {
                 },
                 {
                     src: "https://unpkg.com/leaflet.vectorgrid@latest/dist/Leaflet.VectorGrid.bundled.js"
+                },
+                {
+                    src: "https://unpkg.com/leaflet.path.drag@0.0.6"
+                },
+                {
+                    src: "https://unpkg.com/leaflet-editable@1.2.0"
                 }
             ]
         })

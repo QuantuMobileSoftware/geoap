@@ -3,7 +3,7 @@
 import { Div } from "@adolgarev/domwrapper";
 
 export default function createLayerDetails(widgetFactory, mapModel) {
-    const box = Div({ class: "fixed fixed--bl" });
+    const box = Div({ class: "fixed fixed--details" });
 
     const layerOptionsContainer = Div({ class: "details__options" });
 

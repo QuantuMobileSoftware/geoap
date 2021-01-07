@@ -2,7 +2,7 @@
 
 import "./normalize.css";
 import "./index.css";
-import { render, createElement, Div, Span } from "@adolgarev/domwrapper";
+import { render, Div } from "@adolgarev/domwrapper";
 import WidgetFactory from "./WidgetFactory";
 import UserModel from "./UserModel";
 import APIWrapper from "./APIWrapper";
@@ -28,9 +28,12 @@ const messageContainer = Div();
 apiWrapper.addEventListener("error", (e) => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
-            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
-                messageContainer.setChildren();
-            })
+            widgetFactory.createErrorMessageBar(
+                e.detail.non_field_errors[0],
+                () => {
+                    messageContainer.setChildren();
+                }
+            )
         );
     }
 });

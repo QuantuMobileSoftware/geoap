@@ -172,6 +172,11 @@ body {
 }
 
 /* layers  */
+.fixed--layers {
+  top: 11px;
+  left: 57px;
+}
+
 .layers__container {
     max-height: 300px;
     overflow-y: auto;
@@ -191,6 +196,11 @@ body {
 }
 
 /* details  */
+.fixed--details {
+  bottom: 11px;
+  left: 11px;
+}
+
 .details__options {
     padding: 10px;
     border-top: 1px solid rgb(237, 235, 233);
