@@ -60,10 +60,9 @@ services:
       - "8888:8888"
     environment:
       - 'JUPYTER_ENABLE_LAB=yes'
-      - 'NOTEBOOK_PASSWORD=argon2:$argon2id$v=19$m=10240,t=10,p=8$Cfx8QuGthz224RKGPWA4uw$J0e17gE3zzRZGpLa/z6a+g'
     container_name: pbd_jupyter
     command: "start-notebook.sh \
-    --NotebookApp.password=${NOTEBOOK_PASSWORD} \
+    --NotebookApp.password='argon2:$$argon2id$$v=19$$m=10240,t=10,p=8$$Cfx8QuGthz224RKGPWA4uw$$J0e17gE3zzRZGpLa/z6a+g' \
     "
     restart: always
     volumes:
