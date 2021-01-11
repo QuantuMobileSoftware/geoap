@@ -41,7 +41,7 @@ export default class APIWrapper extends EventTarget {
         };
 
         xhr.setRequestHeader("Content-type", "application/json");
-        xhr.setRequestHeader("X-CSRFToken", `${getCookie("csrftoken")}`);
+        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
         xhr.send(JSON.stringify(data));
     }
@@ -63,7 +63,7 @@ export default class APIWrapper extends EventTarget {
         };
         
         xhr.setRequestHeader("Content-type", "application/json");
-        xhr.setRequestHeader("X-CSRFToken", `${getCookie("csrftoken")}`);
+        xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
         xhr.send(JSON.stringify(data));
     }
