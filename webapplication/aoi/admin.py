@@ -13,5 +13,5 @@ class AoIAdmin(admin.OSMGeoAdmin):
 
 @admin.register(JupyterNotebook)
 class JupyterNotebookAdmin(admin.OSMGeoAdmin):
-    list_display = ('name', 'base_url', 'path_to_a_notebook', 'kernel_name')
-    search_fields = ('name', 'base_url', 'path_to_a_notebook', 'kernel_name')
+    list_display = ('name', 'image', 'path_to_a_notebook', 'kernel_name', 'is_validated')
+    search_fields = ('name', 'path_to_a_notebook', 'kernel_name', 'is_validated')

@@ -18,10 +18,10 @@ class AoI(models.Model):
         
 class JupyterNotebook(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Jupyter Notebook name')
-    base_url = models.URLField(max_length=400, verbose_name='Base url')
-    password = models.CharField(max_length=128)
+    image = models.CharField(max_length=400, verbose_name='Image')
     path_to_a_notebook = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
-    kernel_name = models.CharField(max_length=200, null=True, blank=True)
+    kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
+    is_validated = models.BooleanField(default=False, verbose_name='Is validated')
     
     def __str__(self):
         return self.name

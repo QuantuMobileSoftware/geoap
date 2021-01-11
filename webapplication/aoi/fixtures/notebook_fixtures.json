@@ -4,10 +4,10 @@
     "pk": 1001,
     "fields": {
       "name": "JupyterNotebook_test",
-      "base_url": "http://127.0.0.1:8888/files/work/notebooks/example/geojson.ipynb",
-      "password": "_created",
+      "image": "some docker command",
       "path_to_a_notebook": "work/notebooks/example/geojson.ipynb",
-      "kernel_name": ""
+      "kernel_name": "",
+      "is_validated": true
     }
   },
   {
@@ -15,10 +15,10 @@
     "pk": 1002,
     "fields": {
       "name": "JupyterNotebook_test_2",
-      "base_url": "http://127.0.0.1:8888/files/work/notebooks/example/geotiff_2.ipynb",
-      "password": "zzz",
+      "image": "some docker command",
       "path_to_a_notebook": "work/notebooks/example/geotiff_2.ipynb",
-      "kernel_name": "3.5"
+      "kernel_name": "3.5",
+      "is_validated": false
     }
   }
 ]

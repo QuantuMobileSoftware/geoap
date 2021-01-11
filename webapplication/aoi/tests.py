@@ -225,17 +225,17 @@ class JupyterNotebookTestCase(UserBase):
         self.not_staff_user = User.objects.get(id=1002)
         self.data_create = {
             "name": "JupyterNotebook_test_created",
-            "base_url": "http://127.0.0.1:8888/files/work/notebooks/example/geojson_created.ipynb",
-            "password": "_created",
+            "image": "some docker command",
             "path_to_a_notebook": "work/notebooks/example/geojson_created.ipynb",
-            "kernel_name": "3.8"
+            "kernel_name": "3.8",
+            "is_validated": False
         }
         
         self.data_patch = {
             "name": "JupyterNotebook_test_patch",
-            "base_url": "http://127.0.0.1:8888/files/work/notebooks/example/geojson_patch.ipynb",
-            "path_to_a_notebook": "work/notebooks/example/geojson_patch.ipynb",
-            "kernel_name": "3.3"
+            "image": "some new docker command",
+            "kernel_name": "3.3",
+            "is_validated": True
         }
     
     def test_create_notebook_as_not_auth_user(self):
@@ -264,7 +264,7 @@ class JupyterNotebookTestCase(UserBase):
     def test_get_notebook_as_not_staff_user(self):
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.get_notebook()
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     def test_get_notebook_as_staff_user(self):
         self.client.force_authenticate(user=self.staff_user)
@@ -296,10 +296,10 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
-        self.assertEqual(content['password'], '_created')
-        self.assertEqual(content['base_url'], self.data_patch['base_url'])
-        self.assertEqual(content['path_to_a_notebook'], self.data_patch['path_to_a_notebook'])
+        self.assertEqual(content['image'], self.data_patch['image'])
+        self.assertEqual(content['path_to_a_notebook'], 'work/notebooks/example/geojson.ipynb')
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
+        self.assertEqual(content['is_validated'], self.data_patch['is_validated'])
     
     def test_get_notebook_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
@@ -307,9 +307,12 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_get_notebook_list_as_not_staff_user(self):
+        expected_results_len = 2
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.get_notebook_list()
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
     
     def test_get_notebook_list_as_staff_user(self):
         expected_results_len = 2
