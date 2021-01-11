@@ -14,3 +14,19 @@ class AoI(models.Model):
         verbose_name = 'Area of interest'
         verbose_name_plural = 'Areas of interest'
         ordering = ['name']
+        
+        
+class JupyterNotebook(models.Model):
+    name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Jupyter Notebook name')
+    image = models.CharField(max_length=400, verbose_name='Image')
+    path_to_a_notebook = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
+    kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
+    is_validated = models.BooleanField(default=False, verbose_name='Is validated')
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Jupyter Notebook'
+        verbose_name_plural = 'Jupyter Notebooks'
+        ordering = ['name']

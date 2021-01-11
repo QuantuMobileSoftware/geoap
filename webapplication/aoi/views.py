@@ -3,8 +3,8 @@ from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
-from .models import AoI
-from .serializers import AoISerializer
+from .models import AoI, JupyterNotebook
+from .serializers import AoISerializer, JupyterNotebookSerializer
 from user.permissions import ModelPermissions
 
 
@@ -36,3 +36,17 @@ class AOIResultsListAPIView(ListAPIView):
         if not self.request.user.has_perm('publisher.view_unreleased_result'):
             qs = qs.filter(released=True)
         return qs
+
+
+class JupyterNotebookListCreateAPIView(ListCreateAPIView):
+    permission_classes = (ModelPermissions,)
+    queryset = JupyterNotebook.objects.all()
+    serializer_class = JupyterNotebookSerializer
+    pagination_class = None
+
+
+class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (ModelPermissions,)
+    queryset = JupyterNotebook.objects.all()
+    serializer_class = JupyterNotebookSerializer
+    http_method_names = ("get", "patch", 'delete')
