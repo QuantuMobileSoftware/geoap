@@ -18,7 +18,7 @@ class FilesView(APIView):
     Get files from local storage.
     """
     authentication_classes = [SessionAuthentication, TokenAuthenticationWithQueryString, BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, )
 
     def get(self, request, *args, **kwargs) -> HttpResponse:
         """
@@ -38,7 +38,7 @@ class ResultListAPIView(ListAPIView):
     """
     Get list of all results for stuff or list of all results with released=True for not staff authenticated users.
     """
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, )
     queryset = Result.objects.all()
     http_method_names = ['get']
     serializer_class = ResultSerializer
@@ -56,7 +56,7 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (ModelPermissions, ResultByACLPermission)
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
-    http_method_names = ("get", "patch", 'delete')
+    http_method_names = ("get", "patch", 'delete', )
 
     def get_queryset(self):
         if self.request.user.has_perm('publisher.view_unreleased_result'):
