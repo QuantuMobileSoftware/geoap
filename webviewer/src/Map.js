@@ -1,27 +1,6 @@
 "use strict";
 
 import { Div } from "@adolgarev/domwrapper/src";
-import Wkt from "wicket";
-
-const wkt = new Wkt.Wkt();
-
-function promisify(f, context = null) {
-    return function (...args) {
-        return new Promise((resolve, reject) => {
-            function callback(err, result) {
-                if (err) {
-                    return reject(err);
-                } else {
-                    resolve(result);
-                }
-            }
-
-            args.push(callback);
-
-            f.call(context, ...args);
-        });
-    };
-}
 
 function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
