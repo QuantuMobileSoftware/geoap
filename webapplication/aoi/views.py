@@ -32,21 +32,21 @@ class AOIResultsListAPIView(ListAPIView):
 
     def get_queryset(self):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg])
-        qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon, to_be_deleted=False)
+        qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon)
         if not self.request.user.has_perm('publisher.view_unreleased_result'):
             qs = qs.filter(released=True)
         return qs
 
 
 class JupyterNotebookListCreateAPIView(ListCreateAPIView):
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, )
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
     pagination_class = None
 
 
 class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, )
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
     http_method_names = ("get", "patch", 'delete')

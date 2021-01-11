@@ -48,8 +48,8 @@ class ResultListAPIView(ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.request.user.has_perm('publisher.view_unreleased_result'):
-            return queryset.filter(to_be_deleted=False)
-        return queryset.filter(released=True, to_be_deleted=False)
+            return queryset
+        return queryset.filter(released=True)
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -60,8 +60,8 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         if self.request.user.has_perm('publisher.view_unreleased_result'):
-            return self.queryset.filter(to_be_deleted=False)
-        return self.queryset.filter(released=True, to_be_deleted=False)
+            return self.queryset
+        return self.queryset.filter(released=True)
 
     def destroy(self, request, *args, **kwargs):
         result = self.get_object()
