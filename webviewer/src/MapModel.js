@@ -58,23 +58,41 @@ export default class MapModel extends EventTarget {
         this.dispatchEvent(new Event("featureselected"));
     }
 
-    sendAoi(data, callback) {
-        this.apiWrapper.sendPostRequest("/aoi", data, (err, res) => {
-            if (err) {
-                this.dispatchEvent(new Event("error"));
-            } else {
-                callback(null, res);
+    sendAoi(dataObject, callback) {
+        const wkt = new Wkt.Wkt();
+        const { layer, ...data } = dataObject;
+        const { geometry } = layer.toGeoJSON();
+        const polygon = wkt.fromObject(geometry).write();
+
+        this.apiWrapper.sendPostRequest(
+            "/aoi",
+            { ...data, polygon },
+            (err, res) => {
+                if (err) {
+                    this.dispatchEvent(new Event("error"));
+                } else {
+                    callback(res);
+                }
             }
-        });
+        );
     }
 
-    updateAoi(data, id, callback) {
-        this.apiWrapper.sendPatchRequest(`/aoi/${id}`, data, (err, res) => {
-            if (err) {
-                this.dispatchEvent(new Event("error"));
-            } else {
-                callback(null, res);
+    updateAoi(dataObject, id, callback) {
+        const wkt = new Wkt.Wkt();
+        const { layer, ...data } = dataObject;
+        const { geometry } = layer.toGeoJSON();
+        const polygon = wkt.fromObject(geometry).write();
+
+        this.apiWrapper.sendPatchRequest(
+            `/aoi/${id}`,
+            { ...data, polygon },
+            (err, res) => {
+                if (err) {
+                    this.dispatchEvent(new Event("error"));
+                } else {
+                    callback(res);
+                }
             }
-        });
+        );
     }
 }

@@ -86,41 +86,29 @@ function initializeControls(map) {
 }
 
 function initializeHandlers(map, mapModel) {
-    let features = [];
+    let features = {};
 
     const handlePolygonChange = ({ layer }) => {
-        const { geometry } = layer.toGeoJSON();
-        const polygon = wkt.fromObject(geometry).write();
-
-        const feature = features.find(
-            (feature) => feature.l_id === layer._leaflet_id
-        );
-
-        const handler = feature
-            ? promisify(mapModel.updateAoi, mapModel)
-            : promisify(mapModel.sendAoi, mapModel);
-
-        if (feature) {
+        if (features[layer._leaflet_id]) {
             const data = {
-                ...feature,
-                polygon,
+                ...features[layer._leaflet_id],
+                layer,
             };
-            handler(data, data.id).then((res) => {
-                features = [
-                    ...features.filter((feature) => feature.id !== res.id),
-                    { ...res, l_id: data.l_id },
-                ];
+            mapModel.updateAoi(data, data.id, (res) => {
+                features = {
+                    ...features,
+                    [layer._leaflet_id]: { ...res },
+                };
             });
         } else {
-            const data = {
+            const feature = {
                 //NEED fix - use polygon string as unique name
                 name: `Test ${(Math.random() * 10000).toFixed()}`,
-                polygon,
-                l_id: layer._leaflet_id,
+                layer,
             };
 
-            handler(data).then((res) => {
-                features.push({ ...data, id: res.id });
+            mapModel.sendAoi(feature, (res) => {
+                features[layer._leaflet_id] = { ...res };
             });
         }
 
@@ -131,18 +119,14 @@ function initializeHandlers(map, mapModel) {
     };
 
     const handleCustomPolygonCreate = ({ layer }) => {
-        const { geometry } = layer.toGeoJSON();
-        const polygon = wkt.fromObject(geometry).write();
         const feature = {
             //NEED fix - use polygon string as unique name
             name: `Test ${(Math.random() * 10000).toFixed()}`,
-            polygon,
-            l_id: layer._leaflet_id,
+            layer,
         };
 
-        const sendAoi = promisify(mapModel.sendAoi, mapModel);
-        sendAoi(feature).then((res) => {
-            features.push({ ...feature, id: res.id });
+        mapModel.sendAoi(feature, (res) => {
+            features[layer._leaflet_id] = { ...res };
         });
 
         layer.toggleEdit &&
