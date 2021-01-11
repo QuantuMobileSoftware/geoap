@@ -95,4 +95,27 @@ export default class MapModel extends EventTarget {
             }
         );
     }
+
+    getAois(callback) {
+        this.apiWrapper.sendGetRequest("/aoi", (err, res) => {
+            if (err) {
+                this.dispatchEvent(new Event("error"));
+            } else {
+                const aois = res.map((aoi) => {
+                    const wkt = new Wkt.Wkt();
+                    const delimeterIndex = aoi.polygon.indexOf(";");
+                    const string = aoi.polygon.slice(delimeterIndex + 1);
+                    wkt.read(string);
+
+                    return {
+                        type: "Feature",
+                        properties: { name: aoi.name },
+                        geometry: wkt.toJson(),
+                    };
+                });
+
+                callback(aois);
+            }
+        });
+    }
 }
