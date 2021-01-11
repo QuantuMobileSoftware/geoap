@@ -2,8 +2,8 @@ import json
 from rest_framework import status
 from django.urls import reverse
 from user.models import User
-from .models import AoI
-from .serializers import AoISerializer
+from .models import AoI, JupyterNotebook
+from .serializers import AoISerializer, JupyterNotebookSerializer
 from user.tests import UserBase
 
 
@@ -214,3 +214,134 @@ class AOIResultRestrictedAclTestCase(UserBase):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(content), expected_results_len)
+
+
+class JupyterNotebookTestCase(UserBase):
+    fixtures = ["user/fixtures/user_fixtures.json", "aoi/fixtures/notebook_fixtures.json"]
+    
+    def setUp(self):
+        self.add_users_to_groups()
+        self.staff_user = User.objects.get(id=1001)
+        self.not_staff_user = User.objects.get(id=1002)
+        self.data_create = {
+            "name": "JupyterNotebook_test_created",
+            "image": "some docker command",
+            "path_to_a_notebook": "work/notebooks/example/geojson_created.ipynb",
+            "kernel_name": "3.8",
+            "is_validated": False
+        }
+        
+        self.data_patch = {
+            "name": "JupyterNotebook_test_patch",
+            "image": "some new docker command",
+            "kernel_name": "3.3",
+            "is_validated": True
+        }
+    
+    def test_create_notebook_as_not_auth_user(self):
+        url = reverse('aoi:notebook_list_or_create')
+        self.client.force_authenticate(user=None)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_create_notebook_as_not_staff_user(self):
+        url = reverse('aoi:notebook_list_or_create')
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_create_notebook_as_staff_user(self):
+        url = reverse('aoi:notebook_list_or_create')
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def test_get_notebook_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_notebook()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_get_notebook_as_not_staff_user(self):
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.get_notebook()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_get_notebook_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_notebook()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def get_notebook(self):
+        notebook = JupyterNotebook.objects.get(id=1001)
+        url = reverse('aoi:notebook', kwargs={'pk': notebook.id})
+        response = self.client.get(url)
+        return response
+    
+    def test_patch_notebook_as_not_auth_user(self):
+        url = reverse('aoi:notebook', kwargs={'pk': 1001})
+        self.client.force_authenticate(user=None)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_patch_notebook_as_not_staff_user(self):
+        url = reverse('aoi:notebook', kwargs={'pk': 1001})
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_patch_notebook_as_staff_user(self):
+        url = reverse('aoi:notebook', kwargs={'pk': 1001})
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.patch(url, self.data_patch)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content)
+        self.assertEqual(content['name'], self.data_patch['name'])
+        self.assertEqual(content['image'], self.data_patch['image'])
+        self.assertEqual(content['path_to_a_notebook'], 'work/notebooks/example/geojson.ipynb')
+        self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
+        self.assertEqual(content['is_validated'], self.data_patch['is_validated'])
+    
+    def test_get_notebook_list_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_notebook_list()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_get_notebook_list_as_not_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.get_notebook_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+    
+    def test_get_notebook_list_as_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_notebook_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+    
+    def get_notebook_list(self):
+        url = reverse('aoi:notebook_list_or_create')
+        return self.client.get(url)
+    
+    def test_delete_notebook_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.delete_notebook()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_delete_notebook_as_not_staff_user(self):
+        self.client.force_authenticate(user=self.not_staff_user)
+        response = self.delete_notebook()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_delete_notebook_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.delete_notebook()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    
+    def delete_notebook(self):
+        url = reverse('aoi:notebook', kwargs={'pk': 1001})
+        response = self.client.delete(url)
+        return response
