@@ -143,10 +143,6 @@ export default function createMap(widgetFactory, mapModel) {
                     "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors",
                 maxZoom: 16,
             }).addTo(map);
-
-            mapModel.getAois((aois) => {
-                L.geoJSON(aois).addTo(map);
-            });
         } else {
             L.tileLayer("/tiles/mapbox/{z}/{x}/{y}.png", {
                 attribution:
@@ -156,6 +152,10 @@ export default function createMap(widgetFactory, mapModel) {
                 zoomOffset: -1,
             }).addTo(map);
         }
+
+        mapModel.getAois((aois) => {
+            L.geoJSON(aois).addTo(map);
+        });
     };
 
     let backgroundLayer = null;
