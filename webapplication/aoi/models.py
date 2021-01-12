@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models
 from django.utils import timezone
+from user.models import User
 
 
 class AoI(models.Model):
@@ -30,3 +31,17 @@ class JupyterNotebook(models.Model):
         verbose_name = 'Jupyter Notebook'
         verbose_name_plural = 'Jupyter Notebooks'
         ordering = ['name']
+        
+        
+class Request(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User name')
+    aoi_id = models.ForeignKey(AoI, on_delete=models.CASCADE, verbose_name='Aoi name')
+    jupyter_notebook_id = models.OneToOneField(
+        JupyterNotebook, on_delete=models.CASCADE,
+        verbose_name='Jupyter notebook name'
+    )
+    date_from = models.DateTimeField(blank=True, null=True, verbose_name='Date from')
+    date_to = models.DateTimeField(blank=True, null=True, verbose_name='Date to')
+    started_at = models.DateTimeField(blank=True, null=True, verbose_name='Started at')
+    finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
+    error = models.CharField(max_length=400, verbose_name='Error')

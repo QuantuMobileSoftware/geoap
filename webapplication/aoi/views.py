@@ -3,8 +3,8 @@ from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
-from .models import AoI, JupyterNotebook
-from .serializers import AoISerializer, JupyterNotebookSerializer
+from .models import AoI, JupyterNotebook, Request
+from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
 from user.permissions import ModelPermissions
 
 
@@ -49,4 +49,18 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (ModelPermissions,)
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
+    http_method_names = ("get", "patch", 'delete')
+    
+    
+class RequestListCreateAPIView(ListCreateAPIView):
+    permission_classes = (ModelPermissions,)
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
+    pagination_class = None
+    
+    
+class RequestRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (ModelPermissions,)
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
     http_method_names = ("get", "patch", 'delete')
