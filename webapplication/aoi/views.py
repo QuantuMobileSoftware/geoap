@@ -5,6 +5,7 @@ from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, JupyterNotebook
 from .serializers import AoISerializer, JupyterNotebookSerializer
+from .permissions import AoIIsOwnerPermission
 from user.permissions import ModelPermissions
 
 
@@ -13,10 +14,17 @@ class AoIListCreateAPIView(ListCreateAPIView):
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
     pagination_class = None
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)
 
 
 class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, AoIIsOwnerPermission)
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
     http_method_names = ("get", "patch", 'delete')

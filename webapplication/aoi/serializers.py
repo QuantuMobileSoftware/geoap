@@ -13,8 +13,8 @@ class AoISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AoI
-        fields = ('id', 'name', 'polygon', 'createdat')
-        read_only_fields = ['createdat', ]
+        fields = ('id', 'user_id', 'name', 'polygon', 'createdat')
+        read_only_fields = ['user_id', 'createdat', ]
 
 
 class JupyterNotebookSerializer(serializers.ModelSerializer):
