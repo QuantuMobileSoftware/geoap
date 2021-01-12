@@ -39,7 +39,7 @@ class AOIResultsListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg])
+        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user_id=self.request.user)
         qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon, to_be_deleted=False)
         if not self.request.user.has_perm('publisher.view_unreleased_result'):
             qs = qs.filter(released=True)
