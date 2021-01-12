@@ -568,47 +568,6 @@ class ResultTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(content), expected_results_len)
 
-    def test_get_results_list_with_deleted_as_ex_2_user(self):
-        expected_results_len = 2
-        self.client.force_authenticate(user=self.ex_2_user)
-        self.get_results_list_with_deleted(expected_results_len)
-        
-    def test_get_results_list_with_deleted_as_ex_3_user(self):
-        expected_results_len = 1
-        self.client.force_authenticate(user=self.ex_3_user)
-        self.get_results_list_with_deleted(expected_results_len)
-        
-    def test_get_results_list_with_deleted_as_all_results_user(self):
-        expected_results_len = 4
-        self.client.force_authenticate(user=self.all_results_user)
-        self.get_results_list_with_deleted(expected_results_len)
-        
-    def test_get_results_list_with_deleted_as_all_results_no_acl_user(self):
-        expected_results_len = 4
-        self.client.force_authenticate(user=self.all_results_no_acl_user)
-        self.get_results_list_with_deleted(expected_results_len)
-
-    def test_get_results_list_with_deleted_as_staff_user(self):
-        expected_results_len = 4
-        self.client.force_authenticate(user=self.staff_user)
-        self.get_results_list_with_deleted(expected_results_len)
-
-    def get_results_list_with_deleted(self, expected_results_len):
-        url = reverse('get_results')
-        
-        result = Result.objects.get(id=1001)
-        result.to_be_deleted = True
-        result.save()
-        
-        result = Result.objects.get(id=1003)
-        result.to_be_deleted = True
-        result.save()
-        
-        response = self.client.get(url)
-        content = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(content), expected_results_len)
-
     def test_get_result_as_not_auth_user(self):
         url = reverse('result', kwargs={'pk': 1001})
         self.client.force_authenticate(user=None)
@@ -644,34 +603,6 @@ class ResultTestCase(UserBase):
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_get_result_deleted_as_ex_2_user(self):
-        self.client.force_authenticate(user=self.ex_2_user)
-        response = self.get_result_deleted()
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
-    def test_get_result_deleted_as_all_results_user(self):
-        self.client.force_authenticate(user=self.all_results_user)
-        response = self.get_result_deleted()
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
-    def test_get_result_deleted_as_all_results_no_acl_user(self):
-        self.client.force_authenticate(user=self.all_results_no_acl_user)
-        response = self.get_result_deleted()
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_get_result_deleted_as_staff_user(self):
-        self.client.force_authenticate(user=self.staff_user)
-        response = self.get_result_deleted()
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def get_result_deleted(self):
-        url = reverse('result', kwargs={'pk': 1001})
-        result = Result.objects.get(id=1001)
-        result.to_be_deleted = True
-        result.save()
-        response = self.client.get(url)
-        return response
 
     def test_patch_result_as_not_auth_user(self):
         url = reverse('result', kwargs={'pk': 1001})
