@@ -25,16 +25,16 @@ class Result(models.Model):
 
     bounding_polygon = models.PolygonField(spatial_index=True, verbose_name='Bounding polygon')
     rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
+    request_id = models.PositiveBigIntegerField(null=True, verbose_name="Client's request id")
 
     # Filled in by a Data science engineer
     options = JSONField(blank=True, null=True, verbose_name='Layer options')
-    description = models.TextField(blank=True, null=True, verbose_name='Layer description')
+    description = models.TextField(blank=True, default='', verbose_name='Layer description')
     released = models.BooleanField(default=False, verbose_name='Released')
     to_be_deleted = models.BooleanField(default=False, verbose_name='To be deleted')
-
     start_date = models.DateField(blank=True, null=True, verbose_name='Start date')
     end_date = models.DateField(blank=True, null=True, verbose_name='End date')
-    name = models.CharField(max_length=200, blank=True, null=True, verbose_name='Layer name')
+    name = models.CharField(max_length=200, blank=True, default='', verbose_name='Layer name')
 
     def __str__(self):
         return self.filepath

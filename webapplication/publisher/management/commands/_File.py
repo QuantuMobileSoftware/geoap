@@ -19,7 +19,7 @@ from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
-from ...models import Result
+from publisher.models import Result
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,7 @@ class File(metaclass=ABCMeta):
         self.name = None
         self.start_date = None
         self.end_date = None
+        self.request_id = None
 
     def filename(self):
         return os.path.basename(self.path)
@@ -105,6 +106,9 @@ class File(metaclass=ABCMeta):
             dict_['start_date'] = timestamp_parser.parse(self.start_date)
         if self.end_date:
             dict_['end_date'] = timestamp_parser.parse(self.end_date)
+        if self.request_id:
+            dict_['request_id'] = self.request_id
+            dict_['released'] = True
 
         return dict_
 
@@ -140,6 +144,7 @@ class Geojson(File):
             self.name = geojson.get('name')
             self.start_date = geojson.get('start_date')
             self.end_date = geojson.get('end_date')
+            self.request_id = geojson.get('request_id')
 
         df = geopandas.read_file(self.path)
         if str(df.crs) != self.crs:
@@ -212,6 +217,7 @@ class Geotif(File):
             self.name = tags.get('name')
             self.start_date = tags.get('start_date')
             self.end_date = tags.get('end_date')
+            self.request_id = tags.get('request_id')
 
     def layer_type(self):
         return Result.XYZ
