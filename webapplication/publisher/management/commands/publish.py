@@ -7,8 +7,8 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from ._File import FileFactory
-from ...models import Result
+from publisher.management.commands._File import FileFactory
+from publisher.models import Result
 
 logger = logging.getLogger(__name__)
 

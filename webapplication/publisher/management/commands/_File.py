@@ -19,7 +19,7 @@ from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
-from ...models import Result
+from publisher.models import Result
 
 logger = logging.getLogger(__name__)
 
