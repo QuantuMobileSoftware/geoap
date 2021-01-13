@@ -3,7 +3,7 @@ from rest_framework import status
 from django.urls import reverse
 from user.models import User
 from .models import AoI, JupyterNotebook
-from .serializers import AoISerializer, JupyterNotebookSerializer
+from .serializers import AoISerializer
 from user.tests import UserBase
 
 
@@ -345,3 +345,103 @@ class JupyterNotebookTestCase(UserBase):
         url = reverse('aoi:notebook', kwargs={'pk': 1001})
         response = self.client.delete(url)
         return response
+    
+    
+class RequestTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+                'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json',
+                'aoi/fixtures/request_fixtures.json']
+
+    def setUp(self):
+        super().setUp()
+
+        self.data_create = {
+            'aoi_id': 1001,
+            'jupyter_notebook_id': 1001,
+        }
+
+        self.data_patch = {
+            'jupyter_notebook_id': 1002,
+        }
+
+    def test_create_request_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.create_request()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_create_request_as_not_staff_user(self):
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.create_request()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+    def test_create_request_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.create_request()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def create_request(self):
+        url = reverse('aoi:request_list_or_create')
+        return self.client.post(url, self.data_create)
+
+    def test_get_request_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_request(1001)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_request_by_owner(self):
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.get_request(1002)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_get_request_by_not_owner(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_request(1002)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def get_request(self, request_id):
+        url = reverse('aoi:request', kwargs={'pk': request_id})
+        return self.client.get(url)
+
+    def test_patch_request_by_owner(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.patch_request(1001)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def patch_request(self, request_id):
+        url = reverse('aoi:request', kwargs={'pk': request_id})
+        return self.client.patch(url, self.data_patch)
+    
+    def test_delete_request_by_owner(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.patch_request(1001)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def delete_request(self, request_id):
+        url = reverse('aoi:request', kwargs={'pk': request_id})
+        return self.client.delete(url)
+    
+    def test_get_request_list_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_request_list()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_request_list_as_ex_2_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.get_request_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+        
+    def test_get_request_list_as_staff_user(self):
+        expected_results_len = 1
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_request_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+    
+    def get_request_list(self):
+        url = reverse('aoi:request_list_or_create')
+        return self.client.get(url)
