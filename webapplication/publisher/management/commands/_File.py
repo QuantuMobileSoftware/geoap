@@ -108,6 +108,7 @@ class File(metaclass=ABCMeta):
             dict_['end_date'] = timestamp_parser.parse(self.end_date)
         if self.request_id:
             dict_['request_id'] = self.request_id
+            dict_['released'] = True
 
         return dict_
 
