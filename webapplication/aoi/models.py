@@ -40,8 +40,8 @@ class Request(models.Model):
         JupyterNotebook, on_delete=models.CASCADE,
         verbose_name='Jupyter notebook name'
     )
-    date_from = models.DateTimeField(blank=True, null=True, verbose_name='Date from')
-    date_to = models.DateTimeField(blank=True, null=True, verbose_name='Date to')
+    date_from = models.DateField(blank=True, null=True, verbose_name='Date from')
+    date_to = models.DateField(blank=True, null=True, verbose_name='Date to')
     started_at = models.DateTimeField(blank=True, null=True, verbose_name='Started at')
     finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
