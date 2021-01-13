@@ -39,6 +39,34 @@ def add_permissions(apps, schema_editor):
     permission.objects.using(db_alias).bulk_create(permission_list)
 
 
+def update_client_group_permissions(apps, schema_editor):
+    """
+    Add 'Can add Request' and 'Can view Request'  permissions for 'Client' group
+    """
+    permission_model = apps.get_model('auth', 'Permission')
+    group_model = apps.get_model("auth", "Group")
+    
+    db_alias = schema_editor.connection.alias
+    
+    group, _ = group_model.objects.using(db_alias).get_or_create(name="Client")
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename='add_request'))
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename='view_request'))
+
+
+def update_ds_engineer_group_permissions(apps, schema_editor):
+    """
+    Add 'Can add Request' and 'Can view Request' permissions for 'Data_science_engineer' group
+    """
+    permission_model = apps.get_model('auth', 'Permission')
+    group_model = apps.get_model("auth", "Group")
+    
+    db_alias = schema_editor.connection.alias
+    
+    group, _ = group_model.objects.using(db_alias).get_or_create(name="Data_science_engineer")
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename='add_request'))
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename='view_request'))
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -47,4 +75,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(add_permissions),
+        migrations.RunPython(update_client_group_permissions),
+        migrations.RunPython(update_ds_engineer_group_permissions),
     ]

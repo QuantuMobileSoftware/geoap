@@ -1,11 +1,11 @@
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, JupyterNotebook, Request
 from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
-from user.permissions import ModelPermissions
+from user.permissions import ModelPermissions, IsOwnerPermission
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -58,9 +58,16 @@ class RequestListCreateAPIView(ListCreateAPIView):
     serializer_class = RequestSerializer
     pagination_class = None
     
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)
     
-class RequestRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (ModelPermissions,)
+    
+class RequestRetrieveAPIView(RetrieveAPIView):
+    permission_classes = (ModelPermissions, IsOwnerPermission)
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
-    http_method_names = ("get", "patch", 'delete')
+    http_method_names = ("get", )

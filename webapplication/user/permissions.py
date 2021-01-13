@@ -1,4 +1,4 @@
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, BasePermission
 
 
 class ModelPermissions(DjangoModelPermissions):
@@ -14,3 +14,8 @@ class ModelPermissions(DjangoModelPermissions):
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
+    
+    
+class IsOwnerPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.user_id == request.user

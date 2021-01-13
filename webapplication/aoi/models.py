@@ -36,7 +36,7 @@ class JupyterNotebook(models.Model):
 class Request(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User name')
     aoi_id = models.ForeignKey(AoI, on_delete=models.CASCADE, verbose_name='Aoi name')
-    jupyter_notebook_id = models.OneToOneField(
+    jupyter_notebook_id = models.ForeignKey(
         JupyterNotebook, on_delete=models.CASCADE,
         verbose_name='Jupyter notebook name'
     )
