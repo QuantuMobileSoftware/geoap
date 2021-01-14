@@ -372,13 +372,19 @@ class RequestTestCase(UserBase):
         
     def test_create_request_as_not_staff_user(self):
         self.client.force_authenticate(user=self.ex_2_user)
+        self.data_create['user_id'] = 1001
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = json.loads(response.content)
+        self.assertEqual(content['user_id'], self.ex_2_user.id)
         
     def test_create_request_as_staff_user(self):
         self.client.force_authenticate(user=self.staff_user)
+        self.data_create['user_id'] = 1002
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = json.loads(response.content)
+        self.assertEqual(content['user_id'], self.staff_user.id)
     
     def create_request(self):
         url = reverse('aoi:request_list_or_create')

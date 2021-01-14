@@ -22,9 +22,9 @@ class Migration(migrations.Migration):
                 ('started_at', models.DateTimeField(blank=True, null=True, verbose_name='Started at')),
                 ('finished_at', models.DateTimeField(blank=True, null=True, verbose_name='Finished at')),
                 ('error', models.CharField(blank=True, max_length=400, null=True, verbose_name='Error')),
-                ('aoi_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aoi.aoi', verbose_name='Aoi name')),
-                ('jupyter_notebook_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aoi.jupyternotebook', verbose_name='Jupyter notebook name')),
-                ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User name')),
+                ('aoi_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='aoi.aoi', verbose_name='Aoi name')),
+                ('jupyter_notebook_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='aoi.jupyternotebook', verbose_name='Jupyter notebook name')),
+                ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL, verbose_name='User name')),
             ],
         ),
     ]
