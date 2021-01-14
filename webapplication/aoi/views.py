@@ -63,7 +63,10 @@ class RequestListCreateAPIView(ListCreateAPIView):
         return queryset.filter(user_id=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user_id=self.request.user)
+        if self.request.user.has_perm('add_another_user_request'):
+            serializer.save()
+        else:
+            serializer.save(user_id=self.request.user)
     
     
 class RequestRetrieveAPIView(RetrieveAPIView):

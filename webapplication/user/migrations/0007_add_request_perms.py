@@ -29,6 +29,8 @@ def add_permissions(apps, schema_editor):
          "content_type": model_content_type},
         {"codename": "view_request", "name": "Can view Request",
          "content_type": model_content_type},
+        {"codename": "add_another_user_request", "name": "Can add Request for another user",
+         "content_type": model_content_type},
     ]
     
     permission_list = []
