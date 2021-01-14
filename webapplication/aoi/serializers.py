@@ -6,12 +6,6 @@ from .models import AoI, JupyterNotebook
 
 
 class AoISerializer(serializers.ModelSerializer):
-
-    # def create(self, validated_data):
-    #     validated_data.pop('createdat', None)
-    #     # super().create(validated_data)
-    #     return AoI.objects.create(**validated_data)
-
     class Meta:
         model = AoI
         fields = ('id', 'user_id', 'name', 'polygon', 'createdat')
