@@ -7,14 +7,15 @@ from .models import AoI, JupyterNotebook
 
 class AoISerializer(serializers.ModelSerializer):
 
-    def create(self, validated_data):
-        validated_data.pop('createdat', None)
-        return AoI.objects.create(**validated_data)
+    # def create(self, validated_data):
+    #     validated_data.pop('createdat', None)
+    #     # super().create(validated_data)
+    #     return AoI.objects.create(**validated_data)
 
     class Meta:
         model = AoI
         fields = ('id', 'user_id', 'name', 'polygon', 'createdat')
-        read_only_fields = ['user_id', 'createdat', ]
+        read_only_fields = ['createdat', ]
 
 
 class JupyterNotebookSerializer(serializers.ModelSerializer):

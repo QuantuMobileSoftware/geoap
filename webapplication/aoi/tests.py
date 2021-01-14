@@ -17,6 +17,7 @@ class AOITestCase(UserBase):
     def setUp(self):
         super().setUp()
         self.data_create = {
+            "user_id": 1001,
             "name": "Aoi_test",
             "polygon": "SRID=4326;POLYGON (( \
             35.895191466414154 50.009453778741694 ,  \
@@ -28,6 +29,7 @@ class AOITestCase(UserBase):
         }
 
         self.data_patch = {
+            "user_id": 1002,
             "name": "Aoi_test_new",
             "polygon": "SRID=4326;POLYGON ((\
             35.895191466414154 50.009453778741694, \
@@ -45,23 +47,17 @@ class AOITestCase(UserBase):
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_aoi_as_not_staff_user(self):
+    def test_create_aoi_by_not_owner(self):
         url = reverse('aoi:aoi_list_or_create')
-        self.data_create['user_id'] = 1001
         self.client.force_authenticate(user=self.ex_2_user)
         response = self.client.post(url, self.data_create)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = json.loads(response.content)
-        self.assertEqual(content['user_id'], self.ex_2_user.id)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_aoi_as_staff_user(self):
+    def test_create_aoi_by_owner(self):
         url = reverse('aoi:aoi_list_or_create')
-        self.data_create['user_id'] = 1002
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = json.loads(response.content)
-        self.assertEqual(content['user_id'], self.staff_user.id)
 
     def test_get_aoi_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
@@ -105,6 +101,13 @@ class AOITestCase(UserBase):
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
         self.assertEqual(content['createdat'], serializer.data['createdat'])
+        
+    def test_patch_aoi_with_wrong_user_id_by_owner(self):
+        aoi_id = 1002
+        self.data_patch['user_id'] = 10001
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.patch_aoi(aoi_id)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
     def patch_aoi(self, aoi_id):
         url = reverse('aoi:aoi', kwargs={'pk': aoi_id})

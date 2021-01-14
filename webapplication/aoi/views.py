@@ -1,3 +1,5 @@
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
@@ -18,12 +20,16 @@ class AoIListCreateAPIView(ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(user_id=self.request.user)
-    
-    def perform_create(self, serializer):
-        if self.request.user.has_perm('add_another_user_aoi'):
-            serializer.save()
-        else:
-            serializer.save(user_id=self.request.user)
+        
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.initial_data['user_id'] != self.request.user.id and \
+                not self.request.user.has_perm('add_another_user_aoi'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -31,6 +37,13 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
     http_method_names = ("get", "patch", 'delete')
+    
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.initial_data['user_id'] != self.request.user.id and \
+                not self.request.user.has_perm('add_another_user_aoi'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return self.partial_update(request, *args, **kwargs)
 
 
 class AOIResultsListAPIView(ListAPIView):
