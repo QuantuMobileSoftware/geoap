@@ -47,15 +47,21 @@ class AOITestCase(UserBase):
 
     def test_create_aoi_as_not_staff_user(self):
         url = reverse('aoi:aoi_list_or_create')
+        self.data_create['user_id'] = 1001
         self.client.force_authenticate(user=self.ex_2_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = json.loads(response.content)
+        self.assertEqual(content['user_id'], self.ex_2_user.id)
 
     def test_create_aoi_as_staff_user(self):
         url = reverse('aoi:aoi_list_or_create')
+        self.data_create['user_id'] = 1002
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = json.loads(response.content)
+        self.assertEqual(content['user_id'], self.staff_user.id)
 
     def test_get_aoi_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
