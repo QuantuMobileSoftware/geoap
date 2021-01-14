@@ -357,6 +357,7 @@ class RequestTestCase(UserBase):
         super().setUp()
 
         self.data_create = {
+            'user_id': 1001,
             'aoi_id': 1001,
             'jupyter_notebook_id': 1001,
         }
@@ -370,17 +371,13 @@ class RequestTestCase(UserBase):
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
-    def test_create_request_as_not_staff_user(self):
+    def test_create_request_as_not_owner(self):
         self.client.force_authenticate(user=self.ex_2_user)
-        self.data_create['user_id'] = 1001
         response = self.create_request()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = json.loads(response.content)
-        self.assertEqual(content['user_id'], self.ex_2_user.id)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
-    def test_create_request_as_staff_user(self):
+    def test_create_request_as_owner(self):
         self.client.force_authenticate(user=self.staff_user)
-        self.data_create['user_id'] = 1002
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = json.loads(response.content)
