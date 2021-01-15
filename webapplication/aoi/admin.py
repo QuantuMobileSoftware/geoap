@@ -4,10 +4,10 @@ from .models import AoI, JupyterNotebook
 
 @admin.register(AoI)
 class AoIAdmin(admin.OSMGeoAdmin):
-    list_display = ('name', 'polygon', 'createdat')
+    list_display = ('user_id', 'name', 'polygon', 'createdat')
     search_fields = ('name',)
     fieldsets = (('fieldsets_name', {
-        'fields': ('name', 'polygon')
+        'fields': ('user_id', 'name', 'polygon')
     }), )
 
 
