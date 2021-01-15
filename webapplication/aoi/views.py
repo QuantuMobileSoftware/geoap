@@ -1,14 +1,14 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
-from .models import AoI, JupyterNotebook
-from .serializers import AoISerializer, JupyterNotebookSerializer
+from .models import AoI, JupyterNotebook, Request
+from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
+from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
-from user.permissions import ModelPermissions
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -74,3 +74,31 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
     http_method_names = ("get", "patch", 'delete')
+    
+    
+class RequestListCreateAPIView(ListCreateAPIView):
+    permission_classes = (ModelPermissions,)
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
+    pagination_class = None
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.initial_data['user_id'] != self.request.user.id and \
+                not self.request.user.has_perm('add_another_user_aoi'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    
+class RequestRetrieveAPIView(RetrieveAPIView):
+    permission_classes = (ModelPermissions, IsOwnerPermission)
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
+    http_method_names = ("get", )

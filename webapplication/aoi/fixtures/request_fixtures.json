@@ -1,0 +1,29 @@
+[
+  {
+    "model": "aoi.request",
+    "pk": 1001,
+    "fields": {
+      "user_id": 1001,
+      "aoi_id": 1001,
+      "jupyter_notebook_id": 1001
+    }
+  },
+  {
+    "model": "aoi.request",
+    "pk": 1002,
+    "fields": {
+      "user_id": 1002,
+      "aoi_id": 1002,
+      "jupyter_notebook_id": 1002
+    }
+  },
+  {
+    "model": "aoi.request",
+    "pk": 2002,
+    "fields": {
+      "user_id": 1002,
+      "aoi_id": 1002,
+      "jupyter_notebook_id": 1002
+    }
+  }
+]
