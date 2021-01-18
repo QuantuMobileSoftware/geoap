@@ -7,9 +7,9 @@ import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
+
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
-
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -19,7 +19,6 @@ from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
-
 from aoi.models import Request
 from publisher.models import Result
 
