@@ -118,7 +118,8 @@ CREATE TABLE public.aoi_aoi (
     id integer NOT NULL,
     name character varying(200) NOT NULL,
     polygon public.geometry(Polygon,4326) NOT NULL,
-    createdat timestamp with time zone NOT NULL
+    createdat timestamp with time zone NOT NULL,
+    user_id_id integer NOT NULL
 );
 
 
@@ -182,6 +183,47 @@ ALTER TABLE public.aoi_jupyternotebook_id_seq OWNER TO sip;
 --
 
 ALTER SEQUENCE public.aoi_jupyternotebook_id_seq OWNED BY public.aoi_jupyternotebook.id;
+
+
+--
+-- Name: aoi_request; Type: TABLE; Schema: public; Owner: sip
+--
+
+CREATE TABLE public.aoi_request (
+    id integer NOT NULL,
+    date_from date,
+    date_to date,
+    started_at timestamp with time zone,
+    finished_at timestamp with time zone,
+    error character varying(400),
+    aoi_id_id integer NOT NULL,
+    jupyter_notebook_id_id integer NOT NULL,
+    user_id_id integer NOT NULL
+);
+
+
+ALTER TABLE public.aoi_request OWNER TO sip;
+
+--
+-- Name: aoi_request_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
+--
+
+CREATE SEQUENCE public.aoi_request_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.aoi_request_id_seq OWNER TO sip;
+
+--
+-- Name: aoi_request_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
+--
+
+ALTER SEQUENCE public.aoi_request_id_seq OWNED BY public.aoi_request.id;
 
 
 --
@@ -509,12 +551,13 @@ CREATE TABLE public.publisher_result (
     bounding_polygon public.geometry(Polygon,4326) NOT NULL,
     rel_url character varying(400) NOT NULL,
     options jsonb,
-    description text,
+    description text NOT NULL,
     released boolean NOT NULL,
     start_date date,
     end_date date,
-    name character varying(200),
-    to_be_deleted boolean NOT NULL
+    name character varying(200) NOT NULL,
+    to_be_deleted boolean NOT NULL,
+    request_id_id integer
 );
 
 
@@ -670,6 +713,13 @@ ALTER TABLE ONLY public.aoi_jupyternotebook ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: aoi_request id; Type: DEFAULT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_request ALTER COLUMN id SET DEFAULT nextval('public.aoi_request_id_seq'::regclass);
+
+
+--
 -- Name: auth_group id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -757,7 +807,9 @@ ALTER TABLE ONLY public.user_user_user_permissions ALTER COLUMN id SET DEFAULT n
 -- Data for Name: aoi_aoi; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.aoi_aoi (id, name, polygon, createdat) FROM stdin;
+COPY public.aoi_aoi (id, name, polygon, createdat, user_id_id) FROM stdin;
+1	AOI 1	0103000020E6100000010000000500000050133146BB814140CFEC4E455D034940CD1731B6347A4140F118BD997F03494071123156318341402AE14AC8011A4940031331A63C824140884E6AE26003494050133146BB814140CFEC4E455D034940	2021-01-18 13:34:57.755256+00	1
+2	AOI 2	0103000020E6100000010000000500000050133146BB814140CFEC4E455D034940CD1731B6347A4140F118BD997F03494071123156318341402AE14AC8011A4940031331A63C824140884E6AE26003494050133146BB814140CFEC4E455D034940	2021-01-18 13:35:03.635782+00	1
 \.
 
 
@@ -766,8 +818,18 @@ COPY public.aoi_aoi (id, name, polygon, createdat) FROM stdin;
 --
 
 COPY public.aoi_jupyternotebook (id, name, image, path_to_a_notebook, kernel_name, is_validated) FROM stdin;
-1	example_geojson	pbd_jupyter:latest	work/notebooks/example/geojson.ipynb	\N	t
-2	example_geotiff	ied_nvidia_jupyter:latest	work/notebooks/example/geotiff.ipynb	\N	t
+2	example_geotiff	ied_nvidia_jupyter:latest	work/notebooks/example/geotiff.ipynb	\N	f
+1	example_geojson	pbd_jupyter:latest	work/notebooks/example/geojson.ipynb	\N	f
+\.
+
+
+--
+-- Data for Name: aoi_request; Type: TABLE DATA; Schema: public; Owner: sip
+--
+
+COPY public.aoi_request (id, date_from, date_to, started_at, finished_at, error, aoi_id_id, jupyter_notebook_id_id, user_id_id) FROM stdin;
+1	\N	\N	\N	\N	\N	1	1	1
+2	\N	\N	\N	\N	\N	2	2	1
 \.
 
 
@@ -804,6 +866,10 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 16	1	42
 17	1	43
 18	2	45
+19	2	54
+20	2	57
+21	1	54
+22	1	57
 \.
 
 
@@ -865,6 +931,12 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 51	Can change Access Control List	13	change_acl
 52	Can delete Access Control List	13	delete_acl
 53	Can view Access Control List	13	view_acl
+54	Can add Request	14	add_request
+55	Can change Request	14	change_request
+56	Can delete Request	14	delete_request
+57	Can view Request	14	view_request
+58	Can add Request for another user	14	add_another_user_request
+59	Can add Aoi for another user	9	add_another_user_aoi
 \.
 
 
@@ -905,6 +977,7 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 11	aoi	jupyternotebook
 12	authtoken	tokenproxy
 13	publisher	acl
+14	aoi	request
 \.
 
 
@@ -953,6 +1026,15 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 38	user	0004_add_client_group_update_ds_engineer_group	2021-01-11 11:13:56.966563+00
 39	user	0005_add_notebook_perms_to_ds_engineer_group	2021-01-11 11:13:57.021647+00
 40	user	0006_add_notebook_perms_to_client_group	2021-01-11 11:13:57.046828+00
+41	aoi	0003_request	2021-01-18 13:34:27.714568+00
+42	aoi	0003_aoi_user_id	2021-01-18 13:34:27.752822+00
+43	aoi	0004_merge_20210115_1546	2021-01-18 13:34:27.7561+00
+44	publisher	0010_auto_20210113_0950	2021-01-18 13:34:27.768822+00
+45	publisher	0011_result_request_id	2021-01-18 13:34:27.775076+00
+46	publisher	0012_auto_20210114_1628	2021-01-18 13:34:27.834258+00
+47	user	0007_add_request_perms	2021-01-18 13:34:27.900735+00
+48	user	0007_add_new_perm_to_aoi	2021-01-18 13:34:27.919613+00
+49	user	0008_merge_20210115_1546	2021-01-18 13:34:27.921733+00
 \.
 
 
@@ -989,12 +1071,12 @@ COPY public.publisher_acl (id, restrict_projects_to, user_id_id) FROM stdin;
 -- Data for Name: publisher_result; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.publisher_result (id, filepath, modifiedat, layer_type, bounding_polygon, rel_url, options, description, released, start_date, end_date, name, to_be_deleted) FROM stdin;
-1	ex_3/red_corn.geojson	2020-11-23 12:32:45.482171+00	MVT	0103000020E610000001000000050000006FA190E2CEB241404923AA7172ED48406FA190E2CEB2414029D54E21B31C494017A4A26B9372414029D54E21B31C494017A4A26B937241404923AA7172ED48406FA190E2CEB241404923AA7172ED4840	/tiles/ex_3/red_corn/{z}/{x}/{y}.pbf	\N	\N	f	\N	\N	Краснокутский район_1	f
-2	clearcut/ClearCut-2020-12-02.geojson	2020-12-16 13:53:02.851909+00	MVT	0103000020E61000000100000005000000911F11EF7D9143408B1267BA11DA4740911F11EF7D914340200C27AC79B8494039EB1F2D192E4140200C27AC79B8494039EB1F2D192E41408B1267BA11DA4740911F11EF7D9143408B1267BA11DA4740	/tiles/clearcut/ClearCut-2020-12-02/{z}/{x}/{y}.pbf	\N	\N	f	\N	\N	\N	f
-3	example/0fc45b4d-8bd1-47eb-af81-6a88ff378630_Green_2020-07-20.geojson	2020-12-10 13:41:36.453864+00	GEOJSON	0103000020E61000000100000005000000309E4143FF264240C7F0D8CF62814840309E4143FF264240A6D3BA0D6A014940EB573A1F9E114240A6D3BA0D6A014940EB573A1F9E114240C7F0D8CF62814840309E4143FF264240C7F0D8CF62814840	/results/example/0fc45b4d-8bd1-47eb-af81-6a88ff378630_Green_2020-07-20.geojson	\N	\N	f	2020-03-31	2020-06-06	Green	f
-4	example/b53895d8-bcc9-4536-b732-c69676fc15c6_PSRI_2020-06-12.geojson	2020-11-30 16:23:57.044073+00	GEOJSON	0103000020E61000000100000005000000F9F36DC152354240967B8159A1C04840F9F36DC152354240A6D3BA0D6A014940EB573A1F9E114240A6D3BA0D6A014940EB573A1F9E114240967B8159A1C04840F9F36DC152354240967B8159A1C04840	/results/example/b53895d8-bcc9-4536-b732-c69676fc15c6_PSRI_2020-06-12.geojson	\N	\N	f	2020-05-06	2020-06-30	PSRI	f
-5	ex_2/Portugal_features.geojson	2020-11-23 11:02:09.449468+00	GEOJSON	0103000020E61000000100000005000000EE0CD9A1E3DD1DC0555B06172C9E4440EE0CD9A1E3DD1DC00382572B8CA24440A16953E31DF71DC00382572B8CA24440A16953E31DF71DC0555B06172C9E4440EE0CD9A1E3DD1DC0555B06172C9E4440	/results/ex_2/Portugal_features.geojson	\N	\N	f	\N	\N	\N	f
+COPY public.publisher_result (id, filepath, modifiedat, layer_type, bounding_polygon, rel_url, options, description, released, start_date, end_date, name, to_be_deleted, request_id_id) FROM stdin;
+1	ex_3/red_corn.geojson	2020-11-23 12:32:45.482171+00	MVT	0103000020E610000001000000050000006FA190E2CEB241404923AA7172ED48406FA190E2CEB2414029D54E21B31C494017A4A26B9372414029D54E21B31C494017A4A26B937241404923AA7172ED48406FA190E2CEB241404923AA7172ED4840	/tiles/ex_3/red_corn/{z}/{x}/{y}.pbf	\N		f	\N	\N	Краснокутский район_1	f	\N
+3	example/0fc45b4d-8bd1-47eb-af81-6a88ff378630_Green_2020-07-20.geojson	2020-12-10 13:41:36.453864+00	GEOJSON	0103000020E61000000100000005000000309E4143FF264240C7F0D8CF62814840309E4143FF264240A6D3BA0D6A014940EB573A1F9E114240A6D3BA0D6A014940EB573A1F9E114240C7F0D8CF62814840309E4143FF264240C7F0D8CF62814840	/results/example/0fc45b4d-8bd1-47eb-af81-6a88ff378630_Green_2020-07-20.geojson	\N		f	2020-03-31	2020-06-06	Green	f	\N
+4	example/b53895d8-bcc9-4536-b732-c69676fc15c6_PSRI_2020-06-12.geojson	2020-11-30 16:23:57.044073+00	GEOJSON	0103000020E61000000100000005000000F9F36DC152354240967B8159A1C04840F9F36DC152354240A6D3BA0D6A014940EB573A1F9E114240A6D3BA0D6A014940EB573A1F9E114240967B8159A1C04840F9F36DC152354240967B8159A1C04840	/results/example/b53895d8-bcc9-4536-b732-c69676fc15c6_PSRI_2020-06-12.geojson	\N		f	2020-05-06	2020-06-30	PSRI	f	\N
+2	clearcut/ClearCut-2020-12-02.geojson	2020-12-16 13:53:02.851909+00	MVT	0103000020E61000000100000005000000911F11EF7D9143408B1267BA11DA4740911F11EF7D914340200C27AC79B8494039EB1F2D192E4140200C27AC79B8494039EB1F2D192E41408B1267BA11DA4740911F11EF7D9143408B1267BA11DA4740	/tiles/clearcut/ClearCut-2020-12-02/{z}/{x}/{y}.pbf	\N		f	\N	\N		f	\N
+5	ex_2/Portugal_features.geojson	2020-11-23 11:02:09.449468+00	GEOJSON	0103000020E61000000100000005000000EE0CD9A1E3DD1DC0555B06172C9E4440EE0CD9A1E3DD1DC00382572B8CA24440A16953E31DF71DC00382572B8CA24440A16953E31DF71DC0555B06172C9E4440EE0CD9A1E3DD1DC0555B06172C9E4440	/results/ex_2/Portugal_features.geojson	\N		f	\N	\N		f	\N
 \.
 
 
@@ -1086,7 +1168,7 @@ COPY topology.layer (topology_id, layer_id, schema_name, table_name, feature_col
 -- Name: aoi_aoi_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.aoi_aoi_id_seq', 1, false);
+SELECT pg_catalog.setval('public.aoi_aoi_id_seq', 2, true);
 
 
 --
@@ -1094,6 +1176,13 @@ SELECT pg_catalog.setval('public.aoi_aoi_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.aoi_jupyternotebook_id_seq', 2, true);
+
+
+--
+-- Name: aoi_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
+--
+
+SELECT pg_catalog.setval('public.aoi_request_id_seq', 2, true);
 
 
 --
@@ -1107,14 +1196,14 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 2, true);
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 18, true);
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 22, true);
 
 
 --
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 53, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 59, true);
 
 
 --
@@ -1128,14 +1217,14 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, true);
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 13, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 14, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 40, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 49, true);
 
 
 --
@@ -1218,6 +1307,14 @@ ALTER TABLE ONLY public.aoi_jupyternotebook
 
 ALTER TABLE ONLY public.aoi_jupyternotebook
     ADD CONSTRAINT aoi_jupyternotebook_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: aoi_request aoi_request_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_request
+    ADD CONSTRAINT aoi_request_pkey PRIMARY KEY (id);
 
 
 --
@@ -1435,6 +1532,13 @@ CREATE INDEX aoi_aoi_polygon_id ON public.aoi_aoi USING gist (polygon);
 
 
 --
+-- Name: aoi_aoi_user_id_id_11e356b5; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX aoi_aoi_user_id_id_11e356b5 ON public.aoi_aoi USING btree (user_id_id);
+
+
+--
 -- Name: aoi_jupyternotebook_name_5ca4f926_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1446,6 +1550,27 @@ CREATE INDEX aoi_jupyternotebook_name_5ca4f926_like ON public.aoi_jupyternoteboo
 --
 
 CREATE INDEX aoi_jupyternotebook_path_to_a_notebook_9e413ab7_like ON public.aoi_jupyternotebook USING btree (path_to_a_notebook varchar_pattern_ops);
+
+
+--
+-- Name: aoi_request_aoi_id_id_48f40c33; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX aoi_request_aoi_id_id_48f40c33 ON public.aoi_request USING btree (aoi_id_id);
+
+
+--
+-- Name: aoi_request_jupyter_notebook_id_id_3d19e09e; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX aoi_request_jupyter_notebook_id_id_3d19e09e ON public.aoi_request USING btree (jupyter_notebook_id_id);
+
+
+--
+-- Name: aoi_request_user_id_id_b43c7e99; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX aoi_request_user_id_id_b43c7e99 ON public.aoi_request USING btree (user_id_id);
 
 
 --
@@ -1533,6 +1658,13 @@ CREATE INDEX publisher_result_polygon_id ON public.publisher_result USING gist (
 
 
 --
+-- Name: publisher_result_request_id_id_c342f397; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX publisher_result_request_id_id_c342f397 ON public.publisher_result USING btree (request_id_id);
+
+
+--
 -- Name: user_user_groups_group_id_c57f13c0; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1565,6 +1697,38 @@ CREATE INDEX user_user_user_permissions_user_id_31782f58 ON public.user_user_use
 --
 
 CREATE INDEX user_user_username_e2bdfe0c_like ON public.user_user USING btree (username varchar_pattern_ops);
+
+
+--
+-- Name: aoi_aoi aoi_aoi_user_id_id_11e356b5_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_aoi
+    ADD CONSTRAINT aoi_aoi_user_id_id_11e356b5_fk_user_user_id FOREIGN KEY (user_id_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: aoi_request aoi_request_aoi_id_id_48f40c33_fk_aoi_aoi_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_request
+    ADD CONSTRAINT aoi_request_aoi_id_id_48f40c33_fk_aoi_aoi_id FOREIGN KEY (aoi_id_id) REFERENCES public.aoi_aoi(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: aoi_request aoi_request_jupyter_notebook_id__3d19e09e_fk_aoi_jupyt; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_request
+    ADD CONSTRAINT aoi_request_jupyter_notebook_id__3d19e09e_fk_aoi_jupyt FOREIGN KEY (jupyter_notebook_id_id) REFERENCES public.aoi_jupyternotebook(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: aoi_request aoi_request_user_id_id_b43c7e99_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_request
+    ADD CONSTRAINT aoi_request_user_id_id_b43c7e99_fk_user_user_id FOREIGN KEY (user_id_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -1621,6 +1785,14 @@ ALTER TABLE ONLY public.django_admin_log
 
 ALTER TABLE ONLY public.publisher_acl
     ADD CONSTRAINT publisher_acl_user_id_id_b7536e6f_fk_user_user_id FOREIGN KEY (user_id_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: publisher_result publisher_result_request_id_id_c342f397_fk_aoi_request_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.publisher_result
+    ADD CONSTRAINT publisher_result_request_id_id_c342f397_fk_aoi_request_id FOREIGN KEY (request_id_id) REFERENCES public.aoi_request(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
