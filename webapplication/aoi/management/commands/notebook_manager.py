@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 THREADS = 2
 TIMEOUT = 60 * 60 * 2
 
+
 class Command(BaseCommand):
     help = "Manage running of Jupyter Notebooks by client's request"
 
