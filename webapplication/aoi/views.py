@@ -102,3 +102,16 @@ class RequestRetrieveAPIView(RetrieveAPIView):
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
     http_method_names = ("get", )
+    
+    
+class AOIRequestListAPIView(ListAPIView):
+    permission_classes = (ModelPermissions, )
+    serializer_class = RequestSerializer
+    queryset = Request.objects.all()
+    lookup_url_kwarg = "pk"
+    pagination_class = None
+
+    def get_queryset(self):
+        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user_id=self.request.user)
+        qs = self.queryset.filter(aoi_id=area_of_interest.id)
+        return qs
