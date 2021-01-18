@@ -448,3 +448,27 @@ class RequestTestCase(UserBase):
     def get_request_list(self):
         url = reverse('aoi:request_list_or_create')
         return self.client.get(url)
+    
+    
+class AOIRequestsTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+                'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json',
+                'aoi/fixtures/request_fixtures.json']
+    
+    def test_get_aoi_requests_as_ex_2_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.ex_2_user)
+        self.get_aoi_requests(1002, expected_results_len)
+        
+    def test_get_aoi_requests_as_staff_user(self):
+        expected_results_len = 1
+        self.client.force_authenticate(user=self.staff_user)
+        self.get_aoi_requests(1001, expected_results_len)
+    
+    def get_aoi_requests(self, aoi_id, expected_requests_len):
+        url = reverse('aoi:aoi_requests', kwargs={'pk': aoi_id})
+        response = self.client.get(url)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_requests_len)
