@@ -7,9 +7,9 @@ import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
+
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
-
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -19,6 +19,7 @@ from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
+from aoi.models import Request
 from publisher.models import Result
 
 logger = logging.getLogger(__name__)
@@ -98,7 +99,12 @@ class File(metaclass=ABCMeta):
                      modifiedat=self.modifiedat(),
                      layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
-                     bounding_polygon=self.bounding_polygon(), )
+                     bounding_polygon=self.bounding_polygon(),
+                     name='',
+                     start_date=None,
+                     end_date=None,
+                     request_id=None,
+                     released=False, )
 
         if self.name:
             dict_['name'] = self.name
@@ -107,8 +113,12 @@ class File(metaclass=ABCMeta):
         if self.end_date:
             dict_['end_date'] = timestamp_parser.parse(self.end_date)
         if self.request_id:
-            dict_['request_id'] = self.request_id
-            dict_['released'] = True
+            try:
+                request = Request.objects.get(pk=self.request_id)
+                dict_['request_id'] = request
+                dict_['released'] = True
+            except Request.DoesNotExist:
+                logger.warning(f"Request id {self.request_id} not exists in aoi_request table! Check {self.path}!")
 
         return dict_
 
