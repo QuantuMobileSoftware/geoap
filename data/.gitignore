@@ -1,4 +1,7 @@
-results
+results/*
+!results/test/
+results/test/*
+!results/test/Test_AOI1.geojson
 tiles
 satellite_imagery
 .ipynb_checkpoints

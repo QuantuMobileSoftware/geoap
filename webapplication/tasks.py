@@ -40,11 +40,21 @@ def collect_static_element(ctx):
 
 
 @task
+def run_notebook_executor(ctx):
+    ctx.run('python -m manage notebook_executor')
+
+
+@task
 def run(ctx):
     init_db(ctx, recreate_db=True)
     collect_static_element(ctx)
+
     thread_cron = threading.Thread(target=devcron, args=(ctx,))
     thread_cron.start()
+
+    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
+    thread_nb_executor.start()
+
     ctx.run('uwsgi --ini uwsgi.ini')
 
 
@@ -52,8 +62,13 @@ def run(ctx):
 def run_prod(ctx):
     init_db(ctx)
     collect_static_element(ctx)
+
     thread_cron = threading.Thread(target=devcron, args=(ctx,))
     thread_cron.start()
+
+    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
+    thread_nb_executor.start()
+
     ctx.run('uwsgi --ini uwsgi.ini')
 
 
