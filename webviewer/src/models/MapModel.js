@@ -2,6 +2,15 @@
 
 import Wkt from "wicket";
 
+const getGeometry = (item) => {
+    const wkt = new Wkt.Wkt();
+    const delimeterIndex = item.polygon.indexOf(";");
+    const string = item.polygon.slice(delimeterIndex + 1);
+    wkt.read(string);
+
+    return wkt.toJson();
+};
+
 export default class MapModel extends EventTarget {
     constructor(apiWrapper) {
         super();
@@ -11,6 +20,7 @@ export default class MapModel extends EventTarget {
         this.foregroundLayerOptions = {};
         this.backgroundLayer = null;
         this.selectedFeature = null;
+        this.aois = [];
     }
 
     getLayers() {
@@ -72,6 +82,16 @@ export default class MapModel extends EventTarget {
                     this.dispatchEvent(new Event("error"));
                 } else {
                     callback(res);
+
+                    this.aois = [
+                        ...this.aois,
+                        {
+                            type: "Feature",
+                            properties: { name: res.name, id: res.id },
+                            geometry: getGeometry(res),
+                        },
+                    ];
+                    this.dispatchEvent(new Event("aoisloaded"));
                 }
             }
         );
@@ -91,31 +111,50 @@ export default class MapModel extends EventTarget {
                     this.dispatchEvent(new Event("error"));
                 } else {
                     callback(res);
+
+                    this.aois = [
+                        ...this.aois.filter(
+                            (aoi) => aoi.properties.id !== res.id
+                        ),
+                        {
+                            type: "Feature",
+                            properties: { name: res.name, id: res.id },
+                            geometry: getGeometry(res),
+                        },
+                    ];
+                    this.dispatchEvent(new Event("aoisloaded"));
                 }
             }
         );
     }
 
-    getAois(callback) {
+    getAois() {
         this.apiWrapper.sendGetRequest("/aoi", (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
                 const aois = res.map((aoi) => {
-                    const wkt = new Wkt.Wkt();
-                    const delimeterIndex = aoi.polygon.indexOf(";");
-                    const string = aoi.polygon.slice(delimeterIndex + 1);
-                    wkt.read(string);
-
                     return {
                         type: "Feature",
-                        properties: { name: aoi.name },
-                        geometry: wkt.toJson(),
+                        properties: { name: aoi.name, id: aoi.id },
+                        geometry: getGeometry(aoi),
                     };
                 });
 
-                callback(aois);
+                this.aois = aois;
+                this.dispatchEvent(new Event("aoisloaded"));
             }
         });
+    }
+
+    selectAoi(aoi) {
+        this.dispatchEvent(new CustomEvent("aoiSelected", { detail: { aoi } }));
+    }
+
+    selectAoiFromList(id) {
+        debugger;
+        this.dispatchEvent(
+            new CustomEvent("aoiListItemSelected", { detail: { id } })
+        );
     }
 }

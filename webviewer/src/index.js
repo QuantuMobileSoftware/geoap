@@ -1,27 +1,37 @@
 "use strict";
 
-import "./normalize.css";
-import "./index.css";
+import "./styles/normalize.css";
+import "./styles/index.css";
+
 import { render, Div } from "@adolgarev/domwrapper";
-import WidgetFactory from "./WidgetFactory";
-import UserModel from "./UserModel";
-import APIWrapper from "./APIWrapper";
-import createLoginForm from "./LoginForm";
-import MapModel from "./MapModel";
-import createMap from "./Map";
-import createLayersSelector from "./LayersSelector";
-import createFeatureDetails from "./FeatureDetails";
-import createLayerDetails from "./LayerDetails";
+
+import WidgetFactory from "./utils/WidgetFactory";
+import APIWrapper from "./utils/APIWrapper";
+
+import UserModel from "./models/UserModel";
+import MapModel from "./models/MapModel";
+
+import createFeatureDetails from "./components/FeatureDetails";
+import createLayersSelector from "./components/LayersSelector";
+import createLayerDetails from "./components/LayerDetails";
+import createLoginForm from "./components/LoginForm";
+import createAoisList from "./components/AoisList";
+import createMap from "./components/Map";
 
 const apiWrapper = new APIWrapper();
-const userModel = new UserModel(apiWrapper);
 const widgetFactory = new WidgetFactory();
-const loginForm = createLoginForm(widgetFactory, userModel);
+
+const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
+
+// const layersSelector = createLayersSelector(widgetFactory, mapModel);
+// const featureDetails = createFeatureDetails(widgetFactory, mapModel);
+// const layerDetails = createLayerDetails(widgetFactory, mapModel);
+
+const loginForm = createLoginForm(widgetFactory, userModel);
+const aoisList = createAoisList(widgetFactory, mapModel);
 const map = createMap(widgetFactory, mapModel);
-const layersSelector = createLayersSelector(widgetFactory, mapModel);
-const featureDetails = createFeatureDetails(widgetFactory, mapModel);
-const layerDetails = createLayerDetails(widgetFactory, mapModel);
+
 const root = Div({ class: "container" });
 
 const messageContainer = Div();
@@ -44,9 +54,10 @@ userModel.addEventListener("loggedin", () => {
 
     root.setChildren(
         map,
-        layersSelector,
-        featureDetails,
-        layerDetails,
+        // layersSelector,
+        // featureDetails,
+        // layerDetails,
+        aoisList,
         messageContainer
     );
 });

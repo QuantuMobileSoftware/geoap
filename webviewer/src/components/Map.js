@@ -1,6 +1,7 @@
 "use strict";
 
 import { Div } from "@adolgarev/domwrapper/src";
+import { isEqual } from "lodash";
 
 function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
@@ -64,54 +65,85 @@ function initializeControls(map) {
     map.addControl(new L.NewRectangleControl());
 }
 
+const FEATURES = {};
 function initializeHandlers(map, mapModel) {
-    let features = {};
 
     const handlePolygonChange = ({ layer }) => {
-        if (features[layer._leaflet_id]) {
-            const data = {
-                ...features[layer._leaflet_id],
+        if (FEATURES[layer._leaflet_id]) {
+            const feature = {
+                ...FEATURES[layer._leaflet_id],
                 layer,
             };
-            mapModel.updateAoi(data, data.id, (res) => {
-                features = {
-                    ...features,
+
+            mapModel.updateAoi(feature, feature.id, (res) => {
+                FEATURES = {
+                    ...FEATURES,
                     [layer._leaflet_id]: { ...res },
                 };
             });
         } else {
             const feature = {
-                //NEED fix - use polygon string as unique name
                 name: `Test ${(Math.random() * 10000).toFixed()}`,
                 layer,
             };
 
             mapModel.sendAoi(feature, (res) => {
-                features[layer._leaflet_id] = { ...res };
+                FEATURES[layer._leaflet_id] = { ...res };
             });
         }
 
         layer.toggleEdit &&
             layer
                 .on("dblclick", L.DomEvent.stop)
-                .on("dblclick", layer.toggleEdit);
+                .on("dblclick", layer.disableEdit);
+
+        layer.on("click", function (e) {
+            const aoi = mapModel.aois.find(
+                (aoi) =>
+                    aoi.properties.id === FEATURES[layer._leaflet_id].id
+            );
+            mapModel.selectAoi(aoi);
+
+            //highlight new polygon
+            layer.setStyle({
+                color: "#ff7f50",
+                fillOpacity: 0.7,
+            });
+
+            layer.bindPopup("Recently added");
+        });
     };
 
     const handleCustomPolygonCreate = ({ layer }) => {
         const feature = {
-            //NEED fix - use polygon string as unique name
             name: `Test ${(Math.random() * 10000).toFixed()}`,
             layer,
         };
 
         mapModel.sendAoi(feature, (res) => {
-            features[layer._leaflet_id] = { ...res };
+            FEATURES[layer._leaflet_id] = { ...res };
         });
 
         layer.toggleEdit &&
             layer
                 .on("dblclick", L.DomEvent.stop)
-                .on("dblclick", layer.toggleEdit);
+                .on("dblclick", layer.disableEdit);
+
+        layer.on("click", function (e) {
+            const aoi = mapModel.aois.find(
+                (aoi) =>
+                    aoi.properties.id === FEATURES[layer._leaflet_id].id
+            );
+            mapModel.selectAoi(aoi);
+
+            //highlight new polygon
+            layer.setStyle({
+                color: "#ff7f50",
+                fillOpacity: 0.7,
+            });
+
+            layer.bindPopup("Recently added");
+        });
     };
 
     map.on("editable:vertex:clicked", handleCustomPolygonCreate);
@@ -124,7 +156,12 @@ export default function createMap(widgetFactory, mapModel) {
     const mapElt = Div({ id: mapId, class: "map" });
 
     let map = null;
+
     let startPoint = [48.95, 31.53];
+
+    let backgroundLayer = null;
+    let foregroundLayer = null;
+
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
@@ -153,13 +190,40 @@ export default function createMap(widgetFactory, mapModel) {
             }).addTo(map);
         }
 
-        mapModel.getAois((aois) => {
-            L.geoJSON(aois).addTo(map);
-        });
+        mapModel.getAois();
     };
 
-    let backgroundLayer = null;
-    let foregroundLayer = null;
+    mapModel.addEventListener(
+        "aoisloaded",
+        () => {
+            if (mapModel.aois.length) {
+                let geojson = null;
+                function onEachFeature(feature, layer) {
+                    layer.on({
+                        click: function (e) {
+                            geojson.resetStyle();
+
+                            mapModel.aois.forEach((aoi) => {
+                                if (
+                                    aoi.properties.id === feature.properties.id
+                                ) {
+                                    mapModel.selectAoi(aoi);
+                                    layer.setStyle({
+                                        color: "#ff7f50",
+                                        fillOpacity: 0.7,
+                                    });
+                                }
+                            });
+                        },
+                    });
+                }
+                geojson = L.geoJSON(mapModel.aois, { onEachFeature }).addTo(
+                    map
+                );
+            }
+        },
+        { once: true }
+    );
 
     mapModel.addEventListener("layerselected", () => {
         if (map === null) {
@@ -200,12 +264,6 @@ export default function createMap(widgetFactory, mapModel) {
                     if (feature.properties.label) {
                         layer.bindPopup(feature.properties.label);
                     }
-
-                    // add posibility to edit current features
-                    layer.toggleEdit &&
-                        layer
-                            .on("dblclick", L.DomEvent.stop)
-                            .on("dblclick", layer.toggleEdit);
                 },
             });
             // Make a closure here as layer can be changed before data is loaded
@@ -282,6 +340,13 @@ export default function createMap(widgetFactory, mapModel) {
             setOpacity(foregroundLayer, 1);
         }
     });
+
+    mapModel.addEventListener('aoiListItemSelected', (e)=>{
+
+        
+        console.log(FEATURES)
+    debugger
+    })
 
     return mapElt;
 }

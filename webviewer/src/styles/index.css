@@ -173,8 +173,8 @@ body {
 
 /* layers  */
 .fixed--layers {
-  top: 11px;
-  left: 57px;
+    top: 11px;
+    left: 57px;
 }
 
 .layers__container {
@@ -197,8 +197,8 @@ body {
 
 /* details  */
 .fixed--details {
-  bottom: 11px;
-  left: 11px;
+    bottom: 11px;
+    left: 11px;
 }
 
 .details__options {
@@ -219,7 +219,7 @@ body {
 .map {
     top: 0;
     bottom: 0;
-    left: 0;
+    left: 250px;
     right: 0;
     position: absolute;
     z-index: 1;
@@ -229,4 +229,42 @@ body {
     position: absolute;
     right: 7px;
     top: 7px;
+}
+
+/* aois list */
+
+.fixed--aoislist {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 10;
+    width: 250px;
+    border-right: 1px solid rgb(96, 94, 92);
+    background-color: rgb(255, 255, 255);
+    overflow-y: auto;
+}
+
+.aoislist__item {
+    padding: 10px;
+    border-bottom: 1px solid rgb(211, 209, 208);
+}
+
+.aoislist__emptyitem {
+    padding: 10px;
+    text-align: center;
+}
+
+.aoislist__item--active {
+    background-color: #ff7f50;
+    color: rgb(255, 255, 255);
+}
+
+.aoislist__item:hover {
+    background-color: #ff7f50;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+}
+
+.aoislist__item:last-child {
+    border-bottom: none;
 }
