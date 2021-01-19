@@ -79,13 +79,15 @@ class NotebookThread(Thread):
         # TODO: add execution logic
         logger.info(f"Start execution for notebook: {notebook.pk}")
         start = localtime()
+        notebook.started_at = start
+
         logger.info(f"Started execution at: {start} thread {self.ident}")
         time.sleep(2)
+
         end = localtime()
+        notebook.finished_at = end
         logger.info(f"Finished execution at: {end} thread {self.ident}")
 
-        notebook.started_at = start
-        notebook.finished_at = end
         notebook.save()
         logger.info(f"Finished execution for notebook: {notebook.pk}")
 
