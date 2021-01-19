@@ -118,7 +118,7 @@ class File(metaclass=ABCMeta):
                 dict_['request_id'] = request
                 dict_['released'] = True
             except Request.DoesNotExist:
-                logger.error(f"Request id {self.request_id} not exists in aoi_request table! Check {self.path}!")
+                logger.warning(f"Request id {self.request_id} not exists in aoi_request table! Check {self.path}!")
 
         return dict_
 
