@@ -4,8 +4,7 @@ from user.models import User
 
 
 class AoI(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User', related_name='aoi',
-                                db_column='user_id')
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User', related_name='aoi')
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Aoi name')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
@@ -36,14 +35,11 @@ class JupyterNotebook(models.Model):
         
         
 class Request(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User name',
-                                db_column='user_id')
-    aoi_id = models.ForeignKey(AoI, on_delete=models.PROTECT, verbose_name='Aoi name',
-                               db_column='aoi_id')
+    user_id = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User name')
+    aoi_id = models.ForeignKey(AoI, on_delete=models.PROTECT, verbose_name='Aoi name')
     jupyter_notebook_id = models.ForeignKey(
         JupyterNotebook, on_delete=models.PROTECT,
-        verbose_name='Jupyter notebook name',
-        db_column='jupyter_notebook_id',
+        verbose_name='Jupyter notebook name'
     )
     date_from = models.DateField(blank=True, null=True, verbose_name='Date from')
     date_to = models.DateField(blank=True, null=True, verbose_name='Date to')
