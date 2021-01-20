@@ -8,7 +8,7 @@ from .models import AoI, JupyterNotebook, Request
 class AoISerializer(serializers.ModelSerializer):
     class Meta:
         model = AoI
-        fields = ('id', 'user_id', 'name', 'polygon', 'createdat')
+        fields = ('id', 'user', 'name', 'polygon', 'createdat')
         read_only_fields = ['createdat', ]
 
 

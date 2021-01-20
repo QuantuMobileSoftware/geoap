@@ -23,7 +23,7 @@ class AoIListCreateAPIView(ListCreateAPIView):
         
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.initial_data['user_id'] != self.request.user.id and \
+        if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
@@ -40,7 +40,7 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     
     def patch(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.initial_data['user_id'] != self.request.user.id and \
+        if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         return self.partial_update(request, *args, **kwargs)
