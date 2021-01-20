@@ -5,7 +5,7 @@
     "fields": {
       "name": "JupyterNotebook_test",
       "image": "some docker command",
-      "path_to_a_notebook": "work/notebooks/example/geojson.ipynb",
+      "path": "work/notebooks/example/geojson.ipynb",
       "kernel_name": "",
       "is_validated": true
     }
@@ -16,7 +16,7 @@
     "fields": {
       "name": "JupyterNotebook_test_2",
       "image": "some docker command",
-      "path_to_a_notebook": "work/notebooks/example/geotiff_2.ipynb",
+      "path": "work/notebooks/example/geotiff_2.ipynb",
       "kernel_name": "3.5",
       "is_validated": false
     }

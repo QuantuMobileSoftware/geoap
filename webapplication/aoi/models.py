@@ -21,7 +21,7 @@ class AoI(models.Model):
 class JupyterNotebook(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Jupyter Notebook name')
     image = models.CharField(max_length=400, verbose_name='Image')
-    path_to_a_notebook = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
+    path = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
     is_validated = models.BooleanField(default=False, verbose_name='Is validated')
     

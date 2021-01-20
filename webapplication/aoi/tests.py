@@ -226,7 +226,7 @@ class JupyterNotebookTestCase(UserBase):
         self.data_create = {
             "name": "JupyterNotebook_test_created",
             "image": "some docker command",
-            "path_to_a_notebook": "work/notebooks/example/geojson_created.ipynb",
+            "path": "work/notebooks/example/geojson_created.ipynb",
             "kernel_name": "3.8",
             "is_validated": False
         }
@@ -297,7 +297,7 @@ class JupyterNotebookTestCase(UserBase):
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['image'], self.data_patch['image'])
-        self.assertEqual(content['path_to_a_notebook'], 'work/notebooks/example/geojson.ipynb')
+        self.assertEqual(content['path'], 'work/notebooks/example/geojson.ipynb')
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
         self.assertEqual(content['is_validated'], self.data_patch['is_validated'])
     
