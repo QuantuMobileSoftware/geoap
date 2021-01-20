@@ -1,7 +1,6 @@
 "use strict";
 
 import { Div } from "@adolgarev/domwrapper/src";
-import { isEqual } from "lodash";
 
 function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
@@ -109,7 +108,7 @@ function initializeHandlers(map, mapModel) {
     map.on("editable:dragend", handlePolygonChange);
 }
 
-export default function createMap(widgetFactory, mapModel) {
+export default function createMap(widgetFactory, mapModel, requestModel) {
     const mapId = widgetFactory.generateRandomId("Map");
     const mapElt = Div({ id: mapId, class: "map" });
 
@@ -152,7 +151,7 @@ export default function createMap(widgetFactory, mapModel) {
         mapModel.getAois();
     };
 
-    const aoiHandler = () => {
+    const onAoiChange = () => {
         geojson && geojson.clearLayers();
         if (mapModel.aois.length) {
             function onEachFeature(feature, layer) {
@@ -165,6 +164,8 @@ export default function createMap(widgetFactory, mapModel) {
                                     ...aoi,
                                     leafletId: layer._leaflet_id,
                                 });
+
+                                requestModel.closeRequestForm();
 
                                 layer.setStyle({
                                     color: "#ff7f50",
@@ -179,7 +180,7 @@ export default function createMap(widgetFactory, mapModel) {
         }
     };
 
-    const handleLayerSelected = () => {
+    const onLayerSelected = () => {
         if (map === null) {
             return;
         }
@@ -281,7 +282,7 @@ export default function createMap(widgetFactory, mapModel) {
         map.fitBounds(l.boundingCoordinates);
     };
 
-    const handleForegroundLayerUpdated = () => {
+    const onForegroundLayerUpdated = () => {
         if (foregroundLayer === null) {
             return;
         }
@@ -295,7 +296,7 @@ export default function createMap(widgetFactory, mapModel) {
         }
     };
 
-    const handleAoiListItemSelected = (e) => {
+    const onAoiSelected = (e) => {
         geojson && geojson.resetStyle();
 
         Object.values(map._layers).forEach((layer) => {
@@ -303,8 +304,6 @@ export default function createMap(widgetFactory, mapModel) {
                 layer.feature &&
                 layer.feature.properties.id === e.detail.aoi.properties.id
             ) {
-                mapModel.selectAoi(layer.feature);
-
                 layer.setStyle({
                     color: "#ff7f50",
                     fillOpacity: 0.7,
@@ -313,27 +312,18 @@ export default function createMap(widgetFactory, mapModel) {
         });
     };
 
-    const handleAoiSelected = () => {
-        const map = document.querySelector(".map");
-        const form = document.querySelector(".fixed--aoisform");
-        map.classList.add("map--active");
-        form.classList.add("active");
-    };
+    mapModel.addEventListener("aoisloaded", onAoiChange);
+    mapModel.addEventListener("aoiadded", onAoiChange);
+    mapModel.addEventListener("aoiupdated", onAoiChange);
 
-    mapModel.addEventListener("aoisloaded", aoiHandler);
-    mapModel.addEventListener("aoiadded", aoiHandler);
-    mapModel.addEventListener("aoiupdated", aoiHandler);
-
-    mapModel.addEventListener("layerselected", handleLayerSelected);
+    mapModel.addEventListener("layerselected", onLayerSelected);
 
     mapModel.addEventListener(
         "foregroundlayeroptionsupdated",
-        handleForegroundLayerUpdated
+        onForegroundLayerUpdated
     );
 
-    mapModel.addEventListener("aoiListItemSelected", handleAoiListItemSelected);
-
-    mapModel.addEventListener("aoiSelected", handleAoiSelected);
+    mapModel.addEventListener("aoiSelected", onAoiSelected);
 
     return mapElt;
 }

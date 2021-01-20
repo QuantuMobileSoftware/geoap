@@ -113,7 +113,6 @@ export default class MapModel extends EventTarget {
                     this.dispatchEvent(new Event("error"));
                 } else {
                     callback(res);
-
                     this.aois = [
                         ...this.aois.filter(
                             (aoi) => aoi.properties.id !== res.id
@@ -155,11 +154,5 @@ export default class MapModel extends EventTarget {
 
     selectAoi(aoi) {
         this.dispatchEvent(new CustomEvent("aoiSelected", { detail: { aoi } }));
-    }
-
-    selectAoiFromList(aoi) {
-        this.dispatchEvent(
-            new CustomEvent("aoiListItemSelected", { detail: { aoi } })
-        );
     }
 }

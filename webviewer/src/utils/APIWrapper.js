@@ -34,7 +34,9 @@ export default class APIWrapper extends EventTarget {
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
-        xhr.send(JSON.stringify({ ...data, user_id: getCookie("userId") }));
+        xhr.send(
+            JSON.stringify({ ...data, user_id: Number(getCookie("userId")) })
+        );
     }
 
     sendPatchRequest(url, data, cb) {
@@ -56,7 +58,9 @@ export default class APIWrapper extends EventTarget {
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
-        xhr.send(JSON.stringify({ ...data, user_id: getCookie("userId") }));
+        xhr.send(
+            JSON.stringify({ ...data, user_id: Number(getCookie("userId")) })
+        );
     }
 
     sendGetRequest(url, cb) {

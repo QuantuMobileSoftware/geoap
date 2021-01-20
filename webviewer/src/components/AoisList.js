@@ -2,13 +2,16 @@
 
 import { Div } from "@adolgarev/domwrapper";
 
-export default function createAoisList(widgetFactory, mapModel) {
+export default function createAoisList(widgetFactory, mapModel, requestModel) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
     const aoisContainer = Div({ class: "aoislist-holder" });
     const arrow = Div({ class: "aoislist__item-arrow" });
+    const openFormButton = widgetFactory
+        .createButton({ type: "button", class: "button button--success" })
+        .setChildren("Add request");
 
-    const handleAoiChange = () => {
+    const onAoiChange = () => {
         if (!mapModel.aois.length) {
             const emptyElt = Div({ class: "aoislist__emptyitem" }).setChildren(
                 "No data. Please create AOI"
@@ -32,7 +35,7 @@ export default function createAoisList(widgetFactory, mapModel) {
             );
 
             aoiElt.addEventListener("click", () => {
-                mapModel.selectAoiFromList(aoi);
+                mapModel.selectAoi(aoi);
             });
 
             aoisElts.push(aoiElt);
@@ -42,16 +45,17 @@ export default function createAoisList(widgetFactory, mapModel) {
         box.setChildren(aoisContainer);
     };
 
-    const handleAoiSelected = ({ detail }) => {
+    const onAoiSelected = ({ detail }) => {
         aoisContainer.setChildren();
         box.setChildren();
 
         const aoisElts = [];
 
         mapModel.aois.forEach((aoi) => {
+            const isActive = aoi.properties.id === detail.aoi.properties.id;
             const aoiElt = Div({
                 class: `${
-                    aoi.properties.id === detail.aoi.properties.id
+                    isActive
                         ? "aoislist__item aoislist__item--active"
                         : "aoislist__item"
                 }`,
@@ -66,21 +70,31 @@ export default function createAoisList(widgetFactory, mapModel) {
                 let elem = document.querySelector(".aoislist__item--active");
                 elem.classList.remove("aoislist__item--active");
                 e.target.classList.add("aoislist__item--active");
-                mapModel.selectAoiFromList(aoi);
+                mapModel.selectAoi(aoi);
+                requestModel.closeRequestForm();
             });
 
             aoisElts.push(aoiElt);
+
+            if (isActive) {
+                const buttonHolder = Div({class: "aoislist__buttonholder"});
+                openFormButton.addEventListener("click", () => {
+                    requestModel.openRequestForm(aoi);
+                });
+                buttonHolder.setChildren(openFormButton);
+                isActive && aoisElts.push(buttonHolder);
+            }
         });
 
         aoisContainer.setChildren(aoisElts);
         box.setChildren(aoisContainer);
     };
 
-    mapModel.addEventListener("aoisloaded", handleAoiChange);
-    mapModel.addEventListener("aoiadded", handleAoiChange);
-    mapModel.addEventListener("aoiupdated", handleAoiChange);
-    
-    mapModel.addEventListener("aoiSelected", handleAoiSelected);
+    mapModel.addEventListener("aoisloaded", onAoiChange);
+    mapModel.addEventListener("aoiadded", onAoiChange);
+    mapModel.addEventListener("aoiupdated", onAoiChange);
+
+    mapModel.addEventListener("aoiSelected", onAoiSelected);
 
     box.setChildren();
 

@@ -20,7 +20,7 @@ body {
     border: 1px solid rgb(0, 120, 212);
     border-radius: 3px;
     color: rgb(255, 255, 255);
-    padding: 10px;
+    padding: 6px 10px;
     appearance: none;
     min-width: 70px;
     transition: all 0.3s ease-in-out;
@@ -38,6 +38,26 @@ body {
     width: 100%;
 }
 
+.button--success {
+    border-color: rgb(83 163 76 / 80%);
+    background-color: rgb(83 163 76 / 80%);
+}
+
+.button--neutral {
+    border-color: rgba(228, 229, 230, 0.8);
+    background-color: rgba(240, 241, 241, 0.8);
+    color: rgb(96, 94, 92);
+}
+
+.button--success:hover {
+    border-color: rgba(71, 192, 60, 0.8);
+    background-color: rgba(71, 192, 60, 0.8);
+}
+
+.button--neutral:hover {
+    background-color: rgba(228, 229, 230, 0.8);
+    border-color: rgba(228, 229, 230, 0.8);
+}
 /* login form  */
 .login-container {
     margin: auto;
@@ -333,15 +353,34 @@ body {
     width: 100%;
 }
 
+.aoisform-holder .button--neutral {
+    margin-left: 10px;
+}
+
 .aoisform__title {
     font-size: 20px;
     margin-bottom: 10px;
 }
 
-.aoisform__request, .aoisform__from, .aoisform__to {
+.aoisform__request,
+.aoisform__from,
+.aoisform__to {
     margin-bottom: 10px;
 }
 
-.request__label, .date__label {
+.request__label,
+.date__label {
     margin-bottom: 5px;
+}
+
+.close--aoisform {
+    position: absolute;
+    right: 10px;
+}
+
+.aoisform__buttons,
+.aoislist__buttonholder {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
 }

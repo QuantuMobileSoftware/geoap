@@ -10,7 +10,7 @@ import APIWrapper from "./utils/APIWrapper";
 
 import UserModel from "./models/UserModel";
 import MapModel from "./models/MapModel";
-import RequestsModel from "./models/RequestsModel";
+import RequestModel from "./models/RequestModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
 import createLayersSelector from "./components/LayersSelector";
@@ -26,16 +26,16 @@ const widgetFactory = new WidgetFactory();
 
 const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
-const requestsModel = new RequestsModel(apiWrapper);
+const requestModel = new RequestModel(apiWrapper);
 
 // const layersSelector = createLayersSelector(widgetFactory, mapModel);
 // const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 // const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
-const aoisList = createAoisList(widgetFactory, mapModel);
-const requestForm = createRequestForm(widgetFactory, mapModel, requestsModel);
-const map = createMap(widgetFactory, mapModel);
+const aoisList = createAoisList(widgetFactory, mapModel, requestModel);
+const requestForm = createRequestForm(widgetFactory, mapModel, requestModel);
+const map = createMap(widgetFactory, mapModel, requestModel);
 
 const root = Div({ class: "container" });
 

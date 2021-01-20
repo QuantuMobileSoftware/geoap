@@ -2,7 +2,7 @@
 
 import { setCookie, deleteCookie } from "../utils/cookie";
 
-export default class RequestsModel extends EventTarget {
+export default class RequestModel extends EventTarget {
     constructor(apiWrapper) {
         super();
         this.apiWrapper = apiWrapper;
@@ -11,14 +11,12 @@ export default class RequestsModel extends EventTarget {
         this.notebooks = [];
     }
 
-
-
     getResults() {
         this.apiWrapper.sendGetRequest(`/aoi/${id}/results`, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res)
+                console.log(res);
             }
         });
     }
@@ -28,7 +26,7 @@ export default class RequestsModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res)
+                console.log(res);
             }
         });
     }
@@ -38,8 +36,17 @@ export default class RequestsModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res)
+                console.log(res);
             }
         });
+    }
+
+    openRequestForm(aoi) {
+        this.dispatchEvent(new CustomEvent("openForm", { detail: { aoi } }));
+    }
+
+    closeRequestForm() {
+        debugger
+        this.dispatchEvent(new Event("closeForm"));
     }
 }
