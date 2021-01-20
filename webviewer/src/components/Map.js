@@ -65,8 +65,8 @@ function initializeControls(map) {
     map.addControl(new L.NewRectangleControl());
 }
 
-const FEATURES = {};
 function initializeHandlers(map, mapModel) {
+    let FEATURES = {};
 
     const handlePolygonChange = ({ layer }) => {
         if (FEATURES[layer._leaflet_id]) {
@@ -91,27 +91,6 @@ function initializeHandlers(map, mapModel) {
                 FEATURES[layer._leaflet_id] = { ...res };
             });
         }
-
-        layer.toggleEdit &&
-            layer
-                .on("dblclick", L.DomEvent.stop)
-                .on("dblclick", layer.disableEdit);
-
-        layer.on("click", function (e) {
-            const aoi = mapModel.aois.find(
-                (aoi) =>
-                    aoi.properties.id === FEATURES[layer._leaflet_id].id
-            );
-            mapModel.selectAoi(aoi);
-
-            //highlight new polygon
-            layer.setStyle({
-                color: "#ff7f50",
-                fillOpacity: 0.7,
-            });
-
-            layer.bindPopup("Recently added");
-        });
     };
 
     const handleCustomPolygonCreate = ({ layer }) => {
@@ -122,27 +101,6 @@ function initializeHandlers(map, mapModel) {
 
         mapModel.sendAoi(feature, (res) => {
             FEATURES[layer._leaflet_id] = { ...res };
-        });
-
-        layer.toggleEdit &&
-            layer
-                .on("dblclick", L.DomEvent.stop)
-                .on("dblclick", layer.disableEdit);
-
-        layer.on("click", function (e) {
-            const aoi = mapModel.aois.find(
-                (aoi) =>
-                    aoi.properties.id === FEATURES[layer._leaflet_id].id
-            );
-            mapModel.selectAoi(aoi);
-
-            //highlight new polygon
-            layer.setStyle({
-                color: "#ff7f50",
-                fillOpacity: 0.7,
-            });
-
-            layer.bindPopup("Recently added");
         });
     };
 
@@ -156,11 +114,12 @@ export default function createMap(widgetFactory, mapModel) {
     const mapElt = Div({ id: mapId, class: "map" });
 
     let map = null;
-
-    let startPoint = [48.95, 31.53];
+    let geojson = null;
 
     let backgroundLayer = null;
     let foregroundLayer = null;
+
+    let startPoint = [48.95, 31.53];
 
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
@@ -193,39 +152,34 @@ export default function createMap(widgetFactory, mapModel) {
         mapModel.getAois();
     };
 
-    mapModel.addEventListener(
-        "aoisloaded",
-        () => {
-            if (mapModel.aois.length) {
-                let geojson = null;
-                function onEachFeature(feature, layer) {
-                    layer.on({
-                        click: function (e) {
-                            geojson.resetStyle();
+    const aoiHandler = () => {
+        geojson && geojson.clearLayers();
+        if (mapModel.aois.length) {
+            function onEachFeature(feature, layer) {
+                layer.on({
+                    click: function (e) {
+                        geojson && geojson.resetStyle();
+                        mapModel.aois.forEach((aoi) => {
+                            if (aoi.properties.id === feature.properties.id) {
+                                mapModel.selectAoi({
+                                    ...aoi,
+                                    leafletId: layer._leaflet_id,
+                                });
 
-                            mapModel.aois.forEach((aoi) => {
-                                if (
-                                    aoi.properties.id === feature.properties.id
-                                ) {
-                                    mapModel.selectAoi(aoi);
-                                    layer.setStyle({
-                                        color: "#ff7f50",
-                                        fillOpacity: 0.7,
-                                    });
-                                }
-                            });
-                        },
-                    });
-                }
-                geojson = L.geoJSON(mapModel.aois, { onEachFeature }).addTo(
-                    map
-                );
+                                layer.setStyle({
+                                    color: "#ff7f50",
+                                    fillOpacity: 0.7,
+                                });
+                            }
+                        });
+                    },
+                });
             }
-        },
-        { once: true }
-    );
+            geojson = L.geoJSON(mapModel.aois, { onEachFeature }).addTo(map);
+        }
+    };
 
-    mapModel.addEventListener("layerselected", () => {
+    const handleLayerSelected = () => {
         if (map === null) {
             return;
         }
@@ -325,9 +279,9 @@ export default function createMap(widgetFactory, mapModel) {
         }
         foregroundLayer.addTo(map);
         map.fitBounds(l.boundingCoordinates);
-    });
+    };
 
-    mapModel.addEventListener("foregroundlayeroptionsupdated", () => {
+    const handleForegroundLayerUpdated = () => {
         if (foregroundLayer === null) {
             return;
         }
@@ -339,14 +293,47 @@ export default function createMap(widgetFactory, mapModel) {
         } else {
             setOpacity(foregroundLayer, 1);
         }
-    });
+    };
 
-    mapModel.addEventListener('aoiListItemSelected', (e)=>{
+    const handleAoiListItemSelected = (e) => {
+        geojson && geojson.resetStyle();
 
-        
-        console.log(FEATURES)
-    debugger
-    })
+        Object.values(map._layers).forEach((layer) => {
+            if (
+                layer.feature &&
+                layer.feature.properties.id === e.detail.aoi.properties.id
+            ) {
+                mapModel.selectAoi(layer.feature);
+
+                layer.setStyle({
+                    color: "#ff7f50",
+                    fillOpacity: 0.7,
+                });
+            }
+        });
+    };
+
+    const handleAoiSelected = () => {
+        const map = document.querySelector(".map");
+        const form = document.querySelector(".fixed--aoisform");
+        map.classList.add("map--active");
+        form.classList.add("active");
+    };
+
+    mapModel.addEventListener("aoisloaded", aoiHandler);
+    mapModel.addEventListener("aoiadded", aoiHandler);
+    mapModel.addEventListener("aoiupdated", aoiHandler);
+
+    mapModel.addEventListener("layerselected", handleLayerSelected);
+
+    mapModel.addEventListener(
+        "foregroundlayeroptionsupdated",
+        handleForegroundLayerUpdated
+    );
+
+    mapModel.addEventListener("aoiListItemSelected", handleAoiListItemSelected);
+
+    mapModel.addEventListener("aoiSelected", handleAoiSelected);
 
     return mapElt;
 }

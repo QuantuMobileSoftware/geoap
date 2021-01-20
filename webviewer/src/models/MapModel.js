@@ -10,7 +10,6 @@ const getGeometry = (item) => {
 
     return wkt.toJson();
 };
-
 export default class MapModel extends EventTarget {
     constructor(apiWrapper) {
         super();
@@ -82,16 +81,19 @@ export default class MapModel extends EventTarget {
                     this.dispatchEvent(new Event("error"));
                 } else {
                     callback(res);
-
                     this.aois = [
                         ...this.aois,
                         {
                             type: "Feature",
-                            properties: { name: res.name, id: res.id },
+                            properties: {
+                                name: res.name,
+                                id: res.id,
+                                leafletId: layer._leaflet_id,
+                            },
                             geometry: getGeometry(res),
                         },
                     ];
-                    this.dispatchEvent(new Event("aoisloaded"));
+                    this.dispatchEvent(new Event("aoiadded"));
                 }
             }
         );
@@ -118,11 +120,15 @@ export default class MapModel extends EventTarget {
                         ),
                         {
                             type: "Feature",
-                            properties: { name: res.name, id: res.id },
+                            properties: {
+                                name: res.name,
+                                id: res.id,
+                                leafletId: layer._leaflet_id,
+                            },
                             geometry: getGeometry(res),
                         },
                     ];
-                    this.dispatchEvent(new Event("aoisloaded"));
+                    this.dispatchEvent(new Event("aoiupdated"));
                 }
             }
         );
@@ -151,10 +157,9 @@ export default class MapModel extends EventTarget {
         this.dispatchEvent(new CustomEvent("aoiSelected", { detail: { aoi } }));
     }
 
-    selectAoiFromList(id) {
-        debugger;
+    selectAoiFromList(aoi) {
         this.dispatchEvent(
-            new CustomEvent("aoiListItemSelected", { detail: { id } })
+            new CustomEvent("aoiListItemSelected", { detail: { aoi } })
         );
     }
 }

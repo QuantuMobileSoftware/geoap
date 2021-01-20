@@ -67,4 +67,46 @@ export default class WidgetFactory {
         inputElt.addEventListener("touchend", cb);
         return inputElt;
     }
+
+    createDateInput(min, max, value, onValueChangeCb, className){
+        const inputElt = createElement("input", {
+            type: "date",
+            min,
+            max,
+            value,
+            ...(className && { class: className }),
+        });
+
+        const cb = () => {
+            const value = inputElt.getDOMElement().value;
+            inputElt.setAttribute("value", value);
+            onValueChangeCb(value);
+        };
+        inputElt.addEventListener("change", cb);
+        return inputElt;
+    }
+
+    createSelect(value, onValueChangeCb, className){
+        const inputElt = createElement("select", {
+            value,
+            ...(className && { class: className }),
+        });
+
+        const option = createElement('option', {
+            value: '#'
+        }).setChildren('Select type of request');
+
+        const option1 = createElement('option', {
+            value: '1'
+        }).setChildren('Type 1');
+
+        const cb = () => {
+            debugger
+            const value = inputElt.getDOMElement().value;
+            onValueChangeCb(value);
+        };
+        inputElt.addEventListener("change", cb);
+        inputElt.setChildren(option, option1)
+        return inputElt;
+    }
 }

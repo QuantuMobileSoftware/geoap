@@ -1,15 +1,6 @@
 "use strict";
 
-function getCookie(name) {
-    var matches = document.cookie.match(
-        new RegExp(
-            "(?:^|; )" +
-                name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") +
-                "=([^;]*)"
-        )
-    );
-    return matches ? decodeURIComponent(matches[1]) : undefined;
-}
+import { getCookie } from "./cookie";
 
 export default class APIWrapper extends EventTarget {
     _processXHRError(xhr) {
@@ -43,7 +34,7 @@ export default class APIWrapper extends EventTarget {
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
-        xhr.send(JSON.stringify(data));
+        xhr.send(JSON.stringify({ ...data, user_id: getCookie("userId") }));
     }
 
     sendPatchRequest(url, data, cb) {
@@ -61,11 +52,11 @@ export default class APIWrapper extends EventTarget {
         xhr.onerror = () => {
             console.error("Failed to request " + url);
         };
-        
+
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
 
-        xhr.send(JSON.stringify(data));
+        xhr.send(JSON.stringify({ ...data, user_id: getCookie("userId") }));
     }
 
     sendGetRequest(url, cb) {

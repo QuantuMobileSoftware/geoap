@@ -10,12 +10,15 @@ import APIWrapper from "./utils/APIWrapper";
 
 import UserModel from "./models/UserModel";
 import MapModel from "./models/MapModel";
+import RequestsModel from "./models/RequestsModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
 import createLayersSelector from "./components/LayersSelector";
 import createLayerDetails from "./components/LayerDetails";
+
 import createLoginForm from "./components/LoginForm";
 import createAoisList from "./components/AoisList";
+import createRequestForm from "./components/RequestForm";
 import createMap from "./components/Map";
 
 const apiWrapper = new APIWrapper();
@@ -23,6 +26,7 @@ const widgetFactory = new WidgetFactory();
 
 const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
+const requestsModel = new RequestsModel(apiWrapper);
 
 // const layersSelector = createLayersSelector(widgetFactory, mapModel);
 // const featureDetails = createFeatureDetails(widgetFactory, mapModel);
@@ -30,6 +34,7 @@ const mapModel = new MapModel(apiWrapper);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
 const aoisList = createAoisList(widgetFactory, mapModel);
+const requestForm = createRequestForm(widgetFactory, mapModel, requestsModel);
 const map = createMap(widgetFactory, mapModel);
 
 const root = Div({ class: "container" });
@@ -53,12 +58,13 @@ userModel.addEventListener("loggedin", () => {
     messageContainer.setChildren();
 
     root.setChildren(
-        map,
         // layersSelector,
         // featureDetails,
         // layerDetails,
+        messageContainer,
         aoisList,
-        messageContainer
+        requestForm,
+        map
     );
 });
 

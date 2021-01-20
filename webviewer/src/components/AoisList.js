@@ -6,26 +6,33 @@ export default function createAoisList(widgetFactory, mapModel) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
     const aoisContainer = Div({ class: "aoislist-holder" });
+    const arrow = Div({ class: "aoislist__item-arrow" });
 
-    mapModel.addEventListener("aoisloaded", () => {
+    const handleAoiChange = () => {
         if (!mapModel.aois.length) {
             const emptyElt = Div({ class: "aoislist__emptyitem" }).setChildren(
-                'No data. Please create AOI'
+                "No data. Please create AOI"
             );
             aoisContainer.setChildren(emptyElt);
             box.setChildren(aoisContainer);
             return;
         }
 
+        aoisContainer.setChildren();
+        box.setChildren();
+
         const aoisElts = [];
 
-        mapModel.aois.forEach(({ properties }) => {
+        mapModel.aois.forEach((aoi) => {
             const aoiElt = Div({ class: "aoislist__item" }).setChildren(
-                properties.name
+                Div({ class: "aoislist__item-text" }).setChildren(
+                    aoi.properties.name
+                ),
+                arrow
             );
 
             aoiElt.addEventListener("click", () => {
-               mapModel.selectAoiFromList(properties.id)
+                mapModel.selectAoiFromList(aoi);
             });
 
             aoisElts.push(aoiElt);
@@ -33,29 +40,47 @@ export default function createAoisList(widgetFactory, mapModel) {
 
         aoisContainer.setChildren(aoisElts);
         box.setChildren(aoisContainer);
-    });
+    };
 
-    mapModel.addEventListener("aoiSelected", ({ detail }) => {
+    const handleAoiSelected = ({ detail }) => {
         aoisContainer.setChildren();
         box.setChildren();
 
         const aoisElts = [];
 
-        mapModel.aois.forEach(({ properties }) => {
+        mapModel.aois.forEach((aoi) => {
             const aoiElt = Div({
                 class: `${
-                    properties.name === detail.aoi.properties.name
+                    aoi.properties.id === detail.aoi.properties.id
                         ? "aoislist__item aoislist__item--active"
                         : "aoislist__item"
                 }`,
-            }).setChildren(properties.name);
+            }).setChildren(
+                Div({ class: "aoislist__item-text" }).setChildren(
+                    aoi.properties.name
+                ),
+                arrow
+            );
+
+            aoiElt.addEventListener("click", (e) => {
+                let elem = document.querySelector(".aoislist__item--active");
+                elem.classList.remove("aoislist__item--active");
+                e.target.classList.add("aoislist__item--active");
+                mapModel.selectAoiFromList(aoi);
+            });
 
             aoisElts.push(aoiElt);
         });
 
         aoisContainer.setChildren(aoisElts);
         box.setChildren(aoisContainer);
-    });
+    };
+
+    mapModel.addEventListener("aoisloaded", handleAoiChange);
+    mapModel.addEventListener("aoiadded", handleAoiChange);
+    mapModel.addEventListener("aoiupdated", handleAoiChange);
+    
+    mapModel.addEventListener("aoiSelected", handleAoiSelected);
 
     box.setChildren();
 
