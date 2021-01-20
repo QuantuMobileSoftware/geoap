@@ -26,7 +26,7 @@ class Result(models.Model):
 
     bounding_polygon = models.PolygonField(spatial_index=True, verbose_name='Bounding polygon')
     rel_url = models.URLField(max_length=400, verbose_name='Layer URL')
-    request_id = models.ForeignKey(Request, on_delete=models.SET_NULL, null=True, verbose_name="Client's request id")
+    request = models.ForeignKey(Request, on_delete=models.SET_NULL, null=True, verbose_name="Client's request id")
 
     # Filled in by a Data science engineer
     options = JSONField(blank=True, null=True, verbose_name='Layer options')
