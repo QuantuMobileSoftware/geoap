@@ -19,5 +19,5 @@ class JupyterNotebookAdmin(admin.OSMGeoAdmin):
 
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
-    list_display = ('user_id', 'aoi_id', 'jupyter_notebook_id', 'date_from', 'date_to', 'started_at', 'finished_at',
+    list_display = ('user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'error')
