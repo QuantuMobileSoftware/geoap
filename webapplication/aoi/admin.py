@@ -5,9 +5,9 @@ from .models import AoI, JupyterNotebook, Request
 @admin.register(AoI)
 class AoIAdmin(admin.OSMGeoAdmin):
     list_display = ('user', 'name', 'polygon', 'createdat', )
-    search_fields = ('name',)
+    search_fields = ('name', )
     fieldsets = (('fieldsets_name', {
-        'fields': ('user_id', 'name', 'polygon')
+        'fields': ('user', 'name', 'polygon', )
     }), )
 
 
