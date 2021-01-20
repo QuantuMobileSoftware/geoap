@@ -357,13 +357,13 @@ class RequestTestCase(UserBase):
         super().setUp()
 
         self.data_create = {
-            'user_id': 1001,
-            'aoi_id': 1001,
-            'jupyter_notebook_id': 1001,
+            'user': 1001,
+            'aoi': 1001,
+            'notebook': 1001,
         }
 
         self.data_patch = {
-            'jupyter_notebook_id': 1002,
+            'notebook': 1002,
         }
 
     def test_create_request_as_not_auth_user(self):
@@ -381,7 +381,7 @@ class RequestTestCase(UserBase):
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = json.loads(response.content)
-        self.assertEqual(content['user_id'], self.staff_user.id)
+        self.assertEqual(content['user'], self.staff_user.id)
     
     def create_request(self):
         url = reverse('aoi:request_list_or_create')

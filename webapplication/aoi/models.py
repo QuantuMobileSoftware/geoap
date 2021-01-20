@@ -35,9 +35,9 @@ class JupyterNotebook(models.Model):
         
         
 class Request(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User name')
-    aoi_id = models.ForeignKey(AoI, on_delete=models.PROTECT, verbose_name='Aoi name')
-    jupyter_notebook_id = models.ForeignKey(
+    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User name')
+    aoi = models.ForeignKey(AoI, on_delete=models.PROTECT, verbose_name='Aoi name')
+    notebook = models.ForeignKey(
         JupyterNotebook, on_delete=models.PROTECT,
         verbose_name='Jupyter notebook name'
     )
