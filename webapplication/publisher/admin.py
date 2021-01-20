@@ -32,6 +32,6 @@ class ResultAdmin(admin.OSMGeoAdmin):
 
 @admin.register(ACL)
 class ACLAdmin(admin.OSMGeoAdmin):
-    list_display = ('user_id', 'restrict_projects_to', )
-    list_filter = ('user_id', 'restrict_projects_to', )
+    list_display = ('user', 'restrict_projects_to', )
+    list_filter = ('user', 'restrict_projects_to', )
     search_fields = ('restrict_projects_to', )
