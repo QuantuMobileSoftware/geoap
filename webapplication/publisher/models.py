@@ -61,4 +61,4 @@ class ACL(models.Model):
     class Meta:
         verbose_name = 'Access Control List'
         verbose_name_plural = 'Access Control Lists'
-        ordering = ['user_id']
+        ordering = ['user']
