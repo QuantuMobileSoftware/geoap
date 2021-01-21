@@ -49,4 +49,4 @@ class Request(models.Model):
 
     @property
     def jupyter_notebook_name(self):
-        return self.jupyter_notebook_id.name
+        return self.notebook.name
