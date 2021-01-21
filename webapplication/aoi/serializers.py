@@ -19,7 +19,11 @@ class JupyterNotebookSerializer(serializers.ModelSerializer):
         
         
 class RequestSerializer(serializers.ModelSerializer):
+    jupyter_notebook_name = serializers.ReadOnlyField()
+
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                   'error')
+        fields = ('id', 'user_id', 'aoi_id', 'jupyter_notebook_id', 'jupyter_notebook_name',
+                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', )
