@@ -46,3 +46,7 @@ class Request(models.Model):
     started_at = models.DateTimeField(blank=True, null=True, verbose_name='Started at')
     finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
+
+    @property
+    def jupyter_notebook_name(self):
+        return self.jupyter_notebook_id.name
