@@ -23,7 +23,5 @@ class RequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Request
-        fields = ('id', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
-                  'error')
-        fields = ('id', 'user_id', 'aoi_id', 'jupyter_notebook_id', 'jupyter_notebook_name',
+        fields = ('id', 'user', 'aoi', 'notebook', 'jupyter_notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', )
