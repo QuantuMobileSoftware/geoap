@@ -48,5 +48,5 @@ class Request(models.Model):
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
 
     @property
-    def jupyter_notebook_name(self):
+    def notebook_name(self):
         return self.notebook.name
