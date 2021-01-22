@@ -19,11 +19,11 @@ class AoIListCreateAPIView(ListCreateAPIView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(user_id=self.request.user)
+        return queryset.filter(user=self.request.user)
         
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.initial_data['user_id'] != self.request.user.id and \
+        if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
@@ -40,7 +40,7 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     
     def patch(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.initial_data['user_id'] != self.request.user.id and \
+        if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         return self.partial_update(request, *args, **kwargs)
@@ -55,7 +55,7 @@ class AOIResultsListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user_id=self.request.user)
+        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
         qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon)
         if not self.request.user.has_perm('publisher.view_unreleased_result'):
             qs = qs.filter(released=True)
@@ -77,18 +77,18 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     
     
 class RequestListCreateAPIView(ListCreateAPIView):
-    permission_classes = (ModelPermissions,)
+    permission_classes = (ModelPermissions, )
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
     pagination_class = None
     
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(user_id=self.request.user)
+        return queryset.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.initial_data['user_id'] != self.request.user.id and \
+        if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
@@ -112,6 +112,6 @@ class AOIRequestListAPIView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user_id=self.request.user)
-        qs = self.queryset.filter(aoi_id=area_of_interest.id)
+        area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
+        qs = self.queryset.filter(aoi=area_of_interest.id)
         return qs
