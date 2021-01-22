@@ -1,11 +1,9 @@
 "use strict";
-
-import { setCookie, deleteCookie } from "../utils/cookie";
 export default class UserModel extends EventTarget {
     constructor(apiWrapper) {
         super();
         this.apiWrapper = apiWrapper;
-        this.userDetails = null;
+        this.userDetails = {};
         this.apiWrapper.addEventListener("forbidden", () => {
             this.getUserDetails();
         });
@@ -31,13 +29,15 @@ export default class UserModel extends EventTarget {
     getUserDetails() {
         this.apiWrapper.sendGetRequest("/users/current", (err, res) => {
             if (err) {
-                deleteCookie('userId')
                 this.dispatchEvent(new Event("loggedout"));
             } else {
                 this.userDetails = res;
-                setCookie('userId', res.pk)
                 this.dispatchEvent(new Event("loggedin"));
             }
         });
+    }
+
+    get user_id() {
+        return this.userDetails.pk;
     }
 }

@@ -13,7 +13,6 @@ import MapModel from "./models/MapModel";
 import RequestModel from "./models/RequestModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
-import createLayersSelector from "./components/LayersSelector";
 import createLayerDetails from "./components/LayerDetails";
 
 import createLoginForm from "./components/LoginForm";
@@ -28,14 +27,13 @@ const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
 const requestModel = new RequestModel(apiWrapper);
 
-// const layersSelector = createLayersSelector(widgetFactory, mapModel);
-// const featureDetails = createFeatureDetails(widgetFactory, mapModel);
-// const layerDetails = createLayerDetails(widgetFactory, mapModel);
+const featureDetails = createFeatureDetails(widgetFactory, mapModel);
+const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
 const aoisList = createAoisList(widgetFactory, mapModel, requestModel);
-const requestForm = createRequestForm(widgetFactory, mapModel, requestModel);
-const map = createMap(widgetFactory, mapModel, requestModel);
+const requestForm = createRequestForm(widgetFactory, userModel, requestModel);
+const map = createMap(widgetFactory, mapModel, requestModel, userModel);
 
 const root = Div({ class: "container" });
 
@@ -58,9 +56,8 @@ userModel.addEventListener("loggedin", () => {
     messageContainer.setChildren();
 
     root.setChildren(
-        // layersSelector,
-        // featureDetails,
-        // layerDetails,
+        featureDetails,
+        layerDetails,
         messageContainer,
         aoisList,
         requestForm,
@@ -74,6 +71,7 @@ userModel.addEventListener("loggedout", () => {
 
 root.componentDidMount = () => {
     userModel.getUserDetails();
+    requestModel.getNotebooks();
 };
 
 window.addEventListener("DOMContentLoaded", () => {

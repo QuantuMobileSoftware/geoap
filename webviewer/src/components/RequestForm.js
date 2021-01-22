@@ -1,20 +1,21 @@
 "use strict";
 
-import { Div, Span } from "@adolgarev/domwrapper";
+import { Div, Span, createElement } from "@adolgarev/domwrapper";
 
 export default function createRequestForm(
     widgetFactory,
-    mapModel,
+    userModel,
     requestModel
 ) {
+    createRequestForm._formData = {};
+
     const box = Div({ class: "fixed fixed--aoisform" });
-
     const formContainer = Div({ class: "aoisform-holder" });
-
     const title = Div({ class: "aoisform__title" });
     const fromBlock = Div({ class: "aoisform__from" });
     const toBlock = Div({ class: "aoisform__to" });
-    const request = Div({ class: "aoisform__request" });
+    const requestBlock = Div({ class: "aoisform__request" });
+    const formButtons = Div({ class: "aoisform__buttons" });
 
     const closeForm = () => {
         const map = document.querySelector(".map");
@@ -30,61 +31,75 @@ export default function createRequestForm(
         form.classList.add("active");
     };
 
-    const onCloseForm = () => {
-        closeForm();
-        box.setChildren();
-    };
-
-    const closeButton = Span({
-        class: "close close--gray close--aoisform",
-    }).addEventListener("click", onCloseForm);
-
     const onOpenForm = ({ detail }) => {
         openForm();
+
+        createRequestForm._formData.aoi_id = detail.aoi.properties.id;
+        createRequestForm._formData.user_id = userModel.user_id;
 
         title.setChildren(`Request form for ${detail.aoi.properties.name}`);
 
         const requestInput = widgetFactory.createSelect(
             null,
-            (value) => {
-                console.log(value);
+            (id) => {
+                createRequestForm._formData.jupyter_notebook_id = Number(id);
             },
-            "request__input"
+            "input"
         );
-        const requestLabel = Div({ class: "request__label" }).setChildren(
+        const emptyOption = createElement("option").setChildren(
+            "Select request type"
+        );
+        const options = [emptyOption];
+
+        if (requestModel.notebooks.length) {
+            requestModel.notebooks.forEach((notebook) => {
+                const option = createElement("option", {
+                    value: notebook.id,
+                }).setChildren(notebook.name);
+
+                options.push(option);
+            });
+        }
+        requestInput.setChildren(options);
+        const requestLabel = Div({ class: "label" }).setChildren(
             "Type of request"
         );
-        request.setChildren(requestLabel, requestInput);
+        requestBlock.setChildren(requestLabel, requestInput);
 
         const fromInput = widgetFactory.createDateInput(
             null,
             null,
             new Date(),
-            (value) => {
-                console.log(value);
+            (from) => {
+                createRequestForm._formData.date_from = from;
             },
-            "date__input"
+            "input"
         );
-        const fromLabel = Div({ class: "date__label" }).setChildren("From");
+        const fromLabel = Div({ class: "label" }).setChildren("From");
         fromBlock.setChildren(fromLabel, fromInput);
 
         const toInput = widgetFactory.createDateInput(
             null,
             null,
             new Date(),
-            (value) => {
-                console.log(value);
+            (to) => {
+                createRequestForm._formData.date_to = to;
             },
-            "date__input"
+            "input"
         );
-        const toLabel = Div({ class: "date__label" }).setChildren("To");
+        const toLabel = Div({ class: "label" }).setChildren("To");
         toBlock.setChildren(toLabel, toInput);
-
-        const formButtons = Div({ class: "aoisform__buttons" });
 
         const sendButton = widgetFactory
             .createButton({ type: "button", class: "button button--success" })
             .setChildren("Send");
+
+        sendButton.addEventListener("click", () => {
+            requestModel.sendRequest(createRequestForm._formData, ()=>{
+                onCloseForm();
+                requestModel.getRequests(detail.aoi.properties.id);
+            });
+        });
 
         const cancelButton = widgetFactory
             .createButton({ type: "button", class: "button button--neutral" })
@@ -97,13 +112,23 @@ export default function createRequestForm(
         formContainer.setChildren(
             closeButton,
             title,
-            request,
+            requestBlock,
             fromBlock,
             toBlock,
             formButtons
         );
         box.setChildren(formContainer);
     };
+
+    const onCloseForm = () => {
+        createRequestForm._formData = {};
+        closeForm();
+        box.setChildren();
+    };
+
+    const closeButton = Span({
+        class: "close close--gray close--aoisform",
+    }).addEventListener("click", onCloseForm);
 
     requestModel.addEventListener("closeForm", onCloseForm);
     requestModel.addEventListener("openForm", onOpenForm);

@@ -39,8 +39,8 @@ body {
 }
 
 .button--success {
-    border-color: rgb(83 163 76 / 80%);
-    background-color: rgb(83 163 76 / 80%);
+    border-color: rgba(51, 136, 255, 0.794);
+    background-color: rgba(51, 136, 255, 0.794);
 }
 
 .button--neutral {
@@ -50,14 +50,24 @@ body {
 }
 
 .button--success:hover {
-    border-color: rgba(71, 192, 60, 0.8);
-    background-color: rgba(71, 192, 60, 0.8);
+    border-color: rgba(51, 136, 255);
+    background-color: rgba(51, 136, 255);
 }
 
 .button--neutral:hover {
     background-color: rgba(228, 229, 230, 0.8);
     border-color: rgba(228, 229, 230, 0.8);
 }
+
+.input {
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 5px;
+    background: #fff;
+    width: 200px;
+}
+
 /* login form  */
 .login-container {
     margin: auto;
@@ -71,17 +81,12 @@ body {
     margin-bottom: 15px;
 }
 
-.input__label,
-.range__label {
+.label {
     color: #3b4148;
     font-family: "Source Sans Pro";
     font-size: 15px;
     margin-bottom: 5px;
     display: block;
-}
-
-.range__label {
-    color: #282e33;
 }
 
 .input__field {
@@ -93,8 +98,9 @@ body {
     color: #000;
 }
 
-/* error message */
-.error {
+/* error and succes message */
+.error,
+.success {
     position: fixed;
     display: flex;
     align-items: center;
@@ -104,14 +110,21 @@ body {
     left: 50%;
     transform: translate(-50%, 0);
     padding: 10px;
-    background-color: rgba(253, 47, 64, 0.876);
     border-radius: 3px;
 }
 
-.error__message {
+.message {
     font-size: 20px;
     color: rgb(255, 255, 255);
     margin-right: 20px;
+}
+
+.error {
+    background-color: rgba(253, 47, 64, 0.876);
+}
+
+.success {
+    background-color: rgba(71, 192, 60, 0.8);
 }
 
 /* close button */
@@ -163,7 +176,7 @@ body {
 
 .fixed {
     position: fixed;
-    z-index: 10;
+    z-index: 3;
     border-radius: 3px;
 }
 
@@ -219,6 +232,8 @@ body {
 .fixed--details {
     bottom: 11px;
     left: 11px;
+    z-index: 4;
+    border: 1px solid rgb(96, 94, 92);
 }
 
 .details__options {
@@ -246,11 +261,11 @@ body {
 }
 
 .leaflet-top.leaflet-left {
-    left: 250px;
+    left: 290px;
 }
 
 .map--active .leaflet-top.leaflet-left {
-    left: 550px;
+    left: 590px;
 }
 
 .close--plotly {
@@ -262,47 +277,87 @@ body {
 /* aois list */
 
 .fixed--aoislist {
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 10;
-    width: 250px;
-    border-right: 1px solid rgb(96, 94, 92);
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    width: 290px;
+    border: 1px solid rgb(96, 94, 92);
     background-color: rgb(255, 255, 255);
     overflow-y: auto;
 }
 
+.aoislist__title {
+    padding: 7px;
+    padding-left: 20px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.aoislist__emptyblock {
+    padding: 7px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 17px;
+}
+
+.aoislist__results-item,
+.aoislist__requests-item {
+    padding: 7px;
+    padding-left: 30px;
+    font-size: 16px;
+}
+
+.aoislist__requests-item-text {
+    font-size: 15px;
+}
+
+.aoislist__requests-item-text:first-child {
+    margin-bottom: 5px;
+}
+
+.aoislist__results-item--active {
+    background-color: rgb(49, 135, 255, 0.8);
+    color: rgba(255, 255, 255);
+}
+
+.aoislist__results-item:hover {
+    background-color: rgb(49, 135, 255, 0.8);
+    color: rgba(255, 255, 255);
+    cursor: pointer;
+}
+
 .aoislist__item {
     padding: 10px;
-    border-bottom: 1px solid rgb(211, 209, 208);
+    border-top: 1px solid rgb(211, 209, 208);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 18px;
+}
+
+.aoislist__item:first-child {
+    border-bottom: none;
+}
+
+.aoislist__controls {
+    display: flex;
+    align-items: center;
+    font-size: 19px;
 }
 
 .aoislist__item-arrow {
-    position: relative;
+    background: url("../images/arrow-b.svg") no-repeat center;
+    width: 18px;
+    height: 18px;
 }
 
-.aoislist__item-arrow::before,
-.aoislist__item-arrow::after {
-    display: block;
-    position: absolute;
-    content: "";
-    width: 2px;
-    background-color: rgb(96, 94, 92);
-    height: 10px;
-    top: -5px;
-    left: -4px;
-}
-
-.aoislist__item-arrow::before {
-    transform: rotate(45deg);
-}
-
-.aoislist__item-arrow::after {
-    transform: rotate(-45deg);
-    left: -11px;
+.aoislist__item-remove {
+    background: url("../images/bin-w.svg") no-repeat center;
+    width: 18px;
+    height: 18px;
+    display: none;
 }
 
 .aoislist__emptyitem {
@@ -311,37 +366,42 @@ body {
 }
 
 .aoislist__item--active {
-    background-color: #ff7f50;
+    background-color: rgba(51, 136, 255, 0.794);
     color: rgb(255, 255, 255);
 }
 
+.aoislist__item--active .aoislist__item-arrow {
+    display: none;
+}
+
+.aoislist__item--active .aoislist__item-remove {
+    display: block;
+}
+
 .aoislist__item:hover {
-    background-color: #ff7f50;
+    background-color: rgba(51, 136, 255, 0.794);
     cursor: pointer;
     color: rgb(255, 255, 255);
 }
 
-.aoislist__item:hover .aoislist__item-arrow::before,
-.aoislist__item:hover .aoislist__item-arrow::after,
-.aoislist__item--active .aoislist__item-arrow::before,
-.aoislist__item--active .aoislist__item-arrow::after {
-    background-color: rgb(255, 255, 255);
+.aoislist__item:hover .aoislist__item-arrow {
+    background: url("../images/arrow-w.svg") no-repeat center;
 }
 
-.aoislist__item:last-child {
-    border-bottom: none;
+.aoislist__item-remove:hover {
+    background: url("../images/bin-b.svg") no-repeat center;
 }
 
 /* request form */
 
 .fixed--aoisform {
-    left: 250px;
-    top: 0;
-    bottom: 0;
-    border-right: 1px solid rgb(96, 94, 92);
+    left: 295px;
+    top: 2px;
+    bottom: 2px;
+    border: 1px solid rgb(96, 94, 92);
     background-color: rgb(255, 255, 255);
-    display: none;
     width: 300px;
+    display: none;
 }
 
 .fixed--aoisform.active {
@@ -359,7 +419,8 @@ body {
 
 .aoisform__title {
     font-size: 20px;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
+    font-family: "Source Sans Pro";
 }
 
 .aoisform__request,
@@ -368,19 +429,18 @@ body {
     margin-bottom: 10px;
 }
 
-.request__label,
-.date__label {
-    margin-bottom: 5px;
-}
-
 .close--aoisform {
     position: absolute;
     right: 10px;
 }
 
-.aoisform__buttons,
 .aoislist__buttonholder {
     padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.aoisform__buttons {
     display: flex;
     justify-content: flex-end;
 }

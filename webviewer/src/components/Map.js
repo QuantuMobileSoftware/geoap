@@ -64,7 +64,7 @@ function initializeControls(map) {
     map.addControl(new L.NewRectangleControl());
 }
 
-function initializeHandlers(map, mapModel) {
+function initializeHandlers(map, mapModel, userModel) {
     let FEATURES = {};
 
     const handlePolygonChange = ({ layer }) => {
@@ -72,9 +72,10 @@ function initializeHandlers(map, mapModel) {
             const feature = {
                 ...FEATURES[layer._leaflet_id],
                 layer,
+                user_id: userModel.user_id,
             };
 
-            mapModel.updateAoi(feature, feature.id, (res) => {
+            mapModel.updateAoi(feature, (res) => {
                 FEATURES = {
                     ...FEATURES,
                     [layer._leaflet_id]: { ...res },
@@ -84,6 +85,7 @@ function initializeHandlers(map, mapModel) {
             const feature = {
                 name: `Test ${(Math.random() * 10000).toFixed()}`,
                 layer,
+                user_id: userModel.user_id,
             };
 
             mapModel.sendAoi(feature, (res) => {
@@ -96,6 +98,7 @@ function initializeHandlers(map, mapModel) {
         const feature = {
             name: `Test ${(Math.random() * 10000).toFixed()}`,
             layer,
+            user_id: userModel.user_id,
         };
 
         mapModel.sendAoi(feature, (res) => {
@@ -108,7 +111,12 @@ function initializeHandlers(map, mapModel) {
     map.on("editable:dragend", handlePolygonChange);
 }
 
-export default function createMap(widgetFactory, mapModel, requestModel) {
+export default function createMap(
+    widgetFactory,
+    mapModel,
+    requestModel,
+    userModel
+) {
     const mapId = widgetFactory.generateRandomId("Map");
     const mapElt = Div({ id: mapId, class: "map" });
 
@@ -130,7 +138,7 @@ export default function createMap(widgetFactory, mapModel, requestModel) {
         initializeControls(map);
 
         //add handlers to map
-        initializeHandlers(map, mapModel);
+        initializeHandlers(map, mapModel, userModel);
 
         if (process.env.NODE_ENV === "development") {
             L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
@@ -165,6 +173,8 @@ export default function createMap(widgetFactory, mapModel, requestModel) {
                                     leafletId: layer._leaflet_id,
                                 });
 
+                                requestModel.getResults(aoi.properties.id);
+                                requestModel.getRequests(aoi.properties.id);
                                 requestModel.closeRequestForm();
 
                                 layer.setStyle({
@@ -312,18 +322,25 @@ export default function createMap(widgetFactory, mapModel, requestModel) {
         });
     };
 
-    mapModel.addEventListener("aoisloaded", onAoiChange);
+    const onAoiDeleted = (e) => {
+        const layer = Object.values(map._layers).find((layer) => {
+            return layer.feature && layer.feature.properties.id === e.detail.id;
+        });
+
+        geojson && geojson.removeLayer(layer);
+        geojson && geojson.resetStyle();
+    };
+
     mapModel.addEventListener("aoiadded", onAoiChange);
     mapModel.addEventListener("aoiupdated", onAoiChange);
-
+    mapModel.addEventListener("aoisloaded", onAoiChange);
+    mapModel.addEventListener("aoiSelected", onAoiSelected);
+    mapModel.addEventListener("aoideleted", onAoiDeleted);
     mapModel.addEventListener("layerselected", onLayerSelected);
-
     mapModel.addEventListener(
         "foregroundlayeroptionsupdated",
         onForegroundLayerUpdated
     );
-
-    mapModel.addEventListener("aoiSelected", onAoiSelected);
 
     return mapElt;
 }

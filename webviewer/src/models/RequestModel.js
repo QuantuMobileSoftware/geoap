@@ -1,7 +1,6 @@
 "use strict";
 
-import { setCookie, deleteCookie } from "../utils/cookie";
-
+import Wkt from "wicket";
 export default class RequestModel extends EventTarget {
     constructor(apiWrapper) {
         super();
@@ -11,22 +10,33 @@ export default class RequestModel extends EventTarget {
         this.notebooks = [];
     }
 
-    getResults() {
+    getResults(id) {
         this.apiWrapper.sendGetRequest(`/aoi/${id}/results`, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res);
+                this.results = [...res];
+
+                this.results.forEach((x) => {
+                    const wkt = new Wkt.Wkt();
+                    wkt.read(x.bounding_polygon.split(";")[1]);
+                    x.boundingCoordinates = [];
+                    wkt.toJson().coordinates[0].forEach((longlat) => {
+                        x.boundingCoordinates.push([longlat[1], longlat[0]]);
+                    });
+                });
+                this.dispatchEvent(new CustomEvent("resultsLoaded", { detail: { id } }));
             }
         });
     }
 
-    getRequests() {
+    getRequests(id) {
         this.apiWrapper.sendGetRequest(`/aoi/${id}/requests`, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res);
+                this.requests = [...res];
+                this.dispatchEvent(new CustomEvent("requestsLoaded", { detail: { id } }));
             }
         });
     }
@@ -36,7 +46,17 @@ export default class RequestModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                console.log(res);
+                this.notebooks = [...res];
+            }
+        });
+    }
+
+    sendRequest(data, cb) {
+        this.apiWrapper.sendPostRequest("/request", { ...data }, (err, res) => {
+            if (err) {
+                this.dispatchEvent(new Event("error"));
+            } else {
+                cb();
             }
         });
     }
@@ -46,7 +66,6 @@ export default class RequestModel extends EventTarget {
     }
 
     closeRequestForm() {
-        debugger
         this.dispatchEvent(new Event("closeForm"));
     }
 }

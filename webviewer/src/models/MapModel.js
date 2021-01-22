@@ -14,31 +14,11 @@ export default class MapModel extends EventTarget {
     constructor(apiWrapper) {
         super();
         this.apiWrapper = apiWrapper;
-        this.layers = null;
         this.foregroundLayer = null;
         this.foregroundLayerOptions = {};
         this.backgroundLayer = null;
         this.selectedFeature = null;
         this.aois = [];
-    }
-
-    getLayers() {
-        this.apiWrapper.sendGetRequest("/results", (err, res) => {
-            if (err) {
-                this.dispatchEvent(new Event("error"));
-            } else {
-                this.layers = res;
-                this.layers.forEach((x) => {
-                    const wkt = new Wkt.Wkt();
-                    wkt.read(x.bounding_polygon.split(";")[1]);
-                    x.boundingCoordinates = [];
-                    wkt.toJson().coordinates[0].forEach((longlat) => {
-                        x.boundingCoordinates.push([longlat[1], longlat[0]]);
-                    });
-                });
-                this.dispatchEvent(new Event("layersupdated"));
-            }
-        });
     }
 
     selectLayer(layer) {
@@ -99,14 +79,14 @@ export default class MapModel extends EventTarget {
         );
     }
 
-    updateAoi(dataObject, id, callback) {
+    updateAoi(dataObject, callback) {
         const wkt = new Wkt.Wkt();
         const { layer, ...data } = dataObject;
         const { geometry } = layer.toGeoJSON();
         const polygon = wkt.fromObject(geometry).write();
 
         this.apiWrapper.sendPatchRequest(
-            `/aoi/${id}`,
+            `/aoi/${data.id}`,
             { ...data, polygon },
             (err, res) => {
                 if (err) {
@@ -148,6 +128,21 @@ export default class MapModel extends EventTarget {
 
                 this.aois = aois;
                 this.dispatchEvent(new Event("aoisloaded"));
+            }
+        });
+    }
+
+    deleteAoi(id) {
+        this.apiWrapper.sendDeleteRequest(`/aoi/${id}`, (err, res) => {
+            if (err) {
+                this.dispatchEvent(new Event("error"));
+            } else {
+                this.aois = [
+                    ...this.aois.filter((aoi) => aoi.properties.id !== id),
+                ];
+                this.dispatchEvent(
+                    new CustomEvent("aoideleted", { detail: { id } })
+                );
             }
         });
     }

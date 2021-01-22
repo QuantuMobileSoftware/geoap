@@ -1,7 +1,6 @@
 "use strict";
 
 import { Div, Span, createElement } from "@adolgarev/domwrapper";
-
 export default class WidgetFactory {
     generateRandomId(prefix) {
         return prefix + Math.random().toString(36).substring(7);
@@ -15,7 +14,7 @@ export default class WidgetFactory {
         const inputEltId = this.generateRandomId("TextField");
         const labelElt = createElement("label", {
             for: inputEltId,
-            class: "input__label",
+            class: "label",
         }).setChildren(placeholder);
 
         const inputElt = createElement("input", {
@@ -43,10 +42,23 @@ export default class WidgetFactory {
                 onCloseCb();
             }
         );
-        const messageText = Span({ class: "error__message" }).setChildren(
+        const messageText = Span({ class: "message" }).setChildren(
             message
         );
         return Div({ class: "error" }).setChildren(messageText, closeButton);
+    }
+
+    createSuccessMessageBar(message, onCloseCb) {
+        const closeButton = Span({ class: "close close--white" }).addEventListener(
+            "click",
+            () => {
+                onCloseCb();
+            }
+        );
+        const messageText = Span({ class: "message" }).setChildren(
+            message
+        );
+        return Div({ class: "success" }).setChildren(messageText, closeButton);
     }
 
     createRangeInput(min, max, value, onValueChangeCb, className) {
@@ -92,21 +104,11 @@ export default class WidgetFactory {
             ...(className && { class: className }),
         });
 
-        const option = createElement('option', {
-            value: '#'
-        }).setChildren('Select type of request');
-
-        const option1 = createElement('option', {
-            value: '1'
-        }).setChildren('Type 1');
-
         const cb = () => {
-            debugger
             const value = inputElt.getDOMElement().value;
             onValueChangeCb(value);
         };
         inputElt.addEventListener("change", cb);
-        inputElt.setChildren(option, option1)
         return inputElt;
     }
 }
