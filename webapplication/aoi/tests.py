@@ -17,7 +17,7 @@ class AOITestCase(UserBase):
     def setUp(self):
         super().setUp()
         self.data_create = {
-            "user_id": 1001,
+            "user": 1001,
             "name": "Aoi_test",
             "polygon": "SRID=4326;POLYGON (( \
             35.895191466414154 50.009453778741694 ,  \
@@ -29,7 +29,7 @@ class AOITestCase(UserBase):
         }
 
         self.data_patch = {
-            "user_id": 1002,
+            "user": 1002,
             "name": "Aoi_test_new",
             "polygon": "SRID=4326;POLYGON ((\
             35.895191466414154 50.009453778741694, \
@@ -104,7 +104,7 @@ class AOITestCase(UserBase):
         
     def test_patch_aoi_with_wrong_user_id_by_owner(self):
         aoi_id = 1002
-        self.data_patch['user_id'] = 10001
+        self.data_patch['user'] = 10001
         self.client.force_authenticate(user=self.ex_2_user)
         response = self.patch_aoi(aoi_id)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -226,7 +226,7 @@ class JupyterNotebookTestCase(UserBase):
         self.data_create = {
             "name": "JupyterNotebook_test_created",
             "image": "some docker command",
-            "path_to_a_notebook": "work/notebooks/example/geojson_created.ipynb",
+            "path": "work/notebooks/example/geojson_created.ipynb",
             "kernel_name": "3.8",
             "is_validated": False
         }
@@ -297,7 +297,7 @@ class JupyterNotebookTestCase(UserBase):
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['image'], self.data_patch['image'])
-        self.assertEqual(content['path_to_a_notebook'], 'work/notebooks/example/geojson.ipynb')
+        self.assertEqual(content['path'], 'work/notebooks/example/geojson.ipynb')
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
         self.assertEqual(content['is_validated'], self.data_patch['is_validated'])
     
@@ -357,13 +357,13 @@ class RequestTestCase(UserBase):
         super().setUp()
 
         self.data_create = {
-            'user_id': 1001,
-            'aoi_id': 1001,
-            'jupyter_notebook_id': 1001,
+            'user': 1001,
+            'aoi': 1001,
+            'notebook': 1001,
         }
 
         self.data_patch = {
-            'jupyter_notebook_id': 1002,
+            'notebook': 1002,
         }
 
     def test_create_request_as_not_auth_user(self):
@@ -381,7 +381,7 @@ class RequestTestCase(UserBase):
         response = self.create_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = json.loads(response.content)
-        self.assertEqual(content['user_id'], self.staff_user.id)
+        self.assertEqual(content['user'], self.staff_user.id)
     
     def create_request(self):
         url = reverse('aoi:request_list_or_create')
