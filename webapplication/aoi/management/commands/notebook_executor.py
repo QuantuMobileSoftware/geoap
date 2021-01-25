@@ -3,11 +3,9 @@ import sys
 from aoi.management.commands._notebook import State, NotebookThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
+from sip.settings import THREADS, TIMEOUT
 
 logger = logging.getLogger(__name__)
-
-THREADS = 2
-TIMEOUT = 60 * 60 * 2
 
 
 class Command(BaseCommand):
