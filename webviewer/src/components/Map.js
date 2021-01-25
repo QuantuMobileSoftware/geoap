@@ -72,7 +72,7 @@ function initializeHandlers(map, mapModel, userModel) {
             const feature = {
                 ...FEATURES[layer._leaflet_id],
                 layer,
-                user_id: userModel.user_id,
+                user: userModel.user_id,
             };
 
             mapModel.updateAoi(feature, (res) => {
@@ -85,7 +85,7 @@ function initializeHandlers(map, mapModel, userModel) {
             const feature = {
                 name: `Test ${(Math.random() * 10000).toFixed()}`,
                 layer,
-                user_id: userModel.user_id,
+                user: userModel.user_id,
             };
 
             mapModel.sendAoi(feature, (res) => {
@@ -98,7 +98,7 @@ function initializeHandlers(map, mapModel, userModel) {
         const feature = {
             name: `Test ${(Math.random() * 10000).toFixed()}`,
             layer,
-            user_id: userModel.user_id,
+            user: userModel.user_id,
         };
 
         mapModel.sendAoi(feature, (res) => {
@@ -318,6 +318,8 @@ export default function createMap(
                     color: "#ff7f50",
                     fillOpacity: 0.7,
                 });
+
+                map.panInsideBounds(layer.getBounds())
             }
         });
     };

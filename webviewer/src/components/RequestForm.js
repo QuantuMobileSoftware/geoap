@@ -34,15 +34,15 @@ export default function createRequestForm(
     const onOpenForm = ({ detail }) => {
         openForm();
 
-        createRequestForm._formData.aoi_id = detail.aoi.properties.id;
-        createRequestForm._formData.user_id = userModel.user_id;
+        createRequestForm._formData.aoi = detail.aoi.properties.id;
+        createRequestForm._formData.user = userModel.user_id;
 
         title.setChildren(`Request form for ${detail.aoi.properties.name}`);
 
         const requestInput = widgetFactory.createSelect(
             null,
             (id) => {
-                createRequestForm._formData.jupyter_notebook_id = Number(id);
+                createRequestForm._formData.notebook = Number(id);
             },
             "input"
         );

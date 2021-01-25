@@ -2,6 +2,10 @@
 
 import { Div } from "@adolgarev/domwrapper";
 
+import Dialog from "./Dialod";
+
+const confirmContainer = Div({ class: "confirm-container" });
+
 export default function createAoisList(widgetFactory, mapModel, requestModel) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
@@ -9,18 +13,11 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
     const buttonHolder = Div({ class: "aoislist__buttonholder" });
     const results = Div({ class: "aoislist__results" });
     const requests = Div({ class: "aoislist__requests" });
-
     const arrowIcon = Div({ class: "aoislist__item-arrow" });
 
     const openFormButton = widgetFactory
         .createButton({ type: "button", class: "button button--success" })
         .setChildren("Add request");
-    const requestsTitle = Div({ class: "aoislist__title" }).setChildren(
-        "Requests"
-    );
-    const resultsTitle = Div({ class: "aoislist__title" }).setChildren(
-        "Results"
-    );
 
     let timer;
     let currentId;
@@ -33,7 +30,7 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
                 "No data. Please create AOI"
             );
             aoisContainer.setChildren(emptyElt);
-            box.setChildren(aoisContainer);
+            box.setChildren(confirmContainer, aoisContainer);
             return;
         }
 
@@ -64,7 +61,23 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
         });
 
         aoisContainer.setChildren(aoisElts);
-        box.setChildren(aoisContainer);
+        box.setChildren(confirmContainer, aoisContainer);
+    };
+
+    const confirmRemove = (id) => (e) => {
+        const successCallback = () => {
+            mapModel.deleteAoi(id);
+            confirmContainer.setChildren();
+        };
+        const cancelCallback = () => confirmContainer.setChildren();
+
+        confirmContainer.setChildren(
+            Dialog({
+                title: "Are you sure want to delete AOI?",
+                onSuccess: successCallback,
+                onCancel: cancelCallback,
+            })
+        );
     };
 
     const onAoiSelected = ({ detail }) => {
@@ -112,14 +125,10 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
             aoisElts.push(aoiElt);
 
             if (isActive) {
-                removeIcon.addEventListener("click", (e) => {
-                    let result = window.confirm(
-                        "Are you sure want to delete AOI with requests and results?"
-                    );
-                    if (result) {
-                        mapModel.deleteAoi(aoi.properties.id);
-                    }
-                });
+                removeIcon.addEventListener(
+                    "click",
+                    confirmRemove(aoi.properties.id)
+                );
 
                 openFormButton.addEventListener("click", () => {
                     requestModel.openRequestForm(aoi);
@@ -136,7 +145,7 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
         });
 
         aoisContainer.setChildren(aoisElts);
-        box.setChildren(aoisContainer);
+        box.setChildren(confirmContainer, aoisContainer);
     };
 
     const onRequestsLoaded = ({ detail }) => {
@@ -148,14 +157,12 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
 
         const items = [];
 
-        items.push(requestsTitle);
-
         requestModel.requests.forEach((request) => {
             const elem = Div({ class: "aoislist__requests-item" });
 
             const notebook = Div({
                 class: "aoislist__requests-item-text",
-            }).setChildren(`Request: ${request.jupyter_notebook_name}`);
+            }).setChildren(`Request: ${request.notebook_name}`);
             const date = Div({
                 class: "aoislist__requests-item-text",
             }).setChildren(
@@ -178,8 +185,6 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
         }
 
         const items = [];
-
-        items.push(resultsTitle);
 
         requestModel.results.forEach((result) => {
             const elem = Div({ class: "aoislist__results-item" }).setChildren(

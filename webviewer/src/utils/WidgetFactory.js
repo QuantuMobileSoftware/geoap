@@ -21,11 +21,11 @@ export default class WidgetFactory {
             value: "",
             id: inputEltId,
             type: typeOverride ? typeOverride : "text",
-            class: "input__field",
+            class: "input",
         }).addEventListener("blur", () =>
             inputElt.setAttribute("value", inputElt.getDOMElement().value)
         );
-        const box = Div({ class: "input" }).setChildren(labelElt, inputElt);
+        const box = Div({ class: "input-holder" }).setChildren(labelElt, inputElt);
         box.getValue = () => inputElt.getAttribute("value");
         box.setValue = (val) => inputElt.setAttribute("value", val);
         return box;

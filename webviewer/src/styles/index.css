@@ -43,6 +43,11 @@ body {
     background-color: rgba(51, 136, 255, 0.794);
 }
 
+.button--error {
+    background-color: rgba(253, 47, 64, 0.76);
+    border-color: rgba(253, 47, 64, 0.76);
+}
+
 .button--neutral {
     border-color: rgba(228, 229, 230, 0.8);
     background-color: rgba(240, 241, 241, 0.8);
@@ -59,26 +64,21 @@ body {
     border-color: rgba(228, 229, 230, 0.8);
 }
 
+.button--error:hover {
+    background-color: rgba(255, 19, 38, 1);
+    border-color: rgba(255, 19, 38, 1);
+}
+
 .input {
+    border: none;
     outline: none;
-    border: 1px solid #ccc;
+    appearance: none;
     border-radius: 3px;
     padding: 5px;
     background: #fff;
-    width: 200px;
-}
-
-/* login form  */
-.login-container {
-    margin: auto;
-    width: 320px;
-    padding: 20px;
-    border-radius: 3px;
-    background: white;
-}
-
-.input {
     margin-bottom: 15px;
+    width: 100%;
+    border: 1px solid rgba(228, 229, 230, 1);
 }
 
 .label {
@@ -89,13 +89,13 @@ body {
     display: block;
 }
 
-.input__field {
-    border: 1px solid rgb(96, 94, 92);
-    width: 100%;
-    appearance: none;
-    padding: 10px;
+/* login form  */
+.login-container {
+    margin: auto;
+    width: 320px;
+    padding: 20px;
     border-radius: 3px;
-    color: #000;
+    background: white;
 }
 
 /* error and succes message */
@@ -167,39 +167,29 @@ body {
     background-color: rgb(96, 94, 92);
 }
 
-/* fixed positioning and relative */
-.relative {
-    position: relative;
-    border-radius: 3px;
-    box-shadow: 0px 10px 30px -20px;
-}
-
+/* fixed positioning */
 .fixed {
     position: fixed;
     z-index: 3;
     border-radius: 3px;
 }
 
-.fixed--tl,
-.relative--tl {
+.fixed--tl {
     top: 50px;
     left: 50px;
 }
 
-.fixed--bl,
-.relative--bl {
+.fixed--bl {
     bottom: 50px;
     left: 50px;
 }
 
-.fixed--tr,
-.relative--tr {
+.fixed--tr {
     top: 50px;
     right: 50px;
 }
 
-.fixed--br,
-.relative--br {
+.fixed--br {
     bottom: 50px;
     right: 50px;
 }
@@ -311,6 +301,7 @@ body {
 
 .aoislist__requests-item-text {
     font-size: 15px;
+    font-style: italic;
 }
 
 .aoislist__requests-item-text:first-child {
@@ -443,4 +434,42 @@ body {
 .aoisform__buttons {
     display: flex;
     justify-content: flex-end;
+}
+
+
+/* confirm dialog */
+
+.dialog-holder {
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 10;
+    background-color: rgb(224, 224, 224,  .8);
+    display: flex;
+}
+
+.dialog {
+    min-width: 300px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border: 1px solid rgba(177, 177, 177, 0.8);
+    border-radius: 3px;
+}
+
+.dialog__title {
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.dialog__buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.dialog__buttons .button {
+    margin-left: 10px;
 }

@@ -37,7 +37,7 @@ const map = createMap(widgetFactory, mapModel, requestModel, userModel);
 
 const root = Div({ class: "container" });
 
-const messageContainer = Div();
+const messageContainer = Div({class: 'message-container'});
 apiWrapper.addEventListener("error", (e) => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
