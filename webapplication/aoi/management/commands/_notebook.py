@@ -1,9 +1,10 @@
 import time
 import logging
-from django.utils.timezone import localtime
+
 from threading import Thread, Lock
 from aoi.models import JupyterNotebook, Request
-import random
+from aoi.management.commands._Container import Container
+from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ class State:
     def __init__(self):
         self.lock = Lock()
         self.validating_notebooks = set()
-        self.executing_notebooks = set()
+        self.executing_requests = set()
 
 
 class NotebookThread(Thread):
@@ -29,7 +30,7 @@ class NotebookThread(Thread):
 
             except Exception as e:
                 logger.exception(e)
-            time.sleep(5)
+            time.sleep(10)
 
     def validate_notebook(self):
         logger.info(f"Now validating notebooks: {self.state.validating_notebooks}")
@@ -45,51 +46,47 @@ class NotebookThread(Thread):
                 logger.error(f"No notebooks for validation: {str(ex)}")
                 return
 
-        # TODO: add validation logic
-        logger.info(f"Start validation for notebook: {notebook.pk}: {notebook.name}")
-        int_ = random.randint(1, 10)
-        logger.info(f"Thread {self.ident} sleeping {int_} seconds")
-        time.sleep(int_)
-        logger.info(f"Validating notebooks after SLEEP: {self.state.validating_notebooks}")
+        container = Container(notebook)
+        # host_port = "8889"
+        # TODO: check on GPUs images
+        gpus = None # "all"
 
-        validated = True
+        container.run(gpus=gpus)
+        validated = container.validate()
+
         notebook.is_validated = validated
         notebook.save()
-        logger.info(f"Saving notebook to db: {self.ident} {notebook.name} {notebook.is_validated}")
-        logger.info(f"Finished validation for notebook: {notebook.pk}: {notebook.name}")
 
         with self.state.lock:
             if validated:
                 self.state.validating_notebooks.remove(notebook.pk)
 
     def execute_notebook(self):
-        logger.info(f"Now executing notebooks: {self.state.executing_notebooks}")
+        logger.info(f"Now executing requests: {self.state.executing_requests}")
 
         with self.state.lock:
             # find any notebook that is not executed yet
             try:
-                notebook = Request.objects.filter(started_at__isnull=True) \
-                    .exclude(pk__in=self.state.executing_notebooks)[0]
-
-                self.state.executing_notebooks.add(notebook.pk)
+                # TODO: add filter for notebooks that is_validated=True
+                request = Request.objects.filter(started_at__isnull=True) \
+                    .exclude(pk__in=self.state.executing_requests)[0]
+                notebook = request.notebook
+                self.state.executing_requests.add(request.pk)
             except IndexError as ex:
-                logger.error(f"No notebooks for execution: {str(ex)}")
+                logger.error(f"No requests for execution: {str(ex)}")
                 return
 
-        # TODO: add execution logic
-        logger.info(f"Start execution for notebook: {notebook.pk}")
-        start = localtime()
-        notebook.started_at = start
+        container = Container(notebook)
+        # host_port = "8889"
+        gpus = None # "all"
 
-        logger.info(f"Started execution at: {start} thread {self.ident}")
-        time.sleep(2)
+        container.run(gpus=gpus)
 
-        end = localtime()
-        notebook.finished_at = end
-        logger.info(f"Finished execution at: {end} thread {self.ident}")
+        request.started_at = localtime()
+        container.execute()
+        request.finished_at = localtime()
+        request.save()
 
-        notebook.save()
-        logger.info(f"Finished execution for notebook: {notebook.pk}")
 
         with self.state.lock:
-            self.state.executing_notebooks.remove(notebook.pk)
+            self.state.executing_requests.remove(request.pk)
