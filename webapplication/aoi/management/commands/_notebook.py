@@ -67,7 +67,6 @@ class NotebookThread(Thread):
         with self.state.lock:
             # find any notebook that is not executed yet
             try:
-                # TODO: add filter for notebooks that is_validated=True
                 request = Request.objects.filter(started_at__isnull=True) \
                     .exclude(pk__in=self.state.executing_requests)[0]
                 notebook = request.notebook
