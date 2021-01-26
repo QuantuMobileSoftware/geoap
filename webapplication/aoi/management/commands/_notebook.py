@@ -3,7 +3,7 @@ import logging
 
 from threading import Thread, Lock
 from aoi.models import JupyterNotebook, Request
-from aoi.management.commands._Container import Container
+from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
 from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
@@ -46,11 +46,9 @@ class NotebookThread(Thread):
                 logger.error(f"No notebooks for validation: {str(ex)}")
                 return
 
-        container = Container(notebook)
-        # host_port = "8889"
-        container.run()
-
-        validated = container.validate()
+        with ContainerValidator(notebook) as cv:
+            # host_port = "8889"
+            validated = cv.validate()
 
         notebook.is_validated = validated
         notebook.save()
@@ -73,15 +71,12 @@ class NotebookThread(Thread):
                 logger.error(f"No requests for execution: {str(ex)}")
                 return
 
-        container = Container(notebook)
-        # host_port = "8889"
-
-        container.run()
-
-        request.started_at = localtime()
-        container.execute()
-        request.finished_at = localtime()
-        request.save()
+        with ContainerExecutor(notebook) as ce:
+            # host_port = "8889"
+            request.started_at = localtime()
+            ce.execute()
+            request.finished_at = localtime()
+            request.save()
 
 
         with self.state.lock:
