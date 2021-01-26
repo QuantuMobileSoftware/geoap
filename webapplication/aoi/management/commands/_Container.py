@@ -1,5 +1,4 @@
 import docker
-import requests
 import logging
 import time
 import random
@@ -7,7 +6,7 @@ import random
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from docker.types import DeviceRequest
-from sip.settings import HOST_VOLUME
+from sip.settings import HOST_VOLUME, NOTEBOOK_EXECUTOR_GPUS
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class Container:
             shm_size: str = "1G",
             container_volume: str = "/home/jovyan/work",
             environment: Optional[dict] = None,
-            gpus: Optional[str] = "all", ):
+            gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
         environment = {"JUPYTER_ENABLE_LAB": "yes",
                        "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment

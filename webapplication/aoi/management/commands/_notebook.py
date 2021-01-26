@@ -48,10 +48,8 @@ class NotebookThread(Thread):
 
         container = Container(notebook)
         # host_port = "8889"
-        # TODO: check on GPUs images
-        gpus = None # "all"
+        container.run()
 
-        container.run(gpus=gpus)
         validated = container.validate()
 
         notebook.is_validated = validated
@@ -77,9 +75,8 @@ class NotebookThread(Thread):
 
         container = Container(notebook)
         # host_port = "8889"
-        gpus = None # "all"
 
-        container.run(gpus=gpus)
+        container.run()
 
         request.started_at = localtime()
         container.execute()
