@@ -18,6 +18,7 @@ services:
       dockerfile: prod.Dockerfile
     volumes:
       - /home/quantum/sip:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-prod
       - POSTGRES_DB=sip_db
