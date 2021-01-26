@@ -55,12 +55,10 @@ class Container:
             stderr=True, )
 
     def __enter__(self):
-        logger.info(f"Called __enter__ for {self.notebook.name}")
         self.__run()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        logger.info(f"Called __exit__ for {self.notebook.name}")
         self.container.stop()
 
     def get_token(self, sleep: int = 5):
