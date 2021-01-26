@@ -98,21 +98,3 @@ class Container:
 
         return token
 
-
-# TODO: probably for next tasks
-def __login(url, token):
-    print("LOGGGIN")
-    s = requests.Session()
-    url='http://0.0.0.0:8889/login'
-    print("GET SESSION")
-    resp=requests.get(url)
-    print("SESSION")
-    xsrf_cookie = resp.cookies['_xsrf']
-    print("XSRF")
-    print(xsrf_cookie)
-
-    params={'_xsrf':xsrf_cookie,'token': token}
-    response = s.post(url, data=params)
-
-    print(response.status_code)
-    print(response.json())
