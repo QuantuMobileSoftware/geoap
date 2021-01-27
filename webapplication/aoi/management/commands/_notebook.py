@@ -74,6 +74,7 @@ class NotebookThread(Thread):
         with ContainerExecutor(notebook) as ce:
             # host_port = "8889"
             request.started_at = localtime()
+            request.save()
             ce.execute()
             request.finished_at = localtime()
             request.save()
