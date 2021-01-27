@@ -26,7 +26,7 @@ class NotebookThread(Thread):
         while True:
             try:
 
-                # self.validate_notebook()
+                self.validate_notebook()
                 self.execute_notebook()
 
             except Exception as e:
