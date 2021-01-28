@@ -175,6 +175,7 @@ export default function createMap(
 
                                 requestModel.getResults(aoi.properties.id);
                                 requestModel.getRequests(aoi.properties.id);
+                                requestModel.getNotebooks();
                                 requestModel.closeRequestForm();
 
                                 layer.setStyle({

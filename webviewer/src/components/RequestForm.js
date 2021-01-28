@@ -51,8 +51,8 @@ export default function createRequestForm(
         );
         const options = [emptyOption];
 
-        if (requestModel.notebooks.length) {
-            requestModel.notebooks.forEach((notebook) => {
+        if (requestModel.notebooks.items.length) {
+            requestModel.notebooks.items.forEach((notebook) => {
                 const option = createElement("option", {
                     value: notebook.id,
                 }).setChildren(notebook.name);

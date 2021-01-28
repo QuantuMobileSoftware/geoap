@@ -55,6 +55,7 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
                 currentId = aoi.properties.id;
                 requestModel.getResults(currentId);
                 requestModel.getRequests(currentId);
+                requestModel.getNotebooks();
             });
 
             aoisElts.push(aoiElt);

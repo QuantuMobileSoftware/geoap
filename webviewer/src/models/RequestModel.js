@@ -7,7 +7,10 @@ export default class RequestModel extends EventTarget {
         this.apiWrapper = apiWrapper;
         this.requests = [];
         this.results = [];
-        this.notebooks = [];
+        this.notebooks = {
+            loaded: false,
+            items: [],
+        };
     }
 
     getResults(id) {
@@ -25,7 +28,9 @@ export default class RequestModel extends EventTarget {
                         x.boundingCoordinates.push([longlat[1], longlat[0]]);
                     });
                 });
-                this.dispatchEvent(new CustomEvent("resultsLoaded", { detail: { id } }));
+                this.dispatchEvent(
+                    new CustomEvent("resultsLoaded", { detail: { id } })
+                );
             }
         });
     }
@@ -36,17 +41,25 @@ export default class RequestModel extends EventTarget {
                 this.dispatchEvent(new Event("error"));
             } else {
                 this.requests = [...res];
-                this.dispatchEvent(new CustomEvent("requestsLoaded", { detail: { id } }));
+                this.dispatchEvent(
+                    new CustomEvent("requestsLoaded", { detail: { id } })
+                );
             }
         });
     }
 
     getNotebooks() {
+        if (this.notebooks.loaded) {
+            return;
+        }
         this.apiWrapper.sendGetRequest(`/notebook`, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                this.notebooks = [...res];
+                this.notebooks = {
+                    loaded: true,
+                    items: [...res],
+                };
             }
         });
     }

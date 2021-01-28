@@ -71,7 +71,6 @@ userModel.addEventListener("loggedout", () => {
 
 root.componentDidMount = () => {
     userModel.getUserDetails();
-    requestModel.getNotebooks();
 };
 
 window.addEventListener("DOMContentLoaded", () => {
