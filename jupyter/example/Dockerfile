@@ -26,6 +26,9 @@ RUN $CONDA_DIR/envs/${conda_env}/bin/python -m ipykernel install --user --name=$
 
 USER $NB_UID
 
+RUN mkdir code
+COPY ./code code/
+
 # any additional pip installs
 RUN $CONDA_DIR/envs/${conda_env}/bin/pip install --requirement /tmp/requirements_37.txt && \
                                                    fix-permissions $CONDA_DIR && \
