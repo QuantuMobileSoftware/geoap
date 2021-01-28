@@ -72,9 +72,11 @@ class NotebookThread(Thread):
         try:
             with ContainerExecutor(notebook) as ce:
                 request.started_at = localtime()
-                success = ce.execute(request.pk)
-                request.finished_at = localtime()
+                request.save()
 
+                success = ce.execute(request.pk)
+
+                request.finished_at = localtime()
                 request.success = success
                 request.save()
         except Exception as ex:
