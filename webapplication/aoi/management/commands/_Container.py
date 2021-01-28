@@ -1,12 +1,28 @@
+from pathlib import Path
+
 import docker
 import logging
 import time
+import nbformat
+import os
 
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from docker.types import DeviceRequest
 from django.utils.timezone import localtime
-from sip.settings import HOST_VOLUME, NOTEBOOK_EXECUTOR_GPUS, CELL_EXECUTION_TIMEOUT
+from sip.settings import (HOST_VOLUME,
+                          NOTEBOOK_EXECUTOR_GPUS,
+                          CELL_EXECUTION_TIMEOUT,
+                          NOTEBOOKS_FOLDER, )
+
+from nbparameterise import (
+    extract_parameters,
+    replace_definitions,
+    parameter_values
+)
+from nbparameterise import code, Parameter
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -103,11 +119,13 @@ class ContainerExecutor(Container):
         date = localtime().strftime("%Y%m%d")
         output = f"{self.notebook.name}_{request_pk}_{date}"
 
+        save_path = self.add_input_data(request_pk)
+
         command = f"""jupyter nbconvert 
                       --to notebook
                       --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
                       --execute {self.notebook.path} 
-                      --output {output}
+                      --output {save_path}
                       {kernel} 
                     """
 
@@ -120,3 +138,40 @@ class ContainerExecutor(Container):
         else:
             logger.error(f"{self.notebook.name}: {output.decode('utf-8')}")
             return False
+
+    def get_notebook_path(self):
+        rel_path = self.notebook.path.split("notebooks/")[1]
+        path = os.path.join(NOTEBOOKS_FOLDER, rel_path)
+        return path
+
+    def add_input_data(self, request_pk):
+        path = self.get_notebook_path()
+        with open(path) as file:
+            nb = nbformat.read(file, as_version=4)
+            origin_parameters = extract_parameters(nb)
+
+        logger.info(f"{self.notebook.name}: origin parameters: {origin_parameters}")
+
+        new_parameters = dict(NEW_START_DATE="2020-01-01",
+                              NEW_END_DATE="2020-02-02")
+
+        # update nb parameters
+        parameters = parameter_values(origin_parameters, **new_parameters)
+        print("CHANGED PARAMETERS")
+        print(parameters)
+        print(type(parameters))
+        parameters.append(Parameter('NEW_START_DATE', str, "2020-02-02"))
+        print("ADDED PARAMETERS")
+        print(parameters)
+        new_nb = replace_definitions(nb, parameters, execute=False)
+
+        date = localtime().strftime("%Y%m%d")
+        output = f"{self.notebook.name}_{request_pk}_{date}.ipynb"
+
+        save_path = os.path.join(os.path.dirname(path), output)
+        logger.info(f"Save path: {save_path}")
+        with open(save_path, "w", encoding="utf-8") as f:
+            nbformat.write(new_nb, f)
+
+        return save_path
+
