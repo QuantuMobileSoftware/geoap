@@ -1,12 +1,12 @@
 import docker
 import logging
 import time
-import random
 
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from docker.types import DeviceRequest
-from sip.settings import HOST_VOLUME, NOTEBOOK_EXECUTOR_GPUS
+from django.utils.timezone import localtime
+from sip.settings import HOST_VOLUME, NOTEBOOK_EXECUTOR_GPUS, CELL_EXECUTION_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,6 @@ class Container:
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
-
-        self.client = docker.from_env()
-        self.image = self.client.images.get(notebook.image)
 
         self.notebook = notebook
         self.host_port = host_port
@@ -43,8 +40,10 @@ class Container:
         self.token = None
 
     def __run(self):
-        self.container = self.client.containers.run(
-            image=self.image,
+        client = docker.from_env()
+        image = client.images.get(self.notebook.image)
+        self.container = client.containers.run(
+            image=image,
             ports={f"{self.container_port}/TCP": self.host_port},
             shm_size=self.shm_size,
             volumes={self.host_volume: {"bind": self.container_volume, "mode": "rw"}},
@@ -82,7 +81,7 @@ class ContainerValidator(Container):
         # TODO: add validation logic
         logger.info(f"Start validation for {self.notebook.name}")
         time.sleep(2)
-        token = self.get_token(2)
+        token = self.get_token()
         logger.info(f"Validation: {self.notebook.name} token: {token}")
         logger.info(f"Finished validation for {self.notebook.name}")
 
@@ -95,13 +94,29 @@ class ContainerExecutor(Container):
     def __init__(self, notebook):
         super().__init__(notebook)
 
-    def execute(self):
-        # TODO: add execution logic
-        logger.info(f"Start execution for {self.notebook.name}")
-        sleep = random.randint(9, 20)
-        logger.info(f"Sleeping: {sleep} sec")
-        time.sleep(sleep)
-        token = self.get_token(1)
-        logger.info(f"Execution: {self.notebook.name} token: {token}")
+    def execute(self, request_pk):
+        logger.info(f"Start execution {self.notebook.name}")
 
-        logger.info(f"Finished execution for {self.notebook.name}")
+        kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
+            if self.notebook.kernel_name else ""
+
+        date = localtime().strftime("%Y%m%d")
+        output = f"{self.notebook.name}_{request_pk}_{date}"
+
+        command = f"""jupyter nbconvert 
+                      --to notebook
+                      --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
+                      --execute {self.notebook.path} 
+                      --output {output}
+                      {kernel} 
+                    """
+
+        exit_code, output = self.container.exec_run(command)
+
+        logger.info(f"Finished execution {self.notebook.name} with exit code: {exit_code}")
+
+        if exit_code == 0:
+            return True
+        else:
+            logger.error(f"{self.notebook.name}: {output.decode('utf-8')}")
+            return False
