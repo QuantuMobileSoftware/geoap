@@ -170,7 +170,6 @@ export default function createMap(
                             if (aoi.properties.id === feature.properties.id) {
                                 mapModel.selectAoi({
                                     ...aoi,
-                                    leafletId: layer._leaflet_id,
                                 });
 
                                 requestModel.getResults(aoi.properties.id);
@@ -180,7 +179,7 @@ export default function createMap(
 
                                 layer.setStyle({
                                     color: "#ff7f50",
-                                    fillOpacity: 0.7,
+                                    fillOpacity: 0,
                                 });
                             }
                         });
@@ -317,7 +316,7 @@ export default function createMap(
             ) {
                 layer.setStyle({
                     color: "#ff7f50",
-                    fillOpacity: 0.7,
+                    fillOpacity: 0,
                 });
 
                 map.panInsideBounds(layer.getBounds())

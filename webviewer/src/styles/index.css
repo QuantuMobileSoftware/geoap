@@ -299,6 +299,20 @@ body {
     font-size: 16px;
 }
 
+.aoislist__results-item {
+    width: 288px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aoislist__requests-item-text {
+    width: 255px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .aoislist__requests-item-text {
     font-size: 15px;
     font-style: italic;
@@ -328,6 +342,13 @@ body {
     font-size: 18px;
 }
 
+.aoislist__item-text {
+    width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .aoislist__item:first-child {
     border-bottom: none;
 }
@@ -351,6 +372,14 @@ body {
     display: none;
 }
 
+.aoislist__item-edit {
+    background: url("../images/pen-w.svg") no-repeat center;
+    width: 17px;
+    height: 17px;
+    margin-right: 5px;
+    display: none;
+}
+
 .aoislist__emptyitem {
     padding: 10px;
     text-align: center;
@@ -369,6 +398,10 @@ body {
     display: block;
 }
 
+.aoislist__item--active .aoislist__item-edit {
+    display: block;
+}
+
 .aoislist__item:hover {
     background-color: rgba(51, 136, 255, 0.794);
     cursor: pointer;
@@ -381,6 +414,10 @@ body {
 
 .aoislist__item-remove:hover {
     background: url("../images/bin-b.svg") no-repeat center;
+}
+
+.aoislist__item-edit:hover {
+    background: url("../images/pen-b.svg") no-repeat center;
 }
 
 /* request form */
@@ -436,18 +473,16 @@ body {
     justify-content: flex-end;
 }
 
-
 /* confirm dialog */
 
 .dialog-holder {
-
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
     z-index: 10;
-    background-color: rgb(224, 224, 224,  .8);
+    background-color: rgb(224, 224, 224, 0.8);
     display: flex;
 }
 
@@ -472,4 +507,12 @@ body {
 
 .dialog__buttons .button {
     margin-left: 10px;
+}
+
+.dialog__error {
+    margin-bottom: 15px;
+    color: rgba(255, 19, 38, 1);
+    font-size: 13px;
+    padding-left: 6px;
+    margin-top: -10px;
 }

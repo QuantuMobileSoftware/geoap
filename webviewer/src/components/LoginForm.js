@@ -3,8 +3,15 @@
 import { Div } from "@adolgarev/domwrapper/src";
 
 export default function createLoginForm(widgetFactory, userModel) {
-    const usernameField = widgetFactory.createTextField("Username");
-    const passwordField = widgetFactory.createPasswordField("Password");
+    const usernameField = widgetFactory.createTextField({
+        label: "Username",
+        placeholder: "Enter username",
+    });
+    const passwordField = widgetFactory.createTextField({
+        label: "Password",
+        placeholder: "Enter password",
+        type: 'password'
+    });
     const loginButton = widgetFactory
         .createButton({ type: "button", class: "button button--login" })
         .setChildren("Login")

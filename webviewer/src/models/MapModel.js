@@ -68,7 +68,6 @@ export default class MapModel extends EventTarget {
                             properties: {
                                 name: res.name,
                                 id: res.id,
-                                leafletId: layer._leaflet_id,
                             },
                             geometry: getGeometry(res),
                         },
@@ -102,7 +101,37 @@ export default class MapModel extends EventTarget {
                             properties: {
                                 name: res.name,
                                 id: res.id,
-                                leafletId: layer._leaflet_id,
+                            },
+                            geometry: getGeometry(res),
+                        },
+                    ];
+                    this.dispatchEvent(new Event("aoiupdated"));
+                }
+            }
+        );
+    }
+
+    updateAoiName(dataObject) {
+        const wkt = new Wkt.Wkt();
+        const { geometry, ...data } = dataObject;
+        const polygon = wkt.fromObject(geometry).write();
+
+        this.apiWrapper.sendPatchRequest(
+            `/aoi/${data.id}`,
+            { ...data, polygon },
+            (err, res) => {
+                if (err) {
+                    this.dispatchEvent(new Event("error"));
+                } else {
+                    this.aois = [
+                        ...this.aois.filter(
+                            (aoi) => aoi.properties.id !== res.id
+                        ),
+                        {
+                            type: "Feature",
+                            properties: {
+                                name: res.name,
+                                id: res.id,
                             },
                             geometry: getGeometry(res),
                         },
