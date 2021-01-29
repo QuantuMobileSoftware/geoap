@@ -1,5 +1,4 @@
-from pathlib import Path
-
+import copy
 import docker
 import logging
 import time
@@ -15,12 +14,8 @@ from sip.settings import (HOST_VOLUME,
                           CELL_EXECUTION_TIMEOUT,
                           NOTEBOOKS_FOLDER, )
 
-from nbparameterise import (
-    extract_parameters,
-    replace_definitions,
-    parameter_values
-)
-from nbparameterise import code, Parameter
+from nbparameterise import extract_parameters, Parameter
+from nbparameterise.code import first_code_cell
 
 
 
@@ -119,13 +114,11 @@ class ContainerExecutor(Container):
         date = localtime().strftime("%Y%m%d")
         output = f"{self.notebook.name}_{request_pk}_{date}"
 
-        save_path = self.add_input_data(request_pk)
-
         command = f"""jupyter nbconvert 
                       --to notebook
                       --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
                       --execute {self.notebook.path} 
-                      --output {save_path}
+                      --output {output}
                       {kernel} 
                     """
 
@@ -139,39 +132,70 @@ class ContainerExecutor(Container):
             logger.error(f"{self.notebook.name}: {output.decode('utf-8')}")
             return False
 
-    def get_notebook_path(self):
-        rel_path = self.notebook.path.split("notebooks/")[1]
-        path = os.path.join(NOTEBOOKS_FOLDER, rel_path)
-        return path
 
-    def add_input_data(self, request_pk):
-        path = self.get_notebook_path()
-        with open(path) as file:
-            nb = nbformat.read(file, as_version=4)
-            origin_parameters = extract_parameters(nb)
+class NotebookEditor:
 
-        logger.info(f"{self.notebook.name}: origin parameters: {origin_parameters}")
+    def __init__(self, request):
 
-        new_parameters = dict(NEW_START_DATE="2020-01-01",
-                              NEW_END_DATE="2020-02-02")
+        self.request_pk = request.pk
+        self.notebook_name = request.notebook.name
 
-        # update nb parameters
-        parameters = parameter_values(origin_parameters, **new_parameters)
-        print("CHANGED PARAMETERS")
+        self.PARAMS = dict(REQUEST_ID=request.pk,
+                           AOI=request.aoi.polygon.ewkt,
+                           START_DATE=str(request.date_from) if request.date_from else None,
+                           END_DATE=str(request.date_to) if request.date_to else None, )
+
+        self.path = self._get_path()
+        self.original_notebook = self.read()
+
+    def _get_path(self):
+        name = self.notebook_name + ".ipynb"
+        for root, _, files in os.walk(NOTEBOOKS_FOLDER):
+            if name in files:
+                return os.path.join(root, name)
+        else:
+            raise ValueError(f"Path for {name} not found!")
+
+    def edit(self):
+        # cell = nbformat.v4.new_code_cell()
+        # cell.pop('id')
+        # self.notebook_json.cells.insert(0, cell)
+
+        origin_parameters = extract_parameters(self.original_notebook)
+
+        parameters = [Parameter(param, type(int), value)
+                      for param, value in self.PARAMS.items()]
+
+        for origin in origin_parameters:
+            if origin.name not in list(self.PARAMS):
+                parameters.append(origin)
+
+        edited_notebook = self._replace_parameters(self.original_notebook, parameters)
         print(parameters)
-        print(type(parameters))
-        parameters.append(Parameter('NEW_START_DATE', str, "2020-02-02"))
-        print("ADDED PARAMETERS")
-        print(parameters)
-        new_nb = replace_definitions(nb, parameters, execute=False)
 
+        self.save(edited_notebook)
+
+    def _replace_parameters(self, notebook, parameters):
+        notebook = copy.deepcopy(notebook)
+        first_code_cell(notebook).source = self._build_replacing(parameters)
+        return notebook
+
+    def _build_replacing(self, parameters):
+        return "\n".join("{0.name} = {0.value!r}".format(param) for param in parameters)
+
+
+    def read(self):
+        with open(self.path) as file:
+            notebook = nbformat.read(file, as_version=4)
+        return notebook
+
+
+    def save(self, nb):
         date = localtime().strftime("%Y%m%d")
-        output = f"{self.notebook.name}_{request_pk}_{date}.ipynb"
+        output = os.path.join (os.path.dirname(self.path),
+                               f"{self.notebook_name}_{self.request_pk}_{date}_EDITED.ipynb")
 
-        save_path = os.path.join(os.path.dirname(path), output)
-        logger.info(f"Save path: {save_path}")
-        with open(save_path, "w", encoding="utf-8") as f:
-            nbformat.write(new_nb, f)
+        with open(output, "w", encoding="utf-8") as file:
+            nbformat.write(nb, file)
 
-        return save_path
 
