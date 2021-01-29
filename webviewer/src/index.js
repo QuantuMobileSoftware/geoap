@@ -31,7 +31,7 @@ const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
-const aoisList = createAoisList(widgetFactory, mapModel, requestModel);
+const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel);
 const requestForm = createRequestForm(widgetFactory, userModel, requestModel);
 const map = createMap(widgetFactory, mapModel, requestModel, userModel);
 
