@@ -8,6 +8,8 @@ from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
+THREAD_SLEEP = 10
+
 
 class State:
     def __init__(self):
@@ -24,61 +26,59 @@ class NotebookThread(Thread):
     def run(self):
         while True:
             try:
-
                 self.validate_notebook()
                 self.execute_notebook()
-
             except Exception as e:
                 logger.exception(e)
-            time.sleep(10)
+            time.sleep(THREAD_SLEEP)
 
     def validate_notebook(self):
-        logger.info(f"Now validating notebooks: {self.state.validating_notebooks}")
+        logger.info(f"Validating notebooks: {self.state.validating_notebooks}")
 
-        # find any notebook that is not validated yet
         with self.state.lock:
-            try:
-                notebook = JupyterNotebook.objects.filter(is_validated=False) \
-                    .exclude(pk__in=self.state.validating_notebooks)[0]
-
-                self.state.validating_notebooks.add(notebook.pk)
-            except IndexError as ex:
-                logger.error(f"No notebooks for validation: {str(ex)}")
+            # find any notebook that is not validated yet
+            notebook = JupyterNotebook.objects.filter(is_validated=False) \
+                    .exclude(pk__in=self.state.validating_notebooks).first()
+            if not notebook:
                 return
 
-        with ContainerValidator(notebook) as cv:
-            # host_port = "8889"
-            validated = cv.validate()
+            self.state.validating_notebooks.add(notebook.pk)
 
-        notebook.is_validated = validated
-        notebook.save()
-
-        with self.state.lock:
-            if validated:
+        try:
+            with ContainerValidator(notebook) as cv:
+                validated = cv.validate()
+            notebook.is_validated = validated
+            notebook.save()
+        except Exception as ex:
+            logger.error(f"{notebook.name}: {str(ex)}")
+        finally:
+            with self.state.lock:
                 self.state.validating_notebooks.remove(notebook.pk)
 
     def execute_notebook(self):
-        logger.info(f"Now executing requests: {self.state.executing_requests}")
+        logger.info(f"Executing requests: {self.state.executing_requests}")
 
         with self.state.lock:
-            # find any notebook that is not executed yet
-            try:
-                request = Request.objects.filter(started_at__isnull=True) \
-                    .exclude(pk__in=self.state.executing_requests)[0]
-                notebook = request.notebook
-                self.state.executing_requests.add(request.pk)
-            except IndexError as ex:
-                logger.error(f"No requests for execution: {str(ex)}")
+            # find any request that is not executed yet
+            request = Request.objects.filter(started_at__isnull=True) \
+                    .exclude(pk__in=self.state.executing_requests).first()
+            if not request:
                 return
 
-        with ContainerExecutor(notebook) as ce:
-            # host_port = "8889"
+            notebook = request.notebook
+            self.state.executing_requests.add(request.pk)
+
+        success = False
+        try:
             request.started_at = localtime()
             request.save()
-            ce.execute()
+            with ContainerExecutor(notebook) as ce:
+                success = ce.execute(request.pk)
+        except Exception as ex:
+            logger.error(f"{notebook.name}: {str(ex)}")
+        finally:
             request.finished_at = localtime()
+            request.success = success
             request.save()
-
-
-        with self.state.lock:
-            self.state.executing_requests.remove(request.pk)
+            with self.state.lock:
+                self.state.executing_requests.remove(request.pk)
