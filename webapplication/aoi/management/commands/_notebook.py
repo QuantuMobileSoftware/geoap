@@ -8,6 +8,8 @@ from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
+THREAD_SLEEP = 10
+
 
 class State:
     def __init__(self):
@@ -15,7 +17,6 @@ class State:
         self.validating_notebooks = set()
         self.executing_requests = set()
 
-THREAD_SLEEP = 10
 
 class NotebookThread(Thread):
     def __init__(self, state, *args, **kwargs):
@@ -25,10 +26,8 @@ class NotebookThread(Thread):
     def run(self):
         while True:
             try:
-
                 self.validate_notebook()
                 self.execute_notebook()
-
             except Exception as e:
                 logger.exception(e)
             time.sleep(THREAD_SLEEP)
@@ -48,8 +47,8 @@ class NotebookThread(Thread):
         try:
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
-                notebook.is_validated = validated
-                notebook.save()
+            notebook.is_validated = validated
+            notebook.save()
         except Exception as ex:
             logger.error(f"{notebook.name}: {str(ex)}")
         finally:
@@ -74,9 +73,7 @@ class NotebookThread(Thread):
             request.started_at = localtime()
             request.save()
             with ContainerExecutor(notebook) as ce:
-
                 success = ce.execute(request.pk)
-
         except Exception as ex:
             logger.error(f"{notebook.name}: {str(ex)}")
         finally:
@@ -85,4 +82,3 @@ class NotebookThread(Thread):
             request.save()
             with self.state.lock:
                 self.state.executing_requests.remove(request.pk)
-
