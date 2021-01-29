@@ -3,7 +3,7 @@
 import { Div } from "@adolgarev/domwrapper";
 
 export default function createLayerDetails(widgetFactory, mapModel) {
-    const box = Div({ class: "fixed fixed--bl" });
+    const box = Div({ class: "fixed fixed--details" });
 
     const layerOptionsContainer = Div({ class: "details__options" });
 
@@ -19,7 +19,7 @@ export default function createLayerDetails(widgetFactory, mapModel) {
             },
             "range__input"
         );
-        const label = Div({ class: "range__label" }).setChildren("Opacity");
+        const label = Div({ class: "label" }).setChildren("Opacity");
         layerOptionsContainer.setChildren(label, input);
         box.setChildren(layerOptionsContainer);
     });

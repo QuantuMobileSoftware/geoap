@@ -1,36 +1,52 @@
 "use strict";
 
-import "./normalize.css";
-import "./index.css";
-import { render, createElement, Div, Span } from "@adolgarev/domwrapper";
-import WidgetFactory from "./WidgetFactory";
-import UserModel from "./UserModel";
-import APIWrapper from "./APIWrapper";
-import createLoginForm from "./LoginForm";
-import MapModel from "./MapModel";
-import createMap from "./Map";
-import createLayersSelector from "./LayersSelector";
-import createFeatureDetails from "./FeatureDetails";
-import createLayerDetails from "./LayerDetails";
+import "./styles/normalize.css";
+import "./styles/index.css";
+
+import { render, Div } from "@adolgarev/domwrapper";
+
+import WidgetFactory from "./utils/WidgetFactory";
+import APIWrapper from "./utils/APIWrapper";
+
+import UserModel from "./models/UserModel";
+import MapModel from "./models/MapModel";
+import RequestModel from "./models/RequestModel";
+
+import createFeatureDetails from "./components/FeatureDetails";
+import createLayerDetails from "./components/LayerDetails";
+
+import createLoginForm from "./components/LoginForm";
+import createAoisList from "./components/AoisList";
+import createRequestForm from "./components/RequestForm";
+import createMap from "./components/Map";
 
 const apiWrapper = new APIWrapper();
-const userModel = new UserModel(apiWrapper);
 const widgetFactory = new WidgetFactory();
-const loginForm = createLoginForm(widgetFactory, userModel);
+
+const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
-const map = createMap(widgetFactory, mapModel);
-const layersSelector = createLayersSelector(widgetFactory, mapModel);
+const requestModel = new RequestModel(apiWrapper);
+
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 const layerDetails = createLayerDetails(widgetFactory, mapModel);
+
+const loginForm = createLoginForm(widgetFactory, userModel);
+const aoisList = createAoisList(widgetFactory, mapModel, requestModel);
+const requestForm = createRequestForm(widgetFactory, userModel, requestModel);
+const map = createMap(widgetFactory, mapModel, requestModel, userModel);
+
 const root = Div({ class: "container" });
 
-const messageContainer = Div();
+const messageContainer = Div({class: 'message-container'});
 apiWrapper.addEventListener("error", (e) => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
-            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
-                messageContainer.setChildren();
-            })
+            widgetFactory.createErrorMessageBar(
+                e.detail.non_field_errors[0],
+                () => {
+                    messageContainer.setChildren();
+                }
+            )
         );
     }
 });
@@ -40,11 +56,12 @@ userModel.addEventListener("loggedin", () => {
     messageContainer.setChildren();
 
     root.setChildren(
-        map,
-        layersSelector,
         featureDetails,
         layerDetails,
-        messageContainer
+        messageContainer,
+        aoisList,
+        requestForm,
+        map
     );
 });
 

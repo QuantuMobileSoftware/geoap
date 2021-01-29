@@ -1,7 +1,6 @@
 "use strict";
 
 import { Div, Span, createElement } from "@adolgarev/domwrapper";
-
 export default class WidgetFactory {
     generateRandomId(prefix) {
         return prefix + Math.random().toString(36).substring(7);
@@ -15,18 +14,18 @@ export default class WidgetFactory {
         const inputEltId = this.generateRandomId("TextField");
         const labelElt = createElement("label", {
             for: inputEltId,
-            class: "input__label",
+            class: "label",
         }).setChildren(placeholder);
 
         const inputElt = createElement("input", {
             value: "",
             id: inputEltId,
             type: typeOverride ? typeOverride : "text",
-            class: "input__field",
+            class: "input",
         }).addEventListener("blur", () =>
             inputElt.setAttribute("value", inputElt.getDOMElement().value)
         );
-        const box = Div({ class: "input" }).setChildren(labelElt, inputElt);
+        const box = Div({ class: "input-holder" }).setChildren(labelElt, inputElt);
         box.getValue = () => inputElt.getAttribute("value");
         box.setValue = (val) => inputElt.setAttribute("value", val);
         return box;
@@ -43,10 +42,23 @@ export default class WidgetFactory {
                 onCloseCb();
             }
         );
-        const messageText = Span({ class: "error__message" }).setChildren(
+        const messageText = Span({ class: "message" }).setChildren(
             message
         );
         return Div({ class: "error" }).setChildren(messageText, closeButton);
+    }
+
+    createSuccessMessageBar(message, onCloseCb) {
+        const closeButton = Span({ class: "close close--white" }).addEventListener(
+            "click",
+            () => {
+                onCloseCb();
+            }
+        );
+        const messageText = Span({ class: "message" }).setChildren(
+            message
+        );
+        return Div({ class: "success" }).setChildren(messageText, closeButton);
     }
 
     createRangeInput(min, max, value, onValueChangeCb, className) {
@@ -65,6 +77,38 @@ export default class WidgetFactory {
         };
         inputElt.addEventListener("click", cb);
         inputElt.addEventListener("touchend", cb);
+        return inputElt;
+    }
+
+    createDateInput(min, max, value, onValueChangeCb, className){
+        const inputElt = createElement("input", {
+            type: "date",
+            min,
+            max,
+            value,
+            ...(className && { class: className }),
+        });
+
+        const cb = () => {
+            const value = inputElt.getDOMElement().value;
+            inputElt.setAttribute("value", value);
+            onValueChangeCb(value);
+        };
+        inputElt.addEventListener("change", cb);
+        return inputElt;
+    }
+
+    createSelect(value, onValueChangeCb, className){
+        const inputElt = createElement("select", {
+            value,
+            ...(className && { class: className }),
+        });
+
+        const cb = () => {
+            const value = inputElt.getDOMElement().value;
+            onValueChangeCb(value);
+        };
+        inputElt.addEventListener("change", cb);
         return inputElt;
     }
 }
