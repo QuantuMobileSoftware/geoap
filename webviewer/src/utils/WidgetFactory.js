@@ -10,54 +10,48 @@ export default class WidgetFactory {
         return createElement("button", params);
     }
 
-    createTextField(placeholder, typeOverride) {
+    createTextField({ label, type, value, placeholder }) {
         const inputEltId = this.generateRandomId("TextField");
         const labelElt = createElement("label", {
             for: inputEltId,
             class: "label",
-        }).setChildren(placeholder);
+        }).setChildren(label);
 
         const inputElt = createElement("input", {
-            value: "",
+            placeholder: placeholder ? placeholder : "",
+            type: type ? type : "text",
+            value: value ? value : "",
             id: inputEltId,
-            type: typeOverride ? typeOverride : "text",
             class: "input",
         }).addEventListener("blur", () =>
             inputElt.setAttribute("value", inputElt.getDOMElement().value)
         );
-        const box = Div({ class: "input-holder" }).setChildren(labelElt, inputElt);
+        const box = Div({ class: "input-holder" }).setChildren(
+            labelElt,
+            inputElt
+        );
         box.getValue = () => inputElt.getAttribute("value");
         box.setValue = (val) => inputElt.setAttribute("value", val);
         return box;
     }
 
-    createPasswordField(placeholder) {
-        return this.createTextField(placeholder, "password");
-    }
-
     createErrorMessageBar(message, onCloseCb) {
-        const closeButton = Span({ class: "close close--white" }).addEventListener(
-            "click",
-            () => {
-                onCloseCb();
-            }
-        );
-        const messageText = Span({ class: "message" }).setChildren(
-            message
-        );
+        const closeButton = Span({
+            class: "close close--white",
+        }).addEventListener("click", () => {
+            onCloseCb();
+        });
+        const messageText = Span({ class: "message" }).setChildren(message);
         return Div({ class: "error" }).setChildren(messageText, closeButton);
     }
 
     createSuccessMessageBar(message, onCloseCb) {
-        const closeButton = Span({ class: "close close--white" }).addEventListener(
-            "click",
-            () => {
-                onCloseCb();
-            }
-        );
-        const messageText = Span({ class: "message" }).setChildren(
-            message
-        );
+        const closeButton = Span({
+            class: "close close--white",
+        }).addEventListener("click", () => {
+            onCloseCb();
+        });
+        const messageText = Span({ class: "message" }).setChildren(message);
         return Div({ class: "success" }).setChildren(messageText, closeButton);
     }
 
@@ -80,7 +74,7 @@ export default class WidgetFactory {
         return inputElt;
     }
 
-    createDateInput(min, max, value, onValueChangeCb, className){
+    createDateInput(min, max, value, onValueChangeCb, className) {
         const inputElt = createElement("input", {
             type: "date",
             min,
@@ -98,7 +92,7 @@ export default class WidgetFactory {
         return inputElt;
     }
 
-    createSelect(value, onValueChangeCb, className){
+    createSelect(value, onValueChangeCb, className) {
         const inputElt = createElement("select", {
             value,
             ...(className && { class: className }),

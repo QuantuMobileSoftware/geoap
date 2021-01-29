@@ -2,11 +2,16 @@
 
 import { Div } from "@adolgarev/domwrapper";
 
-import Dialog from "./Dialod";
+import Dialog from "./Dialog";
 
 const confirmContainer = Div({ class: "confirm-container" });
 
-export default function createAoisList(widgetFactory, mapModel, requestModel) {
+export default function createAoisList(
+    widgetFactory,
+    mapModel,
+    requestModel,
+    userModel
+) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
     const aoisContainer = Div({ class: "aoislist-holder" });
@@ -77,6 +82,34 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
                 title: "Are you sure want to delete AOI?",
                 onSuccess: successCallback,
                 onCancel: cancelCallback,
+                error: true,
+                buttonLabel: "Delete",
+            })
+        );
+    };
+
+    const confirmEdit = (aoi) => (e) => {
+        const successCallback = (name) => {
+            mapModel.updateAoiName({
+                name,
+                id: aoi.properties.id,
+                geometry: aoi.geometry,
+                user: userModel.user_id,
+            });
+            confirmContainer.setChildren();
+        };
+        const cancelCallback = () => confirmContainer.setChildren();
+
+        confirmContainer.setChildren(
+            Dialog({
+                input: true,
+                inputLabel: "AOI name",
+                inputPlaceholder: "Enter new name",
+                inputValue: aoi.properties.name,
+                title: `Rename ${aoi.properties.name}`,
+                buttonLabel: "Ok",
+                onSuccess: successCallback,
+                onCancel: cancelCallback,
             })
         );
     };
@@ -95,8 +128,11 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
             const removeIcon = Div({
                 class: "aoislist__item-remove",
             });
+            const editIcon = Div({
+                class: "aoislist__item-edit",
+            });
 
-            controls.setChildren(removeIcon, arrowIcon);
+            controls.setChildren(editIcon, removeIcon, arrowIcon);
 
             const isActive = aoi.properties.id === detail.aoi.properties.id;
             const aoiElt = Div({
@@ -130,6 +166,8 @@ export default function createAoisList(widgetFactory, mapModel, requestModel) {
                     "click",
                     confirmRemove(aoi.properties.id)
                 );
+
+                editIcon.addEventListener("click", confirmEdit(aoi));
 
                 openFormButton.addEventListener("click", () => {
                     requestModel.openRequestForm(aoi);
