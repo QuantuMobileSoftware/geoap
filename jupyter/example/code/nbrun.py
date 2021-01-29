@@ -15,6 +15,9 @@ import time
 from pathlib import Path
 from IPython.display import display, FileLink
 import nbformat
+from nbclient import execute
+import traceback
+from nbconvert.preprocessors import CellExecutionError
 from nbconvert.preprocessors import ExecutePreprocessor
 from nbconvert import HTMLExporter
 
@@ -147,7 +150,10 @@ def run_notebook(notebook_path, nb_kwargs=None, suffix='-out',
     if kernel_name is not None:
         execute_kwargs.update(kernel_name=kernel_name)
     ep = ExecutePreprocessor(**execute_kwargs)
+    ep.allow_errors = True
+    print(f'dyman_ep: {ep}')
     nb = nbformat.read(str(notebook_path), as_version=4)
+    print(f'dyman_nb: {nb}')
 
     if hide_input:
         nb["metadata"].update({"hide_input": True})
@@ -159,25 +165,30 @@ def run_notebook(notebook_path, nb_kwargs=None, suffix='-out',
     try:
         # Execute the notebook
         ep.preprocess(nb, {'metadata': {'path': working_dir}})
-    except:
+    except (CellExecutionError, Exception):
+        print(f'dyman_exc: {traceback.format_exc()}')
         # Execution failed, print a message then raise.
         msg = ('Error executing the notebook "%s".\n'
                'Notebook arguments: %s\n\n'
-               'See notebook "%s" for the traceback.' %
-               (notebook_path, str(nb_kwargs), out_path_ipynb))
+               'See notebook "%s" for the traceback.\n "%s"' %
+               (notebook_path, str(nb_kwargs), out_path_ipynb, traceback.format_exc()))
         print(msg)
+        msg = f'errors: {traceback.format_exc()}'
         timestamp += '\n\nError occurred during execution. See below.'
+        nb['cells'].insert(-1, nbformat.v4.new_markdown_cell(msg))
         raise
     finally:
         if add_timestamp:
             duration = time.time() - start_time
             timestamp = timestamp % (time.ctime(start_time), duration,
                                      notebook_path, out_path_ipynb)
-            timestamp_cell = nbformat.v4.new_markdown_cell(timestamp)
-            nb['cells'].insert(0, timestamp_cell)
+            # timestamp_cell = nbformat.v4.new_markdown_cell(timestamp)
+            # nb['cells'].insert(-1, nbformat.v4.new_markdown_cell(timestamp))
         # Save the executed notebook to disk
         if save_ipynb:
-            nbformat.write(nb, str(out_path_ipynb))
+            with open(out_path_ipynb, 'w', encoding='utf-8') as f:
+                nbformat.write(nb, f)
+
             if display_links:
                 display(FileLink(str(out_path_ipynb)))
         if save_html:
