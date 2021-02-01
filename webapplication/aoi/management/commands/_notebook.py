@@ -8,6 +8,8 @@ from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
+THREAD_SLEEP = 10
+
 
 class State:
     def __init__(self):
@@ -15,7 +17,6 @@ class State:
         self.validating_notebooks = set()
         self.executing_requests = set()
 
-THREAD_SLEEP = 10
 
 class NotebookThread(Thread):
     def __init__(self, state, *args, **kwargs):
@@ -25,10 +26,8 @@ class NotebookThread(Thread):
     def run(self):
         while True:
             try:
-
                 self.validate_notebook()
                 self.execute_notebook()
-
             except Exception as e:
                 logger.exception(e)
             time.sleep(THREAD_SLEEP)
@@ -48,8 +47,8 @@ class NotebookThread(Thread):
         try:
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
-                notebook.is_validated = validated
-                notebook.save()
+            notebook.is_validated = validated
+            notebook.save()
         except Exception as ex:
             logger.error(f"{notebook.name}: {str(ex)}")
         finally:
@@ -66,21 +65,21 @@ class NotebookThread(Thread):
             if not request:
                 return
 
+            notebook = request.notebook
             self.state.executing_requests.add(request.pk)
 
+        success = False
         try:
-            with ContainerExecutor(request) as ce:
-                request.started_at = localtime()
-                request.save()
-
-                success = ce.execute()
-
-                request.finished_at = localtime()
-                request.success = success
-                request.save()
+            request.started_at = localtime()
+            request.save()
+            with ContainerExecutor(notebook) as ce:
+                success = ce.execute(request.pk)
         except Exception as ex:
-            logger.error(f"Request: {request.pk}: {str(ex)}")
+            logger.error(f"{notebook.name}: {str(ex)}")
         finally:
+            request.finished_at = localtime()
+            request.success = success
+            request.save()
             with self.state.lock:
                 self.state.executing_requests.remove(request.pk)
 
