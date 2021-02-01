@@ -108,7 +108,6 @@ function initializeHandlers(map, mapModel, userModel) {
 
     map.on("editable:vertex:clicked", handleCustomPolygonCreate);
     map.on("editable:vertex:dragend", handlePolygonChange);
-    map.on("editable:dragend", handlePolygonChange);
 }
 
 export default function createMap(
@@ -309,7 +308,7 @@ export default function createMap(
     const onAoiSelected = (e) => {
         geojson && geojson.resetStyle();
 
-        Object.values(map._layers).forEach((layer) => {
+        geojson.getLayers().forEach((layer) => {
             if (
                 layer.feature &&
                 layer.feature.properties.id === e.detail.aoi.properties.id
@@ -319,17 +318,18 @@ export default function createMap(
                     fillOpacity: 0,
                 });
 
-                map.panInsideBounds(layer.getBounds())
+                map.panInsideBounds(layer.getBounds());
             }
         });
     };
 
     const onAoiDeleted = (e) => {
-        const layer = Object.values(map._layers).find((layer) => {
-            return layer.feature && layer.feature.properties.id === e.detail.id;
+        const i = geojson.getLayers().find((layer) => {
+            return layer.feature.properties.id === e.detail.id;
         });
 
-        geojson && geojson.removeLayer(layer);
+        map.editTools.featuresLayer.clearLayers();
+        geojson && geojson.removeLayer(i);
         geojson && geojson.resetStyle();
     };
 
