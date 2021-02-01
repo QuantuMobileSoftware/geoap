@@ -106,31 +106,34 @@ class ContainerExecutor(Container):
         self.request = request
 
     def execute(self):
-        logger.info(f"Start execution {self.notebook.name}")
+        logger.info(f"Start execution request {self.request.pk}: {self.notebook.name}")
 
         notebook_editor = NotebookEditor(self.request)
         output = notebook_editor.edit()
+        path = os.path.join(os.path.dirname(self.notebook.path),
+                            os.path.basename(output))
 
         kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
             if self.notebook.kernel_name else ""
 
         command = f"""jupyter nbconvert 
-                      --to notebook
                       --inplace
+                      --to notebook
+                      --allow-errors
                       --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
-                      --execute {self.notebook.path} 
-                      --output {output}
+                      --execute {path} 
                       {kernel} 
                     """
 
         exit_code, output = self.container.exec_run(command)
 
-        logger.info(f"Finished execution {self.notebook.name} with exit code: {exit_code}")
+        logger.info(f"Finished container execution request {self.request.pk}: "
+                    f"{self.notebook.name} with exit code: {exit_code}")
 
         if exit_code == 0:
             return True
         else:
-            logger.error(f"{self.notebook.name}: {output.decode('utf-8')}")
+            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {output.decode('utf-8')}")
             return False
 
 
@@ -155,16 +158,12 @@ class NotebookEditor:
             if name in files:
                 return os.path.join(root, name)
         else:
-            raise ValueError(f"Path for request {self.request_pk} and notebook {name} not found!")
+            raise ValueError(f"Request {self.request_pk}: path for notebook {name} not exists in {NOTEBOOKS_FOLDER}!")
 
     def edit(self):
-        # cell = nbformat.v4.new_code_cell()
-        # cell.pop('id')
-        # self.notebook_json.cells.insert(0, cell)
-
         origin_parameters = extract_parameters(self.original_notebook)
 
-        parameters = [Parameter(param, type(int), value)
+        parameters = [Parameter(param, type(param), value)
                       for param, value in self.PARAMS.items()]
 
         for origin in origin_parameters:
@@ -172,14 +171,13 @@ class NotebookEditor:
                 parameters.append(origin)
 
         edited_notebook = self._replace_parameters(self.original_notebook, parameters)
-        print(parameters)
-
         path = self.write(edited_notebook)
         return path
 
     def _replace_parameters(self, notebook, parameters):
         notebook = copy.deepcopy(notebook)
-        first_code_cell(notebook).source = self._build_replacing(parameters)
+        first_code_cell(notebook).source +=  "\n\n# added by backend notebook_executor.py script:" +\
+                                             "\n" + self._build_replacing(parameters)
         return notebook
 
     @staticmethod
@@ -193,13 +191,11 @@ class NotebookEditor:
 
 
     def write(self, nb):
-        date = localtime().strftime("%Y%m%dT%H%M%S")
+        timestamp = localtime().strftime("%Y%m%dT%H%M%S")
         path = os.path.join (os.path.dirname(self.path),
-                               f"{self.notebook_name}_{self.request_pk}_{date}_EDITED.ipynb")
+                               f"{self.notebook_name}_{self.request_pk}_{timestamp}.ipynb")
 
         with open(path, "w", encoding="utf-8") as file:
             nbformat.write(nb, file)
-
+        os.chmod(path, 0o666)
         return path
-
-
