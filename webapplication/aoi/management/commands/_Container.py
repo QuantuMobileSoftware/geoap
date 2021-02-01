@@ -91,9 +91,8 @@ class ContainerValidator(Container):
     def validate(self):
         # TODO: add validation logic
         logger.info(f"Start validation for {self.notebook.name}")
+        # token = self.get_token()
         time.sleep(2)
-        token = self.get_token()
-        logger.info(f"Validation: {self.notebook.name} token: {token}")
         logger.info(f"Finished validation for {self.notebook.name}")
 
         validated = True
