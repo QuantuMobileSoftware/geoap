@@ -109,14 +109,15 @@ class ContainerExecutor(Container):
     def execute(self):
         logger.info(f"Start execution {self.notebook.name}")
 
+        notebook_editor = NotebookEditor(self.request)
+        output = notebook_editor.edit()
+
         kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
             if self.notebook.kernel_name else ""
 
-        date = localtime().strftime("%Y%m%d")
-        output = f"{self.notebook.name}_{request_pk}_{date}"
-
         command = f"""jupyter nbconvert 
                       --to notebook
+                      --inplace
                       --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
                       --execute {self.notebook.path} 
                       --output {output}
