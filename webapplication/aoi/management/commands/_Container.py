@@ -175,16 +175,17 @@ class NotebookEditor:
         edited_notebook = self._replace_parameters(self.original_notebook, parameters)
         print(parameters)
 
-        self.save(edited_notebook)
+        path = self.write(edited_notebook)
+        return path
 
     def _replace_parameters(self, notebook, parameters):
         notebook = copy.deepcopy(notebook)
         first_code_cell(notebook).source = self._build_replacing(parameters)
         return notebook
 
-    def _build_replacing(self, parameters):
-        return "\n".join("{0.name} = {0.value!r}".format(param) for param in parameters)
-
+    @staticmethod
+    def _build_replacing(parameters):
+        return "\n".join(f"{param.name} = {param.value!r}" for param in parameters)
 
     def read(self):
         with open(self.path) as file:
@@ -192,12 +193,14 @@ class NotebookEditor:
         return notebook
 
 
-    def save(self, nb):
-        date = localtime().strftime("%Y%m%d")
-        output = os.path.join (os.path.dirname(self.path),
+    def write(self, nb):
+        date = localtime().strftime("%Y%m%dT%H%M%S")
+        path = os.path.join (os.path.dirname(self.path),
                                f"{self.notebook_name}_{self.request_pk}_{date}_EDITED.ipynb")
 
-        with open(output, "w", encoding="utf-8") as file:
+        with open(path, "w", encoding="utf-8") as file:
             nbformat.write(nb, file)
+
+        return path
 
 
