@@ -102,10 +102,11 @@ class ContainerValidator(Container):
 
 
 class ContainerExecutor(Container):
-    def __init__(self, notebook):
-        super().__init__(notebook)
+    def __init__(self, request):
+        super().__init__(request.notebook)
+        self.request = request
 
-    def execute(self, request_pk):
+    def execute(self):
         logger.info(f"Start execution {self.notebook.name}")
 
         kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
@@ -154,7 +155,7 @@ class NotebookEditor:
             if name in files:
                 return os.path.join(root, name)
         else:
-            raise ValueError(f"Path for {name} not found!")
+            raise ValueError(f"Path for request {self.request_pk} and notebook {name} not found!")
 
     def edit(self):
         # cell = nbformat.v4.new_code_cell()
