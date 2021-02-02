@@ -1,9 +1,8 @@
-import copy
 import docker
 import logging
 import time
-import nbformat
 import os
+import json
 
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
@@ -13,11 +12,6 @@ from sip.settings import (HOST_VOLUME,
                           NOTEBOOK_EXECUTOR_GPUS,
                           CELL_EXECUTION_TIMEOUT,
                           NOTEBOOKS_FOLDER, )
-
-from nbparameterise import extract_parameters, Parameter
-from nbparameterise.code import first_code_cell
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +75,8 @@ class Container:
         query = parse_qs(parsed_url.query)
         token = query["token"][0]
 
+        # container.attrs['NetworkSettings']['IPAddress']
+
         return token
 
 
@@ -112,6 +108,8 @@ class ContainerExecutor(Container):
         output = notebook_editor.edit()
         path = os.path.join(os.path.dirname(self.notebook.path),
                             os.path.basename(output))
+
+
 
         kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
             if self.notebook.kernel_name else ""
@@ -150,7 +148,7 @@ class NotebookEditor:
                            END_DATE=str(request.date_to) if request.date_to else None, )
 
         self.path = self._get_path()
-        self.original_notebook = self.read()
+        self.notebook = self.read()
 
     def _get_path(self):
         name = self.notebook_name + ".ipynb"
@@ -161,41 +159,32 @@ class NotebookEditor:
             raise ValueError(f"Request {self.request_pk}: path for notebook {name} not exists in {NOTEBOOKS_FOLDER}!")
 
     def edit(self):
-        origin_parameters = extract_parameters(self.original_notebook)
-
-        parameters = [Parameter(param, type(param), value)
-                      for param, value in self.PARAMS.items()]
-
-        for origin in origin_parameters:
-            if origin.name not in list(self.PARAMS):
-                parameters.append(origin)
-
-        edited_notebook = self._replace_parameters(self.original_notebook, parameters)
-        path = self.write(edited_notebook)
+        self._first_code_cell()['source'] +=  "\n\n# added by backend notebook_executor.py script:"\
+                                           "\n" + self._build_params()
+        path = self.write()
         return path
 
-    def _replace_parameters(self, notebook, parameters):
-        notebook = copy.deepcopy(notebook)
-        first_code_cell(notebook).source +=  "\n\n# added by backend notebook_executor.py script:" +\
-                                             "\n" + self._build_replacing(parameters)
-        return notebook
+    def _first_code_cell(self):
+        for cell in self.notebook['cells']:
+            if cell['cell_type'] == 'code':
+                return cell
 
-    @staticmethod
-    def _build_replacing(parameters):
-        return "\n".join(f"{param.name} = {param.value!r}" for param in parameters)
+    def _build_params(self):
+        return "\n".join(f"{name} = {value!r}" for name, value in self.PARAMS.items())
 
     def read(self):
         with open(self.path) as file:
-            notebook = nbformat.read(file, as_version=4)
+            notebook = json.load(file)
         return notebook
 
 
-    def write(self, nb):
+    def write(self):
         timestamp = localtime().strftime("%Y%m%dT%H%M%S")
+        # timestamp = localtime().strftime("%Y%m%d")
         path = os.path.join (os.path.dirname(self.path),
                                f"{self.notebook_name}_{self.request_pk}_{timestamp}.ipynb")
 
         with open(path, "w", encoding="utf-8") as file:
-            nbformat.write(nb, file)
+            json.dump(self.notebook, file)
         os.chmod(path, 0o666)
         return path
