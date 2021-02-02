@@ -8,7 +8,7 @@ from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
-THREAD_SLEEP = 10
+THREAD_SLEEP = 60
 
 
 class State:
