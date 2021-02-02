@@ -145,7 +145,7 @@ class NotebookEditor:
         self.notebook_name = request.notebook.name
 
         self.PARAMS = dict(REQUEST_ID=request.pk,
-                           AOI=request.aoi.polygon.ewkt,
+                           AOI=request.aoi.polygon.wkt,
                            START_DATE=str(request.date_from) if request.date_from else None,
                            END_DATE=str(request.date_to) if request.date_to else None, )
 
