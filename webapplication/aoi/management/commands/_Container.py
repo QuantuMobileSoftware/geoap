@@ -11,7 +11,7 @@ from sip.settings import (HOST_VOLUME,
 
 logger = logging.getLogger(__name__)
 
-NOTEBOOK_EDITOR_PATH = "code/_NotebookEditor1.py"
+NOTEBOOK_EDITOR_PATH = "code/_NotebookEditor.py"
 CONTAINER_PORT = "8888"
 CONTAINER_VOLUME = "/home/jovyan/work"
 SHARED_MEMORY_SIZE = "1G"
