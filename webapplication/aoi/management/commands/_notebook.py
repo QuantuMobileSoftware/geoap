@@ -77,7 +77,7 @@ class NotebookThread(Thread):
                 success = ce.execute()
 
         except Exception as ex:
-            logger.error(f"{request.notebook.name} request {request.pk}: {str(ex)}")
+            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {str(ex)}")
         finally:
             request.finished_at = localtime()
             request.success = success
