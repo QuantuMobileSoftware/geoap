@@ -73,6 +73,7 @@ class NotebookThread(Thread):
             request.save()
 
             with ContainerExecutor(request) as ce:
+                ce.edit()
                 success = ce.execute()
 
         except Exception as ex:
