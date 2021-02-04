@@ -1,19 +1,20 @@
 import docker
 import logging
-import time
 import os
-import json
 
 from typing import Optional
-from urllib.parse import urlparse, parse_qs
 from docker.types import DeviceRequest
 from django.utils.timezone import localtime
 from sip.settings import (HOST_VOLUME,
                           NOTEBOOK_EXECUTOR_GPUS,
-                          CELL_EXECUTION_TIMEOUT,
-                          NOTEBOOKS_FOLDER, )
+                          CELL_EXECUTION_TIMEOUT, )
 
 logger = logging.getLogger(__name__)
+
+NOTEBOOK_EDITOR_PATH = "code/_NotebookEditor1.py"
+CONTAINER_PORT = "8888"
+CONTAINER_VOLUME = "/home/jovyan/work"
+SHARED_MEMORY_SIZE = "1G"
 
 
 class Container:
@@ -21,9 +22,9 @@ class Container:
                  notebook,
                  host_port: Optional[str] = None,
                  host_volume: str = HOST_VOLUME,
-                 container_port: str = "8888",
-                 container_volume: str = "/home/jovyan/work",
-                 shm_size: str = "1G",
+                 container_port: str = CONTAINER_PORT,
+                 container_volume: str = CONTAINER_VOLUME,
+                 shm_size: str = SHARED_MEMORY_SIZE,
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
@@ -55,8 +56,7 @@ class Container:
             environment=self.environment,
             device_requests=self.device_requests,
             detach=True,
-            auto_remove=True,
-            stderr=True, )
+            auto_remove=True, )
 
     def __enter__(self):
         self.__run()
@@ -64,20 +64,6 @@ class Container:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.container.stop()
-
-    def get_token(self, sleep: int = 5):
-        result = self.container.exec_run("jupyter notebook list")
-        time.sleep(sleep)
-
-        output = result.output.decode("utf-8")
-        self.url = output.split("\n")[1].split(" ")[0]
-        parsed_url = urlparse(self.url)
-        query = parse_qs(parsed_url.query)
-        token = query["token"][0]
-
-        # container.attrs['NetworkSettings']['IPAddress']
-
-        return token
 
 
 class ContainerValidator(Container):
@@ -87,8 +73,7 @@ class ContainerValidator(Container):
     def validate(self):
         # TODO: add validation logic
         logger.info(f"Start validation for {self.notebook.name}")
-        # token = self.get_token()
-        time.sleep(2)
+
         logger.info(f"Finished validation for {self.notebook.name}")
 
         validated = True
@@ -101,15 +86,35 @@ class ContainerExecutor(Container):
         super().__init__(request.notebook)
         self.request = request
 
+        self.notebook_path = self.notebook.path
+        timestamp = localtime().strftime("%Y%m%dT%H%M%S")
+        self.save_path = os.path.join(os.path.dirname(self.notebook_path),
+                                   f"{self.notebook.name}_{self.request.pk}_{timestamp}.ipynb")
+
+    def edit(self):
+        logger.info(f"Request: {self.request.pk}: Start editing {self.notebook.name} notebook")
+
+        command = f"""python {NOTEBOOK_EDITOR_PATH}
+                      --input_path {self.notebook_path}
+                      --output_path {self.save_path}
+                      --request_id {self.request.pk}
+                      --aoi '{self.request.aoi.polygon.wkt}'
+                      --start_date {self.request.date_from}
+                      --end_date {self.request.date_to}
+                      """
+
+        exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
+
+        logger.info(f"Request: {self.request.pk}: Finished editing notebook {self.notebook.name}, "
+                    f"exit code: {exit_code}")
+
+        if exit_code != 0:
+            raise RuntimeError(f"Request: {self.request.pk}, notebook {self.notebook.name}: "
+                               f"{stderr.decode('utf-8')}")
+
+
     def execute(self):
-        logger.info(f"Start execution request {self.request.pk}: {self.notebook.name}")
-
-        notebook_editor = NotebookEditor(self.request)
-        output = notebook_editor.edit()
-        path = os.path.join(os.path.dirname(self.notebook.path),
-                            os.path.basename(output))
-
-
+        logger.info(f"Request {self.request.pk}: Start execution {self.notebook.name}")
 
         kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
             if self.notebook.kernel_name else ""
@@ -119,72 +124,17 @@ class ContainerExecutor(Container):
                       --to notebook
                       --allow-errors
                       --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
-                      --execute {path} 
+                      --execute {self.save_path} 
                       {kernel} 
                     """
 
-        exit_code, output = self.container.exec_run(command)
+        exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
 
-        logger.info(f"Finished container execution request {self.request.pk}: "
+        logger.info(f"Request {self.request.pk}: Finished execution "
                     f"{self.notebook.name} with exit code: {exit_code}")
 
         if exit_code == 0:
             return True
         else:
-            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {output.decode('utf-8')}")
+            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {stderr.decode('utf-8')}")
             return False
-
-
-class NotebookEditor:
-
-    def __init__(self, request):
-
-        self.request_pk = request.pk
-        self.notebook_name = request.notebook.name
-
-        self.PARAMS = dict(REQUEST_ID=request.pk,
-                           AOI=request.aoi.polygon.wkt,
-                           START_DATE=str(request.date_from) if request.date_from else None,
-                           END_DATE=str(request.date_to) if request.date_to else None, )
-
-        self.path = self._get_path()
-        self.notebook = self.read()
-
-    def _get_path(self):
-        name = self.notebook_name + ".ipynb"
-        for root, _, files in os.walk(NOTEBOOKS_FOLDER):
-            if name in files:
-                return os.path.join(root, name)
-        else:
-            raise ValueError(f"Request {self.request_pk}: path for notebook {name} not exists in {NOTEBOOKS_FOLDER}!")
-
-    def edit(self):
-        self._first_code_cell()['source'] +=  "\n\n# added by backend notebook_executor.py script:"\
-                                           "\n" + self._build_params()
-        path = self.write()
-        return path
-
-    def _first_code_cell(self):
-        for cell in self.notebook['cells']:
-            if cell['cell_type'] == 'code':
-                return cell
-
-    def _build_params(self):
-        return "\n".join(f"{name} = {value!r}" for name, value in self.PARAMS.items())
-
-    def read(self):
-        with open(self.path) as file:
-            notebook = json.load(file)
-        return notebook
-
-
-    def write(self):
-        timestamp = localtime().strftime("%Y%m%dT%H%M%S")
-        # timestamp = localtime().strftime("%Y%m%d")
-        path = os.path.join (os.path.dirname(self.path),
-                               f"{self.notebook_name}_{self.request_pk}_{timestamp}.ipynb")
-
-        with open(path, "w", encoding="utf-8") as file:
-            json.dump(self.notebook, file)
-        os.chmod(path, 0o666)
-        return path
