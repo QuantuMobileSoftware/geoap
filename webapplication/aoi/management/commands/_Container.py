@@ -109,8 +109,7 @@ class ContainerExecutor(Container):
                     f"exit code: {exit_code}")
 
         if exit_code != 0:
-            raise RuntimeError(f"Request: {self.request.pk}, notebook {self.notebook.name}: "
-                               f"{stderr.decode('utf-8')}")
+            raise RuntimeError(f"Error: {stderr.decode('utf-8')}. Check image {self.notebook.image}")
 
 
     def execute(self):
