@@ -36,6 +36,3 @@ ENV PATH $CONDA_DIR/envs/${conda_env}/bin:$PATH
 
 # Using python37 env by default
 ENV CONDA_DEFAULT_ENV ${conda_env}
-
-RUN mkdir code
-COPY ./code code/
