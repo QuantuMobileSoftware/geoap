@@ -162,6 +162,9 @@ export default function createMap(
         geojson && geojson.clearLayers();
         if (mapModel.aois.length) {
             function onEachFeature(feature, layer) {
+                layer.setStyle({
+                    className: `layer__${feature.properties.id}`,
+                });
                 layer.on({
                     click: function (e) {
                         geojson && geojson.resetStyle();
@@ -175,11 +178,6 @@ export default function createMap(
                                 requestModel.getRequests(aoi.properties.id);
                                 requestModel.getNotebooks();
                                 requestModel.closeRequestForm();
-
-                                layer.setStyle({
-                                    color: "#ff7f50",
-                                    fillOpacity: 0,
-                                });
                             }
                         });
                     },
@@ -309,6 +307,10 @@ export default function createMap(
         geojson && geojson.resetStyle();
 
         geojson.getLayers().forEach((layer) => {
+            const item = document.querySelector(
+                `.layer__${layer.feature.properties.id}`
+            );
+
             if (
                 layer.feature &&
                 layer.feature.properties.id === e.detail.aoi.properties.id
@@ -317,8 +319,10 @@ export default function createMap(
                     color: "#ff7f50",
                     fillOpacity: 0,
                 });
-
+                item.classList.add("aoi__layer--active");
                 map.panInsideBounds(layer.getBounds());
+            } else {
+                item.classList.remove("aoi__layer--active");
             }
         });
     };
