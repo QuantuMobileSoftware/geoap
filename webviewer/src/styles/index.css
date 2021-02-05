@@ -516,3 +516,7 @@ body {
     padding-left: 6px;
     margin-top: -10px;
 }
+
+.aoi__layer--active {
+    pointer-events: none !important;
+}
