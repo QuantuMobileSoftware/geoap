@@ -198,10 +198,13 @@ MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS = 60 * 60 * 1
 
 
 # AOI app, notebook_executor
-NOTEBOOK_EXECUTOR_THREADS = 2
+NOTEBOOK_EXECUTOR_THREADS = 1
 NOTEBOOK_EXECUTOR_TIMEOUT = 60 * 60 * 2
-HOST_VOLUME = "/data"
-HOST_NOTEBOOK_EXECUTOR_VOLUME = "/notebook_executor"
+# HOST_VOLUME = "/data"
+HOST_VOLUME = "/home/quantum/sip"
+HOST_VOLUME = "/home/quantum/WorkQuantum/Task07_SIP/Git/sip1/sip/data"
+# HOST_NOTEBOOK_EXECUTOR_VOLUME = "/code/aoi/management/commands/executor"
+HOST_NOTEBOOK_EXECUTOR_VOLUME = "/home/quantum/WorkQuantum/Task07_SIP/Git/sip1/sip/webapplication/aoi/management/commands/executor/"
 NOTEBOOK_EXECUTOR_GPUS = None
 CELL_EXECUTION_TIMEOUT = 60 * 60
 NOTEBOOK_EXECUTION_TIMEOUT = 60 * 60 * 5

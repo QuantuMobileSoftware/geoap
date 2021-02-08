@@ -17,25 +17,20 @@ CONTAINER_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "work")
 CONTAINER_NOTEBOOK_EXECUTOR_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "code")
 NOTEBOOK_EXECUTOR_PATH = os.path.join(HOST_NOTEBOOK_EXECUTOR_VOLUME, "NotebookExecutor.py")
 
-CONTAINER_PORT = "8888"
 SHARED_MEMORY_SIZE = "1G"
 
 
 class Container:
     def __init__(self,
                  notebook,
-                 host_port: Optional[str] = None,
                  host_volume: str = HOST_VOLUME,
-                 container_port: str = CONTAINER_PORT,
                  container_volume: str = CONTAINER_VOLUME,
                  shm_size: str = SHARED_MEMORY_SIZE,
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
-        self.host_port = host_port
         self.host_volume = host_volume
-        self.container_port = container_port
         self.container_volume = container_volume
         self.shm_size = shm_size
 
@@ -51,10 +46,10 @@ class Container:
         image = client.images.get(self.notebook.image)
         self.container = client.containers.run(
             image=image,
-            ports={f"{self.container_port}/TCP": self.host_port},
             shm_size=self.shm_size,
             volumes={self.host_volume: {"bind": self.container_volume, "mode": "rw"},
-                     HOST_NOTEBOOK_EXECUTOR_VOLUME: {"bind": HOST_NOTEBOOK_EXECUTOR_VOLUME, "mode": "rw"}, },
+                     HOST_NOTEBOOK_EXECUTOR_VOLUME: {"bind": HOST_NOTEBOOK_EXECUTOR_VOLUME, "mode": "rw"},
+            },
             environment=self.environment,
             device_requests=self.device_requests,
             detach=True,
