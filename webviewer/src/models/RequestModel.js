@@ -18,19 +18,24 @@ export default class RequestModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                this.results = [...res];
+                if (res.length !== this.results.length) {
+                    this.results = [...res];
 
-                this.results.forEach((x) => {
-                    const wkt = new Wkt.Wkt();
-                    wkt.read(x.bounding_polygon.split(";")[1]);
-                    x.boundingCoordinates = [];
-                    wkt.toJson().coordinates[0].forEach((longlat) => {
-                        x.boundingCoordinates.push([longlat[1], longlat[0]]);
+                    this.results.forEach((x) => {
+                        const wkt = new Wkt.Wkt();
+                        wkt.read(x.bounding_polygon.split(";")[1]);
+                        x.boundingCoordinates = [];
+                        wkt.toJson().coordinates[0].forEach((longlat) => {
+                            x.boundingCoordinates.push([
+                                longlat[1],
+                                longlat[0],
+                            ]);
+                        });
                     });
-                });
-                this.dispatchEvent(
-                    new CustomEvent("resultsLoaded", { detail: { id } })
-                );
+                    this.dispatchEvent(
+                        new CustomEvent("resultsLoaded", { detail: { id } })
+                    );
+                }
             }
         });
     }
@@ -40,10 +45,13 @@ export default class RequestModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                this.requests = [...res];
-                this.dispatchEvent(
-                    new CustomEvent("requestsLoaded", { detail: { id } })
-                );
+                if (res.length !== this.requests.length) {
+                    this.requests = [...res];
+
+                    this.dispatchEvent(
+                        new CustomEvent("requestsLoaded", { detail: { id } })
+                    );
+                }
             }
         });
     }
