@@ -36,6 +36,10 @@ class NotebookExecutor:
         self.kernel_name = args.kernel
         self.notebook = self.read()
 
+        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+        self.save_path = f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+
+
     def edit(self):
         self._first_code_cell()['source'] +=  "\n\n# added by backend notebook_executor.py script:" \
                                               "\n" + self._build_params()
