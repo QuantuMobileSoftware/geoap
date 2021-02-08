@@ -91,7 +91,7 @@ class NotebookExecutor:
             raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parser.parse_args()
     notebook_executor = NotebookExecutor(args)
     notebook_executor.edit()
