@@ -4,7 +4,6 @@ import os
 
 from typing import Optional
 from docker.types import DeviceRequest
-from django.utils.timezone import localtime
 from sip.settings import (HOST_VOLUME,
                           NOTEBOOK_EXECUTOR_GPUS,
                           CELL_EXECUTION_TIMEOUT,
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 NOTEBOOK_BASE_PATH = "/home/jovyan/"
 CONTAINER_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "work")
 CONTAINER_NOTEBOOK_EXECUTOR_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "code")
-NOTEBOOK_EDITOR_PATH = os.path.join(HOST_NOTEBOOK_EXECUTOR_VOLUME, "NotebookExecutor.py")
+NOTEBOOK_EXECUTOR_PATH = os.path.join(HOST_NOTEBOOK_EXECUTOR_VOLUME, "NotebookExecutor.py")
 
 CONTAINER_PORT = "8888"
 SHARED_MEMORY_SIZE = "1G"
@@ -96,7 +95,7 @@ class ContainerExecutor(Container):
 
         kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
 
-        command = f"""python {NOTEBOOK_EDITOR_PATH}
+        command = f"""python {NOTEBOOK_EXECUTOR_PATH}
                       --input_path {self.notebook_path}
                       --request_id {self.request.pk}
                       --aoi '{self.request.aoi.polygon.wkt}'
