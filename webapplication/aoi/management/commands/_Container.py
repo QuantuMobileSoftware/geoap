@@ -90,9 +90,6 @@ class ContainerExecutor(Container):
         self.request = request
 
         self.notebook_path = self.notebook.path
-        timestamp = localtime().strftime("%Y%m%dT%H%M%S")
-        self.save_path = os.path.join(os.path.dirname(self.notebook_path),
-                                   f"{self.notebook.name}_{self.request.pk}_{timestamp}.ipynb")
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start editing {self.notebook.name} notebook")
