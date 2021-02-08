@@ -93,6 +93,6 @@ class NotebookExecutor:
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    notebook_editor = NotebookExecutor(args)
-    notebook_editor.edit()
-    notebook_editor.execute()
+    notebook_executor = NotebookExecutor(args)
+    notebook_executor.edit()
+    notebook_executor.execute()
