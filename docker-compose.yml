@@ -25,6 +25,7 @@ services:
       - ./webapplication:/code
       - ./data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./jupyter/_executor:/notebook_executor
     depends_on:
       - db
 
