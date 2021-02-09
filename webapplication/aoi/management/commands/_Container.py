@@ -25,9 +25,7 @@ class Container:
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
-        self.client = docker.from_env()
         self.notebook = notebook
-
         self.container_data_volume = container_data_volume
         self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
@@ -40,15 +38,16 @@ class Container:
         self.container = None
 
     def __run(self):
-        image = self.client.images.get(self.notebook.image)
+        client = docker.from_env()
+        image = client.images.get(self.notebook.image)
 
-        base_container = self.client.containers.get(BASE_CONTAINER_NAME)
+        base_container = client.containers.get(BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
         host_executor_volume = host_paths.executor_volume(VOLUME_BASENAMES.WEBAPPLICATION)
 
-        self.container = self.client.containers.run(
+        self.container = client.containers.run(
             image=image,
             shm_size=self.shm_size,
             volumes={host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
