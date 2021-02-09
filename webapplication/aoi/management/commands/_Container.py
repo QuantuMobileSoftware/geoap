@@ -2,36 +2,34 @@ import docker
 import logging
 import os
 
+from collections import namedtuple
 from typing import Optional
 from docker.types import DeviceRequest
-from sip.settings import (HOST_VOLUME,
-                          NOTEBOOK_EXECUTOR_GPUS,
+from aoi.management.commands._host_volume_paths import HostVolumePaths
+from sip.settings import (NOTEBOOK_EXECUTOR_GPUS,
                           CELL_EXECUTION_TIMEOUT,
                           NOTEBOOK_EXECUTION_TIMEOUT,
-                          HOST_NOTEBOOK_EXECUTOR_VOLUME, )
+                          BASE_CONTAINER_NAME, )
 
 logger = logging.getLogger(__name__)
 
-NOTEBOOK_BASE_PATH = "/home/jovyan/"
-CONTAINER_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "work")
-CONTAINER_NOTEBOOK_EXECUTOR_VOLUME = os.path.join(NOTEBOOK_BASE_PATH, "code")
-NOTEBOOK_EXECUTOR_PATH = os.path.join(HOST_NOTEBOOK_EXECUTOR_VOLUME, "NotebookExecutor.py")
-
-SHARED_MEMORY_SIZE = "1G"
+VOLUME_BASENAMES = namedtuple('basenames', 'WEBAPPLICATION DATA')("webapplication", "data")
 
 
 class Container:
     def __init__(self,
                  notebook,
-                 host_volume: str = HOST_VOLUME,
-                 container_volume: str = CONTAINER_VOLUME,
-                 shm_size: str = SHARED_MEMORY_SIZE,
+                 container_data_volume: str = "/home/jovyan/work",
+                 container_executor_volume: str = "/home/jovyan/code",
+                 shm_size: str = "1G",
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
+        self.client = docker.from_env()
         self.notebook = notebook
-        self.host_volume = host_volume
-        self.container_volume = container_volume
+
+        self.container_data_volume = container_data_volume
+        self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
 
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
@@ -42,13 +40,19 @@ class Container:
         self.container = None
 
     def __run(self):
-        client = docker.from_env()
-        image = client.images.get(self.notebook.image)
-        self.container = client.containers.run(
+        image = self.client.images.get(self.notebook.image)
+
+        base_container = self.client.containers.get(BASE_CONTAINER_NAME)
+        host_paths = HostVolumePaths(base_container.attrs)
+
+        host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
+        host_executor_volume = host_paths.executor_volume(VOLUME_BASENAMES.WEBAPPLICATION)
+
+        self.container = self.client.containers.run(
             image=image,
             shm_size=self.shm_size,
-            volumes={self.host_volume: {"bind": self.container_volume, "mode": "rw"},
-                     HOST_NOTEBOOK_EXECUTOR_VOLUME: {"bind": HOST_NOTEBOOK_EXECUTOR_VOLUME, "mode": "rw"},
+            volumes={host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
+                     host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"},
             },
             environment=self.environment,
             device_requests=self.device_requests,
@@ -82,15 +86,15 @@ class ContainerExecutor(Container):
     def __init__(self, request):
         super().__init__(request.notebook)
         self.request = request
-
         self.notebook_path = self.notebook.path
 
     def execute(self):
-        logger.info(f"Request: {self.request.pk}: Start editing {self.notebook.name} notebook")
+        logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
 
         kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
+        notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
 
-        command = f"""python {NOTEBOOK_EXECUTOR_PATH}
+        command = f"""python {notebook_executor_path}
                       --input_path {self.notebook_path}
                       --request_id {self.request.pk}
                       --aoi '{self.request.aoi.polygon.wkt}'
@@ -103,7 +107,7 @@ class ContainerExecutor(Container):
 
         exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
 
-        logger.info(f"Request: {self.request.pk}: Finished editing notebook {self.notebook.name}, "
+        logger.info(f"Request: {self.request.pk}: Finished executing notebook {self.notebook.name}, "
                     f"exit code: {exit_code}")
 
         if exit_code == 0:
