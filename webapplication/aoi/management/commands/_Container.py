@@ -1,32 +1,33 @@
 import docker
 import logging
-import time
+import os
 
+from collections import namedtuple
 from typing import Optional
-from urllib.parse import urlparse, parse_qs
 from docker.types import DeviceRequest
-from django.utils.timezone import localtime
-from sip.settings import HOST_VOLUME, NOTEBOOK_EXECUTOR_GPUS, CELL_EXECUTION_TIMEOUT
+from aoi.management.commands._host_volume_paths import HostVolumePaths
+from sip.settings import (NOTEBOOK_EXECUTOR_GPUS,
+                          CELL_EXECUTION_TIMEOUT,
+                          NOTEBOOK_EXECUTION_TIMEOUT,
+                          BASE_CONTAINER_NAME, )
 
 logger = logging.getLogger(__name__)
+
+VOLUME_BASENAMES = namedtuple('basenames', 'WEBAPPLICATION DATA')("webapplication", "data")
 
 
 class Container:
     def __init__(self,
                  notebook,
-                 host_port: Optional[str] = None,
-                 host_volume: str = HOST_VOLUME,
-                 container_port: str = "8888",
-                 container_volume: str = "/home/jovyan/work",
+                 container_data_volume: str = "/home/jovyan/work",
+                 container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
-        self.host_port = host_port
-        self.host_volume = host_volume
-        self.container_port = container_port
-        self.container_volume = container_volume
+        self.container_data_volume = container_data_volume
+        self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
 
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
@@ -34,24 +35,28 @@ class Container:
 
         self.device_requests = [DeviceRequest(count=-1,
                                               capabilities=[['gpu']]), ] if gpus == "all" else None
-
         self.container = None
-        self.url = None
-        self.token = None
 
     def __run(self):
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
+
+        base_container = client.containers.get(BASE_CONTAINER_NAME)
+        host_paths = HostVolumePaths(base_container.attrs)
+
+        host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
+        host_executor_volume = host_paths.executor_volume(VOLUME_BASENAMES.WEBAPPLICATION)
+
         self.container = client.containers.run(
             image=image,
-            ports={f"{self.container_port}/TCP": self.host_port},
             shm_size=self.shm_size,
-            volumes={self.host_volume: {"bind": self.container_volume, "mode": "rw"}},
+            volumes={host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
+                     host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"},
+            },
             environment=self.environment,
             device_requests=self.device_requests,
             detach=True,
-            auto_remove=True,
-            stderr=True, )
+            auto_remove=True, )
 
     def __enter__(self):
         self.__run()
@@ -59,18 +64,6 @@ class Container:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.container.stop()
-
-    def get_token(self, sleep: int = 5):
-        result = self.container.exec_run("jupyter notebook list")
-        time.sleep(sleep)
-
-        output = result.output.decode("utf-8")
-        self.url = output.split("\n")[1].split(" ")[0]
-        parsed_url = urlparse(self.url)
-        query = parse_qs(parsed_url.query)
-        token = query["token"][0]
-
-        return token
 
 
 class ContainerValidator(Container):
@@ -80,9 +73,7 @@ class ContainerValidator(Container):
     def validate(self):
         # TODO: add validation logic
         logger.info(f"Start validation for {self.notebook.name}")
-        time.sleep(2)
-        token = self.get_token()
-        logger.info(f"Validation: {self.notebook.name} token: {token}")
+
         logger.info(f"Finished validation for {self.notebook.name}")
 
         validated = True
@@ -91,32 +82,35 @@ class ContainerValidator(Container):
 
 
 class ContainerExecutor(Container):
-    def __init__(self, notebook):
-        super().__init__(notebook)
+    def __init__(self, request):
+        super().__init__(request.notebook)
+        self.request = request
+        self.notebook_path = self.notebook.path
 
-    def execute(self, request_pk):
-        logger.info(f"Start execution {self.notebook.name}")
+    def execute(self):
+        logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
 
-        kernel = f"--ExecutePreprocessor.kernel_name={self.notebook.kernel_name}" \
-            if self.notebook.kernel_name else ""
+        kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
+        notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
 
-        date = localtime().strftime("%Y%m%d")
-        output = f"{self.notebook.name}_{request_pk}_{date}"
+        command = f"""python {notebook_executor_path}
+                      --input_path {self.notebook_path}
+                      --request_id {self.request.pk}
+                      --aoi '{self.request.aoi.polygon.wkt}'
+                      --start_date {self.request.date_from}
+                      --end_date {self.request.date_to}
+                      --cell_timeout {CELL_EXECUTION_TIMEOUT}
+                      --notebook_timeout {NOTEBOOK_EXECUTION_TIMEOUT}
+                      {kernel}
+                      """
 
-        command = f"""jupyter nbconvert 
-                      --to notebook
-                      --ExecutePreprocessor.timeout={CELL_EXECUTION_TIMEOUT} 
-                      --execute {self.notebook.path} 
-                      --output {output}
-                      {kernel} 
-                    """
+        exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
 
-        exit_code, output = self.container.exec_run(command)
-
-        logger.info(f"Finished execution {self.notebook.name} with exit code: {exit_code}")
+        logger.info(f"Request: {self.request.pk}: Finished executing notebook {self.notebook.name}, "
+                    f"exit code: {exit_code}")
 
         if exit_code == 0:
             return True
         else:
-            logger.error(f"{self.notebook.name}: {output.decode('utf-8')}")
+            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {stderr.decode('utf-8')}")
             return False

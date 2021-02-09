@@ -65,20 +65,22 @@ class NotebookThread(Thread):
             if not request:
                 return
 
-            notebook = request.notebook
             self.state.executing_requests.add(request.pk)
 
         success = False
         try:
             request.started_at = localtime()
             request.save()
-            with ContainerExecutor(notebook) as ce:
-                success = ce.execute(request.pk)
+
+            with ContainerExecutor(request) as ce:
+                success = ce.execute()
+
         except Exception as ex:
-            logger.error(f"{notebook.name}: {str(ex)}")
+            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {str(ex)}")
         finally:
             request.finished_at = localtime()
             request.success = success
             request.save()
             with self.state.lock:
                 self.state.executing_requests.remove(request.pk)
+
