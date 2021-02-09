@@ -22,8 +22,8 @@ services:
       - POSTGRES_USER=sip
       - POSTGRES_PASSWORD=eiJ2koo6
     volumes:
-      - ./webapplication:/code
-      - ./data:/data
+      - webapplication:/code
+      - data/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db
@@ -66,3 +66,17 @@ services:
       - ./data:/home/jovyan/work
     environment:
       - JUPYTER_ENABLE_LAB=yes
+volumes:
+  webapplication:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './webapplication'
+  data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './data'
+
