@@ -827,6 +827,7 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, is_validate
 6	Test2_Execution	sip_jupyter:latest	work/notebooks/test/Test2_Execution.ipynb		f
 5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb		f
 3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	\N	t
+7	TCI_NDVI	sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	\N	f
 \.
 
 
@@ -1199,7 +1200,7 @@ SELECT pg_catalog.setval('public.aoi_aoi_id_seq', 5, true);
 -- Name: aoi_jupyternotebook_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.aoi_jupyternotebook_id_seq', 6, true);
+SELECT pg_catalog.setval('public.aoi_jupyternotebook_id_seq', 7, true);
 
 
 --
