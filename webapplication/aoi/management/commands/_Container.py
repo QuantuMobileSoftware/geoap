@@ -6,10 +6,7 @@ from collections import namedtuple
 from typing import Optional
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
-from sip.settings import (NOTEBOOK_EXECUTOR_GPUS,
-                          CELL_EXECUTION_TIMEOUT,
-                          NOTEBOOK_EXECUTION_TIMEOUT,
-                          BASE_CONTAINER_NAME, )
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +20,7 @@ class Container:
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
-                 gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
+                 gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
         self.container_data_volume = container_data_volume
@@ -41,7 +38,7 @@ class Container:
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
 
-        base_container = client.containers.get(BASE_CONTAINER_NAME)
+        base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
@@ -99,8 +96,8 @@ class ContainerExecutor(Container):
                       --aoi '{self.request.aoi.polygon.wkt}'
                       --start_date {self.request.date_from}
                       --end_date {self.request.date_to}
-                      --cell_timeout {CELL_EXECUTION_TIMEOUT}
-                      --notebook_timeout {NOTEBOOK_EXECUTION_TIMEOUT}
+                      --cell_timeout {settings.CELL_EXECUTION_TIMEOUT}
+                      --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
                       {kernel}
                       """
 
