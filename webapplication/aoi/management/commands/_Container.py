@@ -10,9 +10,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-VOLUME_BASENAMES = namedtuple('basenames', 'WEBAPPLICATION DATA')("webapplication", "data")
-
-
 class Container:
     def __init__(self,
                  notebook,
@@ -41,8 +38,8 @@ class Container:
         base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
-        host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
-        host_executor_volume = host_paths.executor_volume(VOLUME_BASENAMES.WEBAPPLICATION)
+        host_data_volume = host_paths.data_volume(settings.HOST_VOLUME_DATA_BASENAME)
+        host_executor_volume = host_paths.executor_volume(settings.HOST_VOLUME_WEBAPPLICATION_BASENAME)
 
         self.container = client.containers.run(
             image=image,

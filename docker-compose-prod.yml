@@ -17,6 +17,7 @@ services:
       context: ./webapplication
       dockerfile: prod.Dockerfile
     volumes:
+      - ./webapplication:/code
       - /home/quantum/sip:/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
