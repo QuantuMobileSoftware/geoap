@@ -2,7 +2,6 @@ import docker
 import logging
 import os
 
-from collections import namedtuple
 from typing import Optional
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
