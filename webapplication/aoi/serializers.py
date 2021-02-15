@@ -24,4 +24,5 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
-                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'success', )
+                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'success', 'polygon',)
+        read_only_fields = ['polygon', ]
