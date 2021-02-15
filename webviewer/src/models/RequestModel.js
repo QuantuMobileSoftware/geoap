@@ -45,13 +45,11 @@ export default class RequestModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("error"));
             } else {
-                if (res.length !== this.requests.length) {
-                    this.requests = [...res];
+                this.requests = [...res];
 
-                    this.dispatchEvent(
-                        new CustomEvent("requestsLoaded", { detail: { id } })
-                    );
-                }
+                this.dispatchEvent(
+                    new CustomEvent("requestsLoaded", { detail: { id } })
+                );
             }
         });
     }
