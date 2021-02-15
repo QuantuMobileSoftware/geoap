@@ -197,6 +197,9 @@ export default function createAoisList(
         const items = [];
 
         requestModel.requests.forEach((request) => {
+            if (request.success) {
+                return;
+            }
             const elem = Div({ class: "aoislist__requests-item" });
 
             const notebook = Div({
