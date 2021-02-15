@@ -230,7 +230,7 @@ export default function createAoisList(
 
         requestModel.results.forEach((result) => {
             const elem = Div({ class: "aoislist__results-item" }).setChildren(
-                `Name: ${result.filepath}`
+                result.filepath
             );
 
             elem.addEventListener("click", (e) => {
