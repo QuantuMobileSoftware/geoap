@@ -48,8 +48,8 @@ class NotebookThread(Thread):
         try:
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
-        except Exception as ex:
-            logger.error(f"{notebook.name}: {str(ex)}")
+        except:
+            logger.error(f"{notebook.name}: {traceback.print_exc()}")
         finally:
             notebook.is_validated = validated
             try:
@@ -80,8 +80,8 @@ class NotebookThread(Thread):
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
 
-        except Exception as ex:
-            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {str(ex)}")
+        except:
+            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
         finally:
             request.finished_at = localtime()
             request.success = success
