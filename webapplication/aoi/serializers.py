@@ -21,6 +21,10 @@ class JupyterNotebookSerializer(serializers.ModelSerializer):
 class RequestSerializer(serializers.ModelSerializer):
     notebook_name = serializers.ReadOnlyField()
 
+    def create(self, validated_data):
+        validated_data.update({'polygon': validated_data["aoi"].polygon})
+        return Request.objects.create(**validated_data)
+
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',

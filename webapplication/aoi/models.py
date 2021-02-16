@@ -52,7 +52,3 @@ class Request(models.Model):
     @property
     def notebook_name(self):
         return self.notebook.name
-
-    def save(self, *args, **kwargs):
-        self.polygon = self.aoi.polygon
-        super().save(*args, **kwargs)
