@@ -38,7 +38,7 @@ class JupyterNotebook(models.Model):
         
 class Request(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User id')
-    aoi = models.ForeignKey(AoI, on_delete=models.PROTECT, verbose_name='AOI id')
+    aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
     notebook = models.ForeignKey(
         JupyterNotebook, on_delete=models.PROTECT,
         verbose_name='Notebook id',
@@ -49,6 +49,7 @@ class Request(models.Model):
     finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     success = models.BooleanField(default=False, verbose_name='Is execution succeeded')
+    polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
 
     @property
     def notebook_name(self):

@@ -108,7 +108,7 @@ class ContainerExecutor(Container):
         command = f"""python {notebook_executor_path}
                       --input_path {self.notebook_path}
                       --request_id {self.request.pk}
-                      --aoi '{self.request.aoi.polygon.wkt}'
+                      --aoi '{self.request.polygon.wkt}'
                       --start_date {self.request.date_from}
                       --end_date {self.request.date_to}
                       --cell_timeout {settings.CELL_EXECUTION_TIMEOUT}
