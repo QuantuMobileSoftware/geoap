@@ -41,19 +41,23 @@ class NotebookThread(Thread):
                     .exclude(pk__in=self.state.validating_notebooks).first()
             if not notebook:
                 return
-
             self.state.validating_notebooks.add(notebook.pk)
 
+        validated = False
         try:
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
-            notebook.is_validated = validated
-            notebook.save()
         except Exception as ex:
             logger.error(f"{notebook.name}: {str(ex)}")
         finally:
-            with self.state.lock:
-                self.state.validating_notebooks.remove(notebook.pk)
+            notebook.is_validated = validated
+            try:
+                notebook.save(update_fields=['is_validated'])
+            except Exception as ex:
+                logger.error(f"Cannot update notebook {notebook.name} in db: {str(ex)}")
+            finally:
+                with self.state.lock:
+                    self.state.validating_notebooks.remove(notebook.pk)
 
     def execute_notebook(self):
         logger.info(f"Executing requests: {self.state.executing_requests}")
@@ -80,7 +84,11 @@ class NotebookThread(Thread):
         finally:
             request.finished_at = localtime()
             request.success = success
-            request.save()
-            with self.state.lock:
-                self.state.executing_requests.remove(request.pk)
+            try:
+                request.save(update_fields=['finished_at', 'success'])
+            except Exception as ex:
+                logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
+            finally:
+                with self.state.lock:
+                    self.state.executing_requests.remove(request.pk)
 
