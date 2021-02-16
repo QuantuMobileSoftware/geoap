@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.db.models import JSONField
 from django.utils import timezone
 from user.models import User
 
@@ -23,6 +24,7 @@ class JupyterNotebook(models.Model):
     image = models.CharField(max_length=400, verbose_name='Image')
     path = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
+    options = JSONField(blank=True, null=True, verbose_name='Additional container options')
     is_validated = models.BooleanField(default=False, verbose_name='Is validated')
     
     def __str__(self):
@@ -39,7 +41,7 @@ class Request(models.Model):
     aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
     notebook = models.ForeignKey(
         JupyterNotebook, on_delete=models.PROTECT,
-        verbose_name='Notebook id'
+        verbose_name='Notebook id',
     )
     date_from = models.DateField(blank=True, null=True, verbose_name='Date from')
     date_to = models.DateField(blank=True, null=True, verbose_name='Date to')

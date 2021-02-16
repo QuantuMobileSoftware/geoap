@@ -1,6 +1,7 @@
 import docker
 import logging
 import os
+import json
 
 from typing import Optional
 from docker.types import DeviceRequest
@@ -8,6 +9,7 @@ from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
 
 class Container:
     def __init__(self,
@@ -33,23 +35,40 @@ class Container:
     def __run(self):
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
+        volumes = self.get_volumes(client)
 
+        self.container = client.containers.run(
+            image=image,
+            shm_size=self.shm_size,
+            volumes=volumes,
+            environment=self.environment,
+            device_requests=self.device_requests,
+            detach=True,
+            auto_remove=True, )
+
+    def get_volumes(self, client):
         base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(settings.HOST_VOLUME_DATA_BASENAME)
         host_executor_volume = host_paths.executor_volume(settings.HOST_VOLUME_WEBAPPLICATION_BASENAME)
 
-        self.container = client.containers.run(
-            image=image,
-            shm_size=self.shm_size,
-            volumes={host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
-                     host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"},
-            },
-            environment=self.environment,
-            device_requests=self.device_requests,
-            detach=True,
-            auto_remove=True, )
+        volumes = {host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
+                   host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"}, }
+
+        if not self.notebook.options:
+            return volumes
+
+        additional_volumes = self.notebook.options.get("volumes")
+        if additional_volumes:
+            additional_volumes = json.loads(additional_volumes)
+            for host_volume, container_volume in additional_volumes.items():
+                if host_volume not in volumes:
+                    volumes[host_volume] = {"bind": container_volume, "mode": "rw"}
+                else:
+                    logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
+                                     f"mounting. It exists.")
+        return volumes
 
     def __enter__(self):
         self.__run()

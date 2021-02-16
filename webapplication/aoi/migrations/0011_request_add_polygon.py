@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0009_add_success_flag'),
+        ('aoi', '0010_jupyternotebook_options'),
     ]
 
     operations = [
