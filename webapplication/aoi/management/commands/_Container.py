@@ -10,6 +10,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+
 class Container:
     def __init__(self,
                  notebook,
@@ -68,7 +69,6 @@ class Container:
                     logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
                                      f"mounting. It exists.")
         return volumes
-
 
     def __enter__(self):
         self.__run()
