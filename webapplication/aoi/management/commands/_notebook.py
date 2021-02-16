@@ -1,5 +1,6 @@
 import time
 import logging
+import traceback
 
 from threading import Thread, Lock
 from aoi.models import JupyterNotebook, Request
