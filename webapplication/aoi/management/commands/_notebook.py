@@ -1,5 +1,6 @@
 import time
 import logging
+import traceback
 
 from threading import Thread, Lock
 from aoi.models import JupyterNotebook, Request
@@ -43,15 +44,15 @@ class NotebookThread(Thread):
                 return
 
             self.state.validating_notebooks.add(notebook.pk)
-
+        validated = False
         try:
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
+        except:
+            logger.error(f"{notebook.name}: {traceback.print_exc()}")
+        finally:
             notebook.is_validated = validated
             notebook.save()
-        except Exception as ex:
-            logger.error(f"{notebook.name}: {str(ex)}")
-        finally:
             with self.state.lock:
                 self.state.validating_notebooks.remove(notebook.pk)
 
@@ -74,9 +75,8 @@ class NotebookThread(Thread):
 
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
-
-        except Exception as ex:
-            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {str(ex)}")
+        except:
+            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
         finally:
             request.finished_at = localtime()
             request.success = success
