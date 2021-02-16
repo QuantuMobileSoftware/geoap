@@ -15,11 +15,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='request',
             name='polygon',
-            field=django.contrib.gis.db.models.fields.PolygonField(null=False, srid=4326, verbose_name='Polygon'),
+            field=django.contrib.gis.db.models.fields.PolygonField(null=True, srid=4326, verbose_name='Polygon'),
         ),
         migrations.AlterField(
             model_name='request',
             name='aoi',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='aoi.aoi', verbose_name='AOI id'),
+        ),
+        migrations.RunSQL("""
+        UPDATE aoi_request SET polygon=(SELECT aoi_aoi.polygon FROM aoi_aoi WHERE aoi_request.aoi_id=aoi_aoi.id);
+        """),
+        migrations.AlterField(
+            model_name='request',
+            name='polygon',
+            field=django.contrib.gis.db.models.fields.PolygonField(null=False, srid=4326, verbose_name='Polygon'),
         ),
     ]
