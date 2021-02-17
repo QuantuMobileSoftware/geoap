@@ -21,10 +21,11 @@ RUN wget -q http://step.esa.int/downloads/8.0/installers/esa-snap_sentinel_unix_
 RUN mkdir -p /home/jovyan/.snap/auxdata/dem/ && \
     ln -s /home/jovyan/work/notebooks/pw/data/SRTM\ 3Sec /home/jovyan/.snap/auxdata/dem/
 
-RUN apt autoremove python -y
-
 # Install Sen2Cor for conversion of Sentinel-2 L1C products to L2A products
-RUN conda run -n PW sen2cor_install.sh
+# sen2cor_install.sh is a part of sentinel2tools package
+RUN apt-get update && \
+    apt-get install -y wget file && \
+    conda run -n PW sen2cor_install.sh
 
 RUN fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
