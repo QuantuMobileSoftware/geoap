@@ -14,8 +14,9 @@ class AoIAdmin(admin.OSMGeoAdmin):
 
 @admin.register(JupyterNotebook)
 class JupyterNotebookAdmin(admin.OSMGeoAdmin):
-    list_display = ('name', 'image', 'path', 'kernel_name', 'is_validated', 'options', )
+    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'is_validated', 'options', )
     search_fields = ('name', 'path', 'kernel_name', 'is_validated', 'options', )
+    readonly_fields = ('pk', )
 
     formfield_overrides = {
         JSONField: {
@@ -26,6 +27,6 @@ class JupyterNotebookAdmin(admin.OSMGeoAdmin):
 
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
-    list_display = ('user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
+    list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'error', 'success', )
-    readonly_fields = ('started_at', 'finished_at', 'error', 'success', )
+    readonly_fields = ('pk', 'started_at', 'finished_at', 'error', 'success', )
