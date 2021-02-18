@@ -1,8 +1,8 @@
+git+https://github.com/QuantuMobileSoftware/sentinel2tools.git@678d88c49e56779f64f71c9da382a90ef8907979
 tqdm==4.51.0
 Shapely==1.7.1
 geopandas==0.8.1
 pandas==1.1.3
-git+https://github.com/QuantuMobileSoftware/sentinel2tools.git@678d88c49e56779f64f71c9da382a90ef8907979
 matplotlib==3.3.2
 descartes==1.1.0
 rasterio==1.1.8
