@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class Container:
     def __init__(self,
                  notebook,
+                 container_name: Optional[str] = None,
                  container_data_volume: str = "/home/jovyan/work",
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
@@ -21,6 +22,7 @@ class Container:
                  gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
+        self.container_name = container_name
         self.container_data_volume = container_data_volume
         self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
@@ -30,7 +32,6 @@ class Container:
 
         self.device_requests = [DeviceRequest(count=-1,
                                               capabilities=[['gpu']]), ] if gpus == "all" else None
-        self.container = None
 
     def __run(self):
         client = docker.from_env()
@@ -43,6 +44,7 @@ class Container:
             volumes=volumes,
             environment=self.environment,
             device_requests=self.device_requests,
+            name=self.container_name,
             detach=True,
             auto_remove=True, )
 
@@ -81,6 +83,7 @@ class Container:
 class ContainerValidator(Container):
     def __init__(self, notebook):
         super().__init__(notebook)
+        self.container_name = f"validator_{self.notebook.pk}"
 
     def validate(self):
         # TODO: add validation logic
@@ -97,6 +100,7 @@ class ContainerExecutor(Container):
     def __init__(self, request):
         super().__init__(request.notebook)
         self.request = request
+        self.container_name = f"executor_{self.request.pk}"
         self.notebook_path = self.notebook.path
 
     def execute(self):
