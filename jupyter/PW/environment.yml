@@ -17,7 +17,7 @@ dependencies:
     - albumentations==0.5.1
     - catalyst==19.5
     - dbfread==2.0.7
-    - git+https://git@github.com/QuantumobileSoftware/sentinel2tools.git@5c397d4355795771292138550f5b652f4d2fd50c
+    - git+https://git@github.com/QuantumobileSoftware/sentinel2tools.git@a3680c14c11047cc37bbdc8c6618c1843ec82712
     - jupyter==1.0.0
     - matplotlib==3.1.2
     - numpy==1.19.4
