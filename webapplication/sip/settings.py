@@ -202,7 +202,7 @@ NOTEBOOK_EXECUTOR_THREADS = 2
 NOTEBOOK_EXECUTOR_TIMEOUT = 60 * 60 * 36
 NOTEBOOK_EXECUTOR_GPUS = None
 CELL_EXECUTION_TIMEOUT = 60 * 60 * 24
-NOTEBOOK_EXECUTION_TIMEOUT = 60 * 60 * 5
+NOTEBOOK_EXECUTION_TIMEOUT = 60 * 60 * 36
 BASE_CONTAINER_NAME = "sip_webapplication_1"
 
 # Host volumes path's basename defined in webapplication service in docker-compose file
