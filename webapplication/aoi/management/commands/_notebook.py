@@ -81,7 +81,6 @@ class NotebookThread(Thread):
 
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
-
         except:
             logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
         finally:
@@ -123,5 +122,5 @@ class PublisherThread(Thread):
             for pk in success_requests:
                 self.state.success_requests.remove(pk)
                 self.state.executing_requests.remove(pk)
-        Request.objects.filter(pk__in=success_requests) \
-                .update(finished_at=localtime(), success=True)
+        Request.objects.filter(pk__in=success_requests).update(finished_at=localtime(),
+                                                               success=True)
