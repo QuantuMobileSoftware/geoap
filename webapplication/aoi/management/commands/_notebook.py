@@ -6,6 +6,7 @@ from threading import Thread, Lock
 from aoi.models import JupyterNotebook, Request
 from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
 from django.utils.timezone import localtime
+from django.core import management
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class State:
         self.lock = Lock()
         self.validating_notebooks = set()
         self.executing_requests = set()
+        self.success_requests = set()
 
 
 class NotebookThread(Thread):
@@ -79,17 +81,46 @@ class NotebookThread(Thread):
 
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
-
         except:
             logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
         finally:
-            request.finished_at = localtime()
-            request.success = success
-            try:
-                request.save(update_fields=['finished_at', 'success'])
-            except Exception as ex:
-                logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
-            finally:
+            if success:
                 with self.state.lock:
-                    self.state.executing_requests.remove(request.pk)
+                    self.state.success_requests.add(request.pk)
+            else:
+                request.finished_at = localtime()
+                request.success = success
+                try:
+                    request.save(update_fields=['finished_at', 'success'])
+                except Exception as ex:
+                    logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
+                finally:
+                    with self.state.lock:
+                        self.state.executing_requests.remove(request.pk)
 
+
+class PublisherThread(Thread):
+    def __init__(self, state, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state = state
+    
+    def run(self):
+        while True:
+            try:
+                self.publish_results()
+            except Exception as e:
+                logger.exception(e)
+            time.sleep(THREAD_SLEEP)
+
+    def publish_results(self):
+        with self.state.lock:
+            success_requests = set(self.state.success_requests)
+        logger.info(f"Starting publish command")
+        management.call_command("publish")
+        logger.info(f"Marking requests {success_requests} as succeeded")
+        with self.state.lock:
+            for pk in success_requests:
+                self.state.success_requests.remove(pk)
+                self.state.executing_requests.remove(pk)
+        Request.objects.filter(pk__in=success_requests).update(finished_at=localtime(),
+                                                               success=True)
