@@ -100,7 +100,7 @@ class Command(BaseCommand):
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
-        logger.info(f"Deleting {to_delete.count()} objects. FILEPATHS: "
+        logger.info(f"Deleting {to_delete.count()} objects. Paths: "
                     f"{[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
