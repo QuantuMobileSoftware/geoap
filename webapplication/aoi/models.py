@@ -23,7 +23,7 @@ class JupyterNotebook(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Notebook name')
     image = models.CharField(max_length=400, verbose_name='Image')
     path = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
-    kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
+    kernel_name = models.CharField(max_length=200, null=False, blank=False, verbose_name='Kernel name')
     options = JSONField(blank=True, null=True, verbose_name='Additional container options')
     is_validated = models.BooleanField(default=False, verbose_name='Is validated')
     
