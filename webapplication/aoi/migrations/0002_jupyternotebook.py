@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=200, unique=True, verbose_name='Jupyter Notebook name')),
                 ('image', models.CharField(max_length=400, verbose_name='Image')),
                 ('path_to_a_notebook', models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')),
-                ('kernel_name', models.CharField(blank=True, max_length=200, null=True, verbose_name='Kernel name')),
+                ('kernel_name', models.CharField(blank=False, max_length=200, null=False, verbose_name='Kernel name')),
                 ('is_validated', models.BooleanField(default=False, verbose_name='Is validated')),
             ],
             options={
