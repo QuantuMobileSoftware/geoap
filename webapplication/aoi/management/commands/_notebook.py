@@ -2,7 +2,7 @@ import time
 import logging
 import traceback
 
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 from aoi.models import JupyterNotebook, Request
 from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
 from django.utils.timezone import localtime
@@ -24,16 +24,25 @@ class State:
 class NotebookThread(Thread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.stop_requested = Event()
+        self.exception = None
         self.state = state
 
     def run(self):
-        while True:
-            try:
+        try:
+            # sleep for 1 second, or until stop is requested, stop if stop is requested
+            while not self.stop_requested.wait(1):
                 self.validate_notebook()
                 self.execute_notebook()
-            except Exception as e:
-                logger.exception(e)
-            time.sleep(THREAD_SLEEP)
+                time.sleep(THREAD_SLEEP)
+        except Exception as ex:
+            self.exception = ex
+
+        logger.info(f"NotebookThread {self} finished task.")
+
+    def stop(self):
+        # set the event to signal stop
+        self.stop_requested.set()
 
     def validate_notebook(self):
         logger.info(f"Validating notebooks: {self.state.validating_notebooks}")
@@ -102,15 +111,24 @@ class NotebookThread(Thread):
 class PublisherThread(Thread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.stop_requested = Event()
+        self.exception = None
         self.state = state
-    
+
     def run(self):
-        while True:
-            try:
+        try:
+            # sleep for 1 second, or until stop is requested, stop if stop is requested
+            while not self.stop_requested.wait(1):
                 self.publish_results()
-            except Exception as e:
-                logger.exception(e)
-            time.sleep(THREAD_SLEEP)
+                time.sleep(THREAD_SLEEP)
+        except Exception as ex:
+            self.exception = ex
+
+        logger.info(f"PublisherThread {self} finished task")
+
+    def stop(self):
+        # set the event to signal stop
+        self.stop_requested.set()
 
     def publish_results(self):
         with self.state.lock:
