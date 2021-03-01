@@ -1,0 +1,34 @@
+name: PW
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7.8
+  - pip==20.2.4
+  - tqdm==4.51.0
+  - Shapely==1.7.1
+  - geopandas==0.8.1
+  - pandas==1.1.3
+  - sentinelsat==0.14
+  - descartes==1.1.0
+  - rasterio==1.1.8
+  - ipykernel==5.3.4
+  - pip:
+    - albumentations==0.5.1
+    - catalyst==19.5
+    - dbfread==2.0.7
+    - git+https://git@github.com/QuantumobileSoftware/sentinel2tools.git@ca232cb66106db6cac729defdab91aad9aecb15b
+    - jupyter==1.0.0
+    - matplotlib==3.1.2
+    - numpy==1.19.4
+    - pyroSAR==0.11.1
+    - pyyaml==5.3.1
+    - scikit-learn==0.23.2
+    - seaborn==0.11.0
+    - segmentation-models-pytorch==0.1.0
+    - sentinelsat==0.14
+    - torch==1.4.0
+    - torchvision==0.5.0
+    - tqdm==4.51.0
+prefix: /opt/conda/envs/PW
+

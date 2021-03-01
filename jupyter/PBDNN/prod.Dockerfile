@@ -10,6 +10,11 @@ COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
+
+RUN pip install jupyter_contrib_nbextensions jupyterlab-git && \
+    jupyter labextension install @jupyterlab/git && \
+    jupyter lab build
+
 USER $NB_UID
 
 COPY jupyter_notebook_config.json /etc/jupyter/

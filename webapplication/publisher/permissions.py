@@ -7,7 +7,7 @@ class ResultByACLPermission(BasePermission):
     
     def has_object_permission(self, request, view, obj):
         try:
-            acl = ACL.objects.get(user_id=request.user.id)
+            acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
                 return True
             for item in acl.restrict_projects_to:

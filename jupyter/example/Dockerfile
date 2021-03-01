@@ -1,6 +1,7 @@
 FROM jupyter/scipy-notebook:45bfe5a474fa
 
 USER root
+
 RUN apt-get update && \
     apt-get install -y \
     git \
@@ -22,8 +23,8 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/$conda_env python=$py_ver ipyt
 RUN $CONDA_DIR/envs/${conda_env}/bin/python -m ipykernel install --user --name=${conda_env} && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
-USER $NB_UID
 
+USER $NB_UID
 
 # any additional pip installs
 RUN $CONDA_DIR/envs/${conda_env}/bin/pip install --requirement /tmp/requirements_37.txt && \

@@ -1,0 +1,24 @@
+[
+  {
+    "model": "aoi.jupyternotebook",
+    "pk": 1001,
+    "fields": {
+      "name": "JupyterNotebook_test",
+      "image": "some docker command",
+      "path": "work/notebooks/example/geojson.ipynb",
+      "kernel_name": "",
+      "is_validated": true
+    }
+  },
+  {
+    "model": "aoi.jupyternotebook",
+    "pk": 1002,
+    "fields": {
+      "name": "JupyterNotebook_test_2",
+      "image": "some docker command",
+      "path": "work/notebooks/example/geotiff_2.ipynb",
+      "kernel_name": "3.5",
+      "is_validated": false
+    }
+  }
+]

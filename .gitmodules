@@ -1,0 +1,3 @@
+[submodule "data/notebooks/pbdnn/sip_plot_boundary_detection_nn"]
+	path = data/notebooks/pbdnn/sip_plot_boundary_detection_nn
+	url = https://github.com/QuantuMobileSoftware/sip_plot_boundary_detection_nn.git
