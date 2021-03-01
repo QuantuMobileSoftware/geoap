@@ -3,7 +3,7 @@ import logging
 import os
 import json
 
-from typing import Optional
+from typing import Optional, Union
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
@@ -19,7 +19,7 @@ class Container:
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
-                 gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
+                 gpus: Union[str, int, None] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
         self.container_name = container_name
@@ -30,8 +30,16 @@ class Container:
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
                             "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment
 
-        self.device_requests = [DeviceRequest(count=-1,
-                                              capabilities=[['gpu']]), ] if gpus == "all" else None
+        if gpus:
+            capabilities=[['gpu']]
+            if gpus == "all":
+                self.device_requests = [DeviceRequest(count=-1,
+                                                      capabilities=capabilities), ]
+            else:
+                self.device_requests = [DeviceRequest(device_ids=[gpus, ],
+                                                      capabilities=capabilities), ]
+        else:
+            self.device_requests = None
 
     def __run(self):
         client = docker.from_env()
