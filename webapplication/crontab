@@ -1,2 +1,1 @@
-* * * * * python -m manage publish
 0 0 * * * python -m manage clean_sattelite_cache
