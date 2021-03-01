@@ -19,7 +19,7 @@ class Container:
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
-                 gpus: Union[str, int, None] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
+                 gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
         self.container_name = container_name
@@ -36,7 +36,7 @@ class Container:
                 self.device_requests = [DeviceRequest(count=-1,
                                                       capabilities=capabilities), ]
             else:
-                self.device_requests = [DeviceRequest(device_ids=[gpus, ],
+                self.device_requests = [DeviceRequest(device_ids=[str(gpus), ],
                                                       capabilities=capabilities), ]
         else:
             self.device_requests = None
