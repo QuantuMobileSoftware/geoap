@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('publisher', '0009_acl'),
+        ('publisher', '0016_change_verbose_name'),
     ]
 
     operations = [
