@@ -197,6 +197,9 @@ export default function createAoisList(
         const items = [];
 
         requestModel.requests.forEach((request) => {
+            if (request.success) {
+                return;
+            }
             const elem = Div({ class: "aoislist__requests-item" });
 
             const notebook = Div({
@@ -226,9 +229,19 @@ export default function createAoisList(
         const items = [];
 
         requestModel.results.forEach((result) => {
-            const elem = Div({ class: "aoislist__results-item" }).setChildren(
-                `Name: ${result.filepath}`
+            const elem = Div({ class: "aoislist__results-item" });
+
+            const name = Div({
+                class: "aoislist__results-item-text",
+            }).setChildren(result.name ? result.name : result.filepath);
+            const date = Div({
+                class: "aoislist__results-item-text",
+            }).setChildren(
+                result.start_date ? `From: ${result.start_date}` : "",
+                " ",
+                result.end_date ? `To: ${result.end_date}` : ""
             );
+            elem.setChildren(name, date);
 
             elem.addEventListener("click", (e) => {
                 const highlightedItem = document.querySelector(
@@ -240,7 +253,7 @@ export default function createAoisList(
                         "aoislist__results-item--active"
                     );
 
-                e.target.classList.add("aoislist__results-item--active");
+                elem.getDOMElement().classList.add("aoislist__results-item--active");
                 mapModel.selectLayer(result);
             });
 

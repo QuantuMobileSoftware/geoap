@@ -1,31 +1,28 @@
 import docker
 import logging
 import os
+import json
 
-from collections import namedtuple
 from typing import Optional
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
-from sip.settings import (NOTEBOOK_EXECUTOR_GPUS,
-                          CELL_EXECUTION_TIMEOUT,
-                          NOTEBOOK_EXECUTION_TIMEOUT,
-                          BASE_CONTAINER_NAME, )
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
-
-VOLUME_BASENAMES = namedtuple('basenames', 'WEBAPPLICATION DATA')("webapplication", "data")
 
 
 class Container:
     def __init__(self,
                  notebook,
+                 container_name: Optional[str] = None,
                  container_data_volume: str = "/home/jovyan/work",
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
-                 gpus: Optional[str] = NOTEBOOK_EXECUTOR_GPUS, ):
+                 gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
 
         self.notebook = notebook
+        self.container_name = container_name
         self.container_data_volume = container_data_volume
         self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
@@ -35,28 +32,45 @@ class Container:
 
         self.device_requests = [DeviceRequest(count=-1,
                                               capabilities=[['gpu']]), ] if gpus == "all" else None
-        self.container = None
 
     def __run(self):
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
-
-        base_container = client.containers.get(BASE_CONTAINER_NAME)
-        host_paths = HostVolumePaths(base_container.attrs)
-
-        host_data_volume = host_paths.data_volume(VOLUME_BASENAMES.DATA)
-        host_executor_volume = host_paths.executor_volume(VOLUME_BASENAMES.WEBAPPLICATION)
+        volumes = self.get_volumes(client)
 
         self.container = client.containers.run(
             image=image,
             shm_size=self.shm_size,
-            volumes={host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
-                     host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"},
-            },
+            volumes=volumes,
             environment=self.environment,
             device_requests=self.device_requests,
+            name=self.container_name,
             detach=True,
             auto_remove=True, )
+
+    def get_volumes(self, client):
+        base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
+        host_paths = HostVolumePaths(base_container.attrs)
+
+        host_data_volume = host_paths.data_volume(settings.HOST_VOLUME_DATA_BASENAME)
+        host_executor_volume = host_paths.executor_volume(settings.HOST_VOLUME_WEBAPPLICATION_BASENAME)
+
+        volumes = {host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
+                   host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"}, }
+
+        if not self.notebook.options:
+            return volumes
+
+        additional_volumes = self.notebook.options.get("volumes")
+        if additional_volumes:
+            additional_volumes = json.loads(additional_volumes)
+            for host_volume, container_volume in additional_volumes.items():
+                if host_volume not in volumes:
+                    volumes[host_volume] = {"bind": container_volume, "mode": "rw"}
+                else:
+                    logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
+                                     f"mounting. It exists.")
+        return volumes
 
     def __enter__(self):
         self.__run()
@@ -69,6 +83,7 @@ class Container:
 class ContainerValidator(Container):
     def __init__(self, notebook):
         super().__init__(notebook)
+        self.container_name = f"validator_{self.notebook.pk}"
 
     def validate(self):
         # TODO: add validation logic
@@ -85,6 +100,7 @@ class ContainerExecutor(Container):
     def __init__(self, request):
         super().__init__(request.notebook)
         self.request = request
+        self.container_name = f"executor_{self.request.pk}"
         self.notebook_path = self.notebook.path
 
     def execute(self):
@@ -96,11 +112,11 @@ class ContainerExecutor(Container):
         command = f"""python {notebook_executor_path}
                       --input_path {self.notebook_path}
                       --request_id {self.request.pk}
-                      --aoi '{self.request.aoi.polygon.wkt}'
+                      --aoi '{self.request.polygon.wkt}'
                       --start_date {self.request.date_from}
                       --end_date {self.request.date_to}
-                      --cell_timeout {CELL_EXECUTION_TIMEOUT}
-                      --notebook_timeout {NOTEBOOK_EXECUTION_TIMEOUT}
+                      --cell_timeout {settings.CELL_EXECUTION_TIMEOUT}
+                      --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
                       {kernel}
                       """
 

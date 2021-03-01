@@ -25,6 +25,6 @@ class HostVolumePaths:
             if basename == os.path.basename(mount['Source']):
                 return mount['Source'], mount['Destination']
         else:
-            raise ValueError(f"mount['Source'], mount['Destination'] "
-                             f"not exists for {self.container_attrs['Name']} container and {basename}."
+            raise ValueError(f"For host volume basename {basename}, mount['Source'], mount['Destination'] "
+                             f"not exists for {self.container_attrs['Name']} container and {basename}. "
                              f"Check docker-compose file and image: {self.container_attrs['Config']['Image']}")

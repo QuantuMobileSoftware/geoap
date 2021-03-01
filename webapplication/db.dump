@@ -157,7 +157,8 @@ CREATE TABLE public.aoi_jupyternotebook (
     image character varying(400) NOT NULL,
     path character varying(200) NOT NULL,
     kernel_name character varying(200),
-    is_validated boolean NOT NULL
+    is_validated boolean NOT NULL,
+    options jsonb
 );
 
 
@@ -196,10 +197,11 @@ CREATE TABLE public.aoi_request (
     started_at timestamp with time zone,
     finished_at timestamp with time zone,
     error character varying(400),
-    aoi_id integer NOT NULL,
+    aoi_id integer,
     notebook_id integer NOT NULL,
     user_id integer NOT NULL,
-    success boolean NOT NULL
+    success boolean NOT NULL,
+    polygon public.geometry(Polygon,4326) NOT NULL
 );
 
 
@@ -820,14 +822,14 @@ COPY public.aoi_aoi (id, name, polygon, createdat, user_id) FROM stdin;
 -- Data for Name: aoi_jupyternotebook; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, is_validated) FROM stdin;
-4	test_geotiff	ndvi_jupyter:latest	work/notebooks/test/test_geotiff.ipynb	\N	t
-2	example_geotiff	sip_jupyter:latest	work/notebooks/example/geotiff.ipynb	\N	t
-1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	\N	t
-6	Test2_Execution	sip_jupyter:latest	work/notebooks/test/Test2_Execution.ipynb		f
-5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb		f
-3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	\N	t
-7	TCI_NDVI	sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	\N	f
+COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, is_validated, options) FROM stdin;
+6	Test2_Execution	sip_jupyter:latest	work/notebooks/test/Test2_Execution.ipynb	python37	f	\N
+5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb	python37	f	\N
+3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	python37	t	\N
+2	example_geotiff	sip_jupyter:latest	work/notebooks/example/geotiff.ipynb	python37	t	\N
+1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	python37	t	\N
+4	test_geotiff	ndvi_jupyter:latest	work/notebooks/test/test_geotiff.ipynb	python3	t	\N
+7	TCI_NDVI	sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	f	\N
 \.
 
 
@@ -835,14 +837,14 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, is_validate
 -- Data for Name: aoi_request; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.aoi_request (id, date_from, date_to, started_at, finished_at, error, aoi_id, notebook_id, user_id, success) FROM stdin;
-1	2021-01-01	2021-01-19	2021-01-19 08:10:00+00	2021-01-19 08:20:00+00	\N	1	3	2	f
-2	\N	\N	2021-01-19 08:41:00+00	\N	\N	3	4	2	f
-3	2020-12-01	2020-12-26	2021-01-19 08:45:01+00	2021-01-19 08:45:02+00	Cannot calculate results to this AOI	4	4	2	f
-4	2020-12-01	2021-01-26	\N	\N	\N	3	5	2	f
-5	\N	\N	\N	\N	\N	4	6	2	f
-6	2021-02-01	2021-02-03	2021-02-01 13:00:00+00	2021-02-01 18:00:00+00	\N	5	3	2	f
-8	\N	\N	\N	\N	\N	1	2	2	f
+COPY public.aoi_request (id, date_from, date_to, started_at, finished_at, error, aoi_id, notebook_id, user_id, success, polygon) FROM stdin;
+1	2021-01-01	2021-01-19	2021-01-19 08:10:00+00	2021-01-19 08:20:00+00	\N	1	3	2	f	0103000020E6100000010000000A000000000000E03C2B42401C4205E84A07494000000060FC274240FEDC03992807494000000060A227424051CE9070C805494000000090262842406B5C887E8104494000000080612A4240651E4883E203494000000000482D42408D0670CEFB034940FFFFFFCF582E424042DC7A7458054940000000E0DF2D4240390E400EBE06494000000040F92C424007504EEF53074940000000E03C2B42401C4205E84A074940
+2	\N	\N	2021-01-19 08:41:00+00	\N	\N	3	4	2	f	0103000020E6100000010000000A00000000000040722C4240A4A80862E5D2484000000000B11E42404CC57E1EE0D0484000000080621A4240EE886E5812C9484000000080D81C424098F7EAE966C04840000000C0802542407536B0B049C04840000000C03C2D4240956698BA99C148400000000004354240888FB33823C54840000000C0BA3642404DCD657B78C94840000000C009334240A54D643098CF484000000040722C4240A4A80862E5D24840
+3	2020-12-01	2020-12-26	2021-01-19 08:45:01+00	2021-01-19 08:45:02+00	Cannot calculate results to this AOI	4	4	2	f	0103000020E610000001000000080000000000004094A14140748B3DEAC80C494000000040139B41400249E498AB0A4940000000005797414055CEB8E041074940000000C0569B4140A6EEF00964034940FFFFFFBF5EA24140AF70CA44EA04494000000000B3A441407C156B50950849400000000059A441403D384AA8100B49400000004094A14140748B3DEAC80C4940
+4	2020-12-01	2021-01-26	\N	\N	\N	3	5	2	f	0103000020E6100000010000000A00000000000040722C4240A4A80862E5D2484000000000B11E42404CC57E1EE0D0484000000080621A4240EE886E5812C9484000000080D81C424098F7EAE966C04840000000C0802542407536B0B049C04840000000C03C2D4240956698BA99C148400000000004354240888FB33823C54840000000C0BA3642404DCD657B78C94840000000C009334240A54D643098CF484000000040722C4240A4A80862E5D24840
+5	\N	\N	\N	\N	\N	4	6	2	f	0103000020E610000001000000080000000000004094A14140748B3DEAC80C494000000040139B41400249E498AB0A4940000000005797414055CEB8E041074940000000C0569B4140A6EEF00964034940FFFFFFBF5EA24140AF70CA44EA04494000000000B3A441407C156B50950849400000000059A441403D384AA8100B49400000004094A14140748B3DEAC80C4940
+6	2021-02-01	2021-02-03	2021-02-01 13:00:00+00	2021-02-01 18:00:00+00	\N	5	3	2	f	0103000020E6100000010000000A00000004EBF4DBC28A424011B97BC173A34840BFF2F4DB1A7E4240C255C4FD26A848401EF8F4DB237542408207202FE9A34840B7F7F4DBD775424065F2D48CF09648405BF4F4DB4A7B4240A025DBBCD8904840BAEEF4DB22854240081C042AED8F48409DE0F4DB839C424037A2982EF6904840DADCF4DBAAA24240FB9BB8083A9248400DDDF4DB50A24240038DB49FBF9E484004EBF4DBC28A424011B97BC173A34840
+8	\N	\N	\N	\N	\N	1	2	2	f	0103000020E6100000010000000A000000000000E03C2B42401C4205E84A07494000000060FC274240FEDC03992807494000000060A227424051CE9070C805494000000090262842406B5C887E8104494000000080612A4240651E4883E203494000000000482D42408D0670CEFB034940FFFFFFCF582E424042DC7A7458054940000000E0DF2D4240390E400EBE06494000000040F92C424007504EEF53074940000000E03C2B42401C4205E84A074940
 \.
 
 
@@ -1064,6 +1066,8 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 56	publisher	0015_acl_change_ordering	2021-01-26 14:16:06.053774+00
 57	publisher	0016_change_verbose_name	2021-01-26 14:16:06.071253+00
 58	aoi	0009_add_success_flag	2021-01-27 15:23:24.470063+00
+59	aoi	0010_jupyternotebook_options	2021-02-25 13:19:20.786041+00
+60	aoi	0011_request_add_polygon	2021-02-25 13:19:20.882817+00
 \.
 
 
@@ -1249,7 +1253,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 14, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 58, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 60, true);
 
 
 --
@@ -1589,6 +1593,13 @@ CREATE INDEX aoi_request_aoi_id_id_48f40c33 ON public.aoi_request USING btree (a
 --
 
 CREATE INDEX aoi_request_jupyter_notebook_id_id_3d19e09e ON public.aoi_request USING btree (notebook_id);
+
+
+--
+-- Name: aoi_request_polygon_id; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX aoi_request_polygon_id ON public.aoi_request USING gist (polygon);
 
 
 --
