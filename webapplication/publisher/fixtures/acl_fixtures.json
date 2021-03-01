@@ -3,7 +3,7 @@
     "model": "publisher.acl",
     "pk": 1002,
     "fields": {
-      "user_id": 1002,
+      "user": 1002,
       "restrict_projects_to": ["EX_2", "EXAMPLE"]
     }
   },
@@ -11,7 +11,7 @@
     "model": "publisher.acl",
     "pk": 1003,
     "fields": {
-      "user_id": 1003,
+      "user": 1003,
       "restrict_projects_to": ["EX_3"]
     }
   },
@@ -19,7 +19,7 @@
     "model": "publisher.acl",
     "pk": 1004,
     "fields": {
-      "user_id": 1004,
+      "user": 1004,
       "restrict_projects_to": []
     }
   }

@@ -7,8 +7,8 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from ._File import FileFactory
-from ...models import Result
+from publisher.management.commands._File import FileFactory
+from publisher.models import Result
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class Command(BaseCommand):
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
-        logger.info(f"Deleting {to_delete.count()} objects. FILEPATHS: "
+        logger.info(f"Deleting {to_delete.count()} objects. Paths: "
                     f"{[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")

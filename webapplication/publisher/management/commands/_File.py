@@ -7,9 +7,9 @@ import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
+
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
-
 from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -19,7 +19,8 @@ from shapely.geometry import box
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
-from ...models import Result
+from aoi.models import Request
+from publisher.models import Result
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class File(metaclass=ABCMeta):
         self.name = None
         self.start_date = None
         self.end_date = None
+        self.request = None
         self.style_created = False
 
     def filename(self):
@@ -103,8 +105,12 @@ class File(metaclass=ABCMeta):
                      layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
                      bounding_polygon=self.bounding_polygon(),
-                     styles_url=self.styles_url(),
-                     )
+                     name='',
+                     start_date=None,
+                     end_date=None,
+                     request=None,
+                     released=False,
+                     styles_url=self.styles_url(), )
 
         if self.name:
             dict_['name'] = self.name
@@ -112,6 +118,13 @@ class File(metaclass=ABCMeta):
             dict_['start_date'] = timestamp_parser.parse(self.start_date)
         if self.end_date:
             dict_['end_date'] = timestamp_parser.parse(self.end_date)
+        if self.request:
+            try:
+                request = Request.objects.get(pk=self.request)
+                dict_['request'] = request
+                dict_['released'] = True
+            except Request.DoesNotExist:
+                logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
 
         return dict_
 
@@ -147,6 +160,7 @@ class Geojson(File):
             self.name = geojson.get('name')
             self.start_date = geojson.get('start_date')
             self.end_date = geojson.get('end_date')
+            self.request = geojson.get('request_id')
 
         self.df = geopandas.read_file(self.path)
         if str(self.df.crs) != self.crs:
@@ -265,6 +279,7 @@ class Geotif(File):
             self.name = tags.get('name')
             self.start_date = tags.get('start_date')
             self.end_date = tags.get('end_date')
+            self.request = tags.get('request_id')
 
     def layer_type(self):
         return Result.XYZ

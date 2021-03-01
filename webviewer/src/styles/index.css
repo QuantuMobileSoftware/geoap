@@ -1,0 +1,522 @@
+@import url("https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Source+Sans+Pro:400,400i,600,600i&subset=cyrillic");
+
+body {
+    font-family: "Source Sans Pro", sans-serif;
+    font-weight: 400;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    height: 100%;
+}
+
+.button {
+    background-color: rgb(0, 120, 212);
+    border: 1px solid rgb(0, 120, 212);
+    border-radius: 3px;
+    color: rgb(255, 255, 255);
+    padding: 6px 10px;
+    appearance: none;
+    min-width: 70px;
+    transition: all 0.3s ease-in-out;
+    outline: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: rgb(0, 120, 212, 0.8);
+    border-color: rgb(0, 120, 212, 0.8);
+}
+
+.button--login {
+    margin-top: 15px;
+    width: 100%;
+}
+
+.button--success {
+    border-color: rgba(51, 136, 255, 0.794);
+    background-color: rgba(51, 136, 255, 0.794);
+}
+
+.button--error {
+    background-color: rgba(253, 47, 64, 0.76);
+    border-color: rgba(253, 47, 64, 0.76);
+}
+
+.button--neutral {
+    border-color: rgba(228, 229, 230, 0.8);
+    background-color: rgba(240, 241, 241, 0.8);
+    color: rgb(96, 94, 92);
+}
+
+.button--success:hover {
+    border-color: rgba(51, 136, 255);
+    background-color: rgba(51, 136, 255);
+}
+
+.button--neutral:hover {
+    background-color: rgba(228, 229, 230, 0.8);
+    border-color: rgba(228, 229, 230, 0.8);
+}
+
+.button--error:hover {
+    background-color: rgba(255, 19, 38, 1);
+    border-color: rgba(255, 19, 38, 1);
+}
+
+.input {
+    border: none;
+    outline: none;
+    appearance: none;
+    border-radius: 3px;
+    padding: 5px;
+    background: #fff;
+    margin-bottom: 15px;
+    width: 100%;
+    border: 1px solid rgba(228, 229, 230, 1);
+}
+
+.label {
+    color: #3b4148;
+    font-family: "Source Sans Pro";
+    font-size: 15px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* login form  */
+.login-container {
+    margin: auto;
+    width: 320px;
+    padding: 20px;
+    border-radius: 3px;
+    background: white;
+}
+
+/* error and succes message */
+.error,
+.success {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    padding: 10px;
+    border-radius: 3px;
+}
+
+.message {
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    margin-right: 20px;
+}
+
+.error {
+    background-color: rgba(253, 47, 64, 0.876);
+}
+
+.success {
+    background-color: rgba(71, 192, 60, 0.8);
+}
+
+/* close button */
+.close {
+    position: relative;
+    opacity: 0.7;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+.close:before,
+.close:after {
+    position: absolute;
+    left: 11px;
+    content: " ";
+    height: 22px;
+    width: 2px;
+}
+
+.close:before {
+    transform: rotate(45deg);
+}
+
+.close:after {
+    transform: rotate(-45deg);
+}
+
+.close--white:before,
+.close--white:after {
+    background-color: rgb(255, 255, 255);
+}
+
+.close--gray:before,
+.close--gray:after {
+    background-color: rgb(96, 94, 92);
+}
+
+/* fixed positioning */
+.fixed {
+    position: fixed;
+    z-index: 3;
+    border-radius: 3px;
+}
+
+.fixed--tl {
+    top: 50px;
+    left: 50px;
+}
+
+.fixed--bl {
+    bottom: 50px;
+    left: 50px;
+}
+
+.fixed--tr {
+    top: 50px;
+    right: 50px;
+}
+
+.fixed--br {
+    bottom: 50px;
+    right: 50px;
+}
+
+/* layers  */
+.fixed--layers {
+    top: 11px;
+    left: 57px;
+}
+
+.layers__container {
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 3px;
+}
+
+.layers__item {
+    padding: 10px;
+    font-size: 16px;
+    border-top: 1px solid rgb(237, 235, 233);
+    background-color: rgb(255, 255, 255);
+    cursor: pointer;
+}
+
+.layers__item:hover {
+    background-color: rgb(237, 235, 233);
+}
+
+/* details  */
+.fixed--details {
+    bottom: 11px;
+    left: 11px;
+    z-index: 4;
+    border: 1px solid rgb(96, 94, 92);
+}
+
+.details__options {
+    padding: 10px;
+    border-top: 1px solid rgb(237, 235, 233);
+    border-radius: 3px;
+    background-color: rgb(255, 255, 255);
+}
+
+/* plotly details */
+.plotly__details {
+    width: 300px;
+    height: 300px;
+    border-radius: 3px;
+}
+
+/* map */
+.map {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    z-index: 1;
+}
+
+.leaflet-top.leaflet-left {
+    left: 290px;
+}
+
+.map--active .leaflet-top.leaflet-left {
+    left: 590px;
+}
+
+.close--plotly {
+    position: absolute;
+    right: 7px;
+    top: 7px;
+}
+
+/* aois list */
+
+.fixed--aoislist {
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    width: 290px;
+    border: 1px solid rgb(96, 94, 92);
+    background-color: rgb(255, 255, 255);
+    overflow-y: auto;
+}
+
+.aoislist__title {
+    padding: 7px;
+    padding-left: 20px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.aoislist__emptyblock {
+    padding: 7px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 17px;
+}
+
+.aoislist__results-item,
+.aoislist__requests-item {
+    padding: 7px;
+    padding-left: 30px;
+    font-size: 16px;
+}
+
+.aoislist__results-item {
+    width: 288px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aoislist__requests-item-text {
+    width: 255px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aoislist__requests-item-text {
+    font-size: 15px;
+    font-style: italic;
+}
+
+.aoislist__requests-item-text:first-child {
+    margin-bottom: 5px;
+}
+
+.aoislist__results-item--active {
+    background-color: rgb(49, 135, 255, 0.8);
+    color: rgba(255, 255, 255);
+}
+
+.aoislist__results-item:hover {
+    background-color: rgb(49, 135, 255, 0.8);
+    color: rgba(255, 255, 255);
+    cursor: pointer;
+}
+
+.aoislist__item {
+    padding: 10px;
+    border-top: 1px solid rgb(211, 209, 208);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+}
+
+.aoislist__item-text {
+    width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aoislist__item:first-child {
+    border-bottom: none;
+}
+
+.aoislist__controls {
+    display: flex;
+    align-items: center;
+    font-size: 19px;
+}
+
+.aoislist__item-arrow {
+    background: url("../images/arrow-b.svg") no-repeat center;
+    width: 18px;
+    height: 18px;
+}
+
+.aoislist__item-remove {
+    background: url("../images/bin-w.svg") no-repeat center;
+    width: 18px;
+    height: 18px;
+    display: none;
+}
+
+.aoislist__item-edit {
+    background: url("../images/pen-w.svg") no-repeat center;
+    width: 17px;
+    height: 17px;
+    margin-right: 5px;
+    display: none;
+}
+
+.aoislist__emptyitem {
+    padding: 10px;
+    text-align: center;
+}
+
+.aoislist__item--active {
+    background-color: rgba(51, 136, 255, 0.794);
+    color: rgb(255, 255, 255);
+}
+
+.aoislist__item--active .aoislist__item-arrow {
+    display: none;
+}
+
+.aoislist__item--active .aoislist__item-remove {
+    display: block;
+}
+
+.aoislist__item--active .aoislist__item-edit {
+    display: block;
+}
+
+.aoislist__item:hover {
+    background-color: rgba(51, 136, 255, 0.794);
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+}
+
+.aoislist__item:hover .aoislist__item-arrow {
+    background: url("../images/arrow-w.svg") no-repeat center;
+}
+
+.aoislist__item-remove:hover {
+    background: url("../images/bin-b.svg") no-repeat center;
+}
+
+.aoislist__item-edit:hover {
+    background: url("../images/pen-b.svg") no-repeat center;
+}
+
+/* request form */
+
+.fixed--aoisform {
+    left: 295px;
+    top: 2px;
+    bottom: 2px;
+    border: 1px solid rgb(96, 94, 92);
+    background-color: rgb(255, 255, 255);
+    width: 300px;
+    display: none;
+}
+
+.fixed--aoisform.active {
+    display: block;
+}
+
+.aoisform-holder {
+    padding: 10px;
+    width: 100%;
+}
+
+.aoisform-holder .button--neutral {
+    margin-left: 10px;
+}
+
+.aoisform__title {
+    font-size: 20px;
+    margin-bottom: 30px;
+    font-family: "Source Sans Pro";
+}
+
+.aoisform__request,
+.aoisform__from,
+.aoisform__to {
+    margin-bottom: 10px;
+}
+
+.close--aoisform {
+    position: absolute;
+    right: 10px;
+}
+
+.aoislist__buttonholder {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.aoisform__buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* confirm dialog */
+
+.dialog-holder {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 10;
+    background-color: rgb(224, 224, 224, 0.8);
+    display: flex;
+}
+
+.dialog {
+    min-width: 300px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border: 1px solid rgba(177, 177, 177, 0.8);
+    border-radius: 3px;
+}
+
+.dialog__title {
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.dialog__buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.dialog__buttons .button {
+    margin-left: 10px;
+}
+
+.dialog__error {
+    margin-bottom: 15px;
+    color: rgba(255, 19, 38, 1);
+    font-size: 13px;
+    padding-left: 6px;
+    margin-top: -10px;
+}
+
+.aoi__layer--active {
+    pointer-events: none !important;
+}

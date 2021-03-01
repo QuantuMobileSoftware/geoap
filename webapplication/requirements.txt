@@ -1,13 +1,15 @@
-Django==3.1.0
+Django==3.1
 django-filter==2.4.0
 django-rest-auth==0.9.5
 djangorestframework==3.12.1
-psycopg2==2.8.5
-invoke==1.4.1
-uWSGI==2.0.18
 django-flat-json-widget==0.1.1
 django-admin-rangefilter==0.6.3
 drf-yasg==1.20.0
+uWSGI==2.0.18
+
+psycopg2==2.8.5
+invoke==1.4.1
+docker==4.4.4
 
 # geo libs
 rasterio==1.1.8
