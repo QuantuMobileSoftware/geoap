@@ -1,4 +1,3 @@
-import time
 import logging
 import traceback
 
@@ -39,7 +38,7 @@ class NotebookThread(Thread):
         except Exception as ex:
             self.exception = ex
 
-        logger.info(f"NotebookThread {self} finished task.")
+        logger.info(f"NotebookThread {self} finished task")
 
     def stop(self):
         # set the event to signal stop
@@ -121,7 +120,8 @@ class PublisherThread(Thread):
             # sleep for THREAD_SLEEP second, or until stop is requested, stop if stop is requested
             while True:
                 self.publish_results()
-                if self.stop_requested.wait(THREAD_SLEEP):
+                print(f"PUBLISHER SUCESS REQUESTS: {self.state.success_requests}")
+                if self.stop_requested.wait(THREAD_SLEEP) and not self.state.success_requests:
                     break
         except Exception as ex:
             self.exception = ex
