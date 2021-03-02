@@ -30,11 +30,12 @@ class NotebookThread(Thread):
 
     def run(self):
         try:
-            # sleep for 1 second, or until stop is requested, stop if stop is requested
-            while not self.stop_requested.wait(1):
+            # sleep for THREAD_SLEEP seconds, or until stop is requested, stop if stop is requested
+            while True:
                 self.validate_notebook()
                 self.execute_notebook()
-                time.sleep(THREAD_SLEEP)
+                if self.stop_requested.wait(THREAD_SLEEP):
+                    break
         except Exception as ex:
             self.exception = ex
 
@@ -117,10 +118,11 @@ class PublisherThread(Thread):
 
     def run(self):
         try:
-            # sleep for 1 second, or until stop is requested, stop if stop is requested
-            while not self.stop_requested.wait(1):
+            # sleep for THREAD_SLEEP second, or until stop is requested, stop if stop is requested
+            while True:
                 self.publish_results()
-                time.sleep(THREAD_SLEEP)
+                if self.stop_requested.wait(THREAD_SLEEP):
+                    break
         except Exception as ex:
             self.exception = ex
 
