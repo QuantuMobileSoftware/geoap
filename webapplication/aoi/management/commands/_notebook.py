@@ -20,16 +20,24 @@ class State:
         self.success_requests = set()
 
 
-class NotebookThread(Thread):
-    def __init__(self, state, *args, **kwargs):
+class StopRequest:
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stop_requested = Event()
         self.exception = None
+
+    def stop(self):
+        # set the event to signal stop
+        self.stop_requested.set()
+
+
+class NotebookThread(StopRequest, Thread):
+    def __init__(self, state, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.state = state
 
     def run(self):
         try:
-            # sleep for THREAD_SLEEP seconds, or until stop is requested, stop if stop is requested
             while True:
                 self.validate_notebook()
                 self.execute_notebook()
@@ -40,17 +48,13 @@ class NotebookThread(Thread):
 
         logger.info(f"NotebookThread {self} finished task")
 
-    def stop(self):
-        # set the event to signal stop
-        self.stop_requested.set()
-
     def validate_notebook(self):
         logger.info(f"Validating notebooks: {self.state.validating_notebooks}")
 
         with self.state.lock:
             # find any notebook that is not validated yet
             notebook = JupyterNotebook.objects.filter(is_validated=False) \
-                    .exclude(pk__in=self.state.validating_notebooks).first()
+                .exclude(pk__in=self.state.validating_notebooks).first()
             if not notebook:
                 return
             self.state.validating_notebooks.add(notebook.pk)
@@ -77,7 +81,7 @@ class NotebookThread(Thread):
         with self.state.lock:
             # find any request that is not executed yet
             request = Request.objects.filter(started_at__isnull=True) \
-                    .exclude(pk__in=self.state.executing_requests).first()
+                .exclude(pk__in=self.state.executing_requests).first()
             if not request:
                 return
 
@@ -108,29 +112,22 @@ class NotebookThread(Thread):
                         self.state.executing_requests.remove(request.pk)
 
 
-class PublisherThread(Thread):
+class PublisherThread(StopRequest, Thread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stop_requested = Event()
-        self.exception = None
         self.state = state
 
     def run(self):
         try:
-            # sleep for THREAD_SLEEP second, or until stop is requested, stop if stop is requested
             while True:
                 self.publish_results()
-                print(f"PUBLISHER SUCESS REQUESTS: {self.state.success_requests}")
-                if self.stop_requested.wait(THREAD_SLEEP) and not self.state.success_requests:
+                if self.stop_requested.wait(THREAD_SLEEP) and \
+                        not (self.state.success_requests or self.state.executing_requests):
                     break
         except Exception as ex:
             self.exception = ex
 
         logger.info(f"PublisherThread {self} finished task")
-
-    def stop(self):
-        # set the event to signal stop
-        self.stop_requested.set()
 
     def publish_results(self):
         with self.state.lock:
