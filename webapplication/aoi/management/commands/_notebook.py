@@ -1,5 +1,5 @@
 import logging
-import traceback
+from abc import abstractmethod, ABC
 
 from threading import Thread, Lock, Event
 from aoi.models import JupyterNotebook, Request
@@ -20,7 +20,7 @@ class State:
         self.success_requests = set()
 
 
-class StopRequest:
+class StoppableThread(ABC, Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stop_requested = Event()
@@ -30,23 +30,33 @@ class StopRequest:
         # set the event to signal stop
         self.stop_requested.set()
 
-
-class NotebookThread(StopRequest, Thread):
-    def __init__(self, state, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.state = state
-
     def run(self):
         try:
             while True:
-                self.validate_notebook()
-                self.execute_notebook()
-                if self.stop_requested.wait(THREAD_SLEEP):
+                self.do_stuff()
+                if self.stop_requested.wait(THREAD_SLEEP) and self.can_exit():
                     break
         except Exception as ex:
             self.exception = ex
 
-        logger.info(f"NotebookThread {self} finished task")
+        logger.info(f"Thread {self} finished task")
+
+    def can_exit(self):
+        return True
+
+    @abstractmethod
+    def do_stuff(self):
+        pass
+
+
+class NotebookThread(StoppableThread):
+    def __init__(self, state, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state = state
+
+    def do_stuff(self):
+        self.validate_notebook()
+        self.execute_notebook()
 
     def validate_notebook(self):
         logger.info(f"Validating notebooks: {self.state.validating_notebooks}")
@@ -64,7 +74,7 @@ class NotebookThread(StopRequest, Thread):
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
         except:
-            logger.error(f"{notebook.name}: {traceback.print_exc()}")
+            logger.exception(f"{notebook.name}")
         finally:
             notebook.is_validated = validated
             try:
@@ -95,7 +105,7 @@ class NotebookThread(StopRequest, Thread):
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
         except:
-            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
+            logger.exception(f"Request {request.pk}, notebook {request.notebook.name}:")
         finally:
             if success:
                 with self.state.lock:
@@ -112,22 +122,17 @@ class NotebookThread(StopRequest, Thread):
                         self.state.executing_requests.remove(request.pk)
 
 
-class PublisherThread(StopRequest, Thread):
+class PublisherThread(StoppableThread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
 
-    def run(self):
-        try:
-            while True:
-                self.publish_results()
-                if self.stop_requested.wait(THREAD_SLEEP) and \
-                        not (self.state.success_requests or self.state.executing_requests):
-                    break
-        except Exception as ex:
-            self.exception = ex
+    def do_stuff(self):
+        self.publish_results()
 
-        logger.info(f"PublisherThread {self} finished task")
+    def can_exit(self):
+        with self.state.lock:
+            return not self.state.success_requests and not self.state.executing_requests
 
     def publish_results(self):
         with self.state.lock:
