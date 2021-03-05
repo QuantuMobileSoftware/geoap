@@ -1,6 +1,7 @@
 import logging
-from abc import abstractmethod, ABC
+import time
 
+from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
 from aoi.models import JupyterNotebook, Request
 from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
@@ -34,6 +35,7 @@ class StoppableThread(ABC, Thread):
         try:
             while True:
                 self.do_stuff()
+                time.sleep(THREAD_SLEEP)
                 if self.stop_requested.wait(THREAD_SLEEP) and self.can_exit():
                     break
         except Exception as ex:
