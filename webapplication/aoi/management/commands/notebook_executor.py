@@ -25,8 +25,8 @@ class Command(BaseCommand):
     def run(self):
         state = State()
 
-        threads = [NotebookThread(state) for _ in range(settings.NOTEBOOK_EXECUTOR_THREADS)]
-        threads.append(PublisherThread(state))
+        threads = [NotebookThread(state, daemon=True) for _ in range(settings.NOTEBOOK_EXECUTOR_THREADS)]
+        threads.append(PublisherThread(state, daemon=True))
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
