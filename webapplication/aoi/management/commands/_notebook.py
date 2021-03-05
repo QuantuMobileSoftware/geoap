@@ -35,7 +35,6 @@ class StoppableThread(ABC, Thread):
         try:
             while True:
                 self.do_stuff()
-                time.sleep(THREAD_SLEEP)
                 if self.stop_requested.wait(THREAD_SLEEP) and self.can_exit():
                     break
         except Exception as ex:
