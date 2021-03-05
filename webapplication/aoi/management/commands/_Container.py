@@ -69,7 +69,7 @@ class Container:
                     volumes[host_volume] = {"bind": container_volume, "mode": "rw"}
                 else:
                     logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
-                                     f"mounting. It exists.")
+                                   f"mounting. It exists.")
         return volumes
 
     def __enter__(self):
