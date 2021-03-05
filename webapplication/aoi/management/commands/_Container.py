@@ -77,7 +77,7 @@ class Container:
                     volumes[host_volume] = {"bind": container_volume, "mode": "rw"}
                 else:
                     logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
-                                     f"mounting. It exists.")
+                                   f"mounting. It exists.")
         return volumes
 
     def __enter__(self):
@@ -128,7 +128,7 @@ class ContainerExecutor(Container):
                       {kernel}
                       """
 
-        exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
+        exit_code, (stdout, stderr) = self.container.exec_run(command, demux=True)
 
         logger.info(f"Request: {self.request.pk}: Finished executing notebook {self.notebook.name}, "
                     f"exit code: {exit_code}")
@@ -136,5 +136,11 @@ class ContainerExecutor(Container):
         if exit_code == 0:
             return True
         else:
-            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {stderr.decode('utf-8')}")
+            if stderr:
+                message = stderr.decode('utf-8')
+            elif stdout:
+                message = stdout.decode('utf-8')
+            else:
+                message = None
+            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {message}")
             return False
