@@ -40,7 +40,7 @@ class Command(BaseCommand):
         try:
             while True:
                 for thread in threads:
-                    if thread.exception:
+                    if thread.exception or not thread.is_alive():
                         # an error in a thread - raise it in main thread too
                         logger.error(f"Thread: {thread} exited: {thread.exception}. Terminate all threads and restart")
                         raise thread.exception
@@ -48,8 +48,9 @@ class Command(BaseCommand):
                 if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
                     raise RuntimeError(f"Threads timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} was achieved")
                 time.sleep(THREAD_SLEEP)
-        except:
-            logger.info(f"Stopping all threads...")
+        except Exception as ex:
+            logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
+
             for thread in threads:
                 thread.stop()
 
@@ -59,7 +60,7 @@ class Command(BaseCommand):
                     if not thread.is_alive():
                         logger.info(f"For thread {thread} task is finished. Removing it")
                         threads.remove(thread)
-                time.sleep(10)
+                time.sleep(THREAD_SLEEP)
 
         logger.info(f"All threads are stopped. Restart notebook_executor command")
         sys.exit(2)
