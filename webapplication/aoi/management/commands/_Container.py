@@ -15,6 +15,7 @@ class Container:
     def __init__(self,
                  notebook,
                  container_name: Optional[str] = None,
+                 labels: Optional[str] = None,
                  container_data_volume: str = "/home/jovyan/work",
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
@@ -23,6 +24,7 @@ class Container:
 
         self.notebook = notebook
         self.container_name = container_name
+        self.labels = labels
         self.container_data_volume = container_data_volume
         self.container_executor_volume = container_executor_volume
         self.shm_size = shm_size
@@ -31,7 +33,7 @@ class Container:
                             "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment
 
         if gpus:
-            capabilities=[['gpu']]
+            capabilities = [['gpu']]
             if gpus == "all":
                 self.device_requests = [DeviceRequest(count=-1,
                                                       capabilities=capabilities), ]
@@ -41,20 +43,21 @@ class Container:
         else:
             self.device_requests = None
 
-    def __run(self):
+    def run(self, command):
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
         volumes = self.get_volumes(client)
 
         self.container = client.containers.run(
+            command=command,
             image=image,
             shm_size=self.shm_size,
             volumes=volumes,
             environment=self.environment,
             device_requests=self.device_requests,
             name=self.container_name,
-            detach=True,
-            auto_remove=True, )
+            labels=self.labels,
+            detach=True, )
 
     def get_volumes(self, client):
         base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
@@ -80,28 +83,16 @@ class Container:
                                    f"mounting. It exists.")
         return volumes
 
-    def __enter__(self):
-        self.__run()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.container.stop()
-
 
 class ContainerValidator(Container):
     def __init__(self, notebook):
         super().__init__(notebook)
         self.container_name = f"validator_{self.notebook.pk}"
+        self.labels = dict(webapplication="validator", pk=str(self.notebook.pk))
 
     def validate(self):
         # TODO: add validation logic
-        logger.info(f"Start validation for {self.notebook.name}")
-
-        logger.info(f"Finished validation for {self.notebook.name}")
-
-        validated = True
-
-        return validated
+        pass
 
 
 class ContainerExecutor(Container):
@@ -109,6 +100,7 @@ class ContainerExecutor(Container):
         super().__init__(request.notebook)
         self.request = request
         self.container_name = f"executor_{self.request.pk}"
+        self.labels = dict(webapplication="executor", pk=str(self.request.pk))
         self.notebook_path = self.notebook.path
 
     def execute(self):
@@ -127,20 +119,4 @@ class ContainerExecutor(Container):
                       --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
                       {kernel}
                       """
-
-        exit_code, (stdout, stderr) = self.container.exec_run(command, demux=True)
-
-        logger.info(f"Request: {self.request.pk}: Finished executing notebook {self.notebook.name}, "
-                    f"exit code: {exit_code}")
-
-        if exit_code == 0:
-            return True
-        else:
-            if stderr:
-                message = stderr.decode('utf-8')
-            elif stdout:
-                message = stdout.decode('utf-8')
-            else:
-                message = None
-            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {message}")
-            return False
+        super().run(command)
