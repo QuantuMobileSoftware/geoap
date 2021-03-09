@@ -51,7 +51,7 @@ class File(metaclass=ABCMeta):
         self.start_date = None
         self.end_date = None
         self.request = None
-        self.style_created = False
+        self.style_url = None
 
     def filename(self):
         return os.path.basename(self.path)
@@ -78,7 +78,7 @@ class File(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def styles_url(self):
+    def get_styles_url(self):
         pass
 
     def generate_tiles(self, tiles_folder, **kwargs):
@@ -109,8 +109,7 @@ class File(metaclass=ABCMeta):
                      start_date=None,
                      end_date=None,
                      request=None,
-                     released=False,
-                     styles_url=self.styles_url(), )
+                     released=False,)
 
         if self.name:
             dict_['name'] = self.name
@@ -183,17 +182,16 @@ class Geojson(File):
             return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
         return f"/results/{super().filepath()}"
     
-    def styles_url(self):
+    def get_styles_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + '/style.json'
     
-    @staticmethod
-    def create_mvt_style(df, output_path):
+    def create_mvt_style(self, df, output_path):
         """
         read GeoDataFrame object and create style.json if need it.
-        return: True if style.json was created else return False
+        return: style url if style.json was created else return None
         @param df: GeoDataFrame
         @param output_path: str or Path
-        @return: bool
+        @return: str
         """
         
         def get_color(row):
@@ -201,7 +199,7 @@ class Geojson(File):
                 return row['color']
 
         if 'style' not in df.columns:
-            return False
+            return
         colors_list = df['style'].apply(get_color).dropna().unique().tolist()
         if len(colors_list) > 0:
             style_dict = dict(version=1, name='default_style', layers=[])
@@ -225,8 +223,9 @@ class Geojson(File):
 
             with open(output_path, "w") as outfile:
                 json.dump(style_dict, outfile)
-            return True
-        return False
+                logger.info(f"Styles for tiles saved in: {output_path}")
+            return self.get_styles_url()
+        return
         
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
         if self._need_create_mvt:
@@ -251,7 +250,7 @@ class Geojson(File):
                        self.path,
                        ]
             self.run_process(command, timeout)
-            self.style_created = self.create_mvt_style(self.df, f'{save_path}/style.json')
+            self.style_url = self.create_mvt_style(self.df, f'{save_path}/style.json')
 
 
 class Geotif(File):
@@ -287,7 +286,7 @@ class Geotif(File):
     def rel_url(self):
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.png"
     
-    def styles_url(self):
+    def get_styles_url(self):
         return
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
