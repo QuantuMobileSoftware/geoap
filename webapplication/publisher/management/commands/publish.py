@@ -86,10 +86,12 @@ class Command(BaseCommand):
                     if result.modifiedat < file_dict['modifiedat']:
                         file.delete_tiles(self.tiles_folder)
                         file.generate_tiles(self.tiles_folder)
+                        file_dict['styles_url'] = file.style_url
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
                 except Result.DoesNotExist:
                     file.generate_tiles(self.tiles_folder)
+                    file_dict['styles_url'] = file.style_url
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
             except Exception as ex:
