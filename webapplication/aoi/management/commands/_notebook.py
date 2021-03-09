@@ -1,8 +1,8 @@
-import time
 import logging
-import traceback
+import time
 
-from threading import Thread, Lock
+from abc import abstractmethod, ABC
+from threading import Thread, Lock, Event
 from aoi.models import JupyterNotebook, Request
 from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
 from django.utils.timezone import localtime
@@ -21,19 +21,43 @@ class State:
         self.success_requests = set()
 
 
-class NotebookThread(Thread):
+class StoppableThread(ABC, Thread):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stop_requested = Event()
+        self.exception = None
+
+    def stop(self):
+        # set the event to signal stop
+        self.stop_requested.set()
+
+    def run(self):
+        try:
+            while True:
+                self.do_stuff()
+                if self.stop_requested.wait(THREAD_SLEEP) and self.can_exit():
+                    break
+        except Exception as ex:
+            self.exception = ex
+
+        logger.info(f"Thread {self} finished task")
+
+    def can_exit(self):
+        return True
+
+    @abstractmethod
+    def do_stuff(self):
+        pass
+
+
+class NotebookThread(StoppableThread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
 
-    def run(self):
-        while True:
-            try:
-                self.validate_notebook()
-                self.execute_notebook()
-            except Exception as e:
-                logger.exception(e)
-            time.sleep(THREAD_SLEEP)
+    def do_stuff(self):
+        self.validate_notebook()
+        self.execute_notebook()
 
     def validate_notebook(self):
         logger.info(f"Validating notebooks: {self.state.validating_notebooks}")
@@ -41,7 +65,7 @@ class NotebookThread(Thread):
         with self.state.lock:
             # find any notebook that is not validated yet
             notebook = JupyterNotebook.objects.filter(is_validated=False) \
-                    .exclude(pk__in=self.state.validating_notebooks).first()
+                .exclude(pk__in=self.state.validating_notebooks).first()
             if not notebook:
                 return
             self.state.validating_notebooks.add(notebook.pk)
@@ -51,7 +75,7 @@ class NotebookThread(Thread):
             with ContainerValidator(notebook) as cv:
                 validated = cv.validate()
         except:
-            logger.error(f"{notebook.name}: {traceback.print_exc()}")
+            logger.exception(f"{notebook.name}")
         finally:
             notebook.is_validated = validated
             try:
@@ -68,7 +92,7 @@ class NotebookThread(Thread):
         with self.state.lock:
             # find any request that is not executed yet
             request = Request.objects.filter(started_at__isnull=True) \
-                    .exclude(pk__in=self.state.executing_requests).first()
+                .exclude(pk__in=self.state.executing_requests).first()
             if not request:
                 return
 
@@ -82,7 +106,7 @@ class NotebookThread(Thread):
             with ContainerExecutor(request) as ce:
                 success = ce.execute()
         except:
-            logger.error(f"Request {request.pk}, notebook {request.notebook.name}: {traceback.print_exc()}")
+            logger.exception(f"Request {request.pk}, notebook {request.notebook.name}:")
         finally:
             if success:
                 with self.state.lock:
@@ -99,18 +123,17 @@ class NotebookThread(Thread):
                         self.state.executing_requests.remove(request.pk)
 
 
-class PublisherThread(Thread):
+class PublisherThread(StoppableThread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
-    
-    def run(self):
-        while True:
-            try:
-                self.publish_results()
-            except Exception as e:
-                logger.exception(e)
-            time.sleep(THREAD_SLEEP)
+
+    def do_stuff(self):
+        self.publish_results()
+
+    def can_exit(self):
+        with self.state.lock:
+            return not self.state.success_requests and not self.state.executing_requests
 
     def publish_results(self):
         with self.state.lock:

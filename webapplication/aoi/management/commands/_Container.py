@@ -3,7 +3,7 @@ import logging
 import os
 import json
 
-from typing import Optional
+from typing import Optional, Union
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
@@ -30,8 +30,16 @@ class Container:
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
                             "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment
 
-        self.device_requests = [DeviceRequest(count=-1,
-                                              capabilities=[['gpu']]), ] if gpus == "all" else None
+        if gpus:
+            capabilities=[['gpu']]
+            if gpus == "all":
+                self.device_requests = [DeviceRequest(count=-1,
+                                                      capabilities=capabilities), ]
+            else:
+                self.device_requests = [DeviceRequest(device_ids=[str(gpus), ],
+                                                      capabilities=capabilities), ]
+        else:
+            self.device_requests = None
 
     def __run(self):
         client = docker.from_env()
@@ -69,7 +77,7 @@ class Container:
                     volumes[host_volume] = {"bind": container_volume, "mode": "rw"}
                 else:
                     logger.warning(f"Notebook: {self.notebook.name}: ignoring volume {host_volume}:{container_volume} "
-                                     f"mounting. It exists.")
+                                   f"mounting. It exists.")
         return volumes
 
     def __enter__(self):
@@ -120,7 +128,7 @@ class ContainerExecutor(Container):
                       {kernel}
                       """
 
-        exit_code, (_, stderr) = self.container.exec_run(command, demux=True)
+        exit_code, (stdout, stderr) = self.container.exec_run(command, demux=True)
 
         logger.info(f"Request: {self.request.pk}: Finished executing notebook {self.notebook.name}, "
                     f"exit code: {exit_code}")
@@ -128,5 +136,11 @@ class ContainerExecutor(Container):
         if exit_code == 0:
             return True
         else:
-            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {stderr.decode('utf-8')}")
+            if stderr:
+                message = stderr.decode('utf-8')
+            elif stdout:
+                message = stdout.decode('utf-8')
+            else:
+                message = None
+            logger.error(f"Request {self.request.pk}: {self.notebook.name}: {message}")
             return False
