@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import numpy as np
 import rasterio
+import geopandas
 from rasterio import Affine
 from rasterio.crs import CRS
 from geojson import Feature, FeatureCollection, Polygon
@@ -376,6 +377,22 @@ class PublisherBase(APITestCase):
         feature_collection = FeatureCollection(feature_list)
         with open(self.geojson_path, 'w') as file:
             geojson.dump(feature_collection, file)
+            
+    def create_big_geojson_with_style(self):
+        self.big_geojson_name = Path('big_style.geojson')
+        self.geojson_path = self.test_results_folder / self.big_geojson_name
+        self.mvt_styles_path = self.test_tile_folder / self.big_geojson_name.stem / 'style.json'
+        self.mvt_styles_url = Path('/tiles') / self.big_geojson_name.stem / 'style.json'
+        feature_list = [feature_obj[1] for feature_obj in self.generate_features()]
+        for cnt in range(10):
+            feature_list += feature_list
+        feature_collection = FeatureCollection(feature_list)
+        df = geopandas.GeoDataFrame.from_features(feature_collection, crs="epsg:4326")
+        df_len = len(df.index)
+        style_column = [{'color': '#111111'}] * 10
+        style_column.extend([{'color': '#000000'}] * (df_len - 10))
+        df.insert(1, 'style', style_column)
+        df.to_file(self.geojson_path, driver='GeoJSON')
 
 
 class BigGeojsonPublisherTestCase(PublisherBase):
@@ -390,8 +407,22 @@ class BigGeojsonPublisherTestCase(PublisherBase):
             self.assertEqual(result.bounding_polygon.geom_type, 'Polygon')
             self.assertEqual(result.bounding_polygon.srid, 4326)
             self.assertEqual(self.mvt_path.exists(), True)
+            self.assertEqual(result.styles_url, None)
 
 
+class BigGeojsonWithStylePublisherTestCase(PublisherBase):
+    def test_publish_big_geojson_with_style(self):
+        self.create_big_geojson_with_style()
+        command = Command()
+        command.handle()
+        results = Result.objects.all().order_by('filepath')
+        for result in results:
+            self.assertEqual(str(self.mvt_styles_url), result.styles_url)
+            with open(self.mvt_styles_path) as f:
+                data = json.loads(f.readline())
+                self.assertEqual(len(data['layers']), 2)
+        
+        
 class CleanBigGeojsonPublisherTestCase(PublisherBase):
     def test_clean_geojson_files_result(self):
         self.create_big_geojson()
