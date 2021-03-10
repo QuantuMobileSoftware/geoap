@@ -3,7 +3,8 @@ import logging
 import os
 import json
 
-from typing import Optional, Union
+from typing import Optional
+from dateutil import parser as timestamp_parser
 from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
@@ -43,7 +44,7 @@ class Container:
         else:
             self.device_requests = None
 
-    def run(self, command):
+    def run(self, command=None):
         client = docker.from_env()
         image = client.images.get(self.notebook.image)
         volumes = self.get_volumes(client)
@@ -83,6 +84,21 @@ class Container:
                                    f"mounting. It exists.")
         return volumes
 
+    @staticmethod
+    def container_attrs(container):
+        attrs = container.attrs
+        return dict(
+            finished_at=timestamp_parser.parse(attrs["State"]["FinishedAt"]),
+            exit_code=attrs["State"]["ExitCode"],
+            logs=container.logs().decode('utf-8') if container.logs() else None,
+            pk=int(container.labels['pk']), )
+
+    @staticmethod
+    def filter(docker_client, status, label):
+        containers = docker_client.containers.list(filters=dict(status=status,
+                                                                label=label))
+        return containers
+
 
 class ContainerValidator(Container):
     def __init__(self, notebook):
@@ -92,7 +108,7 @@ class ContainerValidator(Container):
 
     def validate(self):
         # TODO: add validation logic
-        pass
+        super().run("python --version")
 
 
 class ContainerExecutor(Container):
