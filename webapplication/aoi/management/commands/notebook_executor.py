@@ -46,7 +46,8 @@ class Command(BaseCommand):
                         raise thread.exception
                 working_time = time.time() - started_at
                 if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
-                    raise RuntimeError(f"Threads timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} was achieved")
+                    raise RuntimeError(f"Thread {thread} timeout "
+                                       f"{settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} sec was achieved")
                 time.sleep(THREAD_SLEEP)
         except Exception as ex:
             logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
