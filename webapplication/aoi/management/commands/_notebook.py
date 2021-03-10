@@ -64,7 +64,7 @@ class NotebookThread(StoppableThread):
         with self.state.lock:
             self.execute_notebook()
 
-    def _get_running_containers(self):
+    def get_running_containers(self):
         containers = Container.filter(self.docker_client, "running", "webapplication")
         logger.info(f"Running {len(containers)} containers: {[container.name for container in containers]}")
         return containers
@@ -86,7 +86,7 @@ class NotebookThread(StoppableThread):
             except:
                 logger.exception(f"Removing container {container.name}")
 
-        running_containers = self._get_running_containers()
+        running_containers = self.get_running_containers()
 
         # find notebooks that is not validated yet
         max_items = settings.NOTEBOOK_EXECUTOR_MAX_NOTEBOOKS_IN_PROGRESS - len(running_containers)
@@ -119,7 +119,7 @@ class NotebookThread(StoppableThread):
             except:
                 logger.exception(f"Removing container {container.name}")
 
-        running_containers = self._get_running_containers()
+        running_containers = self.get_running_containers()
 
         # find requests that is not executed yet
         max_items = settings.NOTEBOOK_EXECUTOR_MAX_NOTEBOOKS_IN_PROGRESS - len(running_containers)
