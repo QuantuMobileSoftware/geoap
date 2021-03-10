@@ -59,8 +59,10 @@ class NotebookThread(StoppableThread):
         self.docker_client = docker.from_env()
 
     def do_stuff(self):
-        self.validate_notebook()
-        self.execute_notebook()
+        with self.state.lock:
+            self.validate_notebook()
+        with self.state.lock:
+            self.execute_notebook()
 
     def _get_running_containers(self):
         containers = Container.filter(self.docker_client, "running", "webapplication")
@@ -107,8 +109,7 @@ class NotebookThread(StoppableThread):
             attrs = Container.container_attrs(container)
             if attrs['exit_code'] == 0:
                 logger.info(f"Container {container.name} executed successfully")
-                with self.state.lock:
-                    self.state.success_requests.add(attrs['pk'])
+                self.state.success_requests.add(attrs['pk'])
             else:
                 Request.objects.filter(pk=attrs['pk']).update(finished_at=localtime(), success=False)
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
