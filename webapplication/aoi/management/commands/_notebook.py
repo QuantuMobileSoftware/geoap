@@ -4,10 +4,12 @@ import logging
 from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
 from aoi.models import JupyterNotebook, Request
-from aoi.management.commands._Container import ContainerValidator, ContainerExecutor
+from aoi.management.commands._Container import (Container,
+                                                ContainerValidator,
+                                                ContainerExecutor, )
 from django.utils.timezone import localtime
 from django.core import management
-from dateutil import parser as timestamp_parser
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +19,6 @@ THREAD_SLEEP = 10
 class State:
     def __init__(self):
         self.lock = Lock()
-        # self.validating_notebooks = set()
-        # self.executing_requests = set()
         self.success_requests = set()
 
 
@@ -39,6 +39,7 @@ class StoppableThread(ABC, Thread):
                 if self.stop_requested.wait(THREAD_SLEEP) and self.can_exit():
                     break
         except Exception as ex:
+            logger.error(f"Got exception for thread {self}: {str(ex)}")
             self.exception = ex
 
         logger.info(f"Thread {self} finished task")
@@ -61,84 +62,90 @@ class NotebookThread(StoppableThread):
         self.validate_notebook()
         self.execute_notebook()
 
-    def validate_notebook(self):
-        running_containers = self.filter_containers("running", "webapplication=validator")
-        logger.info(f"Running validator containers: {[container.name for container in running_containers]}")
+    def _get_running_containers(self):
+        containers = Container.filter(self.docker_client, "running", "webapplication")
+        logger.info(f"Running {len(containers)} containers: {[container.name for container in containers]}")
+        return containers
 
-        exited_containers = self.filter_containers("exited", "webapplication=validator")
+    def validate_notebook(self):
+        exited_containers = Container.filter(self.docker_client, "exited", "webapplication=validator")
         logger.info(f"Exited validator containers: {[container.name for container in exited_containers]}")
 
-        # find any notebook that is not validated yet
-        notebook = JupyterNotebook.objects.filter(is_validated=False).first()
-        if not notebook:
+        for container in exited_containers:
+            attrs = Container.container_attrs(container)
+            if attrs['exit_code'] == 0:
+                logger.info(f"Container {container.name} validated successfully")
+                JupyterNotebook.objects.filter(pk=attrs['pk']).update(is_validated=True)
+            else:
+                logger.error(f"Validation container: {container.name}: exit code: {attrs['exit_code']},"
+                             f"logs: {attrs['logs']}")
+            try:
+                container.remove()
+            except:
+                logger.exception(f"Removing container {container.name}")
+
+        running_containers = self._get_running_containers()
+
+        # find notebooks that is not validated yet
+        max_items = settings.NOTEBOOK_EXECUTOR_MAX_NOTEBOOKS_IN_PROGRESS - len(running_containers)
+        if max_items < 0:
             return
 
-        notebook.validated = True
-        try:
-            notebook.save(update_fields=['is_validated'])
-        except Exception as ex:
-            logger.error(f"Cannot update notebook {notebook.name} in db: {str(ex)}")
+        not_validated = JupyterNotebook.objects.filter(is_validated=False)[:max_items]
+        for notebook in not_validated:
+            try:
+                ce = ContainerValidator(notebook)
+                ce.validate()
+            except:
+                logger.exception(f"Notebook {notebook.name}:")
 
     def execute_notebook(self):
-        running_containers = self.filter_containers("running", "webapplication=executor")
-        logger.info(f"Running executor containers: {[container.name for container in running_containers]}")
-
-        exited_containers = self.filter_containers("exited", "webapplication=executor")
+        exited_containers = Container.filter(self.docker_client, "exited", "webapplication=executor")
         logger.info(f"Exited executor containers: {[container.name for container in exited_containers]}")
 
         for container in exited_containers:
-            attrs = self.container_attrs(container)
+            attrs = Container.container_attrs(container)
             if attrs['exit_code'] == 0:
-                logger.info(f"Container {container.name} finished successfully")
+                logger.info(f"Container {container.name} executed successfully")
                 with self.state.lock:
                     self.state.success_requests.add(attrs['pk'])
             else:
-                Request.objects.filter(pk=attrs['pk']).update(finished_at=localtime(),
-                                                              success=False)
-                logger.error(f"Container: {container.name}: exit code: {attrs['exit_code']},"
+                Request.objects.filter(pk=attrs['pk']).update(finished_at=localtime(), success=False)
+                logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
-                try:
-                    container.remove()
-                except:
-                    logger.exception(f"Removing container {container.name}")
-
-        # find any request that is not executed yet
-        request = Request.objects.filter(started_at__isnull=True).first()
-        if not request:
-            return
-        try:
-            request.started_at = localtime()
-            request.save(update_fields=['started_at'])
-
-            ce = ContainerExecutor(request)
-            ce.execute()
-        except:
-            logger.exception(f"Request {request.pk}, notebook {request.notebook.name}:")
             try:
-                request.finished_at = localtime()
-                request.save(update_fields=['finished_at'])
-            except Exception as ex:
-                logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
+                container.remove()
+            except:
+                logger.exception(f"Removing container {container.name}")
 
-    def container_attrs(self, container):
-        attrs = container.attrs
-        return dict(
-            finished_at=timestamp_parser.parse(attrs["State"]["FinishedAt"]),
-            exit_code=attrs["State"]["ExitCode"],
-            logs=container.logs().decode('utf-8') if container.logs() else None,
-            pk=container.labels['pk'], )
+        running_containers = self._get_running_containers()
 
-    def filter_containers(self, status, label):
-        containers = self.docker_client.containers.list(filters=dict(status=status,
-                                                                     label=label))
-        return containers
+        # find requests that is not executed yet
+        max_items = settings.NOTEBOOK_EXECUTOR_MAX_NOTEBOOKS_IN_PROGRESS - len(running_containers)
+        if max_items < 0:
+            return
+
+        not_executed = Request.objects.filter(started_at__isnull=True)[:max_items]
+        for request in not_executed:
+            try:
+                request.started_at = localtime()
+                request.save(update_fields=['started_at'])
+
+                ce = ContainerExecutor(request)
+                ce.execute()
+            except:
+                logger.exception(f"Request {request.pk}, notebook {request.notebook.name}:")
+                try:
+                    request.finished_at = localtime()
+                    request.save(update_fields=['finished_at'])
+                except Exception as ex:
+                    logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 
 
 class PublisherThread(StoppableThread):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
-        self.docker_client = docker.from_env()
 
     def do_stuff(self):
         self.publish_results()
@@ -156,12 +163,4 @@ class PublisherThread(StoppableThread):
         with self.state.lock:
             for pk in success_requests:
                 self.state.success_requests.remove(pk)
-                try:
-                    container = self.docker_client.containers.list(filters=dict(status="exited",
-                                                                                label=f"pk={pk}")).pop()
-                    logger.info(f"Removing container: {container.name}")
-                    container.remove()
-                except:
-                    logger.exception(f"Error removing container {pk}:")
-        Request.objects.filter(pk__in=success_requests).update(finished_at=localtime(),
-                                                               success=True)
+        Request.objects.filter(pk__in=success_requests).update(finished_at=localtime(), success=True)
