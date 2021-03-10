@@ -59,10 +59,8 @@ class NotebookThread(StoppableThread):
         self.docker_client = docker.from_env()
 
     def do_stuff(self):
-        with self.state.lock:
-            self.validate_notebook()
-        with self.state.lock:
-            self.execute_notebook()
+        self.validate_notebook()
+        self.execute_notebook()
 
     def _get_running_containers(self):
         containers = Container.filter(self.docker_client, "running", "webapplication")
