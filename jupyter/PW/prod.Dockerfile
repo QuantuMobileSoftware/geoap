@@ -17,6 +17,10 @@ RUN wget -q http://step.esa.int/downloads/8.0/installers/esa-snap_sentinel_unix_
     rm esa-snap_sentinel_unix_8_0.sh && \
     ln -s /opt/snap/bin/gpt /usr/bin/gpt
 
+# Update ESA SNAP to the latest version
+COPY esa_snap_update.sh /tmp/
+RUN /tmp/esa_snap_update.sh
+
 # Add data required for Sentinel-1 preprocessing
 RUN mkdir -p /home/jovyan/.snap/auxdata/dem/ && \
     ln -s /home/jovyan/work/notebooks/pw/data/SRTM\ 3Sec /home/jovyan/.snap/auxdata/dem/
