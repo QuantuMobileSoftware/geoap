@@ -49,16 +49,16 @@ class Container:
         image = client.images.get(self.notebook.image)
         volumes = self.get_volumes(client)
 
-        self.container = client.containers.run(
-            command=command,
-            image=image,
-            shm_size=self.shm_size,
-            volumes=volumes,
-            environment=self.environment,
-            device_requests=self.device_requests,
-            name=self.container_name,
-            labels=self.labels,
-            detach=True, )
+        client.containers.run(
+                command=command,
+                image=image,
+                shm_size=self.shm_size,
+                volumes=volumes,
+                environment=self.environment,
+                device_requests=self.device_requests,
+                name=self.container_name,
+                labels=self.labels,
+                detach=True, )
 
     def get_volumes(self, client):
         base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
