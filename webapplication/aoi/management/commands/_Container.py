@@ -108,7 +108,7 @@ class ContainerValidator(Container):
 
     def validate(self):
         # TODO: add validation logic
-        super().run("python --version")
+        self.run("python --version")
 
 
 class ContainerExecutor(Container):
@@ -135,4 +135,4 @@ class ContainerExecutor(Container):
                       --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
                       {kernel}
                       """
-        super().run(command)
+        self.run(command)
