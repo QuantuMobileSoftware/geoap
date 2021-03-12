@@ -16,12 +16,6 @@ logger = logging.getLogger(__name__)
 THREAD_SLEEP = 10
 
 
-class State:
-    def __init__(self):
-        self.lock = Lock()
-        self.success_requests = set()
-
-
 class StoppableThread(ABC, Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,15 +47,15 @@ class StoppableThread(ABC, Thread):
 
 
 class NotebookThread(StoppableThread):
-    def __init__(self, state, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.state = state
+        self.lock = Lock()
         self.docker_client = docker.from_env()
 
     def do_stuff(self):
-        with self.state.lock:
+        with self.lock:
             self.validate_notebook()
-        with self.state.lock:
+        with self.lock:
             self.execute_notebook()
 
     def get_running_containers(self):
@@ -75,9 +69,12 @@ class NotebookThread(StoppableThread):
 
         for container in exited_containers:
             attrs = Container.container_attrs(container)
+            notebook = Request.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
                 logger.info(f"Container {container.name} validated successfully")
-                JupyterNotebook.objects.filter(pk=attrs['pk']).update(is_validated=True)
+                notebook.is_validated = True
+                notebook.save(update_fields=['is_validated'])
+                # JupyterNotebook.objects.filter(pk=attrs['pk']).update(is_validated=True)
             else:
                 logger.error(f"Validation container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
@@ -107,11 +104,14 @@ class NotebookThread(StoppableThread):
 
         for container in exited_containers:
             attrs = Container.container_attrs(container)
+            request = Request.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
-                logger.info(f"Container {container.name} executed successfully")
-                self.state.success_requests.add(attrs['pk'])
+                logger.info(f"Process in container {container.name} executed successfully")
+                request.calculated = True
+                request.save(update_fields=['calculated'])
             else:
-                Request.objects.filter(pk=attrs['pk']).update(finished_at=localtime(), success=False)
+                request.finished_at=localtime()
+                request.save(update_fields=['finished_at'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
             try:
@@ -144,24 +144,18 @@ class NotebookThread(StoppableThread):
 
 
 class PublisherThread(StoppableThread):
-    def __init__(self, state, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.state = state
 
     def do_stuff(self):
         self.publish_results()
 
     def can_exit(self):
-        with self.state.lock:
-            return not self.state.success_requests
+        return not Request.objects.filter(calculated=True, success=False).first()
 
     def publish_results(self):
-        with self.state.lock:
-            success_requests = set(self.state.success_requests)
         logger.info(f"Starting publish command")
         management.call_command("publish")
-        logger.info(f"Marking requests {success_requests} as succeeded")
-        with self.state.lock:
-            for pk in success_requests:
-                self.state.success_requests.remove(pk)
-        Request.objects.filter(pk__in=success_requests).update(finished_at=localtime(), success=True)
+        success_requests = Request.objects.filter(calculated=True, success=False)
+        logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
+        success_requests.update(finished_at=localtime(), success=True)
