@@ -1,7 +1,7 @@
 import logging
 import sys
 import time
-from aoi.management.commands._notebook import State, NotebookThread, PublisherThread
+from aoi.management.commands._notebook import NotebookThread, PublisherThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -24,10 +24,9 @@ class Command(BaseCommand):
             exitcode = child_process.exitcode
 
     def run(self):
-        state = State()
 
-        threads = [NotebookThread(state, daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
-        threads.append(PublisherThread(state, daemon=True))
+        threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
+        threads.append(PublisherThread(daemon=True))
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
