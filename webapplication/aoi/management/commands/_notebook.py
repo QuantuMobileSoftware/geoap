@@ -69,12 +69,11 @@ class NotebookThread(StoppableThread):
 
         for container in exited_containers:
             attrs = Container.container_attrs(container)
-            notebook = Request.objects.get(pk=attrs['pk'])
+            notebook = JupyterNotebook.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
                 logger.info(f"Container {container.name} validated successfully")
-                notebook.is_validated = True
-                notebook.save(update_fields=['is_validated'])
-                # JupyterNotebook.objects.filter(pk=attrs['pk']).update(is_validated=True)
+                notebook.success = True
+                notebook.save(update_fields=['success'])
             else:
                 logger.error(f"Validation container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
@@ -90,9 +89,11 @@ class NotebookThread(StoppableThread):
         if max_items < 0:
             return
 
-        not_validated = JupyterNotebook.objects.filter(is_validated=False)[:max_items]
+        not_validated = JupyterNotebook.objects.filter(run_validation=False)[:max_items]
         for notebook in not_validated:
             try:
+                notebook.run_validation = True
+                notebook.save(update_fields=['run_validation'])
                 ce = ContainerValidator(notebook)
                 ce.validate()
             except:
