@@ -25,7 +25,8 @@ class JupyterNotebook(models.Model):
     path = models.CharField(max_length=200, unique=True, verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=False, blank=False, verbose_name='Kernel name')
     options = JSONField(blank=True, null=True, verbose_name='Additional container options')
-    is_validated = models.BooleanField(default=False, verbose_name='Is validated')
+    run_validation = models.BooleanField(default=False, verbose_name='Run validation')
+    success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     
     def __str__(self):
         return self.name
