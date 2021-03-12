@@ -47,8 +47,9 @@ class Request(models.Model):
     date_to = models.DateField(blank=True, null=True, verbose_name='Date to')
     started_at = models.DateTimeField(blank=True, null=True, verbose_name='Started at')
     finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
+    calculated = models.BooleanField(default=False, verbose_name='Notebook calculated')
+    success = models.BooleanField(default=False, verbose_name='Execution succeeded')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
-    success = models.BooleanField(default=False, verbose_name='Is execution succeeded')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
 
     @property
