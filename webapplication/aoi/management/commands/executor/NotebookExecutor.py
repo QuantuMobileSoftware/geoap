@@ -3,6 +3,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -18,8 +19,8 @@ parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) f
 parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
                     required=True)
 
-
 logger = logging.getLogger(__name__)
+
 
 class NotebookExecutor:
     def __init__(self, args):
@@ -29,7 +30,7 @@ class NotebookExecutor:
         self.PARAMS = dict(REQUEST_ID=args.request_id,
                            AOI=args.aoi,
                            START_DATE=args.start_date if args.start_date != 'None' else None,
-                           END_DATE=args.end_date if args.end_date != 'None' else None )
+                           END_DATE=args.end_date if args.end_date != 'None' else None)
 
         self.cell_timeout = args.cell_timeout
         self.notebook_timeout = args.notebook_timeout
@@ -39,10 +40,9 @@ class NotebookExecutor:
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
         self.save_path = f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
 
-
     def edit(self):
-        self._first_code_cell()['source'] +=  "\n\n# added by backend notebook_executor.py script:" \
-                                              "\n" + self._build_params()
+        self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
+                                             "\n" + self._build_params()
         self.write()
 
     def _first_code_cell(self):
@@ -81,8 +81,7 @@ class NotebookExecutor:
         try:
             out, err = process.communicate(timeout=self.notebook_timeout)
             if process.returncode != 0:
-                logger.error(f"Failed {command} output: {out}, err: {err}")
-                raise Exception(f"Failed to run process")
+                raise RuntimeError(f"Failed {command}\nOutput: {out}, err: {err}")
         except TimeoutExpired as te:
             logger.error(f"Failed {command} error: {str(te)}. Killing process...")
             process.kill()
@@ -95,4 +94,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     notebook_executor = NotebookExecutor(args)
     notebook_executor.edit()
-    notebook_executor.execute()
+    try:
+        notebook_executor.execute()
+    except:
+        logger.exception("Exited from NotebookExecutor")
+        sys.exit(1)
+    sys.exit(0)
