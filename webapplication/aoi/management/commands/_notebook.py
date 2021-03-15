@@ -71,7 +71,7 @@ class NotebookThread(StoppableThread):
             attrs = Container.container_attrs(container)
             notebook = JupyterNotebook.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
-                logger.info(f"Container {container.name} validated successfully")
+                logger.info(f"Notebook {notebook.name} in container {container.name} validated successfully")
                 notebook.success = True
                 notebook.save(update_fields=['success'])
             else:
@@ -107,7 +107,7 @@ class NotebookThread(StoppableThread):
             attrs = Container.container_attrs(container)
             request = Request.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
-                logger.info(f"Process in container {container.name} executed successfully")
+                logger.info(f"Notebook in container {container.name} executed successfully")
                 request.calculated = True
                 request.save(update_fields=['calculated'])
             else:
