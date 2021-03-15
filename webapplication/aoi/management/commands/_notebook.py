@@ -154,7 +154,8 @@ class PublisherThread(StoppableThread):
     def can_exit(self):
         return not Request.objects.filter(calculated=True, success=False).first()
 
-    def publish_results(self):
+    @staticmethod
+    def publish_results():
         logger.info(f"Starting publish command")
         management.call_command("publish")
         success_requests = Request.objects.filter(calculated=True, success=False)
