@@ -228,14 +228,16 @@ class JupyterNotebookTestCase(UserBase):
             "image": "some docker command",
             "path": "work/notebooks/example/geojson_created.ipynb",
             "kernel_name": "3.8",
-            "is_validated": False
+            "run_validation": True,
+            "success": False
         }
         
         self.data_patch = {
             "name": "JupyterNotebook_test_patch",
             "image": "some new docker command",
             "kernel_name": "3.3",
-            "is_validated": True
+            "run_validation": True,
+            "success": True,
         }
     
     def test_create_notebook_as_not_auth_user(self):
@@ -299,7 +301,8 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(content['image'], self.data_patch['image'])
         self.assertEqual(content['path'], 'work/notebooks/example/geojson.ipynb')
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
-        self.assertEqual(content['is_validated'], self.data_patch['is_validated'])
+        self.assertEqual(content['run_validation'], self.data_patch['run_validation'])
+        self.assertEqual(content['success'], self.data_patch['success'])
     
     def test_get_notebook_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
