@@ -7,7 +7,8 @@
       "image": "some docker command",
       "path": "work/notebooks/example/geojson.ipynb",
       "kernel_name": "",
-      "is_validated": true
+      "run_validation": true,
+      "success": true
     }
   },
   {
@@ -18,7 +19,8 @@
       "image": "some docker command",
       "path": "work/notebooks/example/geotiff_2.ipynb",
       "kernel_name": "3.5",
-      "is_validated": false
+      "run_validation": true,
+      "success": false
     }
   }
 ]

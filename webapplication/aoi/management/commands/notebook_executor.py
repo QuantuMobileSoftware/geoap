@@ -1,7 +1,7 @@
 import logging
 import sys
 import time
-from aoi.management.commands._notebook import State, NotebookThread, PublisherThread
+from aoi.management.commands._notebook import NotebookThread, PublisherThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -9,6 +9,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+NOTEBOOK_EXECUTOR_THREADS = 1
 
 
 class Command(BaseCommand):
@@ -23,10 +24,9 @@ class Command(BaseCommand):
             exitcode = child_process.exitcode
 
     def run(self):
-        state = State()
 
-        threads = [NotebookThread(state, daemon=True) for _ in range(settings.NOTEBOOK_EXECUTOR_THREADS)]
-        threads.append(PublisherThread(state, daemon=True))
+        threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
+        threads.append(PublisherThread(daemon=True))
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
@@ -46,7 +46,7 @@ class Command(BaseCommand):
                         raise thread.exception
                 working_time = time.time() - started_at
                 if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
-                    raise RuntimeError(f"Threads timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} was achieved")
+                    raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
                 time.sleep(THREAD_SLEEP)
         except Exception as ex:
             logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
