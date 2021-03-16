@@ -74,20 +74,19 @@ spec:
             value: sip.settings
           - name: POSTGRES_HOST
             value: sip-postgis
-#        - name: WORDPRESS_DB_HOST
-#          value: wordpress-mysql
-#        - name: WORDPRESS_DB_PASSWORD
-#          valueFrom:
-#            secretKeyRef:
-#              name: mysql-pass
-#              key: password
         ports:
         - containerPort: 9000
           name: sip
         volumeMounts:
         - name: sip-data-persistent-storage
           mountPath: /data
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
       volumes:
       - name: sip-data-persistent-storage
         persistentVolumeClaim:
           claimName: sip-data-pvc-local
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
