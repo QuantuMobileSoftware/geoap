@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sip
+  namespace: sip-devel
+  labels:
+    app: sip
+spec:
+  ports:
+    - port: 9000
+  selector:
+    app: sip
+    tier: backend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sip-data-pv-hostpath
+  namespace: sip-devel
+spec:
+  storageClassName: sip-data-local-pv
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /minikube-host/Projects/quantum/sip/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sip-data-pvc-local
+  namespace: sip-devel
+  labels:
+    app: sip
+spec:
+  storageClassName: sip-data-local-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sip-deployment
+  namespace: sip-devel
+  labels:
+    app: sip
+spec:
+  selector:
+    matchLabels:
+      app: sip
+      tier: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sip
+        tier: backend
+    spec:
+      containers:
+      - image: quantumobile/sip-base:static
+        name: sip-webapplication
+        command: ['/bin/bash', '-c', 'exec invoke run-prod']
+        envFrom:
+          - configMapRef:
+              name: postgis-db-config
+        env:
+          - name: DJANGO_SETTINGS_MODULE
+            value: sip.settings
+          - name: POSTGRES_HOST
+            value: sip-postgis
+#        - name: WORDPRESS_DB_HOST
+#          value: wordpress-mysql
+#        - name: WORDPRESS_DB_PASSWORD
+#          valueFrom:
+#            secretKeyRef:
+#              name: mysql-pass
+#              key: password
+        ports:
+        - containerPort: 9000
+          name: sip
+        volumeMounts:
+        - name: sip-data-persistent-storage
+          mountPath: /data
+      volumes:
+      - name: sip-data-persistent-storage
+        persistentVolumeClaim:
+          claimName: sip-data-pvc-local

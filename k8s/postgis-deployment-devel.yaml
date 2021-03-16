@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sip-devel
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sip-postgis
+  namespace: sip-devel
+  labels:
+    app: sip
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: sip
+    tier: postgis
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-hostpath
+  namespace: sip-devel
+spec:
+  storageClassName: postgres-local-pv
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /minikube-host/postgres_db/sip_devel
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-local
+  namespace: sip-devel
+spec:
+  storageClassName: postgres-local-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgis-db-config
+  namespace: sip-devel
+  labels:
+    app: sip_postgis_db
+data:
+  POSTGRES_DB: sip_db
+  POSTGRES_USER: sip
+  POSTGRES_PASSWORD: eiJ2koo6
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sip-devel
+  name: sip-postgis-deployment
+  labels:
+    app: sip
+    tier: postgis
+spec:
+  selector:
+    matchLabels:
+      app: sip
+      tier: postgis
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sip
+        tier: postgis
+    spec:
+      containers:
+        - name: postgis-container
+          image: postgis/postgis:13-3.0
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgis-db-config
+          volumeMounts:
+            - name: postgres-persistent-storage
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: postgres-persistent-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc-local
