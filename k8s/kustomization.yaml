@@ -1,0 +1,7 @@
+resources:
+  - namespace-sip-prod.yaml
+  - postgis-config.yaml
+  - postgis-deployment.yaml
+  - sip-deployment.yaml
+  - webserver-config.yaml
+  - webserver-deployment.yaml

@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver
+  namespace: sip-prod
+  labels:
+    app: sip
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: sip
+    tier: frontend
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-pv-hostpath
+  namespace: sip-prod
+spec:
+  storageClassName: data-local-pv
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /minikube-host/Projects/quantum/sip/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc-local
+  namespace: sip-prod
+  labels:
+    app: sip
+spec:
+  storageClassName: data-local-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: sip-prod
+  labels:
+    app: sip
+    tier: frontend
+spec:
+  selector:
+    matchLabels:
+      app: sip
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sip
+        tier: frontend
+    spec:
+      containers:
+      - image: quantumobile/nginx:webserver
+        name: frontend
+        envFrom:
+          - configMapRef:
+              name: webserver-config
+        ports:
+        - containerPort: 80
+          name: frontend
+        volumeMounts:
+        - name: data-persistent-storage
+          mountPath: /data
+      volumes:
+      - name: data-persistent-storage
+        persistentVolumeClaim:
+          claimName: data-pvc-local

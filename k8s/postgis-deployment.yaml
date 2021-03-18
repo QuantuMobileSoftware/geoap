@@ -1,13 +1,8 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: sip-devel
----
-apiVersion: v1
 kind: Service
 metadata:
   name: sip-postgis
-  namespace: sip-devel
+  namespace: sip-prod
   labels:
     app: sip
 spec:
@@ -23,7 +18,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: postgres-pv-hostpath
-  namespace: sip-devel
+  namespace: sip-prod
 spec:
   storageClassName: postgres-local-pv
   capacity:
@@ -37,7 +32,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc-local
-  namespace: sip-devel
+  namespace: sip-prod
 spec:
   storageClassName: postgres-local-pv
   accessModes:
@@ -46,22 +41,10 @@ spec:
     requests:
       storage: 100Mi
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgis-db-config
-  namespace: sip-devel
-  labels:
-    app: sip_postgis_db
-data:
-  POSTGRES_DB: sip_db
-  POSTGRES_USER: sip
-  POSTGRES_PASSWORD: eiJ2koo6
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: sip-devel
+  namespace: sip-prod
   name: sip-postgis-deployment
   labels:
     app: sip

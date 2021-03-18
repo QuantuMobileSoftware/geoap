@@ -1,23 +1,24 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: sip
-  namespace: sip-devel
+  name: webapplication
+  namespace: sip-prod
   labels:
     app: sip
 spec:
+  type: NodePort
   ports:
     - port: 9000
+      targetPort: 9000
   selector:
     app: sip
     tier: backend
-  type: LoadBalancer
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: sip-data-pv-hostpath
-  namespace: sip-devel
+  namespace: sip-prod
 spec:
   storageClassName: sip-data-local-pv
   capacity:
@@ -31,7 +32,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: sip-data-pvc-local
-  namespace: sip-devel
+  namespace: sip-prod
   labels:
     app: sip
 spec:
@@ -46,7 +47,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sip-deployment
-  namespace: sip-devel
+  namespace: sip-prod
   labels:
     app: sip
 spec:
