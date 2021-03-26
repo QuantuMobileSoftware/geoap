@@ -4,7 +4,10 @@ const dotenv = require("dotenv");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = () => {
-    const env = dotenv.config().parsed;
+    let env = dotenv.config().parsed;
+    if (env === undefined) {
+        env = {};
+    }
     const envKeys = Object.keys(env).reduce((prev, next) => {
         prev[`process.env.${next}`] = JSON.stringify(env[next]);
         return prev;
