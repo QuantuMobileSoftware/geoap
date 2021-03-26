@@ -25,7 +25,7 @@ SECRET_KEY = 'bnc-3!@tium@48wg*d(bdqqczssab=ykl2$30-%*%w9g3&945*'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'webapplication', '192.168.49.2']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'webapplication', '192.168.49.2', 'soilmate.example.com']
 SITE_ID = 1
 
 
@@ -209,3 +209,4 @@ BASE_CONTAINER_NAME = "sip_webapplication_1"
 HOST_VOLUME_WEBAPPLICATION_BASENAME = "webapplication"
 HOST_VOLUME_DATA_BASENAME = "data"
 
+KUBERNETES_ENV = True

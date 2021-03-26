@@ -5,3 +5,4 @@ resources:
   - sip-deployment.yaml
   - webserver-config.yaml
   - webserver-deployment.yaml
+  - sip_ingress.yaml
