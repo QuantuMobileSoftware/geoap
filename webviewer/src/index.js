@@ -66,7 +66,12 @@ userModel.addEventListener("loggedin", () => {
 });
 
 userModel.addEventListener("loggedout", () => {
-    root.setChildren(loginForm, messageContainer);
+    if (process.env.AUTOLOGIN && process.env.AUTOPASSWORD) {
+        console.log("Logging in default user", process.env.AUTOLOGIN);
+        userModel.login(process.env.AUTOLOGIN, process.env.AUTOPASSWORD);
+    } else {
+        root.setChildren(loginForm, messageContainer);
+    }
 });
 
 root.componentDidMount = () => {
