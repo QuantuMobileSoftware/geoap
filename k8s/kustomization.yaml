@@ -2,7 +2,13 @@ resources:
   - namespace-sip-prod.yaml
   - postgis-config.yaml
   - postgis-deployment.yaml
-  - sip-deployment.yaml
+  - nfs-pv.yaml
+  - nfs-pvc.yaml
+  - webapplication-deployment.yaml
   - webserver-config.yaml
   - webserver-deployment.yaml
+#  - jupyter_example-deployment.yaml
+#  - jupyter_pbdnn-deployment.yaml
+#  - jupyter_pw-deployment.yaml
   - sip_ingress.yaml
+

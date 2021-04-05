@@ -4,68 +4,68 @@ metadata:
   name: webapplication
   namespace: sip-prod
   labels:
-    app: sip
+    app: webapplication
 spec:
   type: NodePort
   ports:
     - port: 9000
       targetPort: 9000
   selector:
-    app: sip
+    app: webapplication
     tier: backend
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: sip-data-pv-hostpath
-  namespace: sip-prod
-spec:
-  storageClassName: sip-data-local-pv
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: /minikube-host/Projects/quantum/sip/data
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: sip-data-pv-hostpath
+#  namespace: sip-prod
+#spec:
+#  storageClassName: sip-data-local-pv
+#  capacity:
+#    storage: 20Gi
+#  accessModes:
+#    - ReadWriteMany
+#  hostPath:
+#    path: /minikube-host/Projects/quantum/sip/data
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sip-data-pvc-local
-  namespace: sip-prod
-  labels:
-    app: sip
-spec:
-  storageClassName: sip-data-local-pv
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 20Gi
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: sip-data-pvc-local
+#  namespace: sip-prod
+#  labels:
+#    app: sip
+#spec:
+#  storageClassName: sip-data-local-pv
+#  accessModes:
+#    - ReadWriteMany
+#  resources:
+#    requests:
+#      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sip-deployment
+  name: webapplication-deployment
   namespace: sip-prod
   labels:
-    app: sip
+    app: webapplication
 spec:
   selector:
     matchLabels:
-      app: sip
+      app: webapplication
       tier: backend
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: sip
+        app: webapplication
         tier: backend
     spec:
       containers:
       - image: quantumobile/sip-base:static
-        name: sip-webapplication
+        name: webapplication
         command: ['/bin/bash', '-c', 'exec invoke run-prod']
         envFrom:
           - configMapRef:
@@ -86,7 +86,7 @@ spec:
       volumes:
       - name: sip-data-persistent-storage
         persistentVolumeClaim:
-          claimName: sip-data-pvc-local
+          claimName: nfs-sip-data-pvc
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
