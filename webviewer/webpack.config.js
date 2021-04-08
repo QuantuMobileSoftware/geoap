@@ -51,7 +51,8 @@ module.exports = () => {
                     {
                         src: "https://unpkg.com/leaflet-editable@1.2.0"
                     }
-                ]
+                ],
+                favicon: "./src/images/favicon.svg"
             })
         ],
 
