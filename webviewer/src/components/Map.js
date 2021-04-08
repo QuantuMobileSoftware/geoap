@@ -100,16 +100,16 @@ function initializeHandlers(map, mapModel, userModel) {
             layer,
             user: userModel.user_id,
         };
-        
+
         mapModel.sendAoi(feature, (res) => {
             FEATURES[layer._leaflet_id] = { ...res };
             map.removeLayer(layer);
         });
     };
 
-    
+
     map.on("editable:drawing:commit", handleCustomPolygonCreate);
-    
+
     // map.on("editable:vertex:clicked", handleCustomPolygonCreate);
     // map.on("editable:vertex:dragend", handlePolygonChange);
 }
@@ -134,7 +134,7 @@ export default function createMap(
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
-            7
+            8
         );
 
         // add controls to map
