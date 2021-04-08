@@ -324,7 +324,7 @@ export default function createMap(
                     fillOpacity: 0,
                 });
                 item.classList.add("aoi__layer--active");
-                map.panInsideBounds(layer.getBounds());
+                map.fitBounds(layer.getBounds());
             } else {
                 item.classList.remove("aoi__layer--active");
             }
