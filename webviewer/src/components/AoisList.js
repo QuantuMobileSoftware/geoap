@@ -3,6 +3,7 @@
 import { Div } from "@adolgarev/domwrapper";
 
 import Dialog from "./Dialog";
+import { IS_DEMO } from "../constants";
 
 const confirmContainer = Div({ class: "confirm-container" });
 
@@ -132,7 +133,12 @@ export default function createAoisList(
                 class: "aoislist__item-edit",
             });
 
-            controls.setChildren(editIcon, removeIcon, arrowIcon);
+            if (IS_DEMO) {
+                controls.setChildren(arrowIcon);
+            } else {
+                controls.setChildren(editIcon, removeIcon, arrowIcon);
+            }
+
 
             const isActive = aoi.properties.id === detail.aoi.properties.id;
             const aoiElt = Div({
@@ -162,12 +168,17 @@ export default function createAoisList(
             aoisElts.push(aoiElt);
 
             if (isActive) {
-                removeIcon.addEventListener(
-                    "click",
-                    confirmRemove(aoi.properties.id)
-                );
 
-                editIcon.addEventListener("click", confirmEdit(aoi));
+                if (removeIcon) {
+                    removeIcon.addEventListener(
+                        "click",
+                        confirmRemove(aoi.properties.id)
+                    );
+                }
+
+                if (editIcon) {
+                    editIcon.addEventListener("click", confirmEdit(aoi));
+                }
 
                 openFormButton.addEventListener("click", () => {
                     requestModel.openRequestForm(aoi);
