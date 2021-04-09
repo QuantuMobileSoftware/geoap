@@ -13,6 +13,24 @@
   display: inline-block;
 }
 
+.feature-request-dialog .form__message {
+  font-size: 14px;
+  display: inline-block;
+  margin: 0;
+}
+
+.feature-request-dialog .form__message:empty {
+  display: none;
+}
+
+.feature-request-dialog .form__message:not(:first-of-type) {
+  margin-top: 12px;
+}
+
+.feature-request-dialog .form__message--error {
+  color: red;
+}
+
 .feature-request-dialog .form__buttons {
   display: flex;
   align-items: center;
@@ -21,4 +39,10 @@
 
 .feature-request-dialog .form__button {
   margin-left: 8px;
+}
+
+.feature-request-dialog .form__button:disabled {
+  color: #99a3af;
+  background: #F4F4F4;
+  cursor: not-allowed;
 }

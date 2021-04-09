@@ -1,7 +1,8 @@
 "use strict";
 
 import Wkt from "wicket";
-import { IS_DEMO } from '../constants';
+import { IS_DEMO, REGEXP_FORMAT_EMAIL } from '../constants';
+import { sendEmailJSMessage } from "../utils/mailer";
 export default class RequestModel extends EventTarget {
     constructor(apiWrapper) {
         super();
@@ -82,6 +83,18 @@ export default class RequestModel extends EventTarget {
                 cb();
             }
         });
+    }
+
+    sendFeatureRequest(email) {
+        if (!email) {
+            return Promise.reject('Email is required');
+        }
+
+        if (!email.match(REGEXP_FORMAT_EMAIL)) {
+            return Promise.reject('Invalid email format');
+        }
+
+        return sendEmailJSMessage({ from_email: email })
     }
 
     openRequestForm(aoi) {
