@@ -1,6 +1,7 @@
 "use strict";
 
 import { Div } from "@adolgarev/domwrapper/src";
+import { IS_DEMO } from '../constants';
 
 function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
@@ -10,7 +11,7 @@ function setOpacity(leafletLayer, value) {
     }
 }
 
-function initializeControls(map) {
+function initializeControls(map, { onAddClick } = {}) {
     L.EditControl = L.Control.extend({
         options: {
             position: "topleft",
@@ -33,6 +34,10 @@ function initializeControls(map) {
                 link,
                 "click",
                 function () {
+                    if (IS_DEMO) {
+                        return onAddClick && onAddClick();
+                    }
+
                     window.LAYER = this.options.callback.call(map.editTools);
                 },
                 this
@@ -131,6 +136,10 @@ export default function createMap(
 
     let startPoint = [48.95, 31.53];
 
+    const handleMapControlAddClick = () => {
+        requestModel.openFeatureRequestDialog();
+    }
+
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
@@ -138,7 +147,7 @@ export default function createMap(
         );
 
         // add controls to map
-        initializeControls(map);
+        initializeControls(map, { onAddClick: handleMapControlAddClick });
 
         //add handlers to map
         initializeHandlers(map, mapModel, userModel);

@@ -1,6 +1,7 @@
 "use strict";
 
 import Wkt from "wicket";
+import { IS_DEMO } from '../constants';
 export default class RequestModel extends EventTarget {
     constructor(apiWrapper) {
         super();
@@ -69,6 +70,11 @@ export default class RequestModel extends EventTarget {
     }
 
     sendRequest(data, cb) {
+        if (IS_DEMO) {
+            this.openFeatureRequestDialog();
+            return;
+        }
+
         this.apiWrapper.sendPostRequest("/request", { ...data }, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
@@ -84,5 +90,13 @@ export default class RequestModel extends EventTarget {
 
     closeRequestForm() {
         this.dispatchEvent(new Event("closeForm"));
+    }
+
+    openFeatureRequestDialog() {
+        this.dispatchEvent(new CustomEvent("openFeatureRequestDialog"));
+    }
+
+    closeFeatureRequestDialog() {
+        this.dispatchEvent(new Event("closeFeatureRequestDialog"));
     }
 }

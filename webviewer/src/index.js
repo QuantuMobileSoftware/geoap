@@ -18,6 +18,7 @@ import createLayerDetails from "./components/LayerDetails";
 import createLoginForm from "./components/LoginForm";
 import createAoisList from "./components/AoisList";
 import createRequestForm from "./components/RequestForm";
+import createFeatureRequestDialog from "./components/FeatureRequestDialog";
 import createMap from "./components/Map";
 
 const apiWrapper = new APIWrapper();
@@ -33,6 +34,7 @@ const layerDetails = createLayerDetails(widgetFactory, mapModel);
 const loginForm = createLoginForm(widgetFactory, userModel);
 const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel);
 const requestForm = createRequestForm(widgetFactory, userModel, requestModel);
+const featureRequestDialog = createFeatureRequestDialog({ requestModel });
 const map = createMap(widgetFactory, mapModel, requestModel, userModel);
 
 const root = Div({ class: "container" });
@@ -61,6 +63,7 @@ userModel.addEventListener("loggedin", () => {
         messageContainer,
         aoisList,
         requestForm,
+        featureRequestDialog,
         map
     );
 });

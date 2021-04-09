@@ -1,0 +1,24 @@
+.feature-request-dialog {
+  display: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.feature-request-dialog.is-open {
+  display: block;
+}
+
+.feature-request-dialog .dialog__title {
+  display: inline-block;
+}
+
+.feature-request-dialog .form__buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.feature-request-dialog .form__button {
+  margin-left: 8px;
+}
