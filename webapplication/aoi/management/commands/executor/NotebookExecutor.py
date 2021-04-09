@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class NotebookExecutor:
     def __init__(self, args):
-        self.input_path = args.input_path
+        self.input_path = f'/home/jovyan/{args.input_path}'
         self.request_id = args.request_id
 
         self.PARAMS = dict(REQUEST_ID=args.request_id,

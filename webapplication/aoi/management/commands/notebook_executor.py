@@ -5,6 +5,7 @@ from aoi.management.commands._notebook import NotebookThread, PublisherThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from aoi.management.commands.k8s_job import Job
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,15 @@ THREAD_SLEEP = 10
 NOTEBOOK_EXECUTOR_THREADS = 1
 
 
-class Command(BaseCommand):
+class CommandKubernetes(BaseCommand):
+
+    def handle(self, *args, **options):
+        jobs = Job(settings.K8S_NAME_SPACE, settings.NFS_SERVER, settings.NFS_PATH)
+        jobs.handle()
+        return
+        
+
+class CommandDocker(BaseCommand):
     help = "Manage running of Jupyter Notebooks and Publisher command"
 
     def handle(self, *args, **options):
@@ -65,3 +74,5 @@ class Command(BaseCommand):
         logger.info(f"All threads are stopped. Restart notebook_executor command")
         sys.exit(2)
 
+
+Command = CommandKubernetes if settings.KUBERNETES_ENV else CommandDocker
