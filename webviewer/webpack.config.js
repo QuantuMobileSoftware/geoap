@@ -50,7 +50,10 @@ module.exports = () => {
                     },
                     {
                         src: "https://unpkg.com/leaflet-editable@1.2.0"
-                    }
+                    },
+                    {
+                        src: "https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"
+                    },
                 ],
                 favicon: "./src/images/favicon.svg"
             })

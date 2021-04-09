@@ -18,6 +18,8 @@ export default function createFeatureRequestDialog({ requestModel } = {}) {
 
     const form = createElement("form", { class: "form request-from" });
 
+    const formMessageError = createElement("p", { class: "form__message form__message--error" });
+
     const formInput = widgetFactory.createTextField({
         label: "Email",
         placeholder: "Enter email",
@@ -35,7 +37,7 @@ export default function createFeatureRequestDialog({ requestModel } = {}) {
 
     const formButtonSubmit = widgetFactory
         .createButton({
-            type: "button",
+            type: "submit",
             class: "button button--success form__button form__button-submit",
         })
         .setChildren("Send");
@@ -48,6 +50,7 @@ export default function createFeatureRequestDialog({ requestModel } = {}) {
 
     const close = () => {
         dialog._element.classList.remove("is-open");
+        formMessageError.setChildren("");
         clearInputValue();
     };
 
@@ -59,21 +62,30 @@ export default function createFeatureRequestDialog({ requestModel } = {}) {
         event.preventDefault();
 
         const input = formInput._element.querySelector(".input");
-        if (!input || !input.value) return;
 
-        // TODO: Send request to the mail service
-        console.log(input.value);
+        formButtonSubmit._element.disabled = true;
+        formButtonCancel._element.disabled = true;
 
-        close();
+        requestModel
+            .sendFeatureRequest(input.value)
+            .then(() => {
+                formMessageError.setChildren('');
+                close();
+            })
+            .catch(error => formMessageError.setChildren(error))
+            .finally(() => {
+                formButtonSubmit._element.disabled = false;
+                formButtonCancel._element.disabled = false;
+            });
     };
 
     formButtonCancel.addEventListener("click", close);
-    formButtonSubmit.addEventListener("click", handleSubmit);
+    form.addEventListener("submit", handleSubmit);
     requestModel.addEventListener("closeFeatureRequestDialog", close);
     requestModel.addEventListener("openFeatureRequestDialog", open);
 
     formButtons.setChildren(formButtonCancel, formButtonSubmit);
-    form.setChildren(formInput, formButtons);
+    form.setChildren(formInput, formMessageError, formButtons);
     dialogChildren.setChildren(form);
 
     return dialog.setChildren(dialogTitle, dialogChildren);
