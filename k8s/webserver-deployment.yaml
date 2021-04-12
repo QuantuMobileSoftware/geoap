@@ -14,35 +14,6 @@ spec:
     app: sip
     tier: frontend
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: data-pv-hostpath
-  namespace: sip-prod
-spec:
-  storageClassName: data-local-pv
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: /minikube-host/Projects/quantum/sip/data
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: data-pvc-local
-  namespace: sip-prod
-  labels:
-    app: sip
-spec:
-  storageClassName: data-local-pv
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 20Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -79,4 +50,4 @@ spec:
       volumes:
       - name: data-persistent-storage
         persistentVolumeClaim:
-          claimName: data-pvc-local
+          claimName: nfs-sip-data-pvc
