@@ -16,7 +16,7 @@ NOTEBOOK_EXECUTOR_THREADS = 1
 class CommandKubernetes(BaseCommand):
 
     def handle(self, *args, **options):
-        jobs = Job(settings.K8S_NAME_SPACE, settings.NFS_SERVER, settings.NFS_PATH)
+        jobs = Job(settings.K8S_NAME_SPACE, settings.NFS_SERVER)
         jobs.handle()
         return
         

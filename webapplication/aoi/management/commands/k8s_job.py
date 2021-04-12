@@ -9,15 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class Job:
-    def __init__(self, namespace, nfs_server, nfs_path):
-        logger.info(f'init Job: namespace-{namespace}, nfs_server-{nfs_server}, nfs_path-{nfs_path}')
+    def __init__(self, namespace, nfs_server):
+        logger.info(f'init Job: namespace-{namespace}, nfs_server-{nfs_server}')
         config.load_incluster_config()
         self.core_v1 = client.CoreV1Api()
         self.batch_v1 = client.BatchV1Api()
         self.delete_options = client.V1DeleteOptions()
         self.namespace = namespace
         self.nfs_server = nfs_server
-        self.nfs_path = nfs_path
         self._all_requests_executed = False
         
     def get_results_from_pods(self, pod_label_selector):

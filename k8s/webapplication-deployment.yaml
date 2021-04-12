@@ -43,7 +43,7 @@ spec:
               name: postgis-db-config
         env:
           - name: DJANGO_SETTINGS_MODULE
-            value: sip.settings
+            value: sip.settings-prod
           - name: POSTGRES_HOST
             value: sip-postgis
         ports:
@@ -62,3 +62,4 @@ spec:
         hostPath:
           path: /var/run/docker.sock
           type: Socket
+      serviceAccountName: job-robot  # Name of the ServiceAccount.

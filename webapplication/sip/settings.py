@@ -25,7 +25,7 @@ SECRET_KEY = 'bnc-3!@tium@48wg*d(bdqqczssab=ykl2$30-%*%w9g3&945*'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'webapplication', '192.168.49.2', 'soilmate.example.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'webapplication']
 SITE_ID = 1
 
 
@@ -208,12 +208,3 @@ BASE_CONTAINER_NAME = "sip_webapplication_1"
 # Host volumes path's basename defined in webapplication service in docker-compose file
 HOST_VOLUME_WEBAPPLICATION_BASENAME = "webapplication"
 HOST_VOLUME_DATA_BASENAME = "data"
-
-KUBERNETES_ENV = True
-K8S_NAME_SPACE = 'sip-prod'
-NFS_SERVER = '192.168.0.37'
-NFS_PATH = '/home/dyman/Projects/quantum/sip/data'
-VALIDATE_NOTEBOOK_BACKOFF_LIMIT = 1
-VALIDATE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS = 20
-EXECUTE_NOTEBOOK_BACKOFF_LIMIT = 1
-EXECUTE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS = 60 * 5
