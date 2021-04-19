@@ -1,0 +1,13 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-hostpath-pv
+  namespace: sip-prod
+spec:
+  storageClassName: microk8s-hostpath
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/db"

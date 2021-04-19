@@ -1,6 +1,8 @@
 resources:
   - namespace-sip-prod.yaml
   - rbac.yaml
+  - postgres-pv.yaml
+  - postgres-pvc.yaml
   - postgis-config.yaml
   - postgis-deployment.yaml
   - nfs-pv.yaml
