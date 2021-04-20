@@ -10,7 +10,7 @@ resources:
   - webapplication-deployment.yaml
   - webserver-config.yaml
   - webserver-deployment.yaml
-  #  - jupyter_example-deployment.yaml
-  #  - jupyter_pbdnn-deployment.yaml
-  #  - jupyter_pw-deployment.yaml
+  - jupyter_example-deployment.yaml
+#  - jupyter_pbdnn-deployment.yaml
+#  - jupyter_pw-deployment.yaml
   - sip_ingress.yaml
