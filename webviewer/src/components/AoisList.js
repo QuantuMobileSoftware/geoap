@@ -11,7 +11,8 @@ export default function createAoisList(
     widgetFactory,
     mapModel,
     requestModel,
-    userModel
+    userModel,
+    aoiAnnotationModel
 ) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
@@ -266,6 +267,10 @@ export default function createAoisList(
 
                 elem.getDOMElement().classList.add("aoislist__results-item--active");
                 mapModel.selectLayer(result);
+
+                if (!!result.labels) {
+                    aoiAnnotationModel.openAoIAnnotation(result);
+                }
             });
 
             items.push(elem);
