@@ -324,6 +324,17 @@ class PublisherBase(APITestCase):
                 child.unlink()
 
     def create_tiff(self):
+        start_date = "2020-01-01"
+        end_date = "2021-01-01"
+        request_id = 1
+        name = 'test_name'
+        self.geotiff_labels = "[{'color': (0, 0, 0), 'name': 'Background', 'area': 1.4939}, \
+        {'color': (0, 16, 255), 'name': 'Corn', 'area': 17.5908}, \
+        {'color': (0, 164, 255), 'name': 'Soybeans', 'area': 24.0805}, \
+        {'color': (63, 255, 183), 'name': 'Fallow/Idle Cropland', 'area': 1.1609}, \
+        {'color': (183, 255, 63), 'name': 'Developed areas', 'area': 2.4049}, \
+        {'color': (255, 185, 0), 'name': 'Forest', 'area': 1.8071}, \
+        {'color': (255, 48, 0), 'name': 'Grassland/Pasture', 'area': 2.4144}]"
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
         self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
@@ -342,6 +353,11 @@ class PublisherBase(APITestCase):
         }
         raster = np.zeros((kwargs['width'], kwargs['height']), dtype=kwargs['dtype'])
         with rasterio.open(self.test_tif_path, 'w', **kwargs) as dst:
+            dst.update_tags(start_date=start_date,
+                            end_date=end_date,
+                            request_id=request_id,
+                            labels=self.geotiff_labels,
+                            name=name)
             dst.write(raster, 1)
 
     @staticmethod
@@ -482,6 +498,7 @@ class GeotifPublisherTestCase(PublisherBase):
         for result in results:
             self.assertEqual(str(self.test_tile_png_path), result.rel_url)
             self.assertEqual(result.layer_type, 'XYZ')
+            self.assertEqual(result.labels, self.geotiff_labels)
 
 
 class DeleteGeotifPublisherTestCase(PublisherBase):
