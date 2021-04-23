@@ -11,6 +11,7 @@ import APIWrapper from "./utils/APIWrapper";
 import UserModel from "./models/UserModel";
 import MapModel from "./models/MapModel";
 import RequestModel from "./models/RequestModel";
+import AoIAnnotationModel from "./models/AoIAnnotationModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
 import createLayerDetails from "./components/LayerDetails";
@@ -20,6 +21,7 @@ import createAoisList from "./components/AoisList";
 import createRequestForm from "./components/RequestForm";
 import createFeatureRequestDialog from "./components/FeatureRequestDialog";
 import createMap from "./components/Map";
+import createAoIAnnotation from "./components/AoIAnnotations";
 
 const apiWrapper = new APIWrapper();
 const widgetFactory = new WidgetFactory();
@@ -27,12 +29,14 @@ const widgetFactory = new WidgetFactory();
 const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
 const requestModel = new RequestModel(apiWrapper);
+const aoiAnnotationModel = new AoIAnnotationModel();
 
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
-const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel);
+const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel, aoiAnnotationModel);
+const aoiAnnotations = createAoIAnnotation({ aoiAnnotationModel });
 const requestForm = createRequestForm(widgetFactory, userModel, requestModel);
 const featureRequestDialog = createFeatureRequestDialog({ requestModel });
 const map = createMap(widgetFactory, mapModel, requestModel, userModel);
@@ -62,6 +66,7 @@ userModel.addEventListener("loggedin", () => {
         layerDetails,
         messageContainer,
         aoisList,
+        aoiAnnotations,
         requestForm,
         featureRequestDialog,
         map
