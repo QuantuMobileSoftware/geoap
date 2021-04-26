@@ -55,3 +55,7 @@
 .aoi-annotaino-label-coordinates {
     color: #545454;
 }
+
+.aoi-annotaino-label-unit {
+    margin-left: 2px;
+}
