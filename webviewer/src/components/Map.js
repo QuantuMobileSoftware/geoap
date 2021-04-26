@@ -10,7 +10,7 @@ function setOpacity(leafletLayer, value) {
     }
 }
 
-function initializeControls(map) {
+function initializeControls(map, { isDemoUser, onAddClick } = {}) {
     L.EditControl = L.Control.extend({
         options: {
             position: "topleft",
@@ -33,6 +33,10 @@ function initializeControls(map) {
                 link,
                 "click",
                 function () {
+                    if (isDemoUser) {
+                        return onAddClick && onAddClick();
+                    }
+
                     window.LAYER = this.options.callback.call(map.editTools);
                 },
                 this
@@ -100,16 +104,16 @@ function initializeHandlers(map, mapModel, userModel) {
             layer,
             user: userModel.user_id,
         };
-        
+
         mapModel.sendAoi(feature, (res) => {
             FEATURES[layer._leaflet_id] = { ...res };
             map.removeLayer(layer);
         });
     };
 
-    
+
     map.on("editable:drawing:commit", handleCustomPolygonCreate);
-    
+
     // map.on("editable:vertex:clicked", handleCustomPolygonCreate);
     // map.on("editable:vertex:dragend", handlePolygonChange);
 }
@@ -131,14 +135,18 @@ export default function createMap(
 
     let startPoint = [48.95, 31.53];
 
+    const handleMapControlAddClick = () => {
+        requestModel.openFeatureRequestDialog();
+    }
+
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
-            7
+            8
         );
 
         // add controls to map
-        initializeControls(map);
+        initializeControls(map, { isDemoUser: userModel.isDemoUser, onAddClick: handleMapControlAddClick });
 
         //add handlers to map
         initializeHandlers(map, mapModel, userModel);
@@ -324,7 +332,7 @@ export default function createMap(
                     fillOpacity: 0,
                 });
                 item.classList.add("aoi__layer--active");
-                map.panInsideBounds(layer.getBounds());
+                map.fitBounds(layer.getBounds());
             } else {
                 item.classList.remove("aoi__layer--active");
             }

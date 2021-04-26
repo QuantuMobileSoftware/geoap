@@ -10,7 +10,8 @@ export default function createAoisList(
     widgetFactory,
     mapModel,
     requestModel,
-    userModel
+    userModel,
+    aoiAnnotationModel
 ) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
@@ -132,7 +133,12 @@ export default function createAoisList(
                 class: "aoislist__item-edit",
             });
 
-            controls.setChildren(editIcon, removeIcon, arrowIcon);
+            if (userModel.isDemoUser) {
+                controls.setChildren(arrowIcon);
+            } else {
+                controls.setChildren(editIcon, removeIcon, arrowIcon);
+            }
+
 
             const isActive = aoi.properties.id === detail.aoi.properties.id;
             const aoiElt = Div({
@@ -162,12 +168,17 @@ export default function createAoisList(
             aoisElts.push(aoiElt);
 
             if (isActive) {
-                removeIcon.addEventListener(
-                    "click",
-                    confirmRemove(aoi.properties.id)
-                );
 
-                editIcon.addEventListener("click", confirmEdit(aoi));
+                if (removeIcon) {
+                    removeIcon.addEventListener(
+                        "click",
+                        confirmRemove(aoi.properties.id)
+                    );
+                }
+
+                if (editIcon) {
+                    editIcon.addEventListener("click", confirmEdit(aoi));
+                }
 
                 openFormButton.addEventListener("click", () => {
                     requestModel.openRequestForm(aoi);
@@ -255,6 +266,10 @@ export default function createAoisList(
 
                 elem.getDOMElement().classList.add("aoislist__results-item--active");
                 mapModel.selectLayer(result);
+
+                if (!!result.labels) {
+                    aoiAnnotationModel.openAoIAnnotation(result);
+                }
             });
 
             items.push(elem);
