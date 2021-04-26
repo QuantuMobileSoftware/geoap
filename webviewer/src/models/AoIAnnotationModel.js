@@ -3,37 +3,40 @@
 export default class AoIAnnotationModel extends EventTarget {
     constructor() {
         super();
-        this.areaName = "";
-        this.labels = [];
-    }
-
-    resetState() {
-        this.areaName = "";
-        this.labels = [];
     }
 
     normalizeAoILables(lables) {
         if (!lables) return [];
 
         try {
+            if (lables.match(/\'|\(|\)/g)) {
+                lables = lables.replace(/\'|\(|\)/g, '"');
+            }
+
             return JSON.parse(lables);
         } catch (error) {
             return [];
         }
     }
 
-    setAoIAnnotation(aoiResult) {
-        this.areaName = aoiResult.name;
-        this.labels = this.normalizeAoILables(aoiResult.labels);
+    getAoIAnnotation(aoiResult) {
+        return {
+            areaName: aoiResult.name,
+            labels: this.normalizeAoILables(aoiResult.labels),
+        };
     }
 
     openAoIAnnotation(aoiResult) {
-        this.setAoIAnnotation(aoiResult);
-        this.dispatchEvent(new CustomEvent("openAoIAnnotation"));
+        const aoiAnnotation = this.getAoIAnnotation(aoiResult);
+
+        this.dispatchEvent(
+            new CustomEvent("openAoIAnnotation", {
+                detail: aoiAnnotation,
+            })
+        );
     }
 
     closeAoIAnnotation() {
-        this.resetState();
         this.dispatchEvent(new CustomEvent("closeAoIAnnotation"));
     }
 }

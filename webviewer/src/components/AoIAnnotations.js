@@ -5,47 +5,62 @@ import { Div, Span, createElement } from "@adolgarev/domwrapper";
 import "../styles/components/AoIAnnotations.css";
 
 export default function createAoIAnnotation({ aoiAnnotationModel } = {}) {
-    console.log(aoiAnnotationModel);
     const container = Div({ class: `aoi-annotation-container fixed` });
 
-    // const closeButton = Span({ class: "close close--gray close--aoisform" });
-    // const title = createElement("h2", { class: "container-title" }).setChildren("Annotations");
+    const closeButton = Span({ class: "close close--gray close--aoisform" });
+    const title = createElement("h2", { class: "container-title" }).setChildren("Annotations");
 
-    // const areaName = createElement("h3", { class: "aoi-annotation-area-name" }).setChildren(
-    //     aoiAnnotationModel.areaName
-    // );
+    const renderLabel = ({ name, area, color }) => {
+        const label = Div({ class: "aoi-annotaino-label" });
+        const labelColor = Div({ class: "aoi-annotaino-label-color" });
+        const labelBody = Div({ class: "aoi-annotaino-label-body" });
+        const labelName = createElement("h4", { class: "aoi-annotaino-label-title" });
+        const labelArea = Div({ class: "aoi-annotaino-label-coordinates" });
 
-    // const lables = Div({ class: "aoi-annotation-lables" });
+        labelColor.setStyle({ background: `rgba(${color})` });
 
-    // const renderLabel = ({ title, coordinates, color }) => {
-    //     const label = Div({ class: "aoi-annotaino-label" });
-    //     const labelColor = Div({ class: "aoi-annotaino-label-color" });
-    //     console.log(labelColor);
-    //     const labelBody = Div({ class: "aoi-annotaino-label-body" });
-    //     const labelTitle = createElement("h4", { class: "aoi-annotaino-label-title" });
-    //     const labelCoordinates = Div({ class: "aoi-annotaino-label-coordinates" });
+        return label.setChildren(
+            labelColor,
+            labelBody.setChildren(
+                labelName.setChildren(name),
+                labelArea.setChildren(area.toString())
+            )
+        );
+    };
 
-    //     return label.setChildren(
-    //         labelColor,
-    //         labelBody.setChildren(
-    //             labelTitle.setChildren(title),
-    //             labelCoordinates.setChildren(coordinates)
-    //         )
-    //     );
-    // };
+    const renderChildren = aoiAnnotation => {
+        const children = [closeButton, title];
 
-    // label.setChildren(aoiAnnotationModel.labels.map(renderLabel));
+        if (aoiAnnotation.areaName) {
+            children.push(
+                createElement("h3", { class: "aoi-annotation-area-name" }).setChildren(
+                    aoiAnnotation.areaName
+                )
+            );
+        }
 
-    // return container.setChildren(closeButton, title, areaName, lables);
+        if (aoiAnnotation.labels) {
+            children.push(
+                Div({ class: "aoi-annotation-lables" }).setChildren(
+                    aoiAnnotation.labels.map(renderLabel)
+                )
+            );
+        }
 
-    const handleAoIAnnotationOpen = () => {
-        container._element.classList.add('is-open');
-        console.log(aoiAnnotationModel)
+        container.setChildren(children);
+    };
+
+    const handleAoIAnnotationOpen = ({ detail: aoiAnnotation }) => {
+        container._element.classList.add("is-open");
+        renderChildren(aoiAnnotation);
     };
 
     const handleAoIAnnotationClose = () => {
-        container._element.classList.remove('is-open');
+        container._element.classList.remove("is-open");
+        container.setChildren("");
     };
+
+    closeButton.addEventListener("click", handleAoIAnnotationClose);
 
     aoiAnnotationModel.addEventListener("openAoIAnnotation", handleAoIAnnotationOpen);
     aoiAnnotationModel.addEventListener("closeAoIAnnotation", handleAoIAnnotationClose);
