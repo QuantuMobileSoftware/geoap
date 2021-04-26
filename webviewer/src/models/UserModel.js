@@ -4,6 +4,7 @@ export default class UserModel extends EventTarget {
         super();
         this.apiWrapper = apiWrapper;
         this.userDetails = {};
+        this.isDemoUser = false;
         this.apiWrapper.addEventListener("forbidden", () => {
             this.getUserDetails();
         });
@@ -32,6 +33,7 @@ export default class UserModel extends EventTarget {
                 this.dispatchEvent(new Event("loggedout"));
             } else {
                 this.userDetails = res;
+                this.isDemoUser = true || res.username === 'demo1';
                 this.dispatchEvent(new Event("loggedin"));
             }
         });

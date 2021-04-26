@@ -1,10 +1,13 @@
 "use strict";
 
 import Wkt from "wicket";
+import { REGEXP_FORMAT_EMAIL } from '../constants';
+import { sendEmailJSMessage } from "../utils/mailer";
 export default class RequestModel extends EventTarget {
-    constructor(apiWrapper) {
+    constructor(apiWrapper, userModel) {
         super();
         this.apiWrapper = apiWrapper;
+        this.userModel = userModel;
         this.requests = [];
         this.results = [];
         this.notebooks = {
@@ -69,6 +72,11 @@ export default class RequestModel extends EventTarget {
     }
 
     sendRequest(data, cb) {
+        if (this.userModel.isDemoUser) {
+            this.openFeatureRequestDialog();
+            return;
+        }
+
         this.apiWrapper.sendPostRequest("/request", { ...data }, (err, res) => {
             if (err) {
                 this.dispatchEvent(new Event("error"));
@@ -78,11 +86,31 @@ export default class RequestModel extends EventTarget {
         });
     }
 
+    sendFeatureRequest(email) {
+        if (!email) {
+            return Promise.reject('Email is required');
+        }
+
+        if (!email.match(REGEXP_FORMAT_EMAIL)) {
+            return Promise.reject('Invalid email format');
+        }
+
+        return sendEmailJSMessage({ from_email: email })
+    }
+
     openRequestForm(aoi) {
         this.dispatchEvent(new CustomEvent("openForm", { detail: { aoi } }));
     }
 
     closeRequestForm() {
         this.dispatchEvent(new Event("closeForm"));
+    }
+
+    openFeatureRequestDialog() {
+        this.dispatchEvent(new CustomEvent("openFeatureRequestDialog"));
+    }
+
+    closeFeatureRequestDialog() {
+        this.dispatchEvent(new Event("closeFeatureRequestDialog"));
     }
 }

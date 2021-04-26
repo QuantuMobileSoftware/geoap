@@ -266,7 +266,8 @@ body {
 
 /* aois list */
 
-.fixed--aoislist {
+.fixed--aoislist,
+.aoi-annotation-container {
     top: 2px;
     left: 2px;
     bottom: 2px;
