@@ -33,7 +33,7 @@ export default class UserModel extends EventTarget {
                 this.dispatchEvent(new Event("loggedout"));
             } else {
                 this.userDetails = res;
-                this.isDemoUser = true || res.username === 'demo1';
+                this.isDemoUser = res.username === 'demo1';
                 this.dispatchEvent(new Event("loggedin"));
             }
         });
