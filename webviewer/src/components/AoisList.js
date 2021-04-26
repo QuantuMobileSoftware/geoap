@@ -3,7 +3,6 @@
 import { Div } from "@adolgarev/domwrapper";
 
 import Dialog from "./Dialog";
-import { IS_DEMO } from "../constants";
 
 const confirmContainer = Div({ class: "confirm-container" });
 
@@ -134,7 +133,7 @@ export default function createAoisList(
                 class: "aoislist__item-edit",
             });
 
-            if (IS_DEMO) {
+            if (userModel.isDemoUser) {
                 controls.setChildren(arrowIcon);
             } else {
                 controls.setChildren(editIcon, removeIcon, arrowIcon);

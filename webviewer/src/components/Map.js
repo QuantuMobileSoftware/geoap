@@ -1,7 +1,6 @@
 "use strict";
 
 import { Div } from "@adolgarev/domwrapper/src";
-import { IS_DEMO } from '../constants';
 
 function setOpacity(leafletLayer, value) {
     if (leafletLayer.setOpacity !== undefined) {
@@ -11,7 +10,7 @@ function setOpacity(leafletLayer, value) {
     }
 }
 
-function initializeControls(map, { onAddClick } = {}) {
+function initializeControls(map, { isDemoUser, onAddClick } = {}) {
     L.EditControl = L.Control.extend({
         options: {
             position: "topleft",
@@ -34,7 +33,7 @@ function initializeControls(map, { onAddClick } = {}) {
                 link,
                 "click",
                 function () {
-                    if (IS_DEMO) {
+                    if (isDemoUser) {
                         return onAddClick && onAddClick();
                     }
 
@@ -147,7 +146,7 @@ export default function createMap(
         );
 
         // add controls to map
-        initializeControls(map, { onAddClick: handleMapControlAddClick });
+        initializeControls(map, { isDemoUser: userModel.isDemoUser, onAddClick: handleMapControlAddClick });
 
         //add handlers to map
         initializeHandlers(map, mapModel, userModel);
