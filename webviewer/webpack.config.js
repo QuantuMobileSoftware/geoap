@@ -25,7 +25,7 @@ module.exports = () => {
             new webpack.DefinePlugin(envKeys),
             new HtmlWebpackPlugin({
                 template: require("html-webpack-template"),
-                title: "Webviewer • SIP",
+                title: "Webviewer",
                 hash: true,
                 mobile: true,
                 links: [
