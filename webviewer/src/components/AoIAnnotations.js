@@ -16,6 +16,10 @@ export default function createAoIAnnotation({ aoiAnnotationModel } = {}) {
         const labelBody = Div({ class: "aoi-annotaino-label-body" });
         const labelName = createElement("h4", { class: "aoi-annotaino-label-title" });
         const labelArea = Div({ class: "aoi-annotaino-label-coordinates" });
+        const labelUnit = Span({ class: "aoi-annotaino-label-unit" }).setChildren(
+            "km",
+            createElement("sup").setChildren("2")
+        );
 
         labelColor.setStyle({ background: `rgba(${color})` });
 
@@ -23,7 +27,7 @@ export default function createAoIAnnotation({ aoiAnnotationModel } = {}) {
             labelColor,
             labelBody.setChildren(
                 labelName.setChildren(name),
-                labelArea.setChildren(area.toString())
+                labelArea.setChildren(area.toString(), labelUnit)
             )
         );
     };
