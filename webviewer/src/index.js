@@ -5,6 +5,8 @@ import "./styles/index.css";
 
 import { render, Div } from "@adolgarev/domwrapper";
 
+import { SOILMATE_DEMO_DOCUMENT_TITLE, DOCUMENT_TITLE, IS_DEMO } from "./constants";
+
 import WidgetFactory from "./utils/WidgetFactory";
 import APIWrapper from "./utils/APIWrapper";
 
@@ -42,6 +44,10 @@ const featureRequestDialog = createFeatureRequestDialog({ requestModel });
 const map = createMap(widgetFactory, mapModel, requestModel, userModel);
 
 const root = Div({ class: "container" });
+
+if (document && document.title) {
+    document.title = IS_DEMO ? SOILMATE_DEMO_DOCUMENT_TITLE : DOCUMENT_TITLE;
+}
 
 const messageContainer = Div({class: 'message-container'});
 apiWrapper.addEventListener("error", (e) => {
