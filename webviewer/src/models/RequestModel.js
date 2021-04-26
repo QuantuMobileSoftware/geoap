@@ -1,12 +1,13 @@
 "use strict";
 
 import Wkt from "wicket";
-import { IS_DEMO, REGEXP_FORMAT_EMAIL } from '../constants';
+import { REGEXP_FORMAT_EMAIL } from '../constants';
 import { sendEmailJSMessage } from "../utils/mailer";
 export default class RequestModel extends EventTarget {
-    constructor(apiWrapper) {
+    constructor(apiWrapper, userModel) {
         super();
         this.apiWrapper = apiWrapper;
+        this.userModel = userModel;
         this.requests = [];
         this.results = [];
         this.notebooks = {
@@ -71,7 +72,7 @@ export default class RequestModel extends EventTarget {
     }
 
     sendRequest(data, cb) {
-        if (IS_DEMO) {
+        if (this.userModel.isDemoUser) {
             this.openFeatureRequestDialog();
             return;
         }
