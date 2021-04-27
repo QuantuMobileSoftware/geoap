@@ -11,7 +11,7 @@ module.exports = () => {
     const envKeys = Object.keys(env).reduce((prev, next) => {
         prev[`process.env.${next}`] = JSON.stringify(env[next]);
         return prev;
-      }, {});
+    }, {});
 
     return {
         entry: "./src/index.js",
@@ -25,9 +25,10 @@ module.exports = () => {
             new webpack.DefinePlugin(envKeys),
             new HtmlWebpackPlugin({
                 template: require("html-webpack-template"),
-                title: "Webviewer",
                 hash: true,
                 mobile: true,
+                title: "Webviewer",
+                favicon: "./src/images/favicon.svg",
                 links: [
                     {
                         href: "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css",
@@ -54,8 +55,10 @@ module.exports = () => {
                     {
                         src: "https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"
                     },
-                ],
-                favicon: "./src/images/favicon.svg"
+                    {
+                        src: "./src/hotjar.js",
+                    }
+                ]
             })
         ],
 
@@ -79,9 +82,7 @@ module.exports = () => {
                 },
                 {
                     test: /\.(png|svg|jpg|gif)$/,
-                    use: [
-                        "file-loader"
-                    ]
+                    use: ["file-loader"]
                 }
             ]
         },
@@ -104,6 +105,5 @@ module.exports = () => {
                 }
             }
         }
-
     };
-}
+};
