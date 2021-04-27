@@ -16,7 +16,7 @@ import RequestModel from "./models/RequestModel";
 import AoIAnnotationModel from "./models/AoIAnnotationModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
-// import createLayerDetails from "./components/LayerDetails";
+import createLayerDetails from "./components/LayerDetails";
 
 import createLoginForm from "./components/LoginForm";
 import createAoisList from "./components/AoisList";
@@ -34,7 +34,7 @@ const requestModel = new RequestModel(apiWrapper, userModel);
 const aoiAnnotationModel = new AoIAnnotationModel();
 
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
-// const layerDetails = createLayerDetails(widgetFactory, mapModel);
+const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
 const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel, aoiAnnotationModel);
@@ -49,27 +49,24 @@ if (document && document.title) {
     document.title = IS_DEMO ? SOILMATE_DEMO_DOCUMENT_TITLE : DOCUMENT_TITLE;
 }
 
-const messageContainer = Div({class: 'message-container'});
-apiWrapper.addEventListener("error", (e) => {
+const messageContainer = Div({ class: "message-container" });
+apiWrapper.addEventListener("error", e => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
-            widgetFactory.createErrorMessageBar(
-                e.detail.non_field_errors[0],
-                () => {
-                    messageContainer.setChildren();
-                }
-            )
+            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
+                messageContainer.setChildren();
+            })
         );
     }
 });
 
-userModel.addEventListener("loggedin", () => {
+userModel.addEventListener("loggedin", event => {
     // remove loggedout error if it was previously set
     messageContainer.setChildren();
 
     root.setChildren(
         featureDetails,
-        // layerDetails,
+        event.detail.isDemoUser ? "" : layerDetails,
         messageContainer,
         aoisList,
         aoiAnnotations,
