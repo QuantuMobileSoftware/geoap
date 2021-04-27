@@ -15,7 +15,7 @@ export default class UserModel extends EventTarget {
             "/login",
             {
                 username: username,
-                password: password,
+                password: password
             },
             (err, res) => {
                 if (err) {
@@ -32,9 +32,10 @@ export default class UserModel extends EventTarget {
             if (err) {
                 this.dispatchEvent(new Event("loggedout"));
             } else {
+                const isDemoUser = res.username === "demo1";
                 this.userDetails = res;
-                this.isDemoUser = res.username === 'demo1';
-                this.dispatchEvent(new Event("loggedin"));
+                this.isDemoUser = isDemoUser;
+                this.dispatchEvent(new CustomEvent("loggedin", { detail: { ...res, isDemoUser } }));
             }
         });
     }

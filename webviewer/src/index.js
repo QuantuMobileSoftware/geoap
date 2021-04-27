@@ -49,27 +49,24 @@ if (document && document.title) {
     document.title = IS_DEMO ? SOILMATE_DEMO_DOCUMENT_TITLE : DOCUMENT_TITLE;
 }
 
-const messageContainer = Div({class: 'message-container'});
-apiWrapper.addEventListener("error", (e) => {
+const messageContainer = Div({ class: "message-container" });
+apiWrapper.addEventListener("error", e => {
     if (e.detail.non_field_errors) {
         messageContainer.setChildren(
-            widgetFactory.createErrorMessageBar(
-                e.detail.non_field_errors[0],
-                () => {
-                    messageContainer.setChildren();
-                }
-            )
+            widgetFactory.createErrorMessageBar(e.detail.non_field_errors[0], () => {
+                messageContainer.setChildren();
+            })
         );
     }
 });
 
-userModel.addEventListener("loggedin", () => {
+userModel.addEventListener("loggedin", event => {
     // remove loggedout error if it was previously set
     messageContainer.setChildren();
 
     root.setChildren(
         featureDetails,
-        layerDetails,
+        event.detail.isDemoUser ? "" : layerDetails,
         messageContainer,
         aoisList,
         aoiAnnotations,
