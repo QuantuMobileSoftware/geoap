@@ -16,7 +16,7 @@ import RequestModel from "./models/RequestModel";
 import AoIAnnotationModel from "./models/AoIAnnotationModel";
 
 import createFeatureDetails from "./components/FeatureDetails";
-import createLayerDetails from "./components/LayerDetails";
+// import createLayerDetails from "./components/LayerDetails";
 
 import createLoginForm from "./components/LoginForm";
 import createAoisList from "./components/AoisList";
@@ -34,7 +34,7 @@ const requestModel = new RequestModel(apiWrapper, userModel);
 const aoiAnnotationModel = new AoIAnnotationModel();
 
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
-const layerDetails = createLayerDetails(widgetFactory, mapModel);
+// const layerDetails = createLayerDetails(widgetFactory, mapModel);
 
 const loginForm = createLoginForm(widgetFactory, userModel);
 const aoisList = createAoisList(widgetFactory, mapModel, requestModel, userModel, aoiAnnotationModel);
@@ -69,7 +69,7 @@ userModel.addEventListener("loggedin", () => {
 
     root.setChildren(
         featureDetails,
-        layerDetails,
+        // layerDetails,
         messageContainer,
         aoisList,
         aoiAnnotations,
