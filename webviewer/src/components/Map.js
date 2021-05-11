@@ -129,7 +129,7 @@ export default function createMap(
 
     let map = null;
     let geojson = null;
-    let layersToRender = [];
+    let layersToRender = {};
 
     let startPoint = [48.95, 31.53];
 
@@ -205,8 +205,8 @@ export default function createMap(
         const { selectedLayers } = mapModel;
         const lastSelectedLayer = selectedLayers[selectedLayers.length - 1];
 
-        layersToRender.forEach(layer => layer && layer.remove());
-        layersToRender = [];
+        Object.values(layersToRender).forEach(layer => layer && layer.remove());
+        layersToRender = {};
 
         selectedLayers.forEach(selectedLayer => {
             let layer = null;
@@ -292,27 +292,19 @@ export default function createMap(
                 });
             }
 
-            layersToRender.push(layer);
+            layersToRender[selectedLayer.id] = layer;
         });
 
-        if (!layersToRender.length) return;
+        if (!Object.keys(layersToRender).length) return;
 
-        layersToRender.forEach(layer => layer.addTo(map));
+        Object.values(layersToRender).forEach(layer => layer.addTo(map));
         map.fitBounds(lastSelectedLayer.boundingCoordinates);
     };
 
-    const onForegroundLayerUpdated = () => {
-        if (foregroundLayer === null) {
-            return;
-        }
-        if (mapModel.foregroundLayerOptions.opacity !== undefined) {
-            setOpacity(
-                foregroundLayer,
-                mapModel.foregroundLayerOptions.opacity
-            );
-        } else {
-            setOpacity(foregroundLayer, 1);
-        }
+    const handleUpdateLayersOptions = ({ detail }) => {
+        let targetLayer = layersToRender[detail.id]
+        if (!targetLayer) return;
+        setOpacity(targetLayer, mapModel.layersOptions[detail.id].opacity || 1);
     };
 
     const onAoiSelected = (e) => {
@@ -355,10 +347,7 @@ export default function createMap(
     mapModel.addEventListener("aoiSelected", onAoiSelected);
     mapModel.addEventListener("aoideleted", onAoiDeleted);
     mapModel.addEventListener("layerselected", onLayerSelected);
-    mapModel.addEventListener(
-        "foregroundlayeroptionsupdated",
-        onForegroundLayerUpdated
-    );
+    mapModel.addEventListener( "updateLayersOptions", handleUpdateLayersOptions);
 
     return mapElt;
 }
