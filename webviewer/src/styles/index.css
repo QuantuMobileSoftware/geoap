@@ -305,6 +305,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .aoislist__requests-item-text {
@@ -323,15 +324,17 @@ body {
     margin-bottom: 5px;
 }
 
-.aoislist__results-item--active {
-    background-color: rgb(49, 135, 255, 0.8);
-    color: rgba(255, 255, 255);
+.aoislist__results-item--selected {
+    background-color: rgba(49, 135, 255, 0.15);
 }
 
-.aoislist__results-item:hover {
-    background-color: rgb(49, 135, 255, 0.8);
-    color: rgba(255, 255, 255);
-    cursor: pointer;
+.aoislist__results-item--active {
+    background-color: rgba(49, 135, 255, 0.8);
+    color: rgb(255, 255, 255);
+}
+
+.aoislist__results-item:not(.aoislist__results-item--active):not(.aoislist__results-item--selected ):hover {
+    color: rgba(49, 135, 255, 0.8);
 }
 
 .aoislist__item {
