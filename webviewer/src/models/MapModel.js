@@ -14,17 +14,27 @@ export default class MapModel extends EventTarget {
     constructor(apiWrapper) {
         super();
         this.apiWrapper = apiWrapper;
-        this.foregroundLayer = null;
-        this.foregroundLayerOptions = {};
-        this.backgroundLayer = null;
-        this.selectedFeature = null;
         this.aois = [];
+        this.selectedLayers = [];
+        this.selectedFeature = null;
+    }
+
+    setSelectedLayers(layer) {
+        const isAlreadySelected = this.selectedLayers.some(({ id }) => id === layer.id);
+
+        const addToSelected = layer => {
+            this.selectedLayers = [...this.selectedLayers, layer];
+        };
+
+        const removeFromSelected = layer => {
+            this.selectedLayers = this.selectedLayers.filter(({ id }) => id !== layer.id);
+        };
+
+        (isAlreadySelected ? removeFromSelected : addToSelected)(layer);
     }
 
     selectLayer(layer) {
-        this.backgroundLayer = this.foregroundLayer;
-        this.foregroundLayer = layer;
-        this.foregroundLayerOptions = {};
+        this.setSelectedLayers(layer);
         this.dispatchEvent(new Event("layerselected"));
     }
 
