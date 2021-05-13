@@ -31,7 +31,7 @@ const widgetFactory = new WidgetFactory();
 const userModel = new UserModel(apiWrapper);
 const mapModel = new MapModel(apiWrapper);
 const requestModel = new RequestModel(apiWrapper, userModel);
-const aoiAnnotationModel = new AoIAnnotationModel();
+const aoiAnnotationModel = new AoIAnnotationModel({ mapModel });
 
 const featureDetails = createFeatureDetails(widgetFactory, mapModel);
 const layerDetails = createLayerDetails(widgetFactory, mapModel);
