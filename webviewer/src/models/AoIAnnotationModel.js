@@ -1,8 +1,9 @@
 "use strict";
 
 export default class AoIAnnotationModel extends EventTarget {
-    constructor() {
+    constructor({ mapModel }) {
         super();
+        this.mapModel = mapModel;
     }
 
     normalizeAoILables(lables) {
@@ -22,16 +23,18 @@ export default class AoIAnnotationModel extends EventTarget {
     getAoIAnnotation(aoiResult) {
         return {
             areaName: aoiResult.name,
-            labels: this.normalizeAoILables(aoiResult.labels),
+            labels: this.normalizeAoILables(aoiResult.labels)
         };
     }
 
     openAoIAnnotation(aoiResult) {
         const aoiAnnotation = this.getAoIAnnotation(aoiResult);
 
+        if (!this.mapModel.selectedLayers.some(({ id }) => id === aoiResult.id)) return;
+
         this.dispatchEvent(
             new CustomEvent("openAoIAnnotation", {
-                detail: aoiAnnotation,
+                detail: aoiAnnotation
             })
         );
     }
