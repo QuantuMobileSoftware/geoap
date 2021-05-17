@@ -13,9 +13,9 @@ export const GlobalStyle = createGlobalStyle`
 
     ${({ theme }) => css`
       font-family: ${theme.fonts.primary}, sans-serif;
-      font-size: ${`${theme.fontSizes.sm}px`};
-      font-weight: ${theme.fontWeights.regular};
-      line-height: ${theme.lineHeight.x};
+      font-size: ${`${theme.fontSizes[4]}px`};
+      font-weight: ${theme.fontWeights[0]};
+      line-height: ${theme.lineHeight[0]};
       color: ${theme.colors.nature.n5};
       background: ${theme.colors.misc.background};
     `}

@@ -1,9 +1,7 @@
-import { css } from 'styled-components';
 import { em } from 'polished';
 import { isNumber } from 'lodash-es';
 
 import { createBreakpoints } from 'styles/utils';
-import * as animations from 'styles/utils/animations';
 
 const colors = {
   nature: {
@@ -16,15 +14,16 @@ const colors = {
   },
 
   primary: {
-    p0: '#35603D',
-    p1: '#2D4F34',
-    p2: '#1B4022'
+    p1: '#35603D',
+    p2: '#2D4F34',
+    p3: '#1B4022'
   },
 
   danger: '#CB0000',
 
   misc: {
-    background: '#F9F9F9'
+    background: '#F9F9F9',
+    background2: '#FAFBFD'
   }
 };
 
@@ -32,45 +31,17 @@ const fonts = {
   primary: 'Poppins'
 };
 
-const fontSizes = {
-  x: 8,
-  xs: 9,
-  sx: 12,
-  s: 13,
-  sm: 16,
-  ms: 20
-};
+const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 22, 24, 32, 40, 48, 64, 96, 128];
 
-const fontWeights = {
-  regular: 400,
-  medium: 500
-};
+const fontSizes = [8, 9, 12, 13, 16, 20];
 
-const lineHeight = {
-  x: 1.5
-};
+const fontWeights = [400, 500];
 
-const spacing = {
-  x: 4,
-  xs: 8,
-  sx: 12,
-  s: 14,
-  sm: 16,
-  ms: 20,
-  m: 22,
-  ml: 24,
-  lm: 32,
-  l: 40,
-  lx: 48,
-  xl: 64,
-  '2xl': 96,
-  '3xl': 128
-};
+const lineHeight = [1.5];
 
-const radius = {
-  x: 4,
-  xs: 20
-};
+const radius = [4, 10, 20];
+
+const zIndexes = [1, 5, 10, 15];
 
 const borders = theme => ({
   default: props => {
@@ -78,6 +49,10 @@ const borders = theme => ({
     return `${em(1, fontSize)} solid ${color}`;
   }
 });
+
+const shadows = ({ fontSize } = {}) => [
+  `0px ${em(1, fontSize)} ${em(4, fontSize)} rgba(0, 0, 0, 0.05);`
+];
 
 const duration = {
   fast: '0.2s',
@@ -91,13 +66,6 @@ const transitions = {
   slow: `${duration.slow} ease`
 };
 
-const zIndexes = {
-  x: 1,
-  xs: 5,
-  sx: 10,
-  s: 15
-};
-
 const breakpoints = createBreakpoints({
   x: 320,
   xs: 576,
@@ -106,12 +74,6 @@ const breakpoints = createBreakpoints({
   sm: 1200,
   ms: 1440
 });
-
-const _animations = {
-  rotationWithScale: css`
-    animation: ${animations.rotationWithScale} 1s linear infinite;
-  `
-};
 
 export const themeDefault = {
   colors,
@@ -122,10 +84,10 @@ export const themeDefault = {
   spacing,
   radius,
   borders: borders({ colors }),
+  shadows,
   duration,
   transitions,
   zIndexes,
   breakpoints,
-  animations: _animations,
-  setFontSize: size => (isNumber(size) ? size : fontSizes[size])
+  setFontSize: size => (isNumber(size) ? fontSizes[size] : parseFloat(size))
 };
