@@ -5,7 +5,7 @@ import { ROUTES } from '_constants';
 
 export const Route = ({ component: Component, isPrivate = false, ...props }) => {
   const { location } = props;
-  const isAuthorized = true; // TODO: Replace with sate value
+  const isAuthorized = false; // TODO: Replace with sate value
 
   const renderRoute = props => {
     if ((!isPrivate || isAuthorized) && Component) {
