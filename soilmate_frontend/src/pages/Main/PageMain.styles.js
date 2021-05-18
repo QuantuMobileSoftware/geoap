@@ -1,3 +1,5 @@
 import styled from 'styled-components';
 
-export const StyledPageMain = styled.div``;
+import { Page } from 'components/_shared/Page';
+
+export const StyledPageMain = styled(Page)``;

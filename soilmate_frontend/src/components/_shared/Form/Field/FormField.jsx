@@ -26,21 +26,11 @@ let previousFieldId = 0;
 
 export const FormField = forwardRef(
   (
-    {
-      id: initialId,
-      className,
-      name,
-      type = 'text',
-      label,
-      error,
-      message,
-      control,
-      ...props
-    },
+    { id, className, name, type = 'text', label, error, message, control, ...props },
     ref
   ) => {
     const [field, meta, helpers] = useField(name);
-    const id = useMemo(() => initialId || `field-${++previousFieldId}`, [initialId]);
+    const _id = useMemo(() => id || `field-${++previousFieldId}`, [id]);
 
     const messageError = error || (meta.touched && meta.error);
     const canRenderMessages = messageError || message;
@@ -57,14 +47,17 @@ export const FormField = forwardRef(
 
       if (!controlElement) return null;
 
-      const mergedProps = mergeProps(controlElement.props, [{ ...props, id }, field]);
+      const mergedProps = mergeProps(controlElement.props, [
+        { ...props, id: _id },
+        field
+      ]);
 
       return <FormFieldControl {...mergedProps}>{controlElement}</FormFieldControl>;
     };
 
     return (
       <StyledFormField {...props} ref={ref} className={className}>
-        {label && <FormFieldLabel htmlFor={id}>{upperFirst(label)}</FormFieldLabel>}
+        {label && <FormFieldLabel htmlFor={_id}>{upperFirst(label)}</FormFieldLabel>}
 
         {renderControl()}
 

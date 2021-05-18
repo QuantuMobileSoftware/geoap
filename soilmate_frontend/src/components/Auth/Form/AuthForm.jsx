@@ -20,7 +20,7 @@ export const AuthForm = ({ initialValues = {}, ...props }) => {
       initialValues={_initialValues}
       validationSchema={validationSchema}
       actions={[
-        <Button key='submit' type='submit'>
+        <Button key='submit' type='submit' variant='primary'>
           Login
         </Button>
       ]}
