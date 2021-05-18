@@ -13,7 +13,7 @@ import {
 
 import { InputText } from 'components/_shared/Input';
 
-import { maybeFunction, mergeProps } from 'utils';
+import { withFunction, mergeProps } from 'utils';
 
 // TODO: Add more field types
 const FIELD_TYPE_CONTROLS = {
@@ -52,7 +52,7 @@ export const FormField = forwardRef(
       if (type) controlElement = FIELD_TYPE_CONTROLS[type];
 
       if (isCustomControl) {
-        controlElement = maybeFunction(control, { field, meta, helpers });
+        controlElement = withFunction(control, { field, meta, helpers });
       }
 
       if (!controlElement) return null;

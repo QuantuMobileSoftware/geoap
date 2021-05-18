@@ -1,11 +1,14 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Redirect, Route as ReactRoute } from 'react-router-dom';
 
 import { ROUTES } from '_constants';
 
+import { selectIsAuthorized } from 'state';
+
 export const Route = ({ component: Component, isPrivate = false, ...props }) => {
   const { location } = props;
-  const isAuthorized = false; // TODO: Replace with sate value
+  const isAuthorized = useSelector(selectIsAuthorized);
 
   const renderRoute = props => {
     if ((!isPrivate || isAuthorized) && Component) {

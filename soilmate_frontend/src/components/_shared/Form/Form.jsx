@@ -13,7 +13,7 @@ import {
   StyledForm
 } from './Form.styles';
 
-import { maybeFunction } from 'utils';
+import { withFunction } from 'utils';
 
 export const Form = forwardRef(
   (
@@ -68,7 +68,7 @@ export const Form = forwardRef(
         onSubmit={formik.handleSubmit}
       >
         <FormikProvider value={formik}>
-          {children && <FormBody>{maybeFunction(children, formik)}</FormBody>}
+          {children && <FormBody>{withFunction(children, formik)}</FormBody>}
 
           {renderActions()}
 

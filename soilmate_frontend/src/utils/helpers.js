@@ -1,6 +1,6 @@
 import { isArray, isEmpty, isFunction, mergeWith } from 'lodash-es';
 
-export const maybeFunction = (value, args) => {
+export const withFunction = (value, args) => {
   return isFunction(value) ? value(args) : value;
 };
 
