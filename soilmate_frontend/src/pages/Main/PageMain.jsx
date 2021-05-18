@@ -11,5 +11,5 @@ export const PageMain = ({ ...props }) => {
     getCurrentUser();
   }, [getCurrentUser]);
 
-  return <StyledPageMain {...props}>Page: Main</StyledPageMain>;
+  return <StyledPageMain {...props}></StyledPageMain>;
 };

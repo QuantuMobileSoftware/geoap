@@ -8,5 +8,6 @@ export const NOT_FORWARD_PROPS = [
   'position',
   'size',
   'staticContext',
-  'variant'
+  'variant',
+  'hasChildren'
 ];
