@@ -28,7 +28,7 @@ export const Dropdown = forwardRef(
     },
     ref
   ) => {
-    const rootRef = useRef(ref);
+    const rootRef = useRef(null);
 
     const [_isOpen, setIsOpen] = useState(isOpen);
     useEffect(() => setIsOpen(isOpen), [isOpen]);

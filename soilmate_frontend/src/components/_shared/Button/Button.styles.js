@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import { rgba } from 'polished';
 
 import { em, rem } from 'styles';
 import { shouldForwardProp } from 'utils';
@@ -39,6 +40,33 @@ const buttonVariantStyles = ({ variant, fontSize }) => css`
 
           &:active {
             color: ${theme.colors.primary.p3};
+          }
+        }
+      `,
+
+      floating: css`
+        color: ${theme.colors.nature.n5};
+        width: ${em(40, fontSize)};
+        height: ${em(40, fontSize)};
+        border-radius: 100%;
+        background: ${theme.colors.nature.n0};
+        box-shadow: ${theme.shadows({ fontSize })[0]};
+        padding: 0;
+
+        ${ButtonIcon} {
+          width: ${em(16, fontSize)};
+        }
+
+        &:not(:disabled) {
+          &:hover {
+            color: ${theme.colors.primary.p1};
+            background: ${rgba(theme.colors.nature.n1, 0.2)};
+          }
+
+          &:active {
+            color: ${theme.colors.primary.p3};
+            background: ${theme.colors.nature.n0};
+            transform: scale(0.9);
           }
         }
       `
