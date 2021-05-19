@@ -1,3 +1,4 @@
+export * from './areas.utils';
 export * from './components';
 export * from './helpers';
-export * from './user';
+export * from './user.utils';

@@ -4,14 +4,16 @@ import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 import { AreasSidebar } from 'components/Areas';
 
-import { useUserActions } from 'state';
+import { useAreasActions, useUserActions } from 'state';
 
 export const PageMain = ({ ...props }) => {
   const { getCurrentUser } = useUserActions();
+  const { getAreas } = useAreasActions();
 
   useEffect(() => {
     getCurrentUser();
-  }, [getCurrentUser]);
+    getAreas();
+  }, [getCurrentUser, getAreas]);
 
   return (
     <StyledPageMain {...props}>

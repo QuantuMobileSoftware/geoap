@@ -22,3 +22,13 @@ export const mergeObjects = (initialObject, source, customizer) => {
 
   return mergeWith({}, initialObject, _source, customizer || defaultCustomizer);
 };
+
+export const withMergeObjects = (initialObject, customizer) => [
+  () => initialObject,
+  (object, params = {}) => {
+    const { hard = false } = params;
+    return (initialObject = hard
+      ? object
+      : mergeObjects(initialObject, object, customizer));
+  }
+];
