@@ -1,5 +1,5 @@
-import { em } from 'polished';
 import { isNumber } from 'lodash-es';
+import { em } from 'polished';
 
 import { createBreakpoints } from 'styles/utils';
 

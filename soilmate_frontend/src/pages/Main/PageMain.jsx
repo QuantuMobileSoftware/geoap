@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 
-import { StyledPageMain } from './PageMain.styles';
+import { PageMainContainer, StyledPageMain } from './PageMain.styles';
+
+import { AreasSidebar } from 'components/Areas';
 
 import { useUserActions } from 'state';
 
@@ -11,5 +13,11 @@ export const PageMain = ({ ...props }) => {
     getCurrentUser();
   }, [getCurrentUser]);
 
-  return <StyledPageMain {...props}></StyledPageMain>;
+  return (
+    <StyledPageMain {...props}>
+      <PageMainContainer>
+        <AreasSidebar />
+      </PageMainContainer>
+    </StyledPageMain>
+  );
 };

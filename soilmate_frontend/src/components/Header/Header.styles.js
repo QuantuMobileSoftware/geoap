@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { VIEWPORT_PADDING_X } from '_constants';
+import { VIEWPORT_PADDING } from '_constants';
 
 import { rem } from 'styles';
 
@@ -14,7 +14,7 @@ export const StyledHeader = styled.header`
     justify-content: flex-end;
     background: ${theme.colors.nature.n0};
     box-shadow: ${theme.shadows()[0]};
-    padding: ${rem([theme.spacing[3], VIEWPORT_PADDING_X])};
+    padding: ${rem([theme.spacing[3], VIEWPORT_PADDING])};
 
     ${StyledLogo} {
       margin-right: auto;

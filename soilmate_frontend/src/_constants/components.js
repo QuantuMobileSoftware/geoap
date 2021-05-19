@@ -1,1 +1,1 @@
-export const VIEWPORT_PADDING_X = 20;
+export const VIEWPORT_PADDING = 20;
