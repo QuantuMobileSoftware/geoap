@@ -66,7 +66,7 @@ userModel.addEventListener("loggedin", event => {
 
     root.setChildren(
         featureDetails,
-        event.detail.isDemoUser ? "" : layerDetails,
+        layerDetails,
         messageContainer,
         aoisList,
         aoiAnnotations,
