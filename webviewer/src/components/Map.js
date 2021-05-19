@@ -198,107 +198,117 @@ export default function createMap(
     };
 
     const onLayerSelected = () => {
-        if (map === null) {
-            return;
+      if (map === null) {
+        return;
+      }
+
+      const { selectedLayers } = mapModel;
+      const lastSelectedLayer = mapModel.getLastSelectedLayer();
+
+      Object.values(layersToRender).forEach(layer => layer && layer.remove());
+      layersToRender = {};
+
+      selectedLayers.forEach(selectedLayer => {
+        let layer = null;
+        let selectedLeafletLayer = null;
+
+        if (selectedLayer.layer_type === 'GEOJSON') {
+          layer = L.geoJSON(undefined, {
+            style: feature => {
+              return feature.properties.style;
+            },
+            onEachFeature: (feature, layer) => {
+              layer.addEventListener('click', () => {
+                if (
+                  selectedLeafletLayer != null &&
+                  selectedLeafletLayer.setStyle
+                ) {
+                  selectedLeafletLayer.setStyle({
+                    fillOpacity: 0.2,
+                  });
+                }
+                if (layer.setStyle) {
+                  layer.setStyle({
+                    fillOpacity: 0.7,
+                  });
+                }
+                selectedLeafletLayer = layer;
+                mapModel.selectFeature(feature);
+              });
+              if (feature.properties.label) {
+                layer.bindPopup(feature.properties.label);
+              }
+            },
+          });
+          // Make a closure here as layer can be changed before data is loaded
+          const leafletLayer = layer;
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', selectedLayer.rel_url);
+          xhr.onload = () => {
+            if (xhr.status !== 200) {
+              console.error(xhr.responseText);
+            } else {
+              const jsonResponse = JSON.parse(xhr.responseText);
+              leafletLayer.addData(jsonResponse);
+            }
+          };
+          xhr.onerror = () => {
+            console.error('Failed to request ' + selectedLayer.rel_url);
+          };
+          xhr.send();
+        } else if (selectedLayer.layer_type === 'MVT') {
+          layer = L.vectorGrid.protobuf(selectedLayer.rel_url, {
+            rendererFactory: L.canvas.tile,
+            maxZoom: 16,
+            vectorTileLayerStyles: {
+              default: properties => {
+                if (typeof properties.style === 'string') {
+                  properties.style = JSON.parse(properties.style);
+                }
+                if (typeof properties.data === 'string') {
+                  properties.data = JSON.parse(properties.data);
+                }
+                if (typeof properties.layout === 'string') {
+                  properties.layout = JSON.parse(properties.layout);
+                }
+                if (properties.style === undefined) {
+                  properties.style = {};
+                }
+                if (properties.style.fill === undefined) {
+                  properties.style.fill = true;
+                }
+                return properties.style;
+              },
+            },
+            interactive: true,
+          });
+          layer.addEventListener('click', x => {
+            mapModel.selectFeature(x.layer);
+            if (x.layer.properties.label) {
+              L.popup()
+                .setContent(x.layer.properties.label)
+                .setLatLng(x.latlng)
+                .openOn(map);
+            }
+          });
+        } else if (selectedLayer.layer_type === 'XYZ') {
+          layer = L.tileLayer(selectedLayer.rel_url, {
+            minZoom: 10,
+            maxZoom: 16,
+          });
         }
 
-        const { selectedLayers } = mapModel;
-        const lastSelectedLayer = selectedLayers[selectedLayers.length - 1];
+        layersToRender[selectedLayer.id] = layer;
+      });
 
-        Object.values(layersToRender).forEach(layer => layer && layer.remove());
-        layersToRender = {};
+      if (!Object.keys(layersToRender).length) return;
 
-        selectedLayers.forEach(selectedLayer => {
-            let layer = null;
-            let selectedLeafletLayer = null;
+      Object.values(selectedLayers)
+        .map(({ id }) => layersToRender[id])
+        .filter(Boolean)
+        .forEach(layer => layer.addTo(map));
 
-            if (selectedLayer.layer_type === "GEOJSON") {
-                layer = L.geoJSON(undefined, {
-                    style: feature => {
-                        return feature.properties.style;
-                    },
-                    onEachFeature: (feature, layer) => {
-                        layer.addEventListener("click", () => {
-                            if (selectedLeafletLayer != null && selectedLeafletLayer.setStyle) {
-                                selectedLeafletLayer.setStyle({
-                                    fillOpacity: 0.2
-                                });
-                            }
-                            if (layer.setStyle) {
-                                layer.setStyle({
-                                    fillOpacity: 0.7
-                                });
-                            }
-                            selectedLeafletLayer = layer;
-                            mapModel.selectFeature(feature);
-                        });
-                        if (feature.properties.label) {
-                            layer.bindPopup(feature.properties.label);
-                        }
-                    }
-                });
-                // Make a closure here as layer can be changed before data is loaded
-                const leafletLayer = layer;
-                const xhr = new XMLHttpRequest();
-                xhr.open("GET", selectedLayer.rel_url);
-                xhr.onload = () => {
-                    if (xhr.status !== 200) {
-                        console.error(xhr.responseText);
-                    } else {
-                        const jsonResponse = JSON.parse(xhr.responseText);
-                        leafletLayer.addData(jsonResponse);
-                    }
-                };
-                xhr.onerror = () => {
-                    console.error("Failed to request " + selectedLayer.rel_url);
-                };
-                xhr.send();
-            } else if (selectedLayer.layer_type === "MVT") {
-                layer = L.vectorGrid.protobuf(selectedLayer.rel_url, {
-                    rendererFactory: L.canvas.tile,
-                    maxZoom: 16,
-                    vectorTileLayerStyles: {
-                        default: properties => {
-                            if (typeof properties.style === "string") {
-                                properties.style = JSON.parse(properties.style);
-                            }
-                            if (typeof properties.data === "string") {
-                                properties.data = JSON.parse(properties.data);
-                            }
-                            if (typeof properties.layout === "string") {
-                                properties.layout = JSON.parse(properties.layout);
-                            }
-                            if (properties.style === undefined) {
-                                properties.style = {};
-                            }
-                            if (properties.style.fill === undefined) {
-                                properties.style.fill = true;
-                            }
-                            return properties.style;
-                        }
-                    },
-                    interactive: true
-                });
-                layer.addEventListener("click", x => {
-                    mapModel.selectFeature(x.layer);
-                    if (x.layer.properties.label) {
-                        L.popup().setContent(x.layer.properties.label).setLatLng(x.latlng).openOn(map);
-                    }
-                });
-            } else if (selectedLayer.layer_type === "XYZ") {
-                layer = L.tileLayer(selectedLayer.rel_url, {
-                    minZoom: 10,
-                    maxZoom: 16
-                });
-            }
-
-            layersToRender[selectedLayer.id] = layer;
-        });
-
-        if (!Object.keys(layersToRender).length) return;
-
-        Object.values(layersToRender).forEach(layer => layer.addTo(map));
-        map.fitBounds(lastSelectedLayer.boundingCoordinates);
+      map.fitBounds(lastSelectedLayer.boundingCoordinates);
     };
 
     const handleUpdateLayersOptions = ({ detail }) => {
