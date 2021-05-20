@@ -10,7 +10,7 @@ function setOpacity(leafletLayer, value) {
     }
 }
 
-function initializeControls(map) {
+function initializeControls(map, { isDemoUser, onAddClick } = {}) {
     L.EditControl = L.Control.extend({
         options: {
             position: "topleft",
@@ -33,6 +33,10 @@ function initializeControls(map) {
                 link,
                 "click",
                 function () {
+                    if (isDemoUser) {
+                        return onAddClick && onAddClick();
+                    }
+
                     window.LAYER = this.options.callback.call(map.editTools);
                 },
                 this
@@ -100,16 +104,16 @@ function initializeHandlers(map, mapModel, userModel) {
             layer,
             user: userModel.user_id,
         };
-        
+
         mapModel.sendAoi(feature, (res) => {
             FEATURES[layer._leaflet_id] = { ...res };
             map.removeLayer(layer);
         });
     };
 
-    
+
     map.on("editable:drawing:commit", handleCustomPolygonCreate);
-    
+
     // map.on("editable:vertex:clicked", handleCustomPolygonCreate);
     // map.on("editable:vertex:dragend", handlePolygonChange);
 }
@@ -125,20 +129,22 @@ export default function createMap(
 
     let map = null;
     let geojson = null;
-
-    let backgroundLayer = null;
-    let foregroundLayer = null;
+    let layersToRender = {};
 
     let startPoint = [48.95, 31.53];
+
+    const handleMapControlAddClick = () => {
+        requestModel.openFeatureRequestDialog();
+    }
 
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
-            7
+            8
         );
 
         // add controls to map
-        initializeControls(map);
+        initializeControls(map, { isDemoUser: userModel.isDemoUser, onAddClick: handleMapControlAddClick });
 
         //add handlers to map
         initializeHandlers(map, mapModel, userModel);
@@ -192,119 +198,123 @@ export default function createMap(
     };
 
     const onLayerSelected = () => {
-        if (map === null) {
-            return;
-        }
-        if (backgroundLayer !== null) {
-            backgroundLayer.remove();
-        }
-        if (foregroundLayer !== null) {
-            backgroundLayer = foregroundLayer;
-            setOpacity(backgroundLayer, 1);
-        }
-        const l = mapModel.foregroundLayer;
+      if (map === null) {
+        return;
+      }
+
+      const { selectedLayers } = mapModel;
+      const lastSelectedLayer = mapModel.getLastSelectedLayer();
+
+      Object.values(layersToRender).forEach(layer => layer && layer.remove());
+      layersToRender = {};
+
+      selectedLayers.forEach(selectedLayer => {
+        let layer = null;
         let selectedLeafletLayer = null;
-        if (l.layer_type === "GEOJSON") {
-            foregroundLayer = L.geoJSON(undefined, {
-                style: (feature) => {
-                    return feature.properties.style;
-                },
-                onEachFeature: (feature, layer) => {
-                    layer.addEventListener("click", () => {
-                        if (
-                            selectedLeafletLayer != null &&
-                            selectedLeafletLayer.setStyle
-                        ) {
-                            selectedLeafletLayer.setStyle({
-                                fillOpacity: 0.2,
-                            });
-                        }
-                        if (layer.setStyle) {
-                            layer.setStyle({
-                                fillOpacity: 0.7,
-                            });
-                        }
-                        selectedLeafletLayer = layer;
-                        mapModel.selectFeature(feature);
-                    });
-                    if (feature.properties.label) {
-                        layer.bindPopup(feature.properties.label);
-                    }
-                },
-            });
-            // Make a closure here as layer can be changed before data is loaded
-            const leafletLayer = foregroundLayer;
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", l.rel_url);
-            xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    console.error(xhr.responseText);
-                } else {
-                    const jsonResponse = JSON.parse(xhr.responseText);
-                    leafletLayer.addData(jsonResponse);
+
+        if (selectedLayer.layer_type === 'GEOJSON') {
+          layer = L.geoJSON(undefined, {
+            style: feature => {
+              return feature.properties.style;
+            },
+            onEachFeature: (feature, layer) => {
+              layer.addEventListener('click', () => {
+                if (
+                  selectedLeafletLayer != null &&
+                  selectedLeafletLayer.setStyle
+                ) {
+                  selectedLeafletLayer.setStyle({
+                    fillOpacity: 0.2,
+                  });
                 }
-            };
-            xhr.onerror = () => {
-                console.error("Failed to request " + l.rel_url);
-            };
-            xhr.send();
-        } else if (l.layer_type === "MVT") {
-            foregroundLayer = L.vectorGrid.protobuf(l.rel_url, {
-                rendererFactory: L.canvas.tile,
-                maxZoom: 16,
-                vectorTileLayerStyles: {
-                    default: (properties) => {
-                        if (typeof properties.style === "string") {
-                            properties.style = JSON.parse(properties.style);
-                        }
-                        if (typeof properties.data === "string") {
-                            properties.data = JSON.parse(properties.data);
-                        }
-                        if (typeof properties.layout === "string") {
-                            properties.layout = JSON.parse(properties.layout);
-                        }
-                        if (properties.style === undefined) {
-                            properties.style = {};
-                        }
-                        if (properties.style.fill === undefined) {
-                            properties.style.fill = true;
-                        }
-                        return properties.style;
-                    },
-                },
-                interactive: true,
-            });
-            foregroundLayer.addEventListener("click", (x) => {
-                mapModel.selectFeature(x.layer);
-                if (x.layer.properties.label) {
-                    L.popup()
-                        .setContent(x.layer.properties.label)
-                        .setLatLng(x.latlng)
-                        .openOn(map);
+                if (layer.setStyle) {
+                  layer.setStyle({
+                    fillOpacity: 0.7,
+                  });
                 }
-            });
-        } else if (l.layer_type === "XYZ") {
-            foregroundLayer = L.tileLayer(l.rel_url, {
-                minZoom: 10,
-                maxZoom: 16,
-            });
+                selectedLeafletLayer = layer;
+                mapModel.selectFeature(feature);
+              });
+              if (feature.properties.label) {
+                layer.bindPopup(feature.properties.label);
+              }
+            },
+          });
+          // Make a closure here as layer can be changed before data is loaded
+          const leafletLayer = layer;
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', selectedLayer.rel_url);
+          xhr.onload = () => {
+            if (xhr.status !== 200) {
+              console.error(xhr.responseText);
+            } else {
+              const jsonResponse = JSON.parse(xhr.responseText);
+              leafletLayer.addData(jsonResponse);
+            }
+          };
+          xhr.onerror = () => {
+            console.error('Failed to request ' + selectedLayer.rel_url);
+          };
+          xhr.send();
+        } else if (selectedLayer.layer_type === 'MVT') {
+          layer = L.vectorGrid.protobuf(selectedLayer.rel_url, {
+            rendererFactory: L.canvas.tile,
+            maxZoom: 16,
+            vectorTileLayerStyles: {
+              default: properties => {
+                if (typeof properties.style === 'string') {
+                  properties.style = JSON.parse(properties.style);
+                }
+                if (typeof properties.data === 'string') {
+                  properties.data = JSON.parse(properties.data);
+                }
+                if (typeof properties.layout === 'string') {
+                  properties.layout = JSON.parse(properties.layout);
+                }
+                if (properties.style === undefined) {
+                  properties.style = {};
+                }
+                if (properties.style.fill === undefined) {
+                  properties.style.fill = true;
+                }
+                return properties.style;
+              },
+            },
+            interactive: true,
+          });
+          layer.addEventListener('click', x => {
+            mapModel.selectFeature(x.layer);
+            if (x.layer.properties.label) {
+              L.popup()
+                .setContent(x.layer.properties.label)
+                .setLatLng(x.latlng)
+                .openOn(map);
+            }
+          });
+        } else if (selectedLayer.layer_type === 'XYZ') {
+          layer = L.tileLayer(selectedLayer.rel_url, {
+            minZoom: 10,
+            maxZoom: 16,
+          });
         }
-        foregroundLayer.addTo(map);
-        map.fitBounds(l.boundingCoordinates);
+
+        layersToRender[selectedLayer.id] = layer;
+      });
+
+      if (!Object.keys(layersToRender).length) return;
+
+      Object.values(selectedLayers)
+        .map(({ id }) => layersToRender[id])
+        .filter(Boolean)
+        .forEach(layer => layer.addTo(map));
+
+      map.fitBounds(lastSelectedLayer.boundingCoordinates);
     };
 
-    const onForegroundLayerUpdated = () => {
-        if (foregroundLayer === null) {
-            return;
-        }
-        if (mapModel.foregroundLayerOptions.opacity !== undefined) {
-            setOpacity(
-                foregroundLayer,
-                mapModel.foregroundLayerOptions.opacity
-            );
-        } else {
-            setOpacity(foregroundLayer, 1);
-        }
+    const handleUpdateLayersOptions = ({ detail }) => {
+        let targetLayer = layersToRender[detail.id]
+        if (!targetLayer) return;
+        setOpacity(targetLayer, mapModel.layersOptions[detail.id].opacity || 1);
     };
 
     const onAoiSelected = (e) => {
@@ -324,7 +334,7 @@ export default function createMap(
                     fillOpacity: 0,
                 });
                 item.classList.add("aoi__layer--active");
-                map.panInsideBounds(layer.getBounds());
+                map.fitBounds(layer.getBounds());
             } else {
                 item.classList.remove("aoi__layer--active");
             }
@@ -347,10 +357,7 @@ export default function createMap(
     mapModel.addEventListener("aoiSelected", onAoiSelected);
     mapModel.addEventListener("aoideleted", onAoiDeleted);
     mapModel.addEventListener("layerselected", onLayerSelected);
-    mapModel.addEventListener(
-        "foregroundlayeroptionsupdated",
-        onForegroundLayerUpdated
-    );
+    mapModel.addEventListener( "updateLayersOptions", handleUpdateLayersOptions);
 
     return mapElt;
 }

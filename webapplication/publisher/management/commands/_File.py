@@ -52,6 +52,7 @@ class File(metaclass=ABCMeta):
         self.end_date = None
         self.request = None
         self.style_url = None
+        self.labels = ""
 
     def filename(self):
         return os.path.basename(self.path)
@@ -109,7 +110,8 @@ class File(metaclass=ABCMeta):
                      start_date=None,
                      end_date=None,
                      request=None,
-                     released=False,)
+                     released=False,
+                     labels=self.labels)
 
         if self.name:
             dict_['name'] = self.name
@@ -279,6 +281,7 @@ class Geotif(File):
             self.start_date = tags.get('start_date')
             self.end_date = tags.get('end_date')
             self.request = tags.get('request_id')
+            self.labels = tags.get('labels')
 
     def layer_type(self):
         return Result.XYZ

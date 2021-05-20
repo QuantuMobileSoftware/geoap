@@ -10,7 +10,8 @@ export default function createAoisList(
     widgetFactory,
     mapModel,
     requestModel,
-    userModel
+    userModel,
+    aoiAnnotationModel
 ) {
     const box = Div({ class: "fixed fixed--aoislist" });
 
@@ -132,7 +133,12 @@ export default function createAoisList(
                 class: "aoislist__item-edit",
             });
 
-            controls.setChildren(editIcon, removeIcon, arrowIcon);
+            if (userModel.isDemoUser) {
+                controls.setChildren(arrowIcon);
+            } else {
+                controls.setChildren(editIcon, removeIcon, arrowIcon);
+            }
+
 
             const isActive = aoi.properties.id === detail.aoi.properties.id;
             const aoiElt = Div({
@@ -162,12 +168,17 @@ export default function createAoisList(
             aoisElts.push(aoiElt);
 
             if (isActive) {
-                removeIcon.addEventListener(
-                    "click",
-                    confirmRemove(aoi.properties.id)
-                );
 
-                editIcon.addEventListener("click", confirmEdit(aoi));
+                if (removeIcon) {
+                    removeIcon.addEventListener(
+                        "click",
+                        confirmRemove(aoi.properties.id)
+                    );
+                }
+
+                if (editIcon) {
+                    editIcon.addEventListener("click", confirmEdit(aoi));
+                }
 
                 openFormButton.addEventListener("click", () => {
                     requestModel.openRequestForm(aoi);
@@ -228,33 +239,40 @@ export default function createAoisList(
 
         const items = [];
 
-        requestModel.results.forEach((result) => {
-            const elem = Div({ class: "aoislist__results-item" });
+        requestModel.results.forEach(result => {
+            const classNameActive = "aoislist__results-item--active";
+            const classNameSelected = "aoislist__results-item--selected";
+
+            const lastSelectedLayer = () => mapModel.selectedLayers[mapModel.selectedLayers.length - 1] || {};
+            const isSelectedLayer = () => mapModel.selectedLayers.some(({ id }) => id === result.id);
+            const isActiveLayer = () => lastSelectedLayer() && lastSelectedLayer().id === result.id;
+
+            const elem = Div({
+                id: result.id,
+                class: `aoislist__results-item ${isActiveLayer() ? classNameActive : ""} ${isSelectedLayer() ? classNameSelected : ""}`
+            });
 
             const name = Div({
-                class: "aoislist__results-item-text",
+                class: "aoislist__results-item-text"
             }).setChildren(result.name ? result.name : result.filepath);
+
             const date = Div({
-                class: "aoislist__results-item-text",
-            }).setChildren(
-                result.start_date ? `From: ${result.start_date}` : "",
-                " ",
-                result.end_date ? `To: ${result.end_date}` : ""
-            );
+                class: "aoislist__results-item-text"
+            }).setChildren(result.start_date ? `From: ${result.start_date}` : "", " ", result.end_date ? `To: ${result.end_date}` : "");
+
             elem.setChildren(name, date);
 
-            elem.addEventListener("click", (e) => {
-                const highlightedItem = document.querySelector(
-                    ".aoislist__results-item--active"
-                );
-
-                highlightedItem &&
-                    highlightedItem.classList.remove(
-                        "aoislist__results-item--active"
-                    );
-
-                elem.getDOMElement().classList.add("aoislist__results-item--active");
+            elem.addEventListener("click", e => {
                 mapModel.selectLayer(result);
+                !!result.labels && aoiAnnotationModel.openAoIAnnotation(result);
+
+                const activeLayer = document.querySelector(`.${classNameActive}`);
+                activeLayer && activeLayer.classList.remove(classNameActive);
+
+                const lastSelectedElement = document.getElementById(lastSelectedLayer().id);
+                lastSelectedElement && lastSelectedElement.classList.add(classNameActive);
+
+                elem.getDOMElement().classList[isSelectedLayer() ? "add" : "remove"](classNameSelected);
             });
 
             items.push(elem);

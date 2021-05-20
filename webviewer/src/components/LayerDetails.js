@@ -12,11 +12,7 @@ export default function createLayerDetails(widgetFactory, mapModel) {
             0,
             100,
             100,
-            (value) => {
-                mapModel.updateForegroundLayerOptions({
-                    opacity: value / 100,
-                });
-            },
+            value => mapModel.updateLayersOptions({ opacity: value / 100 }),
             "range__input"
         );
         const label = Div({ class: "label" }).setChildren("Opacity");
