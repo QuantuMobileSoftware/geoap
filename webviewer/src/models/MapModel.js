@@ -173,6 +173,7 @@ export default class MapModel extends EventTarget {
     }
 
     selectAoi(aoi) {
+        this.selectedLayers = [];
         this.dispatchEvent(new CustomEvent("aoiSelected", { detail: { aoi } }));
     }
 }
