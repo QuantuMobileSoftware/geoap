@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState
 } from 'react';
+import cn from 'classnames';
 import { isArray } from 'lodash-es';
 
 import {
@@ -16,11 +17,12 @@ import {
   StyledMenu
 } from './Menu.styles';
 
-import { getStyledComponentClassName, mergeObjects } from 'utils';
+import { mergeObjects } from 'utils';
 
 export const Menu = forwardRef(
   (
     {
+      className,
       isOpen = false,
       children,
       toggleIcon = 'More',
@@ -33,13 +35,16 @@ export const Menu = forwardRef(
     ref
   ) => {
     const rootRef = useRef(null);
+    const menuToggleRef = useRef(null);
 
     const [_isOpen, setIsOpen] = useState(isOpen);
     useEffect(() => setIsOpen(isOpen), [isOpen]);
 
+    const _className = cn(className, { isOpen: _isOpen });
+
     const _clickOutsideParams = mergeObjects(
       clickOutsideParams,
-      { ignoredClassNames: [getStyledComponentClassName(MenuToggle)] },
+      { ignoredRefs: [menuToggleRef] },
       (value, sourceValue) => {
         if (isArray(value)) return [...value, ...sourceValue];
       }
@@ -71,8 +76,12 @@ export const Menu = forwardRef(
     useImperativeHandle(ref, () => ({ element: rootRef.current, toggle }));
 
     return (
-      <StyledMenu {...props} ref={rootRef}>
-        <MenuToggle icon={toggleIcon} onClick={handleMenuToggleClick} />
+      <StyledMenu {...props} ref={rootRef} className={_className}>
+        <MenuToggle
+          ref={menuToggleRef}
+          icon={toggleIcon}
+          onClick={handleMenuToggleClick}
+        />
 
         <MenuDropdown
           isOpen={_isOpen}

@@ -1,6 +1,9 @@
 export const NOT_FORWARD_PROPS = [
   'fontSize',
+  'hasChildren',
+  'hasCoordinates',
   'history',
+  'isOpen',
   'isTransparent',
   'location',
   'match',
@@ -9,5 +12,6 @@ export const NOT_FORWARD_PROPS = [
   'size',
   'staticContext',
   'variant',
-  'hasChildren'
+  'variantType',
+  'withUnmountToggle'
 ];

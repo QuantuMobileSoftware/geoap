@@ -11,7 +11,7 @@ export const MenuListItem = styled.li``;
 export const MenuList = styled.ul``;
 
 export const MenuDropdown = styled(Dropdown)`
-  max-width: ${rem(140)};
+  min-width: ${rem(140)};
 `;
 
 export const MenuToggle = styled(Button)`
@@ -21,6 +21,16 @@ export const MenuToggle = styled(Button)`
 `;
 
 export const StyledMenu = styled.div.withConfig({ shouldForwardProp })`
-  position: relative;
-  display: flex;
+  ${({ theme }) =>
+    css`
+      position: relative;
+      display: flex;
+
+      &:hover,
+      &.isOpen {
+        ${MenuToggle} {
+          color: ${theme.colors.primary.p1};
+        }
+      }
+    `}
 `;
