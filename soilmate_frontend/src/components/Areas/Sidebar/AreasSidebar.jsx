@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from 'react';
 import { StyledAreasSidebar } from './AreasSidebar.styles';
 
 import { AreasSidebarToggle } from './Toggle';
+import { AreasList } from '../List';
+import { Search } from 'components/_shared/Search';
 
 import { areasEvents } from '_events';
 
@@ -15,6 +17,10 @@ export const AreasSidebar = ({ ...props }) => {
     });
   }, []);
 
+  const handleSearchSubmit = values => {
+    console.log(values);
+  };
+
   return (
     <>
       <AreasSidebarToggle />
@@ -22,7 +28,14 @@ export const AreasSidebar = ({ ...props }) => {
         {...props}
         ref={rootRef}
         heading='My areas'
-      ></StyledAreasSidebar>
+        withUnmountToggle={false}
+      >
+        <Search
+          control={{ placeholder: 'Search for location', autoComplete: 'off' }}
+          onSubmit={handleSearchSubmit}
+        />
+        <AreasList />
+      </StyledAreasSidebar>
     </>
   );
 };

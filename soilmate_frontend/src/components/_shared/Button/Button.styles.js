@@ -74,7 +74,7 @@ const buttonVariantStyles = ({ variant, fontSize }) => css`
 
     return [
       css`
-        border-radius: ${em(theme.radius[2], fontSize)};
+        border-radius: ${em(theme.radius[3], fontSize)};
         padding: ${em([theme.spacing[3], theme.spacing[7]], fontSize)};
       `,
       variantStyles[variant]
@@ -91,8 +91,17 @@ const buttonDisabledStyle = ({ theme }) => css`
   }
 `;
 
+const buttonVariantTypeStyles = {
+  danger: ({ theme }) => css`
+    &:hover,
+    &:focus {
+      color: ${theme.colors.danger};
+    }
+  `
+};
+
 export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
-  ${({ theme, hasChildren, variant, icon, disabled }) => {
+  ${({ theme, hasChildren, variant, variantType, icon, disabled }) => {
     const fontSize = theme.fontSizes[2];
 
     return [
@@ -128,6 +137,7 @@ export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
             color: ${theme.colors.primary.p1};
           }
         `,
+      variantType && buttonVariantTypeStyles[variantType],
       disabled && buttonDisabledStyle
     ];
   }};

@@ -16,14 +16,16 @@ const colors = {
   primary: {
     p1: '#35603D',
     p2: '#2D4F34',
-    p3: '#1B4022'
+    p3: '#1B4022',
+    p4: '#EEF9F0'
   },
 
   danger: '#CB0000',
 
   misc: {
     background: '#F9F9F9',
-    background2: '#FAFBFD'
+    background2: '#FAFBFD',
+    background3: '#FAFAFA'
   }
 };
 
@@ -39,7 +41,7 @@ const fontWeights = [400, 500];
 
 const lineHeight = [1.5];
 
-const radius = [4, 10, 20];
+const radius = [4, 6, 10, 20];
 
 const zIndexes = [1, 5, 10, 15];
 

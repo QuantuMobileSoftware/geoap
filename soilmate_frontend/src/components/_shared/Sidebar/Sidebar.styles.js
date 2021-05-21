@@ -29,14 +29,22 @@ export const SidebarButtonClose = styled(Button).attrs({
 `;
 
 export const StyledSidebar = styled(Paper).attrs({ padding: 4 })`
-  ${({ theme }) => css`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: ${rem(300)};
-    height: 100%;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    z-index: ${theme.zIndexes[1]};
-  `}
+  ${({ theme, withUnmountToggle }) => [
+    css`
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: ${rem(300)};
+      height: 100%;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      z-index: ${theme.zIndexes[1]};
+    `,
+    !withUnmountToggle &&
+      css`
+        &:not(.isOpen) {
+          display: none;
+        }
+      `
+  ]}
 `;

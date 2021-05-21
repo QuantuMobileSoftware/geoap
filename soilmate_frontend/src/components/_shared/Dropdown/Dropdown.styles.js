@@ -21,7 +21,7 @@ export const StyledDropdown = styled(Paper)`
       top: 0;
       left: 0;
       width: 100%;
-      height: ${rem(8)};
+      height: ${rem(9)};
       transform: translateY(-100%);
     }
   `}

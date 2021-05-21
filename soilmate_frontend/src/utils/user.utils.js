@@ -1,4 +1,4 @@
-import { pick } from 'lodash';
+import { pick } from 'lodash-es';
 
 export const getUserName = user => {
   const name = Object.values(pick(user, ['first_name', 'last_name'])).reduce(

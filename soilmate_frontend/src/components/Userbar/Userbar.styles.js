@@ -4,7 +4,7 @@ import { rem } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
 import { Image } from 'components/_shared/Image';
-import { Menu, MenuDropdown, MenuToggle } from 'components/_shared/Menu';
+import { Menu, MenuDropdown } from 'components/_shared/Menu';
 
 export const UserbarMenu = styled(Menu)``;
 
@@ -37,7 +37,7 @@ export const StyledUserbar = styled.div`
       onClick &&
         css`
           &:hover {
-            ${UserbarAvatar}, ${UserbarName}, ${MenuToggle} {
+            ${UserbarAvatar}, ${UserbarName} {
               cursor: pointer;
               color: ${theme.colors.primary.p1};
             }
