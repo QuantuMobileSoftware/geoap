@@ -1,17 +1,30 @@
 import React from 'react';
 
-import { StyledSearch } from './Search.styles';
+import { SearchButtonReset, SearchButtonSubmit, StyledSearch } from './Search.styles';
 
 import { FormField } from '../Form';
-import { Button } from '../Button';
 
-export const Search = ({ initialValues, control = {}, ...props }) => {
+export const Search = ({ initialValues, control = {}, onReset, ...props }) => {
   const _initialValues = { query: '', ...initialValues };
 
   return (
     <StyledSearch {...props} initialValues={_initialValues}>
-      <FormField {...control} type='text' name='query' />
-      <Button type='submit' icon='Search' />
+      {form => (
+        <>
+          <FormField {...control} type='text' name='query' />
+          <SearchButtonSubmit type='submit' icon='Search' />
+          {form.values.query && (
+            <SearchButtonReset
+              type='button'
+              icon='Cross'
+              onClick={() => {
+                form.resetForm();
+                onReset?.();
+              }}
+            />
+          )}
+        </>
+      )}
     </StyledSearch>
   );
 };
