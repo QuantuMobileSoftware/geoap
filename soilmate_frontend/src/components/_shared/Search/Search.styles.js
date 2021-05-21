@@ -3,21 +3,37 @@ import styled, { css } from 'styled-components';
 import { rem } from 'styles';
 
 import { Form, FormFieldControl } from '../Form';
-import { StyledButton } from '../Button';
+import { Button } from '../Button';
+
+export const SearchButton = styled(Button)`
+  position: absolute;
+  top: 50%;
+  transform: translateY(calc(-49%));
+`;
+
+export const SearchButtonReset = styled(SearchButton)`
+  ${({ theme }) => css`
+    right: ${rem(theme.spacing[4])};
+  `}
+`;
+
+export const SearchButtonSubmit = styled(SearchButton)`
+  ${({ theme }) => css`
+    left: ${rem(theme.spacing[4])};
+  `}
+`;
 
 export const StyledSearch = styled(Form)`
-  ${({ theme }) => css`
-    position: relative;
+  ${({ theme }) => {
+    const controlPadding = rem(theme.spacing[11] + 2);
 
-    ${StyledButton} {
-      position: absolute;
-      left: ${rem(theme.spacing[4])};
-      top: 50%;
-      transform: translateY(calc(-49%));
-    }
+    return css`
+      position: relative;
 
-    ${FormFieldControl} {
-      padding-left: ${rem(theme.spacing[11] + 2)};
-    }
-  `}
+      ${FormFieldControl} {
+        padding-left: ${controlPadding};
+        padding-right: ${controlPadding};
+      }
+    `;
+  }}
 `;

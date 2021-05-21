@@ -9,9 +9,12 @@ import { Paper } from 'components/_shared/Paper';
 import { StyledAreasSidebarToggle } from 'components/Areas';
 
 export const PageMainContainer = styled(Paper)`
-  position: relative;
-  height: 100%;
-  padding: 0;
+  ${({ theme }) => css`
+    position: relative;
+    height: 100%;
+    background: ${theme.colors.nature.n1};
+    padding: 0;
+  `}
 `;
 
 export const StyledPageMain = styled(Page)`
