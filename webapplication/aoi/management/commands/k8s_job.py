@@ -9,14 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class Job:
-    def __init__(self, namespace, nfs_server):
-        logger.info(f'init Job: namespace-{namespace}, nfs_server-{nfs_server}')
+    def __init__(self, namespace):
+        logger.info(f'init Job: namespace-{namespace}')
         config.load_incluster_config()
         self.core_v1 = client.CoreV1Api()
         self.batch_v1 = client.BatchV1Api()
         self.delete_options = client.V1DeleteOptions()
         self.namespace = namespace
-        self.nfs_server = nfs_server
         self._all_requests_executed = False
         
     def get_results_from_pods(self, pod_label_selector):
@@ -218,7 +217,7 @@ class Job:
             volume_mounts=[
                 nfs_notebook_volume_mount,
             ],
-            image_pull_policy='Never'
+            image_pull_policy='IfNotPresent'
         )
         
         template = client.V1PodTemplateSpec(

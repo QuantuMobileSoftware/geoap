@@ -13,33 +13,6 @@ spec:
     app: sip
     tier: postgis
   clusterIP: None
-#---
-#apiVersion: v1
-#kind: PersistentVolume
-#metadata:
-#  name: postgres-pv-hostpath
-#  namespace: sip-prod
-#spec:
-#  storageClassName: postgres-local-pv
-#  capacity:
-#    storage: 500Mi
-#  accessModes:
-#    - ReadWriteOnce
-#  hostPath:
-#    path: /minikube-host/db
-#---
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  name: postgres-pvc-local
-#  namespace: sip-prod
-#spec:
-#  storageClassName: postgres-local-pv
-#  accessModes:
-#    - ReadWriteOnce
-#  resources:
-#    requests:
-#      storage: 100Mi
 ---
 apiVersion: apps/v1
 kind: Deployment

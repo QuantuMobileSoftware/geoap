@@ -36,18 +36,20 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: quantumobile/nginx:webserver
-        name: frontend
-        envFrom:
-          - configMapRef:
-              name: webserver-config
-        ports:
-        - containerPort: 80
+        - image: 192.168.1.34:5000/sip-webserver:latest
           name: frontend
-        volumeMounts:
-        - name: data-persistent-storage
-          mountPath: /data
+          envFrom:
+            - configMapRef:
+                name: webserver-config
+          ports:
+            - containerPort: 80
+              name: frontend
+          volumeMounts:
+            - name: data-persistent-storage
+              mountPath: /data
       volumes:
-      - name: data-persistent-storage
-        persistentVolumeClaim:
-          claimName: nfs-sip-data-pvc
+        - name: data-persistent-storage
+          persistentVolumeClaim:
+            claimName: nfs-sip-data-pvc
+      imagePullSecrets:
+        - name: regcred
