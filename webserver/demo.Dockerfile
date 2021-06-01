@@ -1,9 +1,7 @@
 FROM node:14.5.0 as builder
 
 WORKDIR /code
-COPY ./webviewer/src /code/src
-COPY ./webviewer/*.json /code
-COPY ./webviewer/webpack.config.js /code/webpack.config.js
+COPY ./webviewer /code
 RUN npm install && npm run build
 
 FROM nginx:1.19.3
