@@ -33,10 +33,9 @@ class Job:
         pod_log_response = self.core_v1.read_namespaced_pod_log(name=pod_name,
                                                                 namespace=self.namespace,
                                                                 _return_http_data_only=True,
-                                                                _preload_content=False)
+                                                                _preload_content=False
+                                                                )
         pod_log = pod_log_response.data.decode("utf-8")
-        logger.info(f'pod_log: {pod_log}')
-
         if pod_state.terminated is not None:
             exit_code = pod_state.terminated.exit_code
             started_at = pod_state.terminated.started_at
@@ -96,16 +95,17 @@ class Job:
             started_at__isnull=True, notebook__run_validation=True, notebook__success=True
         ).exclude(id__in=request_id_list)
         logger.info(f'amount of not executed requests in the database: {len(not_executed)}')
+        if len(not_executed) == 0 and len(request_id_list) == 0:
+            self._all_requests_executed = True
+            logger.info('No requests to execute')
+            return
         
         for not_executed_request in not_executed:
             job_object = self.create_execute_notebook_job_object(not_executed_request)
             self.create_job(job_object)
             number_requests_to_run -= 1
-            if number_requests_to_run >= 0:
+            if number_requests_to_run <= 0:
                 return
-        self._all_requests_executed = True
-        logger.info('No requests to execute')
-        return
 
     def _process_notebook_execute_jobs(self):
         while not self._all_requests_executed:
@@ -121,6 +121,18 @@ class Job:
             controller_uid = job_labels["controller-uid"]
             pod_label_selector = f'controller-uid={controller_uid}'
             logger.info(f"request_id: {job_labels['request_id']} job.status: {job.status}")
+            
+            print(f'job.status: {job.status}')
+
+            # if job.status.active == 1 and False:
+            #     pod_result = self.get_results_from_pods(pod_label_selector)
+            #     print(f'pod_result: {pod_result}')
+            #     if pod_result['exit_code'] is not None:
+            #         request = Request.objects.get(id=job_labels['request_id'])
+            #         request.started_at = pod_result['started_at']
+            #         request.finished_at = pod_result['finished_at']
+            #         request.calculated = True
+                    
             
             if job.status.succeeded == 1:
                 pod_result = self.get_results_from_pods(pod_label_selector)
@@ -181,18 +193,22 @@ class Job:
     def create_execute_notebook_job_object(self, request):
         job_name = f'execute-notebook-{str(request.id)}'
         image = request.notebook.image
-        kernel = f"--kernel {request.notebook.kernel_name}" if request.notebook.kernel_name else ""
+        kernel = request.notebook.kernel_name if request.notebook.kernel_name else ""
         
-        execute_command = ['python', '/home/jovyan/code/NotebookExecutor.py',
-                           '--input_path', request.notebook.path,
-                           '--request_id', str(request.id),
-                           '--aoi', f'{request.polygon.wkt}',
-                           '--start_date', request.date_from,
-                           '--end_date', request.date_to,
-                           '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
-                           '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
-                           # kernel  # FIXME
-                           ]
+        execute_command = [
+            'python3', '/home/jovyan/code/NotebookExecutor.py',
+            '--input_path', request.notebook.path,
+            '--request_id', str(request.id),
+            '--aoi', f'{request.polygon.wkt}',
+            '--start_date', request.date_from,
+            '--end_date', request.date_to,
+            '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
+            '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+            '--kernel', kernel
+           ]
+        # execute_command = [
+        #     '/bin/bash', '-c', 'sleep 1h'
+        # ]
         labels = {'request_id': str(request.id), 'job_type': 'execute-notebook'}
         return self._create_job_object(job_name, image, labels, execute_command,
                                        backoff_limit=settings.EXECUTE_NOTEBOOK_BACKOFF_LIMIT,
@@ -217,14 +233,22 @@ class Job:
             volume_mounts=[
                 nfs_notebook_volume_mount,
             ],
-            image_pull_policy='IfNotPresent'
+            image_pull_policy='Always'
+            # image_pull_policy='IfNotPresent'
         )
-        
+        logger.info(f'Using image_pull_secrets={settings.IMAGE_PULL_SECRETS} ')
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(labels=labels),
             spec=client.V1PodSpec(containers=[container],
                                   volumes=[nfs_notebook_volume, ],
-                                  restart_policy="Never",)
+                                  restart_policy="Never",
+                                  image_pull_secrets=[{'name': settings.IMAGE_PULL_SECRETS}, ],
+                                  security_context={
+                                      # 'run_as_user': 1001,
+                                      'supplemental_groups': [0, 1001, 2000],
+                                      # 'fs_group': 1000,
+                                  }
+                                  )
         )
         # Create the specification of deployment
         spec = client.V1JobSpec(

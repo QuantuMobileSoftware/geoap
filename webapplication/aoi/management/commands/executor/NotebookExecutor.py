@@ -4,27 +4,21 @@ import json
 import logging
 import os
 import sys
-
+from pathlib import Path
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
 
-parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
-parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
-parser.add_argument('--request_id', type=int, help='Request id', required=True)
-parser.add_argument('--aoi', type=str, help='AOI polygon as WKT string', required=True)
-parser.add_argument('--start_date', type=str, help='Start date of calculations', required=True)
-parser.add_argument('--end_date', type=str, help='End date of calculations', required=True)
-parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
-parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
-parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
-                    required=True)
-
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+NOTEBOOK_EXECUTION_PATH = os.getenv('NOTEBOOK_EXECUTION_PATH', None)
 
 
 class NotebookExecutor:
     def __init__(self, args):
-        self.input_path = f'/home/jovyan/{args.input_path}'
+        self.input_path = args.input_path
         self.request_id = args.request_id
 
         self.PARAMS = dict(REQUEST_ID=args.request_id,
@@ -38,7 +32,9 @@ class NotebookExecutor:
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        self.save_path = f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+
+        self.save_path = Path.home() / f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+        logger.info(f'path for saving notebook: {self.save_path}')
 
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
@@ -54,14 +50,31 @@ class NotebookExecutor:
         return "\n".join(f"{name} = {value!r}" for name, value in self.PARAMS.items())
 
     def read(self):
-        with open(self.input_path) as file:
-            notebook = json.load(file)
+        notebook_path = NOTEBOOK_EXECUTION_PATH if NOTEBOOK_EXECUTION_PATH else self.input_path
+        logger.info(f'Try to open notebook {notebook_path}')
+        notebook = nbformat.read(notebook_path, as_version=4)
+        
+        # with open(notebook_path) as file:
+        #     notebook = json.load(file)
+        #     logger.info(f'Notebook {notebook_path} was opened successfully')
         return notebook
 
     def write(self):
-        with open(self.save_path, "w") as file:
-            json.dump(self.notebook, file)
+        logger.info(f'Try to save notebook as {self.save_path}')
+        nbformat.write(self.notebook, self.save_path, version=nbformat.NO_CONVERT, )
+        # with open(self.save_path, "w") as file:
+        #     json.dump(self.notebook, file)
+        #     logger.info(f'Notebook was saved successfully')
 
+    def execute_python(self):
+        with open(self.save_path) as f:
+            nb = nbformat.read(f, as_version=4)
+        ep = ExecutePreprocessor(timeout=self.cell_timeout, kernel_name=self.kernel_name)
+        nb, resources = ep.preprocess(nb, {'metadata': {'path': self.save_path.parent}})
+        executed_save_path = self.save_path.parent / f'{self.save_path.stem}_executed{self.save_path.suffix}'
+        nbformat.write(nb, executed_save_path, version=nbformat.NO_CONVERT, )
+        
+    
     def execute(self):
         command = ["jupyter",
                    "nbconvert",
@@ -88,15 +101,30 @@ class NotebookExecutor:
             out, err = process.communicate()
             logger.error(f"Failed {command} output: {out}, err: {err}")
             raise
+        
 
-
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
+    parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
+    parser.add_argument('--request_id', type=int, help='Request id', required=True)
+    parser.add_argument('--aoi', type=str, help='AOI polygon as WKT string', required=True)
+    parser.add_argument('--start_date', type=str, help='Start date of calculations', required=True)
+    parser.add_argument('--end_date', type=str, help='End date of calculations', required=True)
+    parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
+    parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
+    parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
+                        required=True)
     args = parser.parse_args()
     notebook_executor = NotebookExecutor(args)
     notebook_executor.edit()
     try:
-        notebook_executor.execute()
+        # notebook_executor.execute()
+        notebook_executor.execute_python()
     except:
         logger.exception("Exited from NotebookExecutor")
         sys.exit(1)
     sys.exit(0)
+    
+
+if __name__ == "__main__":
+    main()
