@@ -6,13 +6,15 @@ metadata:
   labels:
     app: sip
 spec:
+  type: NodePort
   ports:
     - port: 5432
       targetPort: 5432
+      nodePort: 32439
   selector:
     app: sip
     tier: postgis
-  clusterIP: None
+#  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment
