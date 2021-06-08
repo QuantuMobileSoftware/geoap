@@ -1,4 +1,5 @@
 import logging
+from django.core import management
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from django.conf import settings
@@ -122,17 +123,7 @@ class Job:
             pod_label_selector = f'controller-uid={controller_uid}'
             logger.info(f"request_id: {job_labels['request_id']} job.status: {job.status}")
             
-            print(f'job.status: {job.status}')
-
-            # if job.status.active == 1 and False:
-            #     pod_result = self.get_results_from_pods(pod_label_selector)
-            #     print(f'pod_result: {pod_result}')
-            #     if pod_result['exit_code'] is not None:
-            #         request = Request.objects.get(id=job_labels['request_id'])
-            #         request.started_at = pod_result['started_at']
-            #         request.finished_at = pod_result['finished_at']
-            #         request.calculated = True
-                    
+            # print(f'job.status: {job.status}')
             
             if job.status.succeeded == 1:
                 pod_result = self.get_results_from_pods(pod_label_selector)
@@ -143,6 +134,7 @@ class Job:
                 request.success = True
                 request.save()
                 self._delete_job(job)
+                management.call_command("publish")
             
             if job.status.conditions is not None and job.status.conditions[0].type == 'Failed':
                 request = Request.objects.get(id=job_labels['request_id'])
@@ -213,8 +205,9 @@ class Job:
         return self._create_job_object(job_name, image, labels, execute_command,
                                        backoff_limit=settings.EXECUTE_NOTEBOOK_BACKOFF_LIMIT,
                                        active_deadline_seconds=settings.EXECUTE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS)
-        
-    def _create_job_object(self, job_name, image, labels, command, backoff_limit=None, active_deadline_seconds=None,):
+    
+    @staticmethod
+    def _create_job_object(job_name, image, labels, command, backoff_limit=None, active_deadline_seconds=None,):
         nfs_notebook_volume = client.V1Volume(
             name='nfs-notebook-volume',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name='nfs-sip-data-pvc')
