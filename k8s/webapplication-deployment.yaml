@@ -54,16 +54,10 @@ spec:
           volumeMounts:
             - name: sip-data-persistent-storage
               mountPath: /data
-            - name: docker-socket
-              mountPath: /var/run/docker.sock
       volumes:
         - name: sip-data-persistent-storage
           persistentVolumeClaim:
             claimName: nfs-sip-data-pvc
-        - name: docker-socket
-          hostPath:
-            path: /var/run/docker.sock
-            type: Socket
       serviceAccountName: job-robot  # Name of the ServiceAccount.
       imagePullSecrets:
         - name: regcred

@@ -46,11 +46,11 @@ spec:
             - containerPort: 80
               name: frontend
           volumeMounts:
-            - name: data-persistent-storage
-              mountPath: /data
+            - name: mapboxcache-persistent-storage
+              mountPath: /data/mapboxcache
       volumes:
-        - name: data-persistent-storage
+        - name: mapboxcache-persistent-storage
           persistentVolumeClaim:
-            claimName: nfs-sip-data-pvc
+            claimName: mapboxcache-hostpath-pvc
       imagePullSecrets:
         - name: regcred

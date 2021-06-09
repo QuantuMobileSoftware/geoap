@@ -10,6 +10,8 @@ resources:
 #  - webapplication-development-deployment.yaml
   - webapplication-deployment.yaml
   - webserver-config.yaml
+  - mapboxcache-pv.yaml
+  - mapboxcache-pvc.yaml
   - webserver-deployment.yaml
 #  - jupyter_example-deployment.yaml
 #  - jupyter_pbdnn-deployment.yaml

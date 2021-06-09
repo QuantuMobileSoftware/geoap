@@ -176,7 +176,7 @@ class Job:
         image = notebook.image
         notebook_id = str(notebook.id)
         job_name = f'validate-notebook-{notebook_id}'
-        validate_command = ['python', '--version', ]
+        validate_command = ['python3', '--version', ]
         labels = {'notebook_id': notebook_id, 'job_type': 'validate-notebook'}
         return self._create_job_object(job_name, image, labels, validate_command,
                                        backoff_limit=settings.VALIDATE_NOTEBOOK_BACKOFF_LIMIT,
