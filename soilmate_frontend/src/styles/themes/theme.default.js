@@ -43,7 +43,7 @@ const lineHeight = [1.5];
 
 const radius = [4, 6, 10, 20];
 
-const zIndexes = [1, 5, 10, 15];
+const zIndexes = [100, 500, 1000, 1500];
 
 const borders = theme => ({
   default: props => {

@@ -60,7 +60,7 @@ const buttonVariantStyles = ({ variant, fontSize }) => css`
         &:not(:disabled) {
           &:hover {
             color: ${theme.colors.primary.p1};
-            background: ${rgba(theme.colors.nature.n1, 0.2)};
+            background: ${rgba(theme.colors.nature.n1, 0.9)};
           }
 
           &:active {
