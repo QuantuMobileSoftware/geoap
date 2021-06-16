@@ -1,30 +1,27 @@
 import React, { useCallback, useState, useMemo } from 'react';
 
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { TileLayer } from 'react-leaflet';
 
-import { MapHolder, MapButtonsHolder, MapButton } from './Map.styles';
+import { StyledMapContainer, MapHolder, MapButtonsHolder, MapButton } from './Map.styles';
 
 const center = [51.505, -0.09];
-const initZoom = 13;
+const initZoom = 14;
 
 const MapControls = ({ map }) => {
   const handleIncreaseZoom = useCallback(() => {
     map.zoomIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDecreaseZoom = useCallback(() => {
     map.zoomOut();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <MapButtonsHolder>
-      <MapButton
-        variant='floating'
-        icon='Minus'
-        marginBottom
-        onClick={handleDecreaseZoom}
-      ></MapButton>
       <MapButton variant='floating' icon='Plus' onClick={handleIncreaseZoom}></MapButton>
+      <MapButton variant='floating' icon='Minus' onClick={handleDecreaseZoom}></MapButton>
     </MapButtonsHolder>
   );
 };
@@ -34,10 +31,10 @@ export const Map = () => {
 
   const mapView = useMemo(() => {
     return (
-      <MapContainer
+      <StyledMapContainer
         center={center}
         zoom={initZoom}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
         whenCreated={setMap}
@@ -46,7 +43,7 @@ export const Map = () => {
           attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
           url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         />
-      </MapContainer>
+      </StyledMapContainer>
     );
   }, []);
 

@@ -1,5 +1,9 @@
 import styled, { css } from 'styled-components';
 
+import { rem } from 'styles';
+
+import { MapContainer } from 'react-leaflet';
+
 import { Button } from 'components/_shared/Button';
 
 export const MapHolder = styled.div`
@@ -11,10 +15,10 @@ export const MapHolder = styled.div`
 `;
 
 export const MapButton = styled(Button)`
-  ${({ theme, marginBottom }) =>
+  ${({ theme }) =>
     css`
       color: ${theme.colors.nature.n3};
-      margin-bottom: ${marginBottom ? '10px' : '0px'};
+      margin-bottom: 10px;
     `}
 `;
 
@@ -24,7 +28,16 @@ export const MapButtonsHolder = styled.div`
     display: flex;
     flex-direction: column;
     right: 20px;
-    bottom: 30px;
+    bottom: 20px;
     z-index: 400;
+  `}
+`;
+
+export const StyledMapContainer = styled(MapContainer)`
+  ${({ theme }) => css`
+    border-radius: ${rem(theme.radius[1])};
+    .leaflet-bottom.leaflet-right {
+      display: none;
+    }
   `}
 `;
