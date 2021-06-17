@@ -4,6 +4,8 @@ import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 import { AreasSidebar } from 'components/Areas';
 
+import { Map } from 'components/Map';
+
 import { useAreasActions, useUserActions } from 'state';
 
 export const PageMain = ({ ...props }) => {
@@ -18,6 +20,7 @@ export const PageMain = ({ ...props }) => {
   return (
     <StyledPageMain {...props}>
       <PageMainContainer>
+        <Map />
         <AreasSidebar />
       </PageMainContainer>
     </StyledPageMain>
