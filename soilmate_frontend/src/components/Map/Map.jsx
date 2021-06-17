@@ -35,7 +35,6 @@ export const Map = () => {
         center={center}
         zoom={initZoom}
         scrollWheelZoom={true}
-        style={{ width: '100%', height: '100%' }}
         zoomControl={false}
         whenCreated={setMap}
       >
