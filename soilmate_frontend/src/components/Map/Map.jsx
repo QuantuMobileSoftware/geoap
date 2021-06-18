@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 
 import { useSelector } from 'react-redux';
-import { getIndexById, getPolygonPositions } from '../../utils/helpers';
+import { getPolygonPositions } from '../../utils/helpers';
 
 import { TileLayer } from 'react-leaflet';
-import { selectAreasList, selecCurrentArea } from 'state';
+import { selectAreasList, selectCurrentArea } from 'state';
 
 import { MapControls, MapPolygon } from './components';
 import { StyledMapContainer, MapHolder } from './Map.styles';
@@ -15,10 +15,10 @@ const initZoom = 14;
 export const Map = () => {
   const [map, setMap] = useState(null);
   const initialAreas = useSelector(selectAreasList);
-  const currentArea = useSelector(selecCurrentArea);
+  const currentArea = useSelector(selectCurrentArea);
 
   const positions = getPolygonPositions(
-    initialAreas[getIndexById(currentArea, initialAreas)]
+    initialAreas[initialAreas.findIndex(el => el.id === currentArea)]
   );
 
   const mapView = useMemo(() => {
