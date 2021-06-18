@@ -43,8 +43,3 @@ export const getPolygonPositions = item => {
 
   return wkt.toJson();
 };
-
-export const getIndexById = (id, array) => {
-  const currentElement = array.find(el => el.id === id);
-  return array.indexOf(currentElement);
-};
