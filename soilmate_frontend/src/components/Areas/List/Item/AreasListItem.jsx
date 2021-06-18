@@ -1,5 +1,6 @@
 import React from 'react';
 import { isNumber } from 'lodash-es';
+import { useDispatch } from 'react-redux';
 
 import {
   AreasListItemBody,
@@ -11,9 +12,12 @@ import {
   StyledAreasListItem
 } from './AreasListItem.styles';
 
+import { areasActions } from 'state';
+
 import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
+  const dispatch = useDispatch();
   const coordinates = [
     ['X', 100],
     ['Y', 100]
@@ -37,7 +41,11 @@ export const AreasListItem = ({ area = {}, ...props }) => {
   };
 
   return (
-    <StyledAreasListItem {...props} hasCoordinates={hasCoordinates}>
+    <StyledAreasListItem
+      {...props}
+      hasCoordinates={hasCoordinates}
+      onClick={() => dispatch(areasActions.setCurrentArea(area.id))}
+    >
       <AreasListItemThumbnail backdropIcon='Image' />
 
       <AreasListItemBody>
