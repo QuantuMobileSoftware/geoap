@@ -15,6 +15,9 @@ import {
   StyledSidebar
 } from './Sidebar.styles';
 
+import { areasEvents } from '_events';
+import { Modal } from '../Modal';
+
 export const Sidebar = forwardRef(
   (
     {
@@ -22,6 +25,7 @@ export const Sidebar = forwardRef(
       children,
       heading,
       isOpen = false,
+      isShowModal = false,
       withUnmountToggle = true,
       withCloseButton = true,
       onClose,
@@ -34,6 +38,8 @@ export const Sidebar = forwardRef(
     const [_isOpen, setIsOpen] = useState(isOpen);
     useEffect(() => isOpen && setIsOpen(isOpen), [isOpen]);
 
+    const [isModalOpen, setIsModalOpen] = useState(isShowModal);
+
     const _className = cn(className, { isOpen: _isOpen });
 
     const handleClose = () => {
@@ -45,6 +51,12 @@ export const Sidebar = forwardRef(
       const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
       shouldClose ? handleClose() : setIsOpen(true);
     };
+
+    useEffect(() => {
+      return areasEvents.onToggleModal(e => {
+        setIsModalOpen(e.isOpen);
+      });
+    }, []);
 
     useImperativeHandle(ref, () => ({ element: rootRef.current, toggle }));
 
@@ -60,6 +72,13 @@ export const Sidebar = forwardRef(
         {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
         {heading && <SidebarHeading>{heading}</SidebarHeading>}
         {children && <SidebarBody>{children}</SidebarBody>}
+        {isModalOpen && (
+          <Modal header='Creating new area'>
+            <div>Upload File</div>
+            <div>Rectangle selection</div>
+            <div>Polygon selection</div>
+          </Modal>
+        )}
       </StyledSidebar>
     );
   }

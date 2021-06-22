@@ -77,7 +77,11 @@ export const AreasSidebar = ({ ...props }) => {
 
         {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
-        <AreasSidebarButtonAddArea variant='primary' icon='Plus'>
+        <AreasSidebarButtonAddArea
+          variant='primary'
+          icon='Plus'
+          onClick={() => areasEvents.toggleModal(true)}
+        >
           Add new area
         </AreasSidebarButtonAddArea>
       </StyledAreasSidebar>
