@@ -1,6 +1,5 @@
 import React from 'react';
 import { isNumber } from 'lodash-es';
-import { useDispatch } from 'react-redux';
 
 import {
   AreasListItemBody,
@@ -18,7 +17,6 @@ import { useAreasActions } from 'state';
 import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
-  const dispatch = useDispatch();
   const { setCurrentArea } = useAreasActions();
 
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -48,7 +46,7 @@ export const AreasListItem = ({ area = {}, ...props }) => {
     <StyledAreasListItem
       {...props}
       hasCoordinates={hasCoordinates}
-      onClick={() => dispatch(setCurrentArea(area.id))}
+      onClick={() => setCurrentArea(area.id)}
     >
       <AreasListItemThumbnail backdropIcon='Image' />
 
