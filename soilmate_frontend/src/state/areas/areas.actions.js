@@ -30,5 +30,10 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
-  return { isLoading, error, getAreas };
+  const setCurrentArea = useCallback(
+    id => dispatch(areasActions.setCurrentArea(id)),
+    [dispatch]
+  );
+
+  return { isLoading, error, getAreas, setCurrentArea };
 };

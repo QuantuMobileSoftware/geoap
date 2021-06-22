@@ -10,13 +10,19 @@ import {
   AreasListItemThumbnail,
   StyledAreasListItem
 } from './AreasListItem.styles';
+import { getPolygonPositions } from 'utils/helpers';
+
+import { useAreasActions } from 'state';
 
 import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
+  const { setCurrentArea } = useAreasActions();
+
+  const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
-    ['X', 100],
-    ['Y', 100]
+    ['X', +coordinatesArray[0].toFixed(1)],
+    ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
 
@@ -37,7 +43,11 @@ export const AreasListItem = ({ area = {}, ...props }) => {
   };
 
   return (
-    <StyledAreasListItem {...props} hasCoordinates={hasCoordinates}>
+    <StyledAreasListItem
+      {...props}
+      hasCoordinates={hasCoordinates}
+      onClick={() => setCurrentArea(area.id)}
+    >
       <AreasListItemThumbnail backdropIcon='Image' />
 
       <AreasListItemBody>
