@@ -17,6 +17,7 @@ import {
 
 import { areasEvents } from '_events';
 import { Modal } from '../Modal';
+import { ModalItem } from '../ModalItem';
 
 export const Sidebar = forwardRef(
   (
@@ -74,9 +75,21 @@ export const Sidebar = forwardRef(
         {children && <SidebarBody>{children}</SidebarBody>}
         {isModalOpen && (
           <Modal header='Creating new area'>
-            <div>Upload File</div>
-            <div>Rectangle selection</div>
-            <div>Polygon selection</div>
+            <ModalItem
+              header='Upload File'
+              title='Please upload files in *.GeoJSOn or *.KML'
+              icon='Upload'
+            />
+            <ModalItem
+              header='Rectangle selection'
+              title='Lorem ipsum dolor sit amet'
+              icon='Rectangle'
+            />
+            <ModalItem
+              header='Polygon selection'
+              title='Lorem ipsum dolor sit amet'
+              icon='Polygon'
+            />
           </Modal>
         )}
       </StyledSidebar>

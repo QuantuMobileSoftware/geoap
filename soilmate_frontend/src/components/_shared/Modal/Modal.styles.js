@@ -1,4 +1,5 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { rem } from 'styles';
 import { Button } from '../Button';
 import { Typography } from '../Typography';
 
@@ -13,16 +14,18 @@ export const StyledModalWrapper = styled.div`
 `;
 
 export const StyledModalMain = styled.div`
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  min-width: 250px;
-  padding: 27px 20px;
-  transform: translate(-50%, -50%);
-  background: #ffffff;
-  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-  color: #182b1c;
+  ${({ theme }) => css`
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    min-width: 250px;
+    padding: 27px 20px;
+    transform: translate(-50%, -50%);
+    background: ${theme.colors.nature.n0};
+    box-shadow: ${theme.shadows()[0]};
+    border-radius: ${rem(theme.radius[2])};
+    color: ${theme.colors.nature.n5};
+  `}
 `;
 
 export const CloseButton = styled(Button)`
