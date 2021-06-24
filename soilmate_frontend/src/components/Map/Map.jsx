@@ -17,15 +17,10 @@ export const Map = () => {
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
 
-  const positions = getPolygonPositions(
-    initialAreas[initialAreas.findIndex(el => el.id === currentArea)]
-  );
-
   const mapView = useMemo(() => {
-    const coordinates = positions ? positions.coordinates[0] : false;
     return (
       <StyledMapContainer
-        center={coordinates ? coordinates[0] : center}
+        center={center}
         zoom={initZoom}
         scrollWheelZoom={true}
         zoomControl={false}
@@ -35,10 +30,18 @@ export const Map = () => {
           attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
           url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         />
-        {coordinates && map && <MapPolygon map={map} coord={coordinates} />}
+        {initialAreas &&
+          initialAreas.map(area => (
+            <MapPolygon
+              map={map}
+              coordinates={getPolygonPositions(area).coordinates[0]}
+              key={area.id}
+              isActive={area.id === currentArea}
+            />
+          ))}
       </StyledMapContainer>
     );
-  }, [positions, map]);
+  }, [initialAreas, currentArea, map]);
 
   return (
     <MapHolder>
