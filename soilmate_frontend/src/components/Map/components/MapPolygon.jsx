@@ -1,13 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { Polygon } from 'react-leaflet';
+import { useAreasActions } from 'state';
 import { SHAPE_OPTIONS } from '_constants';
 
 export const MapPolygon = ({ map, coordinates, isActive = false }) => {
   const circleRef = useRef();
+  const { setCurrentArea } = useAreasActions();
   useEffect(() => {
     if (isActive)
       map.panTo(circleRef.current.getCenter()).fitBounds(circleRef.current.getBounds());
-  }, [map, coordinates, isActive]);
+    setCurrentArea(null);
+  }, [map, coordinates, isActive, setCurrentArea]);
   return (
     <Polygon
       positions={coordinates}
@@ -15,7 +18,6 @@ export const MapPolygon = ({ map, coordinates, isActive = false }) => {
       pathOptions={SHAPE_OPTIONS}
       eventHandlers={{
         click: () => {
-          console.log(circleRef.current);
           map
             .panTo(circleRef.current.getCenter())
             .fitBounds(circleRef.current.getBounds());

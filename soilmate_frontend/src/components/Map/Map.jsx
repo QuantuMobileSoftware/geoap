@@ -6,30 +6,54 @@ import { getPolygonPositions } from '../../utils/helpers';
 import L from 'leaflet';
 import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
-import { selectAreasList, selectCurrentArea } from 'state';
+import { selectAreasList, selectCurrentArea, useAreasActions, selectUser } from 'state';
 import { SHAPE_OPTIONS } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon } from './components';
+import { Popup } from 'components/_shared/Popup';
 import { StyledMapContainer, MapHolder } from './Map.styles';
+import { getShapePositionsString } from 'utils/helpers';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
 
 export const Map = () => {
   const [map, setMap] = useState(null);
+  const [isShowPopup, setIsShowPopup] = useState(false);
+  const [currentShape, setCurrentShape] = useState();
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
+  const currentUser = useSelector(selectUser);
+  const { addArea } = useAreasActions();
+  const afterShapeCreated = e => {
+    setIsShowPopup(true);
+    setCurrentShape(e.layer);
+  };
 
   useEffect(() => {
-    // if (map)
-    //   map.on('draw:created', function (e) {
-    //     // console.log('on: ', e); action after create
-    //   });
+    if (map) map.on('draw:created', afterShapeCreated);
+    if (map) return () => map.off('draw:created', afterShapeCreated);
+  }, [map]);
+  useEffect(() => {
     return areasEvents.onCreateShape(e => {
       const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
       shape.enable();
     });
   }, [map]);
+
+  const handleRemoveCurrentShape = () => {
+    map.removeLayer(currentShape);
+    setIsShowPopup(false);
+  };
+  const handleSaveCurrentShape = () => {
+    setIsShowPopup(false);
+    const data = {
+      user: currentUser.pk,
+      name: `shape ${initialAreas.length}`,
+      polygon: getShapePositionsString(currentShape)
+    };
+    addArea(data);
+  };
 
   return (
     <MapHolder>
@@ -72,6 +96,14 @@ export const Map = () => {
           ))}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
+      {isShowPopup && (
+        <Popup
+          header='Are you sure with this area?'
+          confirmText='Choose this selection'
+          cancel={handleRemoveCurrentShape}
+          save={handleSaveCurrentShape}
+        />
+      )}
     </MapHolder>
   );
 };

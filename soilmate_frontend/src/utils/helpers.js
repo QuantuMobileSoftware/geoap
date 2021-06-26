@@ -43,3 +43,12 @@ export const getPolygonPositions = item => {
 
   return wkt.toJson();
 };
+
+export const getShapePositionsString = layer => {
+  const wkt = new Wkt.Wkt();
+  const { geometry } = layer.toGeoJSON();
+  geometry.coordinates = geometry.coordinates.map(item =>
+    item.map(point => [point[1], point[0]])
+  );
+  return wkt.fromObject(geometry).write();
+};
