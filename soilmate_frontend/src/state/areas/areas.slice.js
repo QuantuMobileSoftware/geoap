@@ -10,7 +10,7 @@ const areasSlice = createSlice({
   initialState: AREAS_INITIAL_STATE,
   reducers: {
     setEntities: (state, action) => {
-      state.entities = action.payload;
+      state.entities = Object.assign(state.entities, action.payload);
     },
     setCurrentArea: (state, action) => {
       state.current = action.payload;

@@ -29,6 +29,7 @@ export const StyledAreasSidebar = styled(Sidebar)`
     ${SidebarBody} {
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
 
     ${StyledSearch} {
