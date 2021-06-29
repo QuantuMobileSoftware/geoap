@@ -34,7 +34,7 @@ services:
   webserver:
     build:
       context: ./
-      dockerfile: ./webserver/prod.Dockerfile
+      dockerfile: ./webserver/demo.Dockerfile
     volumes:
       - /home/quantum/sip:/data
     expose:
@@ -48,5 +48,22 @@ services:
     env_file:
       - /home/quantum/webserver.env
 
+  webserver_prod:
+    build:
+      context: ./
+      dockerfile: ./webserver/prod.Dockerfile
+    volumes:
+      - /home/quantum/sip:/data
+    expose:
+      - 8080
+    ports:
+      - "8080:80"
+    depends_on:
+      - webapplication
+    networks:
+      - sip
+    env_file:
+      - /home/quantum/webserver.env
+    
 networks:
   sip:
