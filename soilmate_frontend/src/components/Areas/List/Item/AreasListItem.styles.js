@@ -76,6 +76,10 @@ export const StyledAreasListItem = styled.li`
         background: ${theme.colors.misc.background3};
       }
 
+      &:last-child .isOpen > div {
+        top: -75px;
+      }
+
       &:hover {
         background: ${theme.colors.primary.p4};
 

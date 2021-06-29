@@ -17,7 +17,7 @@ import { useAreasActions } from 'state';
 import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
-  const { setCurrentArea } = useAreasActions();
+  const { setCurrentArea, deleteArea } = useAreasActions();
 
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
@@ -57,7 +57,9 @@ export const AreasListItem = ({ area = {}, ...props }) => {
 
       <AreasListItemMenu>
         <Button>Edit</Button>
-        <Button variantType='danger'>Delete</Button>
+        <Button variantType='danger' onClick={() => deleteArea(area.id)}>
+          Delete
+        </Button>
       </AreasListItemMenu>
     </StyledAreasListItem>
   );

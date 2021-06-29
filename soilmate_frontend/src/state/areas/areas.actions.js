@@ -49,5 +49,16 @@ export const useAreasActions = () => {
     [handleAsync, dispatch]
   );
 
-  return { isLoading, error, getAreas, setCurrentArea, addArea };
+  const deleteArea = useCallback(
+    async id => {
+      await handleAsync(async () => {
+        const resp = await API.areas.deleteArea(id);
+        if (resp.status >= 400) return;
+        dispatch(areasActions.deleteAreaById(id));
+      });
+    },
+    [handleAsync, dispatch]
+  );
+
+  return { isLoading, error, getAreas, setCurrentArea, addArea, deleteArea };
 };
