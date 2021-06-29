@@ -21,10 +21,13 @@ const postArea = area => {
   return axiosInstance.post(areasEndpoints.root, area);
 };
 
+const deleteArea = id => axiosInstance.delete(`${areasEndpoints.root}/${id}`);
+
 export const areasRequests = {
   getAreas,
   getArea,
   getAreaRequests,
   getAreaResults,
-  postArea
+  postArea,
+  deleteArea
 };
