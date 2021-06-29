@@ -17,7 +17,7 @@ const getAreaResults = id => {
   return axiosInstance.get(areasEndpoints.results(id));
 };
 
-const postArea = area => {
+const saveArea = area => {
   return axiosInstance.post(areasEndpoints.root, area);
 };
 
@@ -26,5 +26,5 @@ export const areasRequests = {
   getArea,
   getAreaRequests,
   getAreaResults,
-  postArea
+  saveArea
 };
