@@ -16,4 +16,4 @@ resources:
 #  - jupyter_example-deployment.yaml
 #  - jupyter_pbdnn-deployment.yaml
 #  - jupyter_pw-deployment.yaml
-  - sip_ingress.yaml
+#  - sip_ingress.yaml

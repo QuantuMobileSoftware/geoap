@@ -6,10 +6,14 @@ metadata:
   labels:
     app: sip
 spec:
-  type: LoadBalancer
+#  type: LoadBalancer
+  type: NodePort
   ports:
     - port: 80
       targetPort: 80
+      nodePort:  31080
+      protocol: TCP
+      name: http
   selector:
     app: sip
     tier: frontend
@@ -46,9 +50,14 @@ spec:
             - containerPort: 80
               name: frontend
           volumeMounts:
+            - name: data-persistent-storage
+              mountPath: /data
             - name: mapboxcache-persistent-storage
               mountPath: /data/mapboxcache
       volumes:
+        - name: data-persistent-storage
+          persistentVolumeClaim:
+            claimName: nfs-sip-data-pvc
         - name: mapboxcache-persistent-storage
           persistentVolumeClaim:
             claimName: mapboxcache-hostpath-pvc

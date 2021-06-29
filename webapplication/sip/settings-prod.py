@@ -1,12 +1,13 @@
 from sip.settings import *
 
 DEBUG = False
-
+USE_X_FORWARDED_PORT = True
 ALLOWED_HOSTS.append("192.168.1.61")
 ALLOWED_HOSTS.append("soilmate.xyz")
-ALLOWED_HOSTS.append("soilmate.ai")
+ALLOWED_HOSTS.append(".soilmate.ai")
+ALLOWED_HOSTS.append("192.168.1.34")
 
-CSRF_TRUSTED_ORIGINS = ["soilmate.xyz", "soilmate.ai"]
+CSRF_TRUSTED_ORIGINS = ["soilmate.xyz", ".soilmate.ai", "192.168.1.34"]
 
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"
@@ -19,5 +20,5 @@ IMAGE_PULL_SECRETS = 'regcred'
 VALIDATE_NOTEBOOK_BACKOFF_LIMIT = 1
 VALIDATE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS = 60 * 5
 EXECUTE_NOTEBOOK_BACKOFF_LIMIT = 1
-EXECUTE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS = 60 * 15
+EXECUTE_NOTEBOOK_ACTIVE_DEADLINE_SECONDS = 60 * 60 * 10
 NOTEBOOK_EXECUTION_PATH = '/home/jovyan/code/src/notebook.ipynb'

@@ -5,7 +5,7 @@ metadata:
   namespace: sip-prod
 spec:
   rules:
-  - host: soilmate.ai
+  - host: demo3.soilmate.ai
     http:
       paths:
         - pathType: Prefix
