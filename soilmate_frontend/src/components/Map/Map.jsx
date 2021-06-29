@@ -19,20 +19,22 @@ const initZoom = 14;
 
 export const Map = () => {
   const [map, setMap] = useState(null);
-  const [isShowPopup, setIsShowPopup] = useState(false);
+  const [isPopupVisible, setPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
-  const { addArea } = useAreasActions();
+  const { saveArea } = useAreasActions();
   const afterShapeCreated = e => {
-    setIsShowPopup(true);
+    setPopupVisible(true);
     setCurrentShape(e.layer);
   };
 
   useEffect(() => {
-    if (map) map.on('draw:created', afterShapeCreated);
-    if (map) return () => map.off('draw:created', afterShapeCreated);
+    if (map) {
+      map.on('draw:created', afterShapeCreated);
+      return () => map.off('draw:created', afterShapeCreated);
+    }
   }, [map]);
   useEffect(() => {
     return areasEvents.onCreateShape(e => {
@@ -43,16 +45,16 @@ export const Map = () => {
 
   const handleRemoveCurrentShape = () => {
     map.removeLayer(currentShape);
-    setIsShowPopup(false);
+    setPopupVisible(false);
   };
   const handleSaveCurrentShape = () => {
-    setIsShowPopup(false);
+    setPopupVisible(false);
     const data = {
       user: currentUser.pk,
-      name: `shape ${initialAreas.length}`,
+      name: `New area ${initialAreas.length}`,
       polygon: getShapePositionsString(currentShape)
     };
-    addArea(data);
+    saveArea(data);
   };
 
   return (
@@ -96,10 +98,10 @@ export const Map = () => {
           ))}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {isShowPopup && (
+      {isPopupVisible && (
         <Popup
           header='Are you sure with this area?'
-          confirmText='Choose this selection'
+          confirmPopup='Choose this selection'
           cancel={handleRemoveCurrentShape}
           save={handleSaveCurrentShape}
         />
