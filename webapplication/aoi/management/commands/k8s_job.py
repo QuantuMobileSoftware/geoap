@@ -144,13 +144,15 @@ class Job:
                 request.save()
                 self._delete_job(job)
                 
-            if job.status.failed == 2:
+            if job.status.failed in (1, 2):
                 pod_result = self.get_results_from_pods(pod_label_selector)
                 request = Request.objects.get(id=job_labels['request_id'])
                 request.started_at = pod_result['started_at']
                 request.finished_at = pod_result['finished_at']
+                print(pod_result)
                 if pod_result['reason'] == 'Error' and not pod_result['message']:
                     request.error = pod_result['pod_log']
+                    logger.error(f"Job Error: {pod_result['pod_log']}")
                 request.save()
                 self._delete_job(job)
     
@@ -226,6 +228,10 @@ class Job:
             volume_mounts=[
                 nfs_notebook_volume_mount,
             ],
+            resources=client.V1ResourceRequirements(
+                limits={'nvidia.com/gpu': '1'},
+                # requests={'nvidia.com/gpu': 1}
+            ),
             image_pull_policy='Always'
             # image_pull_policy='IfNotPresent'
         )
