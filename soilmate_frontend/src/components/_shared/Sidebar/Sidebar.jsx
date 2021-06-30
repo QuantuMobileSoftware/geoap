@@ -48,6 +48,11 @@ export const Sidebar = forwardRef(
       onClose?.();
     };
 
+    const handleNewShape = shape => {
+      areasEvents.toggleModal(false);
+      areasEvents.createShape(shape);
+    };
+
     const toggle = isOpen => {
       const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
       shouldClose ? handleClose() : setIsOpen(true);
@@ -84,11 +89,17 @@ export const Sidebar = forwardRef(
               header='Rectangle selection'
               title='Lorem ipsum dolor sit amet'
               icon='Rectangle'
+              onClick={() => {
+                handleNewShape('Rectangle');
+              }}
             />
             <ModalItem
               header='Polygon selection'
               title='Lorem ipsum dolor sit amet'
               icon='Polygon'
+              onClick={() => {
+                handleNewShape('Polygon');
+              }}
             />
           </Modal>
         )}
