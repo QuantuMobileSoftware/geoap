@@ -8,7 +8,8 @@ import {
   AreasListItemMenu,
   AreasListItemName,
   AreasListItemThumbnail,
-  StyledAreasListItem
+  StyledAreasListItem,
+  AreasListItemButton
 } from './AreasListItem.styles';
 import { getPolygonPositions } from 'utils/helpers';
 
@@ -56,8 +57,8 @@ export const AreasListItem = ({ area = {}, ...props }) => {
       </AreasListItemBody>
 
       <AreasListItemMenu>
-        <Button>Edit</Button>
-        <Button variantType='danger'>Delete</Button>
+        <AreasListItemButton>Edit</AreasListItemButton>
+        <AreasListItemButton variantType='danger'>Delete</AreasListItemButton>
       </AreasListItemMenu>
     </StyledAreasListItem>
   );

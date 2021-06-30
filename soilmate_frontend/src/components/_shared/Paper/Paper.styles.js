@@ -14,7 +14,7 @@ export const StyledPaper = styled.div.withConfig({ shouldForwardProp })`
 
     return [
       css`
-        border-radius: ${rem(theme.radius[2])};
+        border-radius: ${rem(theme.radius[1])};
         background: ${theme.colors.nature.n0};
         box-shadow: ${theme.shadows()[0]};
       `,
