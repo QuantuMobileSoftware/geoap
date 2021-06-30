@@ -1,9 +1,9 @@
 import React, { createElement } from 'react';
+import { isString } from 'lodash-es';
 
 import * as Icons from 'assets/icons';
 
 import { StyledIcon } from './Icon.styles';
-import { isString } from 'lodash-es';
 
 export const Icon = ({ children, ...props }) => {
   const renderIcon = () => {
