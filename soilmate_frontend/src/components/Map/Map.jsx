@@ -25,6 +25,10 @@ export const Map = () => {
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
   const { saveArea } = useAreasActions();
+
+  const newAreaNumber = initialAreas.length
+    ? initialAreas[initialAreas.length - 1].id + 1
+    : 1;
   const afterShapeCreated = e => {
     setPopupVisible(true);
     setCurrentShape(e.layer);
@@ -51,7 +55,7 @@ export const Map = () => {
     setPopupVisible(false);
     const data = {
       user: currentUser.pk,
-      name: `New area ${initialAreas.length}`,
+      name: `New area ${newAreaNumber}`,
       polygon: getShapePositionsString(currentShape)
     };
     saveArea(data);
