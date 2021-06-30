@@ -12,12 +12,16 @@ import {
   SidebarBody,
   SidebarButtonClose,
   SidebarHeading,
-  StyledSidebar
+  StyledSidebar,
+  ButtonWrapper
 } from './Sidebar.styles';
 
 import { areasEvents } from '_events';
 import { Modal } from '../Modal';
 import { ModalItem } from '../ModalItem';
+import { Button } from '../Button';
+import { MODAL_TYPE } from '_constants';
+import { useAreasActions } from 'state';
 
 export const Sidebar = forwardRef(
   (
@@ -40,6 +44,9 @@ export const Sidebar = forwardRef(
     useEffect(() => isOpen && setIsOpen(isOpen), [isOpen]);
 
     const [isModalOpen, setIsModalOpen] = useState(isShowModal);
+    const [modalType, setModalType] = useState(MODAL_TYPE.SAVE);
+    const [removedAreaId, setRemovedAreaId] = useState();
+    const { deleteArea } = useAreasActions();
 
     const _className = cn(className, { isOpen: _isOpen });
 
@@ -61,6 +68,10 @@ export const Sidebar = forwardRef(
     useEffect(() => {
       return areasEvents.onToggleModal(e => {
         setIsModalOpen(e.isOpen);
+        if (e.additionally) {
+          setModalType(e.additionally.type);
+          setRemovedAreaId(e.additionally.id);
+        }
       });
     }, []);
 
@@ -68,18 +79,11 @@ export const Sidebar = forwardRef(
 
     if (!_isOpen && withUnmountToggle) return null;
 
-    return (
-      <StyledSidebar
-        {...props}
-        ref={rootRef}
-        className={_className}
-        withUnmountToggle={withUnmountToggle}
-      >
-        {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
-        {heading && <SidebarHeading>{heading}</SidebarHeading>}
-        {children && <SidebarBody>{children}</SidebarBody>}
-        {isModalOpen && (
-          <Modal header='Creating new area'>
+    const modalChildren = {
+      [MODAL_TYPE.SAVE]: {
+        header: 'Creating new area',
+        content: () => (
+          <>
             <ModalItem
               header='Upload File'
               title='Please upload files in *.GeoJSOn or *.KML'
@@ -101,6 +105,44 @@ export const Sidebar = forwardRef(
                 handleNewShape('Polygon');
               }}
             />
+          </>
+        )
+      },
+      [MODAL_TYPE.DELETE]: {
+        header: 'Are you sure to delete this area?',
+        content: () => (
+          <ButtonWrapper>
+            <Button variant='secondary' onClick={() => areasEvents.toggleModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='primary'
+              onClick={() => {
+                deleteArea(removedAreaId);
+                areasEvents.toggleModal(false);
+                setRemovedAreaId(null);
+              }}
+            >
+              Yes, delete
+            </Button>
+          </ButtonWrapper>
+        )
+      }
+    };
+
+    return (
+      <StyledSidebar
+        {...props}
+        ref={rootRef}
+        className={_className}
+        withUnmountToggle={withUnmountToggle}
+      >
+        {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
+        {heading && <SidebarHeading>{heading}</SidebarHeading>}
+        {children && <SidebarBody>{children}</SidebarBody>}
+        {isModalOpen && (
+          <Modal header={modalChildren[modalType].header}>
+            {modalChildren[modalType].content()}
           </Modal>
         )}
       </StyledSidebar>
