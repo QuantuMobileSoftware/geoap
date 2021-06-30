@@ -7,7 +7,8 @@ class AreasEvents extends EventEmitter {
     return () => this.removeListener('toggleSidebar', callback);
   };
 
-  toggleModal = isOpen => this.emit('toggleModal', { isOpen });
+  toggleModal = (isOpen, additionally) =>
+    this.emit('toggleModal', { isOpen, additionally });
   onToggleModal = callback => {
     this.on('toggleModal', callback);
     return () => this.removeListener('toggleModal', callback);

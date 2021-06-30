@@ -48,3 +48,13 @@ export const StyledSidebar = styled(Paper).attrs({ padding: 4 })`
       `
   ]}
 `;
+
+export const ButtonWrapper = styled.div`
+  ${({ theme }) => css`
+    text-align: center;
+    & button:first-child {
+      margin-right: 32px;
+      border: 1px solid ${theme.colors.nature.n1};
+    }
+  `}
+`;

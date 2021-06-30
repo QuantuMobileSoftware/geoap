@@ -9,7 +9,6 @@ export const StyledModalWrapper = styled.div`
   top: 0;
   height: 100vh;
   width: 100vw;
-  opacity: 0.9;
   background: rgba(0, 0, 0, 0.8);
 `;
 
@@ -19,7 +18,7 @@ export const StyledModalMain = styled.div`
     left: 50%;
     top: 50%;
     min-width: 250px;
-    padding: 27px 20px;
+    padding: 44px 40px;
     transform: translate(-50%, -50%);
     background: ${theme.colors.nature.n0};
     box-shadow: ${theme.shadows()[0]};

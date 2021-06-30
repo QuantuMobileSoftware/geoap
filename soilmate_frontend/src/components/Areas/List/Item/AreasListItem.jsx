@@ -11,13 +11,15 @@ import {
   StyledAreasListItem
 } from './AreasListItem.styles';
 import { getPolygonPositions } from 'utils/helpers';
+import { areasEvents } from '_events';
+import { MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
 import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
-  const { setCurrentArea, deleteArea } = useAreasActions();
+  const { setCurrentArea } = useAreasActions();
 
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
@@ -57,7 +59,12 @@ export const AreasListItem = ({ area = {}, ...props }) => {
 
       <AreasListItemMenu>
         <Button>Edit</Button>
-        <Button variantType='danger' onClick={() => deleteArea(area.id)}>
+        <Button
+          variantType='danger'
+          onClick={() =>
+            areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id })
+          }
+        >
           Delete
         </Button>
       </AreasListItemMenu>
