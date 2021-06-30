@@ -17,8 +17,6 @@ import { MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
-import { Button } from 'components/_shared/Button';
-
 export const AreasListItem = ({ area = {}, ...props }) => {
   const { setCurrentArea } = useAreasActions();
 
@@ -59,15 +57,15 @@ export const AreasListItem = ({ area = {}, ...props }) => {
       </AreasListItemBody>
 
       <AreasListItemMenu>
-        <Button>Edit</Button>
-        <Button
+        <AreasListItemButton>Edit</AreasListItemButton>
+        <AreasListItemButton
           variantType='danger'
           onClick={() =>
             areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id })
           }
         >
           Delete
-        </Button>
+        </AreasListItemButton>
       </AreasListItemMenu>
     </StyledAreasListItem>
   );
