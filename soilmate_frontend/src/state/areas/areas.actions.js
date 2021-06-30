@@ -35,5 +35,19 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
-  return { isLoading, error, getAreas, setCurrentArea };
+  const saveArea = useCallback(
+    async shape => {
+      await handleAsync(async () => {
+        const area = await (await API.areas.saveArea(shape)).data;
+        dispatch(
+          areasActions.setEntities(
+            normalizeAreas([{ ...area, requests: [], results: [] }])
+          )
+        );
+      });
+    },
+    [handleAsync, dispatch]
+  );
+
+  return { isLoading, error, getAreas, setCurrentArea, saveArea };
 };
