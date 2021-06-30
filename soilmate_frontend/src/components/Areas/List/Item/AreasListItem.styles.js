@@ -76,7 +76,7 @@ export const StyledAreasListItem = styled.li`
         background: ${theme.colors.misc.background3};
       }
 
-      &:last-child .isOpen > div {
+      &:last-child:not(:first-child) .isOpen > div {
         top: -75px;
       }
 

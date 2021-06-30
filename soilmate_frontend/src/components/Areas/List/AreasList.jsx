@@ -7,5 +7,9 @@ import { AreasListItem } from './Item';
 export const AreasList = ({ areas = [], ...props }) => {
   const renderAreas = areas.map(area => <AreasListItem key={area.id} area={area} />);
 
-  return <StyledAreasList {...props}>{renderAreas}</StyledAreasList>;
+  return (
+    <StyledAreasList {...props} isEmpty={!areas.length}>
+      {renderAreas}
+    </StyledAreasList>
+  );
 };
