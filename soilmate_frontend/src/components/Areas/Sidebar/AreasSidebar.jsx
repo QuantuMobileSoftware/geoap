@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
-  AreasSidebarButtonAddArea,
+  AreasSidebarButton,
   AreasSidebarMessage,
   StyledAreasSidebar
 } from './AreasSidebar.styles';
@@ -77,13 +77,13 @@ export const AreasSidebar = ({ ...props }) => {
 
         {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
-        <AreasSidebarButtonAddArea
+        <AreasSidebarButton
           variant='primary'
           icon='Plus'
           onClick={() => areasEvents.toggleModal(true)}
         >
           Add new area
-        </AreasSidebarButtonAddArea>
+        </AreasSidebarButton>
       </StyledAreasSidebar>
     </>
   );
