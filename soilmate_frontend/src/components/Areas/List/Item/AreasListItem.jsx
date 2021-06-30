@@ -8,7 +8,8 @@ import {
   AreasListItemMenu,
   AreasListItemName,
   AreasListItemThumbnail,
-  StyledAreasListItem
+  StyledAreasListItem,
+  AreasListItemButton
 } from './AreasListItem.styles';
 import { getPolygonPositions } from 'utils/helpers';
 import { areasEvents } from '_events';
