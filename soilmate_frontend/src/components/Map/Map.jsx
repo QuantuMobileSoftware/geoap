@@ -21,10 +21,13 @@ export const Map = () => {
   const [map, setMap] = useState(null);
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
+
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
+
   const { saveArea } = useAreasActions();
+
   const afterShapeCreated = e => {
     setPopupVisible(true);
     setCurrentShape(e.layer);
@@ -36,6 +39,7 @@ export const Map = () => {
       return () => map.off('draw:created', afterShapeCreated);
     }
   }, [map]);
+
   useEffect(() => {
     return areasEvents.onCreateShape(e => {
       const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
@@ -43,11 +47,12 @@ export const Map = () => {
     });
   }, [map]);
 
-  const handleRemoveCurrentShape = () => {
+  const handleCancelSaveShape = () => {
     map.removeLayer(currentShape);
     setPopupVisible(false);
   };
-  const handleSaveCurrentShape = () => {
+
+  const handleSaveShape = () => {
     setPopupVisible(false);
     const data = {
       user: currentUser.pk,
@@ -90,9 +95,9 @@ export const Map = () => {
         {initialAreas &&
           initialAreas.map(area => (
             <MapPolygon
+              key={area.id}
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
-              key={area.id}
               isActive={area.id === currentArea}
             />
           ))}
@@ -102,8 +107,8 @@ export const Map = () => {
         <Popup
           header='Are you sure with this area?'
           confirmPopup='Choose this selection'
-          cancel={handleRemoveCurrentShape}
-          save={handleSaveCurrentShape}
+          cancel={handleCancelSaveShape}
+          save={handleSaveShape}
         />
       )}
     </MapHolder>
