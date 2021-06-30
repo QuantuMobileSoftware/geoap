@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-
 import { useSelector } from 'react-redux';
-import { getPolygonPositions } from '../../utils/helpers';
-
 import L from 'leaflet';
 import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
-import { selectAreasList, selectCurrentArea, useAreasActions, selectUser } from 'state';
+
 import { SHAPE_OPTIONS } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
 import { StyledMapContainer, MapHolder } from './Map.styles';
-import { getShapePositionsString } from 'utils/helpers';
+
+import { selectAreasList, selectCurrentArea, useAreasActions, selectUser } from 'state';
+
+import { getShapePositionsString, getPolygonPositions } from 'utils/helpers';
 
 const center = [51.505, -0.09];
 const initZoom = 14;

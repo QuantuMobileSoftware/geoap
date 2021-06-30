@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 import { AreasSidebar } from 'components/Areas';
-
 import { Map } from 'components/Map';
 
 import { useAreasActions, useUserActions } from 'state';

@@ -15,9 +15,10 @@ import {
   StyledSidebar
 } from './Sidebar.styles';
 
-import { areasEvents } from '_events';
 import { Modal } from '../Modal';
 import { ModalItem } from '../ModalItem';
+
+import { areasEvents } from '_events';
 
 export const Sidebar = forwardRef(
   (

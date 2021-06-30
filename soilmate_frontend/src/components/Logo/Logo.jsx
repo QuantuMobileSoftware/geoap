@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { ReactComponent as LogoImage } from 'assets/images/logo.svg';
 
 import { StyledLogo } from './Logo.styles';

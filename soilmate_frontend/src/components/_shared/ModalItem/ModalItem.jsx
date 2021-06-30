@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { StyledModalItem, ModalHeader, ModalTitle, Wrapper } from './ModalItem.styles';
 import { Button } from '../Button';
 

@@ -11,11 +11,10 @@ import {
   StyledAreasListItem,
   AreasListItemButton
 } from './AreasListItem.styles';
+
 import { getPolygonPositions } from 'utils/helpers';
 
 import { useAreasActions } from 'state';
-
-import { Button } from 'components/_shared/Button';
 
 export const AreasListItem = ({ area = {}, ...props }) => {
   const { setCurrentArea } = useAreasActions();
