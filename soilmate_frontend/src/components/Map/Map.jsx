@@ -19,7 +19,7 @@ const initZoom = 14;
 
 export const Map = () => {
   const [map, setMap] = useState(null);
-  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
@@ -30,7 +30,7 @@ export const Map = () => {
     ? initialAreas[initialAreas.length - 1].id + 1
     : 1;
   const afterShapeCreated = e => {
-    setPopupVisible(true);
+    setIsPopupVisible(true);
     setCurrentShape(e.layer);
   };
 
@@ -49,10 +49,10 @@ export const Map = () => {
 
   const handleRemoveCurrentShape = () => {
     map.removeLayer(currentShape);
-    setPopupVisible(false);
+    setIsPopupVisible(false);
   };
   const handleSaveCurrentShape = () => {
-    setPopupVisible(false);
+    setIsPopupVisible(false);
     const data = {
       user: currentUser.pk,
       name: `New area ${newAreaNumber}`,
