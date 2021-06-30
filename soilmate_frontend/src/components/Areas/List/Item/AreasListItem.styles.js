@@ -5,6 +5,7 @@ import { rem } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 import { Image } from 'components/_shared/Image';
 import { Menu, MenuDropdown } from 'components/_shared/Menu';
+import { Button } from 'components/_shared/Button';
 
 export const AreasListItemMenu = styled(Menu)`
   align-self: center;
@@ -12,11 +13,20 @@ export const AreasListItemMenu = styled(Menu)`
 
   ${MenuDropdown} {
     right: 0;
+    ${({ theme }) => css`
+      padding: ${rem(theme.spacing[2])} ${rem(theme.spacing[7])};
+    `}
   }
 
   &:not(.isOpen) {
     display: none;
   }
+`;
+
+export const AreasListItemButton = styled(Button)`
+  ${({ theme }) => css`
+    padding: ${rem(theme.spacing[2])} 0;
+  `}
 `;
 
 export const AreasListItemCoordinate = styled(Typography).attrs({
