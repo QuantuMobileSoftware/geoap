@@ -7,10 +7,9 @@ import { StyledSearch } from 'components/_shared/Search';
 import { Typography } from 'components/_shared/Typography';
 import { Button } from 'components/_shared/Button';
 
-export const AreasSidebarButtonAddArea = styled(Button)`
+export const AreasSidebarButton = styled(Button)`
   ${({ theme }) => css`
-    margin-top: ${rem(theme.spacing[10])};
-    margin-left: auto;
+    margin: ${rem(theme.spacing[6])} auto ${rem(theme.spacing[6])} 0;
   `}
 `;
 
