@@ -52,3 +52,28 @@ export const getShapePositionsString = layer => {
   );
   return wkt.fromObject(geometry).write();
 };
+
+export const getCentroid = arr => {
+  const pts = arr;
+
+  let twicearea = 0;
+  let p1, p2, f;
+  let x = 0,
+    y = 0;
+  let nPts = pts.length;
+
+  for (let i = 0, j = nPts - 1; i < nPts; j = i++) {
+    p1 = pts[i];
+    p2 = pts[j];
+
+    twicearea += p1[0] * p2[1];
+    twicearea -= p1[1] * p2[0];
+
+    f = p1[0] * p2[1] - p2[0] * p1[1];
+
+    x += (p1[0] + p2[0]) * f;
+    y += (p1[1] + p2[1]) * f;
+  }
+  f = twicearea * 3;
+  return { lat: x / f, lng: y / f };
+};

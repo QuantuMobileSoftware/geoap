@@ -12,7 +12,7 @@ import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import { selectAreasList, selectCurrentArea, useAreasActions, selectUser } from 'state';
 
-import { getShapePositionsString, getPolygonPositions } from 'utils/helpers';
+import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
@@ -26,12 +26,24 @@ export const Map = () => {
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
 
-  const { saveArea } = useAreasActions();
+  const { saveArea, setCurrentArea } = useAreasActions();
 
   const afterShapeCreated = e => {
     setPopupVisible(true);
     setCurrentShape(e.layer);
   };
+
+  useEffect(() => {
+    const polygon = initialAreas.find(area => area.id === currentArea);
+    if (!polygon) {
+      return;
+    }
+    const latLangs = getPolygonPositions(polygon).coordinates[0];
+    const polyline = L.polyline(latLangs);
+    const center = getCentroid(latLangs);
+    const bounds = polyline.getBounds();
+    map.panTo(center).fitBounds(bounds);
+  }, [currentArea, initialAreas]);
 
   useEffect(() => {
     if (map) {
@@ -60,6 +72,13 @@ export const Map = () => {
       polygon: getShapePositionsString(currentShape)
     };
     saveArea(data);
+  };
+
+  const handlePolygonClick = id => polygon => {
+    const center = polygon.getCenter();
+    const bounds = polygon.getBounds();
+    map.panTo(center).fitBounds(bounds);
+    setCurrentArea(id);
   };
 
   return (
@@ -98,7 +117,7 @@ export const Map = () => {
               key={area.id}
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
-              isActive={area.id === currentArea}
+              onClick={handlePolygonClick(area.id)}
             />
           ))}
       </StyledMapContainer>
