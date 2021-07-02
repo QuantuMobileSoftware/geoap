@@ -1,9 +1,10 @@
 import styled, { css } from 'styled-components';
 import { Typography } from '../Typography';
+import { em, rem } from 'styles';
 
 export const StyledModalItem = styled.div`
   ${({ theme }) => css`
-    margin-bottom: 26px;
+    margin-bottom: ${em(26)};
     cursor: pointer;
     &:hover,
     &:hover button {
@@ -23,8 +24,8 @@ export const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-width: 300px;
+  min-width: ${rem(300)};
   & button {
-    margin-left: 20px;
+    margin-left: ${em(20)};
   }
 `;
