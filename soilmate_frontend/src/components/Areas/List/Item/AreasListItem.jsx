@@ -8,16 +8,15 @@ import {
   AreasListItemMenu,
   AreasListItemName,
   AreasListItemThumbnail,
-  StyledAreasListItem,
+  AreasListItem,
   AreasListItemButton
 } from './AreasListItem.styles';
+
 import { getPolygonPositions } from 'utils/helpers';
 
 import { useAreasActions } from 'state';
 
-import { Button } from 'components/_shared/Button';
-
-export const AreasListItem = ({ area = {}, ...props }) => {
+export const ListItem = ({ area = {}, ...props }) => {
   const { setCurrentArea } = useAreasActions();
 
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -28,7 +27,9 @@ export const AreasListItem = ({ area = {}, ...props }) => {
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
 
   const renderCoordinates = () => {
-    if (!hasCoordinates) return null;
+    if (!hasCoordinates) {
+      return null;
+    }
 
     return (
       <AreasListItemCoordinates>
@@ -44,10 +45,12 @@ export const AreasListItem = ({ area = {}, ...props }) => {
   };
 
   return (
-    <StyledAreasListItem
+    <AreasListItem
       {...props}
       hasCoordinates={hasCoordinates}
-      onClick={() => setCurrentArea(area.id)}
+      onClick={() => {
+        setCurrentArea(area.id);
+      }}
     >
       <AreasListItemThumbnail backdropIcon='Image' />
 
@@ -60,6 +63,6 @@ export const AreasListItem = ({ area = {}, ...props }) => {
         <AreasListItemButton>Edit</AreasListItemButton>
         <AreasListItemButton variantType='danger'>Delete</AreasListItemButton>
       </AreasListItemMenu>
-    </StyledAreasListItem>
+    </AreasListItem>
   );
 };

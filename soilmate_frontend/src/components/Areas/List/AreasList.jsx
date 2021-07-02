@@ -1,11 +1,17 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
+import { selectCurrentArea } from 'state';
 
-import { StyledAreasList } from './AreasList.styles';
+import { AreasList } from './AreasList.styles';
 
-import { AreasListItem } from './Item';
+import { ListItem } from './Item';
 
-export const AreasList = ({ areas = [], ...props }) => {
-  const renderAreas = areas.map(area => <AreasListItem key={area.id} area={area} />);
+export const List = ({ areas = [], ...props }) => {
+  const currentAreaId = useSelector(selectCurrentArea);
 
-  return <StyledAreasList {...props}>{renderAreas}</StyledAreasList>;
+  const areasList = areas.map(area => (
+    <ListItem key={area.id} isActive={currentAreaId === area.id} area={area} />
+  ));
+
+  return <AreasList {...props}>{areasList}</AreasList>;
 };

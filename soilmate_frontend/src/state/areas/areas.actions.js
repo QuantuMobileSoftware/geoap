@@ -44,6 +44,7 @@ export const useAreasActions = () => {
             normalizeAreas([{ ...area, requests: [], results: [] }])
           )
         );
+        dispatch(areasActions.setCurrentArea(area.id));
       });
     },
     [handleAsync, dispatch]
