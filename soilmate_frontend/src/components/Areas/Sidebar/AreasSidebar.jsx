@@ -13,6 +13,7 @@ import { Search } from 'components/_shared/Search';
 
 import { selectAreasList } from 'state';
 import { areasEvents } from '_events';
+import { MODAL_TYPE } from '_constants';
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
@@ -80,7 +81,7 @@ export const AreasSidebar = ({ ...props }) => {
         <AreasSidebarButton
           variant='primary'
           icon='Plus'
-          onClick={() => areasEvents.toggleModal(true)}
+          onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
         >
           Add new area
         </AreasSidebarButton>

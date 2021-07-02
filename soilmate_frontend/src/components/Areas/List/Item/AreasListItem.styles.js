@@ -86,6 +86,10 @@ export const AreasListItem = styled.li`
         background: ${isActive ? theme.colors.primary.p4 : theme.colors.misc.background3};
       }
 
+      &:last-child:not(:first-child) .isOpen > div {
+        top: -75px;
+      }
+
       &:hover {
         background: ${theme.colors.primary.p4};
 

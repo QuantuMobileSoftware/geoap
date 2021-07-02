@@ -13,5 +13,9 @@ export const List = ({ areas = [], ...props }) => {
     <ListItem key={area.id} isActive={currentAreaId === area.id} area={area} />
   ));
 
-  return <AreasList {...props}>{areasList}</AreasList>;
+  return (
+    <AreasList {...props} isEmpty={!areas.length}>
+      {areasList}
+    </AreasList>
+  );
 };

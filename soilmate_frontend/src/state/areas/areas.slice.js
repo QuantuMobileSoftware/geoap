@@ -1,4 +1,5 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { omit } from 'lodash';
 
 const AREAS_INITIAL_STATE = {
   entities: {},
@@ -14,6 +15,9 @@ const areasSlice = createSlice({
     },
     setCurrentArea: (state, action) => {
       state.current = action.payload;
+    },
+    deleteAreaById: (state, action) => {
+      state.entities = omit(state.entities, action.payload);
     }
   }
 });

@@ -13,6 +13,8 @@ import {
 } from './AreasListItem.styles';
 
 import { getPolygonPositions } from 'utils/helpers';
+import { areasEvents } from '_events';
+import { MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
@@ -61,7 +63,14 @@ export const ListItem = ({ area = {}, ...props }) => {
 
       <AreasListItemMenu>
         <AreasListItemButton>Edit</AreasListItemButton>
-        <AreasListItemButton variantType='danger'>Delete</AreasListItemButton>
+        <AreasListItemButton
+          variantType='danger'
+          onClick={() =>
+            areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id })
+          }
+        >
+          Delete
+        </AreasListItemButton>
       </AreasListItemMenu>
     </AreasListItem>
   );

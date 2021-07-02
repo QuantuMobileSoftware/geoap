@@ -19,17 +19,19 @@ const initZoom = 14;
 
 export const Map = () => {
   const [map, setMap] = useState(null);
-  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
 
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
-
   const { saveArea, setCurrentArea } = useAreasActions();
 
+  const newAreaNumber = initialAreas.length
+    ? initialAreas[initialAreas.length - 1].id + 1
+    : 1;
   const afterShapeCreated = e => {
-    setPopupVisible(true);
+    setIsPopupVisible(true);
     setCurrentShape(e.layer);
   };
 
@@ -43,7 +45,7 @@ export const Map = () => {
     const center = getCentroid(latLangs);
     const bounds = polyline.getBounds();
     map.panTo(center).fitBounds(bounds);
-  }, [currentArea, initialAreas]);
+  }, [currentArea, initialAreas, map]);
 
   useEffect(() => {
     if (map) {
@@ -61,14 +63,14 @@ export const Map = () => {
 
   const handleCancelSaveShape = () => {
     map.removeLayer(currentShape);
-    setPopupVisible(false);
+    setIsPopupVisible(false);
   };
 
   const handleSaveShape = () => {
-    setPopupVisible(false);
+    setIsPopupVisible(false);
     const data = {
       user: currentUser.pk,
-      name: `New area ${initialAreas.length}`,
+      name: `New area ${newAreaNumber}`,
       polygon: getShapePositionsString(currentShape)
     };
     saveArea(data);
