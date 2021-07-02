@@ -22,8 +22,6 @@ const areasSlice = createSlice({
   }
 });
 
-export const { reducer: areasReducer, actions: areasActions } = areasSlice;
-
 export const selectAreas = state => state.areas.entities;
 export const selectCurrentArea = state => state.areas.current;
 
@@ -38,3 +36,5 @@ export const selectAreasList = createSelector(selectAreas, areas => {
 export const selectAreasResults = createSelector(selectAreasList, areas => {
   return areas.flatMap(({ results }) => results);
 });
+
+export const { reducer: areasReducer, actions: areasActions } = areasSlice;

@@ -72,18 +72,18 @@ export const AreasListItemThumbnail = styled(Image)`
   `}
 `;
 
-export const StyledAreasListItem = styled.li`
-  ${({ theme, hasCoordinates, onClick }) => [
+export const AreasListItem = styled.li`
+  ${({ theme, hasCoordinates, onClick, isActive }) => [
     css`
       position: relative;
       display: flex;
       justify-content: flex-start;
-      background: ${theme.colors.nature.n0};
+      background: ${isActive ? theme.colors.primary.p4 : theme.colors.nature.n0};
       padding: ${rem([theme.spacing[8] - 3, theme.spacing[8]])};
       transition: ${theme.transitions.fast};
 
       &:nth-child(even) {
-        background: ${theme.colors.misc.background3};
+        background: ${isActive ? theme.colors.primary.p4 : theme.colors.misc.background3};
       }
 
       &:last-child:not(:first-child) .isOpen > div {
