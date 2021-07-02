@@ -16,12 +16,13 @@ import {
   ButtonWrapper
 } from './Sidebar.styles';
 
-import { areasEvents } from '_events';
 import { Modal } from '../Modal';
 import { ModalItem } from '../ModalItem';
 import { Button } from '../Button';
 import { MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
+
+import { areasEvents } from '_events';
 
 export const Sidebar = forwardRef(
   (

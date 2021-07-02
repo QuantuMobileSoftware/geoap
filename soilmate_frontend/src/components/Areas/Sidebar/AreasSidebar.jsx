@@ -8,7 +8,7 @@ import {
 } from './AreasSidebar.styles';
 
 import { AreasSidebarToggle } from './Toggle';
-import { AreasList } from '../List';
+import { List } from '../List';
 import { Search } from 'components/_shared/Search';
 
 import { selectAreasList } from 'state';
@@ -74,7 +74,7 @@ export const AreasSidebar = ({ ...props }) => {
           onSubmit={handleSearchSubmit}
         />
 
-        <AreasList areas={areas} />
+        <List areas={areas} />
 
         {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
