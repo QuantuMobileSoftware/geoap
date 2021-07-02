@@ -36,6 +36,14 @@ export const Map = () => {
   };
 
   useEffect(() => {
+    if (map && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(position => {
+        map.panTo([position.coords.latitude, position.coords.longitude]);
+      });
+    }
+  }, [map]);
+
+  useEffect(() => {
     const polygon = initialAreas.find(area => area.id === currentArea);
     if (!polygon) {
       return;
