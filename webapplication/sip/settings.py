@@ -206,6 +206,9 @@ NOTEBOOK_EXECUTION_TIMEOUT = 60 * 60 * 36
 BASE_CONTAINER_NAME = "sip_webapplication_1"
 
 # Host volumes path's basename defined in webapplication service in docker-compose file
-HOST_VOLUME_WEBAPPLICATION_BASENAME = "webapplication"
-HOST_VOLUME_DATA_BASENAME = "data"
+# HOST_VOLUME_WEBAPPLICATION_BASENAME = "webapplication"
+# HOST_VOLUME_DATA_BASENAME = "data"
+# HOST_VOLUME_DATA_BASENAME = "/data"
+PERSISTENT_STORAGE_PATH = '/data'
+CODE_PATH = '/code'
 
