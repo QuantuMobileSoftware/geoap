@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem } from 'styles';
+import { rem, em } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
 import { Image } from 'components/_shared/Image';
@@ -87,7 +87,7 @@ export const AreasListItem = styled.li`
       }
 
       &:last-child:not(:first-child) .isOpen > div {
-        top: -75px;
+        top: ${em(-75)};
       }
 
       &:hover {

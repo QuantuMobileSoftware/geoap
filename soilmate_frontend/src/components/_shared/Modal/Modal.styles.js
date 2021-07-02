@@ -17,7 +17,7 @@ export const StyledModalMain = styled.div`
     position: absolute;
     left: 50%;
     top: 50%;
-    min-width: 250px;
+    min-width: ${rem(250)};
     padding: ${em(44, theme.fontSizes[5])} ${em(40, theme.fontSizes[5])};
     transform: translate(-50%, -50%);
     background: ${theme.colors.nature.n0};
@@ -29,8 +29,8 @@ export const StyledModalMain = styled.div`
 
 export const CloseButton = styled(Button)`
   position: absolute;
-  top: 23px;
-  right: 17px;
+  top: ${em(23)};
+  right: ${em(17)};
 `;
 
 export const ModalHeader = styled(Typography).attrs({
