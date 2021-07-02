@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { StyledPopup, Header } from './Popup.styled';
 import { Button } from '../Button';
 
