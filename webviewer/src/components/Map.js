@@ -137,11 +137,21 @@ export default function createMap(
         requestModel.openFeatureRequestDialog();
     }
 
+    const setUserCoordinates = (map, zoom) => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            map.setView([position.coords.latitude, position.coords.longitude], zoom)
+        });
+      } 
+    }
+
     mapElt.componentDidMount = () => {
         map = L.map(mapId, { editable: true, doubleClickZoom: false }).setView(
             startPoint,
             8
         );
+        //move to user position
+        setUserCoordinates(map, 8)
 
         // add controls to map
         initializeControls(map, { isDemoUser: userModel.isDemoUser, onAddClick: handleMapControlAddClick });
