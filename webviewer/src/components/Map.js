@@ -131,7 +131,7 @@ export default function createMap(
     let geojson = null;
     let layersToRender = {};
 
-    let startPoint = [48.95, 31.53];
+    let startPoint = [40.4173, -82.9071];
 
     const handleMapControlAddClick = () => {
         requestModel.openFeatureRequestDialog();
