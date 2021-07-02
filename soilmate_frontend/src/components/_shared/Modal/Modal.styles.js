@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { rem } from 'styles';
+import { rem, em } from 'styles';
 import { Button } from '../Button';
 import { Typography } from '../Typography';
 
@@ -9,7 +9,6 @@ export const StyledModalWrapper = styled.div`
   top: 0;
   height: 100vh;
   width: 100vw;
-  opacity: 0.9;
   background: rgba(0, 0, 0, 0.8);
 `;
 
@@ -19,7 +18,7 @@ export const StyledModalMain = styled.div`
     left: 50%;
     top: 50%;
     min-width: 250px;
-    padding: 27px 20px;
+    padding: ${em(44, theme.fontSizes[5])} ${em(40, theme.fontSizes[5])};
     transform: translate(-50%, -50%);
     background: ${theme.colors.nature.n0};
     box-shadow: ${theme.shadows()[0]};
@@ -38,5 +37,7 @@ export const ModalHeader = styled(Typography).attrs({
   element: 'h2',
   variant: 'h1'
 })`
-  margin-bottom: 23px;
+  ${({ theme }) => css`
+    margin-bottom: ${em(23, theme.fontSizes[5])};
+  `}
 `;
