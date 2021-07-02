@@ -68,9 +68,9 @@ export const Sidebar = forwardRef(
     useEffect(() => {
       return areasEvents.onToggleModal(e => {
         setIsModalOpen(e.isOpen);
-        if (e.additionally) {
-          setModalType(e.additionally.type);
-          setRemovedAreaId(e.additionally.id);
+        if (e.data) {
+          setModalType(e.data.type);
+          setRemovedAreaId(e.data.id);
         }
       });
     }, []);
