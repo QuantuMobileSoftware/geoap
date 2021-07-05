@@ -1,9 +1,12 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 
+import { AREA_MODE } from '_constants';
+
 const AREAS_INITIAL_STATE = {
   entities: {},
-  current: null
+  current: null,
+  mode: AREA_MODE.LIST
 };
 
 const areasSlice = createSlice({
@@ -18,6 +21,9 @@ const areasSlice = createSlice({
     },
     deleteAreaById: (state, action) => {
       state.entities = omit(state.entities, action.payload);
+    },
+    setAreaMode: (state, action) => {
+      state.mode = action.payload;
     }
   }
 });
@@ -36,5 +42,7 @@ export const selectAreasList = createSelector(selectAreas, areas => {
 export const selectAreasResults = createSelector(selectAreasList, areas => {
   return areas.flatMap(({ results }) => results);
 });
+
+export const selectAreaMode = state => state.areas.mode;
 
 export const { reducer: areasReducer, actions: areasActions } = areasSlice;

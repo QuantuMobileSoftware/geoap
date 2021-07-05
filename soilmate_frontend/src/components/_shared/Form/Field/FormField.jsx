@@ -19,7 +19,8 @@ import { withFunction, mergeProps } from 'utils';
 const FIELD_TYPE_CONTROLS = {
   text: <InputText type='text' />,
   email: <InputText type='email' />,
-  password: <InputText type='password' />
+  password: <InputText type='password' />,
+  number: <InputText type='number' />
 };
 
 let previousFieldId = 0;
