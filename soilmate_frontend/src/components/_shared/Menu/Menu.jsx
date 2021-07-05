@@ -28,6 +28,7 @@ export const Menu = forwardRef(
       toggleIcon = 'More',
       onClose,
       onItemClick,
+      onClick,
       onClickOutside,
       clickOutsideParams,
       ...props
@@ -58,6 +59,7 @@ export const Menu = forwardRef(
     const toggle = () => (_isOpen ? handleClose() : setIsOpen(true));
 
     const handleMenuToggleClick = event => {
+      onClick();
       event.stopPropagation();
       toggle();
     };
