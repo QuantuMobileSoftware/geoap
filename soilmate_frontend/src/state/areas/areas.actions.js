@@ -61,5 +61,18 @@ export const useAreasActions = () => {
     [handleAsync, dispatch]
   );
 
-  return { isLoading, error, getAreas, setCurrentArea, saveArea, deleteArea };
+  const setAreaMode = useCallback(
+    mode => dispatch(areasActions.setAreaMode(mode)),
+    [dispatch]
+  );
+
+  return {
+    isLoading,
+    error,
+    getAreas,
+    setCurrentArea,
+    saveArea,
+    deleteArea,
+    setAreaMode
+  };
 };

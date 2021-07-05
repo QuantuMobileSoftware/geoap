@@ -14,12 +14,12 @@ import {
 
 import { getPolygonPositions } from 'utils/helpers';
 import { areasEvents } from '_events';
-import { MODAL_TYPE } from '_constants';
+import { AREA_MODE, MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
 export const ListItem = ({ area = {}, ...props }) => {
-  const { setCurrentArea } = useAreasActions();
+  const { setCurrentArea, setAreaMode } = useAreasActions();
 
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
@@ -62,7 +62,14 @@ export const ListItem = ({ area = {}, ...props }) => {
       </AreasListItemBody>
 
       <AreasListItemMenu>
-        <AreasListItemButton>Edit</AreasListItemButton>
+        <AreasListItemButton
+          onClick={() => {
+            setCurrentArea(area.id);
+            setAreaMode(AREA_MODE.EDIT);
+          }}
+        >
+          Edit
+        </AreasListItemButton>
         <AreasListItemButton
           variantType='danger'
           onClick={() =>

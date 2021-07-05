@@ -10,18 +10,21 @@ import {
 import { AreasSidebarToggle } from './Toggle';
 import { List } from '../List';
 import { Search } from 'components/_shared/Search';
+import { AreasEdit } from './AreasEdit';
 
-import { selectAreasList } from 'state';
+import { selectAreasList, selectAreaMode } from 'state';
 import { areasEvents } from '_events';
-import { MODAL_TYPE } from '_constants';
+import { MODAL_TYPE, AREA_MODE } from '_constants';
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
 
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
+  const [areas, setAreas] = useState(initialAreas);
 
   const initialAreas = useSelector(selectAreasList);
-  const [areas, setAreas] = useState(initialAreas);
+  const areaMode = useSelector(selectAreaMode);
+
   useEffect(() => setAreas(initialAreas), [initialAreas]);
 
   useEffect(() => {
@@ -68,23 +71,30 @@ export const AreasSidebar = ({ ...props }) => {
         heading='My areas'
         withUnmountToggle={false}
       >
-        <Search
-          control={{ placeholder: 'Search by name', autoComplete: 'off' }}
-          onReset={handleSearchReset}
-          onSubmit={handleSearchSubmit}
-        />
+        {areaMode === AREA_MODE.LIST && (
+          <>
+            <Search
+              control={{ placeholder: 'Search by name', autoComplete: 'off' }}
+              onReset={handleSearchReset}
+              onSubmit={handleSearchSubmit}
+            />
 
-        <List areas={areas} />
+            <List areas={areas} />
 
-        {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
+            {isAreasNotFound && (
+              <AreasSidebarMessage>Areas not found</AreasSidebarMessage>
+            )}
 
-        <AreasSidebarButton
-          variant='primary'
-          icon='Plus'
-          onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
-        >
-          Add new area
-        </AreasSidebarButton>
+            <AreasSidebarButton
+              variant='primary'
+              icon='Plus'
+              onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
+            >
+              Add new area
+            </AreasSidebarButton>
+          </>
+        )}
+        {areaMode === AREA_MODE.EDIT && <AreasEdit areas={initialAreas} />}
       </StyledAreasSidebar>
     </>
   );
