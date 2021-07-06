@@ -58,6 +58,10 @@ export const AreasSidebar = ({ ...props }) => {
     searchAreasByQuery(values.query);
   };
 
+  const handleSearchSubmitOnChange = e => {
+    searchAreasByQuery(e.target.value);
+  };
+
   const handleSearchReset = () => {
     resetAreas();
   };
@@ -77,6 +81,7 @@ export const AreasSidebar = ({ ...props }) => {
               control={{ placeholder: 'Search by name', autoComplete: 'off' }}
               onReset={handleSearchReset}
               onSubmit={handleSearchSubmit}
+              onChange={handleSearchSubmitOnChange}
             />
 
             <List areas={areas} />
