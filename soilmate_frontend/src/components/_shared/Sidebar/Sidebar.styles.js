@@ -21,7 +21,7 @@ export const SidebarButtonClose = styled(Button).attrs({
     position: absolute;
     right: ${rem(theme.spacing[8])};
     top: ${rem(theme.spacing[10])};
-
+    border: ${theme.borders.default(theme.fontSizes[1])};
     ${ButtonIcon} {
       width: ${rem(12)};
     }
