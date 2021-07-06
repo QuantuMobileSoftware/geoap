@@ -23,11 +23,14 @@ const saveArea = area => {
 
 const deleteArea = id => axiosInstance.delete(`${areasEndpoints.root}/${id}`);
 
+const patchArea = (id, data) => axiosInstance.patch(`${areasEndpoints.root}/${id}`, data);
+
 export const areasRequests = {
   getAreas,
   getArea,
   getAreaRequests,
   getAreaResults,
   saveArea,
-  deleteArea
+  deleteArea,
+  patchArea
 };
