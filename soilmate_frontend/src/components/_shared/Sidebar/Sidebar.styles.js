@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem } from 'styles';
+import { rem, em } from 'styles';
 
 import { Button, ButtonIcon } from '../Button';
 import { Paper } from '../Paper';
@@ -53,8 +53,8 @@ export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
     text-align: center;
     & button:first-child {
-      margin-right: 32px;
-      border: 1px solid ${theme.colors.nature.n1};
+      margin-right: ${em(32, theme.fontSizes[2])};
+      border: ${theme.borders.default(theme.fontSizes[2])};
     }
   `}
 `;

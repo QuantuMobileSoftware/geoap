@@ -77,3 +77,7 @@ export const getCentroid = arr => {
   f = twicearea * 3;
   return { lat: x / f, lng: y / f };
 };
+
+export const getElementBottom = el => {
+  if (el) return el.current?.offsetTop + el.current?.offsetHeight + el.current?.scrollTop;
+};

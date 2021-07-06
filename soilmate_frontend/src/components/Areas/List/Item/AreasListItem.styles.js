@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem } from 'styles';
+import { rem, em } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
 import { Image } from 'components/_shared/Image';
@@ -73,7 +73,7 @@ export const AreasListItemThumbnail = styled(Image)`
 `;
 
 export const AreasListItem = styled.li`
-  ${({ theme, hasCoordinates, onClick, isActive }) => [
+  ${({ theme, hasCoordinates, onClick, isActive, top }) => [
     css`
       position: relative;
       display: flex;
@@ -86,9 +86,11 @@ export const AreasListItem = styled.li`
         background: ${isActive ? theme.colors.primary.p4 : theme.colors.misc.background3};
       }
 
-      &:last-child:not(:first-child) .isOpen > div {
-        top: -75px;
-      }
+      ${top
+        ? `.isOpen > div {
+        top: ${em(-75)};
+      }`
+        : null}
 
       &:hover {
         background: ${theme.colors.primary.p4};
