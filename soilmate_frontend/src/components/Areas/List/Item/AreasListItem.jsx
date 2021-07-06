@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { isNumber } from 'lodash-es';
 
 import {
@@ -12,15 +12,16 @@ import {
   AreasListItemButton
 } from './AreasListItem.styles';
 
-import { getPolygonPositions } from 'utils/helpers';
+import { getPolygonPositions, getElementBottom } from 'utils/helpers';
 import { areasEvents } from '_events';
 import { AREA_MODE, MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
-export const ListItem = ({ area = {}, ...props }) => {
+export const ListItem = ({ area = {}, parent, ...props }) => {
   const { setCurrentArea, setAreaMode } = useAreasActions();
-
+  const areaRef = useRef(null);
+  const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
     ['X', +coordinatesArray[0].toFixed(1)],
@@ -49,6 +50,8 @@ export const ListItem = ({ area = {}, ...props }) => {
   return (
     <AreasListItem
       {...props}
+      top={isTopPosition}
+      ref={areaRef}
       hasCoordinates={hasCoordinates}
       onClick={() => {
         setCurrentArea(area.id);
@@ -61,7 +64,11 @@ export const ListItem = ({ area = {}, ...props }) => {
         {renderCoordinates()}
       </AreasListItemBody>
 
-      <AreasListItemMenu>
+      <AreasListItemMenu
+        onClick={() => {
+          setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
+        }}
+      >
         <AreasListItemButton
           onClick={() => {
             setCurrentArea(area.id);
