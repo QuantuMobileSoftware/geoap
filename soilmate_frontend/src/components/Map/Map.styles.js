@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem } from 'styles';
+import { rem, em } from 'styles';
 
 import { MapContainer } from 'react-leaflet';
 
@@ -19,7 +19,7 @@ export const MapButton = styled(Button)`
     css`
       color: ${theme.colors.nature.n3};
       &:first-child {
-        margin-bottom: 10px;
+        margin-bottom: ${em(10, theme.fontSizes[2])};
       }
     `}
 `;
@@ -29,8 +29,8 @@ export const MapButtonsHolder = styled.div`
     position: absolute;
     display: flex;
     flex-direction: column;
-    right: 20px;
-    bottom: 30px;
+    right: ${rem(20)};
+    bottom: ${rem(30)};
     z-index: 400;
   `}
 `;
