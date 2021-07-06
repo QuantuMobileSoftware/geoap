@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import { FormField } from 'components/_shared/Form';
 import { em, rem } from 'styles';
+import { Typography } from 'components/_shared/Typography';
 
 export const AxisWrapper = styled.div`
   display: flex;
@@ -29,5 +30,16 @@ export const ButtonWrapper = styled.div`
       margin-right: ${em(11)};
       border: ${theme.borders.default(theme.fontSizes[2])};
     }
+  `}
+`;
+
+export const Upload = styled.div`
+  margin-top: ${em(32)};
+  margin-bottom: ${em(12)};
+`;
+
+export const UploadTitle = styled(Typography).attrs({ element: 'p' })`
+  ${({ theme }) => css`
+    font-size: ${rem(theme.fontSizes[1])};
   `}
 `;

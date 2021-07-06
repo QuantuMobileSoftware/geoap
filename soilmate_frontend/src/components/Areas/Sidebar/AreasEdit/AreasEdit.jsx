@@ -6,7 +6,13 @@ import { FormField, Form } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
 import { getPolygonPositions } from 'utils/helpers';
 import { AREA_MODE } from '_constants';
-import { AxisWrapper, AxisInput, ButtonWrapper } from './AreasEdit.styles';
+import {
+  AxisWrapper,
+  AxisInput,
+  ButtonWrapper,
+  Upload,
+  UploadTitle
+} from './AreasEdit.styles';
 
 export const AreasEdit = ({ areas }) => {
   const { setAreaMode, patchArea } = useAreasActions();
@@ -34,6 +40,10 @@ export const AreasEdit = ({ areas }) => {
     >
       {({ values }) => (
         <>
+          <Upload>
+            <Button icon='Upload'>Upload file</Button>
+            <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
+          </Upload>
           <FormField label='Name' name='name' placeholder='City...' />
           <AxisWrapper>
             <AxisInput type='number' label='X axis' name='x' />
