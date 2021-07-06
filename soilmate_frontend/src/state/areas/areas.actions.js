@@ -61,6 +61,17 @@ export const useAreasActions = () => {
     [handleAsync, dispatch]
   );
 
+  const patchArea = useCallback(
+    async (id, data) => {
+      await handleAsync(async () => {
+        const resp = await API.areas.patchArea(id, data);
+        if (resp.status >= 400) return;
+        dispatch(areasActions.patchArea({ id, area: resp.data }));
+      });
+    },
+    [dispatch, handleAsync]
+  );
+
   const setAreaMode = useCallback(
     mode => dispatch(areasActions.setAreaMode(mode)),
     [dispatch]
@@ -73,6 +84,7 @@ export const useAreasActions = () => {
     setCurrentArea,
     saveArea,
     deleteArea,
-    setAreaMode
+    setAreaMode,
+    patchArea
   };
 };
