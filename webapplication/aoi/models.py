@@ -58,7 +58,7 @@ class Request(models.Model):
         return self.notebook.name
 
 
-class PlotBoundaries:
+class PlotBoundaries(models.Model):
     aoi = models.ForeignKey(AoI, on_delete=models.CASCADE, verbose_name='AOI id')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     date_from = models.DateField(verbose_name='Date from')
