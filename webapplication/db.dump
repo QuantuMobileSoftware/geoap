@@ -563,7 +563,8 @@ CREATE TABLE public.publisher_result (
     name character varying(200) NOT NULL,
     to_be_deleted boolean NOT NULL,
     request_id integer,
-    styles_url character varying(400)
+    styles_url character varying(400),
+    labels jsonb
 );
 
 
@@ -833,6 +834,7 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, ru
 1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	python37	\N	f	f
 4	test_geotiff	ndvi_jupyter:latest	work/notebooks/test/test_geotiff.ipynb	python3	\N	f	f
 7	TCI_NDVI	sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	\N	f	f
+8	plot_boundaries	pbdnn_nvidia_jupyter:latest	work/notebooks/pbdnn/sip_plot_boundary_detection_nn/PBDNN_inference.ipynb	python3	\N	f	f
 \.
 
 
@@ -1074,6 +1076,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 61	aoi	0012_request_calculated	2021-03-12 18:52:18.574555+00
 62	aoi	0013_request_add_run_validation_success	2021-03-12 18:52:18.592958+00
 63	publisher	0017_result_styles_url	2021-03-12 18:52:18.60385+00
+64	publisher	0018_result_labels	2021-07-06 09:56:42.116346+00
 \.
 
 
@@ -1112,7 +1115,7 @@ COPY public.publisher_acl (id, restrict_projects_to, user_id) FROM stdin;
 -- Data for Name: publisher_result; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.publisher_result (id, filepath, modifiedat, layer_type, bounding_polygon, rel_url, options, description, released, start_date, end_date, name, to_be_deleted, request_id, styles_url) FROM stdin;
+COPY public.publisher_result (id, filepath, modifiedat, layer_type, bounding_polygon, rel_url, options, description, released, start_date, end_date, name, to_be_deleted, request_id, styles_url, labels) FROM stdin;
 \.
 
 
@@ -1260,7 +1263,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 14, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 63, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 64, true);
 
 
 --
