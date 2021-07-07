@@ -36,7 +36,7 @@ export const AreasList = React.memo(({ initialAreas }) => {
     searchAreasByQuery(values.query);
   };
 
-  const handleSearchSubmitOnChange = e => {
+  const handleSearchChange = e => {
     searchAreasByQuery(e.target.value);
   };
 
@@ -50,7 +50,7 @@ export const AreasList = React.memo(({ initialAreas }) => {
         control={{ placeholder: 'Search by name', autoComplete: 'off' }}
         onReset={handleSearchReset}
         onSubmit={handleSearchSubmit}
-        onChange={handleSearchSubmitOnChange}
+        onChange={handleSearchChange}
       />
 
       <List areas={areas} />

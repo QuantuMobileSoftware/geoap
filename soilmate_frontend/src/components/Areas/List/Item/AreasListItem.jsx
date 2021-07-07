@@ -14,7 +14,7 @@ import {
 
 import { getPolygonPositions, getElementBottom } from 'utils/helpers';
 import { areasEvents } from '_events';
-import { AREA_MODE, MODAL_TYPE } from '_constants';
+import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
@@ -72,7 +72,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         <AreasListItemButton
           onClick={() => {
             setCurrentArea(area.id);
-            setAreaMode(AREA_MODE.EDIT);
+            setAreaMode(SIDEBAR_MODE.EDIT);
           }}
         >
           Edit

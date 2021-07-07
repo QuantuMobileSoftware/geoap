@@ -4,7 +4,7 @@ export const MODAL_TYPE = {
   SAVE: 'save'
 };
 
-export const AREA_MODE = {
+export const SIDEBAR_MODE = {
   LIST: 'area_list',
   EDIT: 'edit_area',
   REPORT: 'area_reports',

@@ -5,7 +5,7 @@ import { selectCurrentArea, useAreasActions, selectUser } from 'state';
 import { FormField, Form } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
 import { getPolygonPositions } from 'utils/helpers';
-import { AREA_MODE } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
 import {
   AxisWrapper,
   AxisInput,
@@ -27,7 +27,7 @@ export const AreasEdit = ({ areas }) => {
       name: values.name
     };
     patchArea(currentAreaId, areaData);
-    setAreaMode(AREA_MODE.LIST);
+    setAreaMode(SIDEBAR_MODE.LIST);
   };
 
   return (
@@ -53,7 +53,7 @@ export const AreasEdit = ({ areas }) => {
             <Button
               variant='secondary'
               padding={50}
-              onClick={() => setAreaMode(AREA_MODE.LIST)}
+              onClick={() => setAreaMode(SIDEBAR_MODE.LIST)}
             >
               Cancel
             </Button>

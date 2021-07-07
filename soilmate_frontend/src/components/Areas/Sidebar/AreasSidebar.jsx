@@ -7,20 +7,20 @@ import { AreasSidebarToggle } from './Toggle';
 import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 
-import { selectAreasList, selectAreaMode } from 'state';
+import { selectAreasList, setSidebarMode } from 'state';
 import { areasEvents } from '_events';
-import { AREA_MODE } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
 
 const sidebarHeaders = {
-  [AREA_MODE.LIST]: 'My areas',
-  [AREA_MODE.EDIT]: 'Edit my area'
+  [SIDEBAR_MODE.LIST]: 'My areas',
+  [SIDEBAR_MODE.EDIT]: 'Edit my area'
 };
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
 
   const initialAreas = useSelector(selectAreasList);
-  const areaMode = useSelector(selectAreaMode);
+  const sidebarMode = useSelector(setSidebarMode);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
@@ -34,11 +34,11 @@ export const AreasSidebar = ({ ...props }) => {
       <StyledAreasSidebar
         {...props}
         ref={rootRef}
-        heading={sidebarHeaders[areaMode]}
+        heading={sidebarHeaders[sidebarMode]}
         withUnmountToggle={false}
       >
-        {areaMode === AREA_MODE.LIST && <AreasList initialAreas={initialAreas} />}
-        {areaMode === AREA_MODE.EDIT && <AreasEdit areas={initialAreas} />}
+        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList initialAreas={initialAreas} />}
+        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit areas={initialAreas} />}
       </StyledAreasSidebar>
     </>
   );
