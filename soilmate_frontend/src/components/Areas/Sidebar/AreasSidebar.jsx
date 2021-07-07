@@ -1,28 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 
-import {
-  AreasSidebarButton,
-  AreasSidebarMessage,
-  StyledAreasSidebar
-} from './AreasSidebar.styles';
+import { StyledAreasSidebar } from './AreasSidebar.styles';
 
 import { AreasSidebarToggle } from './Toggle';
-import { List } from '../List';
-import { Search } from 'components/_shared/Search';
+import { AreasEdit } from './AreasEdit';
+import { AreasList } from './AreasList';
 
-import { selectAreasList } from 'state';
+import { selectAreasList, setSidebarMode } from 'state';
 import { areasEvents } from '_events';
-import { MODAL_TYPE } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
+
+const sidebarHeaders = {
+  [SIDEBAR_MODE.LIST]: 'My areas',
+  [SIDEBAR_MODE.EDIT]: 'Edit my area'
+};
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
 
-  const [isAreasNotFound, setIsAreasNotFound] = useState(false);
-
   const initialAreas = useSelector(selectAreasList);
-  const [areas, setAreas] = useState(initialAreas);
-  useEffect(() => setAreas(initialAreas), [initialAreas]);
+  const sidebarMode = useSelector(setSidebarMode);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
@@ -30,66 +28,17 @@ export const AreasSidebar = ({ ...props }) => {
     });
   }, []);
 
-  const resetAreas = () => {
-    setIsAreasNotFound(false);
-    setAreas(initialAreas);
-  };
-
-  const searchAreasByQuery = query => {
-    if (!query) return resetAreas();
-
-    const foundAreas = initialAreas.filter(area => {
-      return area.name.match(query, 'gi');
-    });
-
-    if (!foundAreas.length) {
-      setAreas([]);
-      return setIsAreasNotFound(true);
-    }
-
-    setIsAreasNotFound(false);
-    setAreas(foundAreas);
-  };
-
-  const handleSearchSubmit = values => {
-    searchAreasByQuery(values.query);
-  };
-
-  const handleSearchSubmitOnChange = e => {
-    searchAreasByQuery(e.target.value);
-  };
-
-  const handleSearchReset = () => {
-    resetAreas();
-  };
-
   return (
     <>
       <AreasSidebarToggle />
       <StyledAreasSidebar
         {...props}
         ref={rootRef}
-        heading='My areas'
+        heading={sidebarHeaders[sidebarMode]}
         withUnmountToggle={false}
       >
-        <Search
-          control={{ placeholder: 'Search by name', autoComplete: 'off' }}
-          onReset={handleSearchReset}
-          onSubmit={handleSearchSubmit}
-          onChange={handleSearchSubmitOnChange}
-        />
-
-        <List areas={areas} />
-
-        {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
-
-        <AreasSidebarButton
-          variant='primary'
-          icon='Plus'
-          onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
-        >
-          Add new area
-        </AreasSidebarButton>
+        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList initialAreas={initialAreas} />}
+        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit areas={initialAreas} />}
       </StyledAreasSidebar>
     </>
   );
