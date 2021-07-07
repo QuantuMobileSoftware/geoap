@@ -16,5 +16,5 @@ urlpatterns = [
     
     path('request', RequestListCreateAPIView.as_view(), name='request_list_or_create'),
     path('request/<int:pk>', RequestRetrieveAPIView.as_view(), name='request'),
-    path('aoi/<int:aoi>/plot_boundaries/<int:year>', PlotBoundariesListCreateAPIView.as_view(), name='plot_boundaries'),
+    path('aoi/<int:pk>/plot_boundaries/<int:year>', PlotBoundariesListCreateAPIView.as_view(), name='plot_boundaries'),
 ]

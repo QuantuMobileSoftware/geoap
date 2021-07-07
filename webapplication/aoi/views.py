@@ -12,6 +12,8 @@ from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 import datetime
 
+NOTEBOOK_ID = 1
+
 
 class AoIListCreateAPIView(ListCreateAPIView):
     permission_classes = (ModelPermissions,)
@@ -122,34 +124,37 @@ class AOIRequestListAPIView(ListAPIView):
 class PlotBoundariesListCreateAPIView(ListCreateAPIView):
     # permission_classes = (ModelPermissions,)
     queryset = PlotBoundaries.objects.all()
-    serializer_class = PlotBoundariesSerializer
-    lookup_url_kwarg = "aoi"
+    lookup_url_kwarg = "pk"
     pagination_class = None
 
     def get_queryset(self):
-        plot_boundaries = self.queryset.filter(
-            aoi=self.kwargs[self.lookup_url_kwarg], date_from__year=self.kwargs['year'])
+        aoi = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
+        qs = self.queryset.filter(aoi=self.kwargs[self.lookup_url_kwarg],
+                                  date_from__year=self.kwargs['year'])
+        return qs
 
-        return plot_boundaries.filter()
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return PlotBoundariesSerializer
+        return RequestSerializer
 
-    # def get_serializer_class(self):
-    #     if self.request.method == 'GET':
-    #         return PlotBoundariesSerializer
-    #     return RequestSerializer
-
-    # def create(self, request, *args, **kwargs):
-    #
-    #     dates = {
-    #         'data_from': datetime.date(request.data.year, 1, 1),
-    #         'date_to': datetime.date(request.data.year, 1, 1)
-    #     }
-    #     data = request.data.update(dates)
-    #
-    #     serializer = self.get_serializer(data=data)
-    #     if serializer.initial_data['user'] != self.request.user.id and \
-    #             not self.request.user.has_perm('add_another_user_aoi'):
-    #         return Response(status=status.HTTP_403_FORBIDDEN)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_create(serializer)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    def create(self, request, *args, **kwargs):
+        aoi = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
+        qs = self.queryset.filter(
+            aoi=self.kwargs[self.lookup_url_kwarg],
+            date_from__year=self.kwargs['year'])
+        ~qs.exists() or qs.delete()
+        date = datetime.date(self.kwargs['year'], 1, 1)
+        data = {
+            "user": request.user.id,
+            "aoi": self.kwargs[self.lookup_url_kwarg],
+            "date_from": date,
+            "date_to": date,
+            "polygon": aoi.polygon,
+            "notebook": NOTEBOOK_ID
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

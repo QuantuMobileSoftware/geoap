@@ -33,5 +33,7 @@ class RequestSerializer(serializers.ModelSerializer):
 
 
 class PlotBoundariesSerializer(serializers.ModelSerializer):
-    model = PlotBoundaries
-    fields = '__all__'
+    class Meta:
+        model = PlotBoundaries
+        fields = ('id', 'aoi', 'polygon', 'date_from', 'date_to')
+        read_only_fields = ['id', 'aoi', 'polygon', 'date_from', 'date_to']
