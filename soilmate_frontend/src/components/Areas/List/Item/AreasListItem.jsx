@@ -14,12 +14,12 @@ import {
 
 import { getPolygonPositions, getElementBottom } from 'utils/helpers';
 import { areasEvents } from '_events';
-import { MODAL_TYPE } from '_constants';
+import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
 import { useAreasActions } from 'state';
 
 export const ListItem = ({ area = {}, parent, ...props }) => {
-  const { setCurrentArea } = useAreasActions();
+  const { setCurrentArea, setAreaMode } = useAreasActions();
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -69,7 +69,14 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
           setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
         }}
       >
-        <AreasListItemButton>Edit</AreasListItemButton>
+        <AreasListItemButton
+          onClick={() => {
+            setCurrentArea(area.id);
+            setAreaMode(SIDEBAR_MODE.EDIT);
+          }}
+        >
+          Edit
+        </AreasListItemButton>
         <AreasListItemButton
           variantType='danger'
           onClick={() =>
