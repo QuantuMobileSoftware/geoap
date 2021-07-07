@@ -66,7 +66,7 @@ export const useAreasActions = () => {
       await handleAsync(async () => {
         const resp = await API.areas.patchArea(id, data);
         if (resp.status >= 400) return;
-        dispatch(areasActions.patchArea({ id, area: resp.data }));
+        dispatch(areasActions.updateArea({ id, area: resp.data }));
       });
     },
     [dispatch, handleAsync]

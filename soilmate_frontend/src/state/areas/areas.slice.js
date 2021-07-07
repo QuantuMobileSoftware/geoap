@@ -1,12 +1,12 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 
-import { AREA_MODE } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
 
 const AREAS_INITIAL_STATE = {
   entities: {},
   current: null,
-  mode: AREA_MODE.LIST
+  mode: SIDEBAR_MODE.LIST
 };
 
 const areasSlice = createSlice({
@@ -25,7 +25,7 @@ const areasSlice = createSlice({
     setAreaMode: (state, action) => {
       state.mode = action.payload;
     },
-    patchArea: (state, action) => {
+    updateArea: (state, action) => {
       const { id, area } = action.payload;
       const newArea = { [id]: { ...state.entities[id], ...area } };
       state.entities = { ...state.entities, ...newArea };
@@ -48,6 +48,6 @@ export const selectAreasResults = createSelector(selectAreasList, areas => {
   return areas.flatMap(({ results }) => results);
 });
 
-export const selectAreaMode = state => state.areas.mode;
+export const setSidebarMode = state => state.areas.mode;
 
 export const { reducer: areasReducer, actions: areasActions } = areasSlice;
