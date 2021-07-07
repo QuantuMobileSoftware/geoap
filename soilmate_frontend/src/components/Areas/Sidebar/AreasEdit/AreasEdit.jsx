@@ -15,7 +15,7 @@ import {
 } from './AreasEdit.styles';
 
 export const AreasEdit = ({ areas }) => {
-  const { setAreaMode, patchArea } = useAreasActions();
+  const { setSidebarMode, patchArea } = useAreasActions();
   const currentUser = useSelector(selectUser);
   const currentAreaId = useSelector(selectCurrentArea);
   const currentArea = areas.find(area => area.id === currentAreaId);
@@ -27,7 +27,7 @@ export const AreasEdit = ({ areas }) => {
       name: values.name
     };
     patchArea(currentAreaId, areaData);
-    setAreaMode(SIDEBAR_MODE.LIST);
+    setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
   return (
@@ -53,7 +53,7 @@ export const AreasEdit = ({ areas }) => {
             <Button
               variant='secondary'
               padding={50}
-              onClick={() => setAreaMode(SIDEBAR_MODE.LIST)}
+              onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
             >
               Cancel
             </Button>
