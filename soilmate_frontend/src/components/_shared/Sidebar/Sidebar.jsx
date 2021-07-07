@@ -19,6 +19,7 @@ import {
 import { Modal } from '../Modal';
 import { ModalItem } from '../ModalItem';
 import { Button } from '../Button';
+import { FileUploader } from '../FileUploader';
 import { MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
 
@@ -47,6 +48,7 @@ export const Sidebar = forwardRef(
     const [isModalOpen, setIsModalOpen] = useState(isShowModal);
     const [modalType, setModalType] = useState(MODAL_TYPE.SAVE);
     const [removedAreaId, setRemovedAreaId] = useState();
+    const [isOpenUploader, setIsOpenUploader] = useState(false);
     const { deleteArea } = useAreasActions();
 
     const _className = cn(className, { isOpen: _isOpen });
@@ -65,6 +67,10 @@ export const Sidebar = forwardRef(
       const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
       shouldClose ? handleClose() : setIsOpen(true);
     };
+
+    useEffect(() => {
+      setIsOpenUploader(false);
+    }, [isOpenUploader]);
 
     useEffect(() => {
       return areasEvents.onToggleModal(e => {
@@ -89,7 +95,10 @@ export const Sidebar = forwardRef(
               header='Upload File'
               title='Please upload files in *.GeoJSOn or *.KML'
               icon='Upload'
-            />
+              onClick={() => setIsOpenUploader(true)}
+            >
+              <FileUploader isOpen={isOpenUploader} />
+            </ModalItem>
             <ModalItem
               header='Rectangle selection'
               title='Lorem ipsum dolor sit amet'
