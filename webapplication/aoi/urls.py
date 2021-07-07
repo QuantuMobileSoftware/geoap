@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (AoIListCreateAPIView, AoIRetrieveUpdateDestroyAPIView, AOIResultsListAPIView,
                     JupyterNotebookListCreateAPIView, JupyterNotebookRetrieveUpdateDestroyAPIView,
-                    RequestListCreateAPIView, RequestRetrieveAPIView, AOIRequestListAPIView)
+                    RequestListCreateAPIView, RequestRetrieveAPIView, AOIRequestListAPIView,
+                    PlotBoundariesListCreateAPIView)
 
 app_name = 'aoi'
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     
     path('request', RequestListCreateAPIView.as_view(), name='request_list_or_create'),
     path('request/<int:pk>', RequestRetrieveAPIView.as_view(), name='request'),
+    path('aoi/<int:aoi>/plot_boundaries/<int:year>', PlotBoundariesListCreateAPIView.as_view(), name='plot_boundaries'),
 ]

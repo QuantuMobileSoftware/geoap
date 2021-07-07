@@ -2,22 +2,22 @@
 Aoi serializer module.
 """
 from rest_framework import serializers
-from .models import AoI, JupyterNotebook, Request
+from .models import AoI, JupyterNotebook, Request, PlotBoundaries
 
 
 class AoISerializer(serializers.ModelSerializer):
     class Meta:
         model = AoI
-        fields = ('id', 'user', 'name', 'polygon', 'createdat', )
+        fields = ('id', 'user', 'name', 'polygon', 'createdat',)
         read_only_fields = ['createdat', ]
 
 
 class JupyterNotebookSerializer(serializers.ModelSerializer):
     class Meta:
         model = JupyterNotebook
-        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', )
-        
-        
+        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',)
+
+
 class RequestSerializer(serializers.ModelSerializer):
     notebook_name = serializers.ReadOnlyField()
 
@@ -28,5 +28,10 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
-                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon', )
+                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',)
         read_only_fields = ['polygon', ]
+
+
+class PlotBoundariesSerializer(serializers.ModelSerializer):
+    model = PlotBoundaries
+    fields = '__all__'
