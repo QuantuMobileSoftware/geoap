@@ -1,4 +1,3 @@
-from django.shortcuts import get_list_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
@@ -128,7 +127,7 @@ class PlotBoundariesListCreateAPIView(ListCreateAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        aoi = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
+        get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
         qs = self.queryset.filter(aoi=self.kwargs[self.lookup_url_kwarg],
                                   date_from__year=self.kwargs['year'])
         return qs
