@@ -8,5 +8,6 @@ export const SIDEBAR_MODE = {
   LIST: 'area_list',
   EDIT: 'edit_area',
   REPORT: 'area_reports',
-  SETTINGS: 'area_settings'
+  SETTINGS: 'area_settings',
+  REQUESTS: 'requests'
 };

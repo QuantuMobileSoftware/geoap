@@ -5,31 +5,35 @@ import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
 import { AreasSidebarMessage, AreasSidebarButton } from './AreasList.styles';
 
-export const AreasList = React.memo(({ initialAreas }) => {
+export const AreasList = React.memo(({ areas }) => {
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
-  const [areas, setAreas] = useState(initialAreas);
+  const [listItems, setListItems] = useState(areas);
 
-  useEffect(() => setAreas(initialAreas), [initialAreas]);
+  useEffect(() => setListItems(areas), [areas]);
 
   const resetAreas = () => {
     setIsAreasNotFound(false);
-    setAreas(initialAreas);
+    setListItems(areas);
   };
 
   const searchAreasByQuery = query => {
-    if (!query) return resetAreas();
+    if (!query) {
+      resetAreas();
+      return;
+    }
 
-    const foundAreas = initialAreas.filter(area => {
+    const foundAreas = areas.filter(area => {
       return area.name.match(query, 'gi');
     });
 
     if (!foundAreas.length) {
-      setAreas([]);
-      return setIsAreasNotFound(true);
+      setListItems([]);
+      setIsAreasNotFound(true);
+      return;
     }
 
     setIsAreasNotFound(false);
-    setAreas(foundAreas);
+    setListItems(foundAreas);
   };
 
   const handleSearchSubmit = values => {
@@ -53,7 +57,7 @@ export const AreasList = React.memo(({ initialAreas }) => {
         onChange={handleSearchChange}
       />
 
-      <List areas={areas} />
+      <List areas={listItems} />
 
       {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 

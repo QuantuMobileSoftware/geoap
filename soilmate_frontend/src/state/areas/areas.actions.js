@@ -72,8 +72,8 @@ export const useAreasActions = () => {
     [dispatch, handleAsync]
   );
 
-  const setAreaMode = useCallback(
-    mode => dispatch(areasActions.setAreaMode(mode)),
+  const setSidebarMode = useCallback(
+    mode => dispatch(areasActions.setSidebarMode(mode)),
     [dispatch]
   );
 
@@ -84,7 +84,7 @@ export const useAreasActions = () => {
     setCurrentArea,
     saveArea,
     deleteArea,
-    setAreaMode,
+    setSidebarMode,
     patchArea
   };
 };

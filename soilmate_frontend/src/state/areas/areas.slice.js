@@ -16,13 +16,14 @@ const areasSlice = createSlice({
     setEntities: (state, action) => {
       state.entities = { ...state.entities, ...action.payload };
     },
+    //set current area ID
     setCurrentArea: (state, action) => {
       state.current = action.payload;
     },
     deleteAreaById: (state, action) => {
       state.entities = omit(state.entities, action.payload);
     },
-    setAreaMode: (state, action) => {
+    setSidebarMode: (state, action) => {
       state.mode = action.payload;
     },
     updateArea: (state, action) => {
@@ -34,7 +35,9 @@ const areasSlice = createSlice({
 });
 
 export const selectAreas = state => state.areas.entities;
+//get current area ID
 export const selectCurrentArea = state => state.areas.current;
+export const selectSidebarMode = state => state.areas.mode;
 
 export const selectAreasList = createSelector(selectAreas, areas => {
   return Object.values(areas).map(area => ({
@@ -48,6 +51,16 @@ export const selectAreasResults = createSelector(selectAreasList, areas => {
   return areas.flatMap(({ results }) => results);
 });
 
-export const setSidebarMode = state => state.areas.mode;
+export const selectAreasRequests = createSelector(selectAreasList, areas => {
+  return areas.flatMap(({ requests }) => requests);
+});
+
+export const selectCurrentRequests = createSelector(
+  selectAreasList,
+  selectCurrentArea,
+  (areas, areaID) => {
+    return areas.flatMap(({ requests }) => requests).filter(i => i.aoi === areaID);
+  }
+);
 
 export const { reducer: areasReducer, actions: areasActions } = areasSlice;

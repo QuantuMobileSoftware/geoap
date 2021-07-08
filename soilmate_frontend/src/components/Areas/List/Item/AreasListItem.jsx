@@ -9,7 +9,9 @@ import {
   AreasListItemName,
   AreasListItemThumbnail,
   AreasListItem,
-  AreasListItemButton
+  AreasListItemButton,
+  AreasIconButton,
+  AreasIconButtonsHolder
 } from './AreasListItem.styles';
 
 import { getPolygonPositions, getElementBottom } from 'utils/helpers';
@@ -19,7 +21,7 @@ import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
 
 export const ListItem = ({ area = {}, parent, ...props }) => {
-  const { setCurrentArea, setAreaMode } = useAreasActions();
+  const { setCurrentArea, setSidebarMode } = useAreasActions();
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -64,6 +66,17 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         {renderCoordinates()}
       </AreasListItemBody>
 
+      <AreasIconButtonsHolder isActive={props.isActive}>
+        <AreasIconButton icon='Plus'></AreasIconButton>
+        <AreasIconButton
+          icon='List'
+          onClick={() => {
+            setCurrentArea(area.id);
+            setSidebarMode(SIDEBAR_MODE.REQUESTS);
+          }}
+        ></AreasIconButton>
+      </AreasIconButtonsHolder>
+
       <AreasListItemMenu
         onClick={() => {
           setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
@@ -72,7 +85,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         <AreasListItemButton
           onClick={() => {
             setCurrentArea(area.id);
-            setAreaMode(SIDEBAR_MODE.EDIT);
+            setSidebarMode(SIDEBAR_MODE.EDIT);
           }}
         >
           Edit
