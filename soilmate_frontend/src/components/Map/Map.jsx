@@ -17,6 +17,14 @@ import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils
 const center = [51.505, -0.09];
 const initZoom = 14;
 
+const getShapePositions = polygon => {
+  const latLangs = getPolygonPositions(polygon).coordinates[0];
+  const polyline = L.polyline(latLangs);
+  const center = getCentroid(latLangs);
+  const bounds = polyline.getBounds();
+  return { center, bounds };
+};
+
 export const Map = () => {
   const [map, setMap] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -48,10 +56,7 @@ export const Map = () => {
     if (!polygon) {
       return;
     }
-    const latLangs = getPolygonPositions(polygon).coordinates[0];
-    const polyline = L.polyline(latLangs);
-    const center = getCentroid(latLangs);
-    const bounds = polyline.getBounds();
+    const { center, bounds } = getShapePositions(polygon);
     map.panTo(center).fitBounds(bounds);
   }, [currentArea, initialAreas, map]);
 
@@ -64,8 +69,20 @@ export const Map = () => {
 
   useEffect(() => {
     return areasEvents.onCreateShape(e => {
-      const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
-      shape.enable();
+      if (e.json) {
+        const shape = L.geoJSON(e.json);
+        const createShape = () => afterShapeCreated({ layer: shape });
+        shape.on('add', createShape);
+        shape.addTo(map);
+        const { center, bounds } = getShapePositions({
+          polygon: getShapePositionsString(shape)
+        });
+        map.panTo(center).fitBounds(bounds);
+        return () => shape.off('add', createShape);
+      } else {
+        const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
+        shape.enable();
+      }
     });
   }, [map]);
 
@@ -81,6 +98,7 @@ export const Map = () => {
       name: `New area ${newAreaNumber}`,
       polygon: getShapePositionsString(currentShape)
     };
+    map.removeLayer(currentShape);
     saveArea(data);
   };
 

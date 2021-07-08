@@ -13,7 +13,7 @@ class AreasEvents extends EventEmitter {
     return () => this.removeListener('toggleModal', callback);
   };
 
-  createShape = shapeType => this.emit('createShape', { shapeType });
+  createShape = (shapeType, json) => this.emit('createShape', { shapeType, json });
   onCreateShape = callback => {
     this.on('createShape', callback);
     return () => this.removeListener('createShape', callback);
