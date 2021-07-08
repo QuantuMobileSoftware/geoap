@@ -5,13 +5,12 @@ from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
+from sip import settings
 from .models import AoI, JupyterNotebook, Request, PlotBoundaries
 from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer, PlotBoundariesSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 import datetime
-
-NOTEBOOK_ID = 1
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -139,10 +138,6 @@ class PlotBoundariesListCreateAPIView(ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         aoi = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
-        qs = self.queryset.filter(
-            aoi=self.kwargs[self.lookup_url_kwarg],
-            date_from__year=self.kwargs['year'])
-        ~qs.exists() or qs.delete()
         date = datetime.date(self.kwargs['year'], 1, 1)
         data = {
             "user": request.user.id,
@@ -150,7 +145,7 @@ class PlotBoundariesListCreateAPIView(ListCreateAPIView):
             "date_from": date,
             "date_to": date,
             "polygon": aoi.polygon,
-            "notebook": NOTEBOOK_ID
+            "notebook": settings.PLOT_BOUNDARIES_NOTEBOOK_ID
         }
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
