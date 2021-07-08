@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ProgressBar, FileInfo, StyledUploader } from './FileUploader.styles';
 
-export const FileUploader = ({ isOpen }) => {
+export const FileUploader = ({ isOpen, createShape }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileName, setFileName] = useState('File');
   const [fileError, setFileError] = useState(false);
@@ -17,19 +17,28 @@ export const FileUploader = ({ isOpen }) => {
       setIsShowProgress(false);
       return;
     }
+    if (!file.type.includes('json')) {
+      setFileError('Please upload file in geojson format');
+    }
+
     setFileName(file.name);
+
     const fileReader = new FileReader();
     fileReader.onloadstart = () => {
       setIsShowProgress(true);
     };
 
     fileReader.onload = () => {
-      //const stringData = fileReader.result;
-      // do something with data
+      try {
+        const result = JSON.parse(fileReader.result);
+        createShape(result);
+      } catch (err) {
+        console.error('Parse error', err);
+      }
     };
 
     fileReader.onerror = () => {
-      setFileError('File_name.KML  - Error : file is injured');
+      setFileError(`${fileName} - Error : file is injured`);
     };
     fileReader.onprogress = progress => {
       const loaded = Math.round((progress.loaded * 100) / progress.total);

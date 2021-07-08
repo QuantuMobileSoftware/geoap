@@ -63,6 +63,11 @@ export const Sidebar = forwardRef(
       areasEvents.createShape(shape);
     };
 
+    const newShapeFromFile = coordinates => {
+      areasEvents.toggleModal(false);
+      areasEvents.createShape('Polygon', coordinates);
+    };
+
     const toggle = isOpen => {
       const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
       shouldClose ? handleClose() : setIsOpen(true);
@@ -97,7 +102,7 @@ export const Sidebar = forwardRef(
               icon='Upload'
               onClick={() => setIsOpenUploader(true)}
             >
-              <FileUploader isOpen={isOpenUploader} />
+              <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
             </ModalItem>
             <ModalItem
               header='Rectangle selection'
