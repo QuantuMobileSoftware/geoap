@@ -6,6 +6,7 @@ from user.models import User
 from .models import AoI, JupyterNotebook
 from .serializers import AoISerializer
 from user.tests import UserBase
+from django.conf import settings
 
 logger = logging.getLogger('root')
 
@@ -475,3 +476,85 @@ class AOIRequestsTestCase(UserBase):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(content), expected_requests_len)
+
+
+class PlotBoundariesTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+                'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json',
+                'aoi/fixtures/request_fixtures.json',
+                'aoi/fixtures/plot_boundaries_fixtures.json']
+
+    data_create = {
+        "user": 1002,
+        "aoi": 1002,
+        "date_from": '2021-01-01',
+        "date_to": '2021-01-01',
+        "polygon": "SRID=4326;POLYGON ((\
+            35.895191466414154 50.009453778741694, \
+            36.336338200246395 50.008199333053057, \
+            36.344659254377753 49.460584684398697, \
+            35.912753706054865 49.4508072987418, \
+            35.895191466414154 50.009453778741694\
+            ))",
+        "notebook": settings.PLOT_BOUNDARIES_NOTEBOOK_ID
+    }
+
+    def setUp(self):
+        super().setUp()
+
+    def get_plot_boundaries(self, aoi_id, user=None, year=2021) -> object:
+        url = reverse('aoi:plot_boundaries_list_or_create', kwargs={'pk': aoi_id, 'year': year})
+        self.client.force_authenticate(user=user)
+        response = self.client.get(url)
+        return response
+
+    def test_get_plot_boundaries_not_auth(self):
+        response = self.get_plot_boundaries(1001, user=None, year=2021)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_plot_boundaries_as_not_owner_staff(self):
+        response = self.get_plot_boundaries(1002, user=self.staff_user, year=2021)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_plot_boundaries_as_owner_check_results(self):
+        expected_results_len = 2
+        response = self.get_plot_boundaries(1002, user=self.ex_2_user, year=2021)
+        content = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+
+    def test_get_plot_boundaries_owner_check_results_other_year(self):
+        expected_results_len = 1
+        response = self.get_plot_boundaries(1002, user=self.ex_2_user, year=2020)
+        content = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+        self.assertTrue(content[0]['date_to'] == '2020-01-01')
+
+    def post_request(self, aoi_id, year, user=None):
+        self.client.force_authenticate(user=user)
+        url = reverse('aoi:plot_boundaries_list_or_create', kwargs={'pk': aoi_id, 'year': year})
+        return self.client.post(url, self.data_create)
+
+    def test_create_plot_boundaries_as_not_auth_user(self):
+        response = self.post_request(aoi_id=1, user=None, year=2021)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_plot_boundaries_as_not_owner_staff(self):
+        response = self.post_request(1002, user=self.staff_user, year=2021)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_plot_boundaries_request_as_owner(self):
+        response = self.post_request(aoi_id=1002, user=self.ex_2_user, year=2021)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        equals = [
+            request[1] == response[1]
+            for request, response in zip(
+                sorted(response.json().items()), sorted(self.data_create.items())
+            )
+            if response[0] == request[0]
+        ]
+        self.assertTrue(all(equals))
+
+
