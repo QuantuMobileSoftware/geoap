@@ -47,7 +47,8 @@ export const getPolygonPositions = item => {
 export const getShapePositionsString = layer => {
   try {
     const wkt = new Wkt.Wkt();
-    const json = layer.toGeoJSON();
+    let json = layer.toGeoJSON?.();
+    json = json ?? layer;
     const geometry = json.geometry ? json.geometry : json.features[0].geometry;
     geometry.coordinates = geometry.coordinates.map(item =>
       item.map(point => [point[1], point[0]])

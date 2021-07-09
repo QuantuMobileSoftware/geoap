@@ -71,7 +71,13 @@ export const Map = () => {
     return areasEvents.onCreateShape(e => {
       if (e.json) {
         const shape = L.geoJSON(e.json);
-        const createShape = () => afterShapeCreated({ layer: shape });
+        const createShape = () => {
+          if (e.isShowPopup) {
+            setIsPopupVisible(true);
+          }
+          setCurrentShape(shape);
+        };
+
         shape.on('add', createShape);
         shape.addTo(map);
         const { center, bounds } = getShapePositions({
@@ -85,6 +91,10 @@ export const Map = () => {
       }
     });
   }, [map]);
+
+  useEffect(() => {
+    return areasEvents.onUpdateShape(() => map.removeLayer(currentShape));
+  });
 
   const handleCancelSaveShape = () => {
     map.removeLayer(currentShape);
