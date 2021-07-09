@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ProgressBar, FileInfo, StyledUploader } from './FileUploader.styles';
+import { kml } from '@tmcw/togeojson';
 
 export const FileUploader = ({ isOpen, createShape }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -17,8 +18,8 @@ export const FileUploader = ({ isOpen, createShape }) => {
       setIsShowProgress(false);
       return;
     }
-    if (!file.type.includes('json')) {
-      setFileError('Please upload file in geojson format');
+    if (!file.type.includes('json') && !file.type.includes('kml')) {
+      setFileError('Please upload file in geojson or kml format');
     }
 
     setFileName(file.name);
@@ -30,8 +31,15 @@ export const FileUploader = ({ isOpen, createShape }) => {
 
     fileReader.onload = () => {
       try {
-        const result = JSON.parse(fileReader.result);
-        createShape(result);
+        if (file.type.includes('kml')) {
+          const result = kml(
+            new DOMParser().parseFromString(fileReader.result, 'text/xml')
+          );
+          createShape(result);
+        } else {
+          const result = JSON.parse(fileReader.result);
+          createShape(result);
+        }
       } catch (err) {
         console.error('Parse error', err);
       }
