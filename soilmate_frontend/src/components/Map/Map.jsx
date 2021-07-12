@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
+import 'leaflet-editable';
 import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
-import { SHAPE_OPTIONS } from '_constants';
+import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
 import { StyledMapContainer, MapHolder } from './Map.styles';
 
-import { selectAreasList, selectCurrentArea, useAreasActions, selectUser } from 'state';
+import {
+  selectAreasList,
+  selectCurrentArea,
+  useAreasActions,
+  selectUser,
+  selectSidebarMode,
+  useMapActions
+} from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
 
@@ -33,7 +41,9 @@ export const Map = () => {
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
+  const sidebarMode = useSelector(selectSidebarMode);
   const { saveArea, setCurrentArea } = useAreasActions();
+  const { setEditableShape } = useMapActions();
 
   const newAreaNumber = initialAreas.length
     ? initialAreas[initialAreas.length - 1].id + 1
@@ -68,6 +78,14 @@ export const Map = () => {
   }, [map]);
 
   useEffect(() => {
+    const handleEditShape = e => setEditableShape(getShapePositionsString(e.layer));
+    if (map) {
+      map.on('editable:editing', handleEditShape);
+      return () => map.off('editable:editing', handleEditShape);
+    }
+  }, [map, setEditableShape]);
+
+  useEffect(() => {
     return areasEvents.onCreateShape(e => {
       if (e.json) {
         const shape = L.geoJSON(e.json);
@@ -93,8 +111,10 @@ export const Map = () => {
   }, [map]);
 
   useEffect(() => {
-    return areasEvents.onUpdateShape(() => map.removeLayer(currentShape));
-  });
+    if (currentShape) {
+      return areasEvents.onUpdateShape(() => map.removeLayer(currentShape));
+    }
+  }, [map, currentShape]);
 
   const handleCancelSaveShape = () => {
     map.removeLayer(currentShape);
@@ -122,6 +142,7 @@ export const Map = () => {
   return (
     <MapHolder>
       <StyledMapContainer
+        editable={true}
         center={center}
         zoom={initZoom}
         scrollWheelZoom={true}
@@ -156,6 +177,7 @@ export const Map = () => {
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
+              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentArea}
             />
           ))}
       </StyledMapContainer>
