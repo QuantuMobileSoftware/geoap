@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import * as Yup from 'yup';
 
 import { selectCurrentArea, useAreasActions, selectUser, getShapeCoords } from 'state';
 import { FormField, Form } from 'components/_shared/Form';
@@ -15,6 +16,10 @@ import {
   Upload,
   UploadTitle
 } from './AreasEdit.styles';
+
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required()
+});
 
 export const AreasEdit = ({ areas }) => {
   const { setSidebarMode, patchArea } = useAreasActions();
@@ -59,10 +64,11 @@ export const AreasEdit = ({ areas }) => {
         x: latLangsCurrentArea[0][0].toFixed(1),
         y: latLangsCurrentArea[0][1].toFixed(1)
       }}
+      validationSchema={validationSchema}
     >
       {({ values }) => (
         <>
-          <FormField label='Name' name='name' placeholder='City...' />
+          <FormField autoFocus label='Name' name='name' placeholder='City...' />
           <Upload onClick={() => setIsOpenUploader(true)}>
             <Button icon='Upload'>Upload file</Button>
             <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
