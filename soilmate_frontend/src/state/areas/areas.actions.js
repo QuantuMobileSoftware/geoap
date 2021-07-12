@@ -6,6 +6,7 @@ import { API } from 'api';
 import { areasActions } from './areas.slice';
 import { useAsync } from 'hooks';
 import { normalizeAreas } from 'utils';
+import { SIDEBAR_MODE } from '_constants';
 
 export const useAreasActions = () => {
   const dispatch = useDispatch();
@@ -45,6 +46,7 @@ export const useAreasActions = () => {
           )
         );
         dispatch(areasActions.setCurrentArea(area.id));
+        dispatch(areasActions.setSidebarMode(SIDEBAR_MODE.EDIT));
       });
     },
     [handleAsync, dispatch]
