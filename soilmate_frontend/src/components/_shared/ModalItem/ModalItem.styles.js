@@ -14,12 +14,16 @@ export const StyledModalItem = styled.div`
 `;
 export const ModalHeader = styled(Typography).attrs({
   element: 'h4',
-  variant: 'body2'
-})``;
+  variant: 'body1'
+})`
+  font-size: ${em(14)};
+`;
 export const ModalTitle = styled(Typography).attrs({
   element: 'p',
-  variant: 'caption2'
-})``;
+  variant: 'caption1'
+})`
+  font-size: ${em(11)};
+`;
 export const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
