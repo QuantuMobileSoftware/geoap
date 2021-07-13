@@ -8,7 +8,6 @@ export const StyledPopup = styled.div`
     left: 50%;
     top: 50%;
     margin-left: ${rem(300 / 2)};
-    // bottom: ${rem(118)};
     transform: translate(-50%, -50%);
     padding: ${em(20)};
     border-radius: ${rem(theme.radius[1])};
