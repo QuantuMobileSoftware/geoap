@@ -9,7 +9,9 @@ export const FileUploader = ({ isOpen, createShape }) => {
   const [isShowProgress, setIsShowProgress] = useState(false);
   const inputRef = useRef(null);
   useEffect(() => {
-    if (isOpen) inputRef.current.click();
+    if (isOpen) {
+      inputRef.current.click();
+    }
   }, [isOpen]);
 
   const handleChange = e => {
