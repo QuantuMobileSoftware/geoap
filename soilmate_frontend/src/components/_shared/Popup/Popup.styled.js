@@ -6,8 +6,10 @@ export const StyledPopup = styled.div`
   ${({ theme }) => css`
     position: absolute;
     left: 50%;
-    bottom: ${rem(118)};
-    transform: translateX(-50%);
+    top: 50%;
+    margin-left: ${rem(300 / 2)};
+    // bottom: ${rem(118)};
+    transform: translate(-50%, -50%);
     padding: ${em(20)};
     border-radius: ${rem(theme.radius[1])};
     background: ${theme.colors.nature.n0};
