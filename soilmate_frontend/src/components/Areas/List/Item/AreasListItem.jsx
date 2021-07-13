@@ -39,7 +39,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     return (
       <AreasListItemCoordinates>
         {coordinates.map(([axios, value]) => {
-          return value ? (
+          return value.toString ? (
             <AreasListItemCoordinate
               key={axios}
             >{`${axios}: ${value}`}</AreasListItemCoordinate>

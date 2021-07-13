@@ -45,12 +45,18 @@ export const getPolygonPositions = item => {
 };
 
 export const getShapePositionsString = layer => {
-  const wkt = new Wkt.Wkt();
-  const { geometry } = layer.toGeoJSON();
-  geometry.coordinates = geometry.coordinates.map(item =>
-    item.map(point => [point[1], point[0]])
-  );
-  return wkt.fromObject(geometry).write();
+  try {
+    const wkt = new Wkt.Wkt();
+    let json = layer.toGeoJSON?.();
+    json = json ?? layer;
+    const geometry = json.geometry ? json.geometry : json.features[0].geometry;
+    geometry.coordinates = geometry.coordinates.map(item =>
+      item.map(point => [point[1], point[0]])
+    );
+    return wkt.fromObject(geometry).write();
+  } catch (err) {
+    console.error('Parse error', err);
+  }
 };
 
 export const getCentroid = arr => {
