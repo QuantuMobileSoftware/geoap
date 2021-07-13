@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
-import { selectCurrentArea, useAreasActions, selectUser, getShapeCoords } from 'state';
+import { useAreasActions, selectUser, getShapeCoords } from 'state';
 import { FormField, Form } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
 import { FileUploader } from 'components/_shared/FileUploader';
@@ -21,10 +21,9 @@ const validationSchema = Yup.object().shape({
   name: Yup.string().required()
 });
 
-export const AreasEdit = ({ areas }) => {
+export const AreasEdit = ({ currentArea }) => {
   const { setSidebarMode, patchArea } = useAreasActions();
   const currentUser = useSelector(selectUser);
-  const currentAreaId = useSelector(selectCurrentArea);
   const editableShapeCoords = useSelector(getShapeCoords);
   const [isOpenUploader, setIsOpenUploader] = useState(false);
   const [shapeCoords, setShapeCoords] = useState(null);
@@ -33,7 +32,6 @@ export const AreasEdit = ({ areas }) => {
     setIsOpenUploader(false);
   }, [isOpenUploader]);
 
-  const currentArea = areas.find(area => area.id === currentAreaId);
   const latLangsCurrentArea = getPolygonPositions(currentArea).coordinates[0];
 
   const newShapeFromFile = coordinates => {
@@ -53,7 +51,7 @@ export const AreasEdit = ({ areas }) => {
       ...polygon
     };
     areasEvents.updateShape();
-    patchArea(currentAreaId, areaData);
+    patchArea(currentArea.id, areaData);
     setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
