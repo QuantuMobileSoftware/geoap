@@ -5,7 +5,7 @@ import { StyledPopup, Header } from './Popup.styled';
 import { Button } from '../Button';
 
 export const Popup = ({ header, confirmPopup, cancel, save }) => (
-  <Draggable>
+  <Draggable defaultClassNameDragging='dragging'>
     <StyledPopup>
       <Header>{header}</Header>
       <Button variant='secondary' onClick={cancel}>
