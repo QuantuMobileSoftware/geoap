@@ -2,14 +2,17 @@ import styled, { css } from 'styled-components';
 import { rem, em } from 'styles';
 import { Button } from '../Button';
 import { Typography } from '../Typography';
+import { rgba } from 'polished';
 
 export const StyledModalWrapper = styled.div`
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: 100vw;
-  background: rgba(0, 0, 0, 0.8);
+  ${({ theme }) => css`
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 100vw;
+    background: ${rgba(theme.colors.black, 0.8)};
+  `}
 `;
 
 export const StyledModalMain = styled.div`
