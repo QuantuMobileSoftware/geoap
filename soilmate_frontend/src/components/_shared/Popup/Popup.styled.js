@@ -13,6 +13,7 @@ export const StyledPopup = styled.div`
     border-radius: ${rem(theme.radius[1])};
     background: ${theme.colors.nature.n0};
     z-index: ${theme.zIndexes[3]};
+    cursor: move;
     & > button {
       box-shadow: ${theme.shadows()[0]};
       border: ${theme.borders.default(theme.fontSizes[2])};
