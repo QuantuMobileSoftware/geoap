@@ -133,7 +133,7 @@ class File(metaclass=ABCMeta):
             try:
                 request = Request.objects.get(pk=self.request)
                 dict_['request'] = request
-                dict_['released'] = True
+                dict_['released'] = False
             except Request.DoesNotExist:
                 logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
 
