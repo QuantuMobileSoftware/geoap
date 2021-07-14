@@ -4,6 +4,8 @@ import os
 import os.path
 import tempfile
 from pathlib import Path
+import django
+django.setup()
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -80,23 +82,28 @@ class Command(BaseCommand):
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
-            try:
-                try:
-                    result = Result.objects.get(filepath=file_dict['filepath'])
-                    if result.modifiedat < file_dict['modifiedat']:
-                        file.delete_tiles(self.tiles_folder)
-                        file.generate_tiles(self.tiles_folder)
-                        file_dict['styles_url'] = file.style_url
-                        Result.objects.filter(id=result.id).update(**file_dict)
-                        logger.info(f"Object {file_dict['filepath']} was UPDATED")
-                except Result.DoesNotExist:
+            result = Result.objects.filter(filepath=file_dict['filepath'])
+            if len(result) > 0:
+                result = result[0]
+                if result.modifiedat < file_dict['modifiedat']:
+                    file.delete_tiles(self.tiles_folder)
                     file.generate_tiles(self.tiles_folder)
                     file_dict['styles_url'] = file.style_url
+                    try:
+                        Result.objects.filter(id=result.id).update(**file_dict)
+                        logger.info(f"Object {file_dict['filepath']} was UPDATED")
+                    except Exception as ex:
+                        logger.error(f'Error when updating Result from file_dict = {file_dict}\n {str(ex)}')
+                        continue
+            else:
+                file.generate_tiles(self.tiles_folder)
+                file_dict['styles_url'] = file.style_url
+                try:
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
-            except Exception as ex:
-                logger.error(f"Error for {file_dict['filepath']}: {str(ex)}")
-        logger.info(f"Updating or creating finished")
+                except Exception as ex:
+                    logger.error(f'Error when creating Result from file_dict = {file_dict}\n {str(ex)}')
+                    continue
 
     def _clean(self, files):
         filepaths = [file.filepath() for file in files]
@@ -139,3 +146,8 @@ class Command(BaseCommand):
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
+        
+        
+if __name__ == '__main__':
+    command = Command()
+    command.handle()
