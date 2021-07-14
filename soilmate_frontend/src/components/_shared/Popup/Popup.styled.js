@@ -21,6 +21,9 @@ export const StyledPopup = styled.div`
     & > button:last-child {
       margin-left: ${em(32, theme.fontSizes[2])};
     }
+    &.dragging {
+      cursor: grabbing;
+    }
   `}
 `;
 
