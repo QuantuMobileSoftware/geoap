@@ -9,6 +9,7 @@ import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
+import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import {
@@ -17,7 +18,8 @@ import {
   useAreasActions,
   selectUser,
   selectSidebarMode,
-  useMapActions
+  useMapActions,
+  getLoading
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -42,6 +44,7 @@ export const Map = () => {
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
+  const isLoading = useSelector(getLoading);
   const { saveArea, setCurrentArea } = useAreasActions();
   const { setEditableShape } = useMapActions();
 
@@ -180,6 +183,7 @@ export const Map = () => {
               isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentArea}
             />
           ))}
+        {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
       {isPopupVisible && (

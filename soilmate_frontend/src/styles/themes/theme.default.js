@@ -21,6 +21,7 @@ const colors = {
   },
 
   danger: '#CB0000',
+  black: '#000000',
 
   misc: {
     background: '#F9F9F9',

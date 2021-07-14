@@ -66,7 +66,9 @@ export const useAreasActions = () => {
   const patchArea = useCallback(
     async (id, data) => {
       await handleAsync(async () => {
+        dispatch(areasActions.setLoading(true));
         const resp = await API.areas.patchArea(id, data);
+        dispatch(areasActions.setLoading(false));
         if (resp.status >= 400) return;
         dispatch(areasActions.updateArea({ id, area: resp.data }));
       });
