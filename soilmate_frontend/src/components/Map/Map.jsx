@@ -18,11 +18,12 @@ import {
   useAreasActions,
   selectUser,
   selectSidebarMode,
-  useMapActions,
   getLoading
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
+
+import { useMapEvents } from './useMapEvents';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
@@ -45,16 +46,11 @@ export const Map = () => {
   const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
-  const { saveArea, setCurrentArea } = useAreasActions();
-  const { setEditableShape } = useMapActions();
+  const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
   const newAreaNumber = initialAreas.length
     ? initialAreas[initialAreas.length - 1].id + 1
     : 1;
-  const afterShapeCreated = e => {
-    setIsPopupVisible(true);
-    setCurrentShape(e.layer);
-  };
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -73,20 +69,7 @@ export const Map = () => {
     map.panTo(center).fitBounds(bounds);
   }, [currentArea, initialAreas, map]);
 
-  useEffect(() => {
-    if (map) {
-      map.on('draw:created', afterShapeCreated);
-      return () => map.off('draw:created', afterShapeCreated);
-    }
-  }, [map]);
-
-  useEffect(() => {
-    const handleEditShape = e => setEditableShape(getShapePositionsString(e.layer));
-    if (map) {
-      map.on('editable:editing', handleEditShape);
-      return () => map.off('editable:editing', handleEditShape);
-    }
-  }, [map, setEditableShape]);
+  useMapEvents(map, setIsPopupVisible, setCurrentShape);
 
   useEffect(() => {
     return areasEvents.onCreateShape(e => {
@@ -124,7 +107,7 @@ export const Map = () => {
     setIsPopupVisible(false);
   };
 
-  const handleSaveShape = () => {
+  const handleSaveShape = async () => {
     setIsPopupVisible(false);
     const data = {
       user: currentUser.pk,
@@ -132,7 +115,8 @@ export const Map = () => {
       polygon: getShapePositionsString(currentShape)
     };
     map.removeLayer(currentShape);
-    saveArea(data);
+    await saveArea(data);
+    setSidebarMode(SIDEBAR_MODE.EDIT);
   };
 
   const handlePolygonClick = id => polygon => {
