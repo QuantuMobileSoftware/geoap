@@ -38,16 +38,14 @@ export const useAreasActions = () => {
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
-        dispatch(areasActions.setLoading(true));
-        const area = await (await API.areas.saveArea(shape)).data;
+        const resp = await API.areas.saveArea(shape);
         dispatch(
           areasActions.setEntities(
-            normalizeAreas([{ ...area, requests: [], results: [] }])
+            normalizeAreas([{ ...resp.data, requests: [], results: [] }])
           )
         );
-        dispatch(areasActions.setCurrentArea(area.id));
-        dispatch(areasActions.setLoading(false));
-      });
+        dispatch(areasActions.setCurrentArea(resp.data.id));
+      }, true);
     },
     [handleAsync, dispatch]
   );
@@ -55,12 +53,9 @@ export const useAreasActions = () => {
   const deleteArea = useCallback(
     async id => {
       await handleAsync(async () => {
-        dispatch(areasActions.setLoading(true));
-        const resp = await API.areas.deleteArea(id);
-        dispatch(areasActions.setLoading(false));
-        if (resp.status >= 400) return;
+        await API.areas.deleteArea(id);
         dispatch(areasActions.deleteAreaById(id));
-      });
+      }, true);
     },
     [handleAsync, dispatch]
   );
@@ -68,12 +63,9 @@ export const useAreasActions = () => {
   const patchArea = useCallback(
     async (id, data) => {
       await handleAsync(async () => {
-        dispatch(areasActions.setLoading(true));
         const resp = await API.areas.patchArea(id, data);
-        dispatch(areasActions.setLoading(false));
-        if (resp.status >= 400) return;
         dispatch(areasActions.updateArea({ id, area: resp.data }));
-      });
+      }, true);
     },
     [dispatch, handleAsync]
   );
