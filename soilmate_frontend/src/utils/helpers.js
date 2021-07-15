@@ -40,8 +40,9 @@ export const getPolygonPositions = item => {
   const delimeterIndex = item.polygon.indexOf(';');
   const string = item.polygon.slice(delimeterIndex + 1);
   wkt.read(string);
-
-  return wkt.toJson();
+  const result = wkt.toJson();
+  result.coordinates[0] = result.coordinates[0].map(point => [point[1], point[0]]);
+  return result;
 };
 
 export const getShapePositionsString = layer => {
@@ -50,9 +51,7 @@ export const getShapePositionsString = layer => {
     let json = layer.toGeoJSON?.();
     json = json ?? layer;
     const geometry = json.geometry ? json.geometry : json.features[0].geometry;
-    geometry.coordinates = geometry.coordinates.map(item =>
-      item.map(point => [point[1], point[0]])
-    );
+
     return wkt.fromObject(geometry).write();
   } catch (err) {
     console.error('Parse error', err);
