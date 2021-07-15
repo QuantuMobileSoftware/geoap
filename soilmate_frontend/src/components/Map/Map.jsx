@@ -74,7 +74,7 @@ export const Map = () => {
   useEffect(() => {
     return areasEvents.onCreateShape(e => {
       if (e.json) {
-        const shape = L.geoJSON(e.json);
+        const shape = L.geoJSON(e.json, { style: SHAPE_OPTIONS });
         const createShape = () => {
           if (e.isShowPopup) {
             setIsPopupVisible(true);
