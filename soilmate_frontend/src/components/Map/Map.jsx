@@ -72,11 +72,15 @@ export const Map = () => {
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
 
   useEffect(() => {
-    return areasEvents.onCreateShape(e => {
-      if (e.json) {
-        const shape = L.geoJSON(e.json, { style: SHAPE_OPTIONS });
+    return areasEvents.onCreateShape(({ json, isShowPopup, shapeType }) => {
+      if (json) {
+        if (json.features[0].geometry.type !== 'Polygon') {
+          console.warn('Please add file with polygon coordinates'); // show error for user
+          return;
+        }
+        const shape = L.geoJSON(json, { style: SHAPE_OPTIONS });
         const createShape = () => {
-          if (e.isShowPopup) {
+          if (isShowPopup) {
             setIsPopupVisible(true);
           }
           setCurrentShape(shape);
@@ -90,7 +94,7 @@ export const Map = () => {
         map.panTo(center).fitBounds(bounds);
         return () => shape.off('add', createShape);
       } else {
-        const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
+        const shape = new L.Draw[shapeType](map, { shapeOptions: SHAPE_OPTIONS });
         shape.enable();
       }
     });
