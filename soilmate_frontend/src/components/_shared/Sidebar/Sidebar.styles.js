@@ -11,7 +11,9 @@ export const SidebarBody = styled.div``;
 export const SidebarHeading = styled(Typography).attrs({
   element: 'h2',
   variant: 'h2'
-})``;
+})`
+  margin-bottom: ${em(32)};
+`;
 
 export const SidebarButtonClose = styled(Button).attrs({
   variant: 'floating',

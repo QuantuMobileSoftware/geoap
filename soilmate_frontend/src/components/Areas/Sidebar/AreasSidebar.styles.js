@@ -3,7 +3,6 @@ import styled, { css } from 'styled-components';
 import { em, rem } from 'styles';
 
 import { Sidebar, SidebarBody } from 'components/_shared/Sidebar';
-import { StyledSearch } from 'components/_shared/Search';
 import { Typography } from 'components/_shared/Typography';
 import { Button } from 'components/_shared/Button';
 
@@ -24,15 +23,9 @@ export const AreasSidebarMessage = styled(Typography).attrs({
 `;
 
 export const StyledAreasSidebar = styled(Sidebar)`
-  ${({ theme }) => css`
-    ${SidebarBody} {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    ${StyledSearch} {
-      margin-top: ${rem(theme.spacing[11])};
-    }
-  `}
+  ${SidebarBody} {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 `;
