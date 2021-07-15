@@ -9,13 +9,7 @@ import { FileUploader } from 'components/_shared/FileUploader';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
 import { SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
-import {
-  // AxisWrapper,
-  // AxisInput,
-  ButtonWrapper,
-  Upload,
-  UploadTitle
-} from './AreasEdit.styles';
+import { ButtonWrapper, Upload, UploadTitle } from './AreasEdit.styles';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required()
@@ -72,10 +66,6 @@ export const AreasEdit = ({ currentArea }) => {
             <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
             <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
           </Upload>
-          {/* <AxisWrapper>
-            <AxisInput type='number' label='X axis' name='x' />
-            <AxisInput type='number' label='Y axis' name='y' />
-          </AxisWrapper> */}
           <ButtonWrapper>
             <Button
               variant='secondary'
