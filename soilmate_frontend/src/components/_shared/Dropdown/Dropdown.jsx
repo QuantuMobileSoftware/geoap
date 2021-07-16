@@ -59,7 +59,7 @@ export const Dropdown = forwardRef(
       const mergedProps = mergeProps(child.props, { onClick: handleChildClick });
 
       return (
-        <DropdownChild key={child.props.key || i} {...mergedProps}>
+        <DropdownChild key={i} {...mergedProps}>
           {child}
         </DropdownChild>
       );

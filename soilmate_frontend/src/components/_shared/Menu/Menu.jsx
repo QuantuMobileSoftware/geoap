@@ -59,7 +59,7 @@ export const Menu = forwardRef(
     const toggle = () => (_isOpen ? handleClose() : setIsOpen(true));
 
     const handleMenuToggleClick = event => {
-      onClick();
+      onClick?.();
       event.stopPropagation();
       toggle();
     };
