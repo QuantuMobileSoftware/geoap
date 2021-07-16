@@ -7,6 +7,7 @@ import { AreasSidebarToggle } from './Toggle';
 import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 import { Requests } from './Requests';
+import { RequestSettings } from './RequestSettings';
 
 import { selectAreasList, selectSidebarMode, selectCurrentArea } from 'state';
 import { areasEvents } from '_events';
@@ -15,7 +16,8 @@ import { SIDEBAR_MODE } from '_constants';
 const sidebarHeaders = {
   [SIDEBAR_MODE.LIST]: 'My areas',
   [SIDEBAR_MODE.EDIT]: 'Edit my area',
-  [SIDEBAR_MODE.REQUESTS]: 'All reports - '
+  [SIDEBAR_MODE.REQUESTS]: 'All reports - ',
+  [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -27,7 +29,7 @@ export const AreasSidebar = ({ ...props }) => {
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
-    sidebarMode === SIDEBAR_MODE.REQUESTS ? currentArea.name : null
+    sidebarMode === SIDEBAR_MODE.REQUESTS ? currentArea.name : ''
   }`;
 
   useEffect(() => {
@@ -48,6 +50,9 @@ export const AreasSidebar = ({ ...props }) => {
         {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areas} />}
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
+        {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
+          <RequestSettings areas={areas} />
+        )}
       </StyledAreasSidebar>
     </>
   );
