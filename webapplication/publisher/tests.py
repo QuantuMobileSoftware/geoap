@@ -307,6 +307,8 @@ class PublisherBase(APITestCase):
         self.test_tile_folder = Path(settings.TILES_FOLDER)
         self.test_tile_folder.mkdir(parents=True, exist_ok=True)
         logger.info(f'test_tile_folder: {self.test_tile_folder}')
+        self.start_date = "2020-01-01"
+        self.end_date = "2021-01-01"
 
     @classmethod
     def tearDownClass(cls):
@@ -324,8 +326,8 @@ class PublisherBase(APITestCase):
                 child.unlink()
 
     def create_tiff(self):
-        start_date = "2020-01-01"
-        end_date = "2021-01-01"
+        start_date = self.start_date
+        end_date = self.end_date
         request_id = 1
         name = 'test_name'
         self.geotiff_labels = "[{'color': (0, 0, 0), 'name': 'Background', 'area': 1.4939}, \
@@ -360,11 +362,13 @@ class PublisherBase(APITestCase):
                             name=name)
             dst.write(raster, 1)
 
-    @staticmethod
-    def generate_features():
+    @classmethod
+    def generate_features(cls):
         acquired = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         properties = dict(acquired=acquired)
-
+        if hasattr(cls, 'end_date') & hasattr(cls, 'start_date'):
+            dates = {"end_date": cls.end_date, "start_date": cls.start_date}
+            properties.update(dates)
         features = list()
         for geometry_name, geometry in geometries:
             id_ = str(uuid.uuid4())
@@ -732,3 +736,27 @@ class ResultTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         result = Result.objects.get(id=1001)
         self.assertEqual(result.to_be_deleted, True)
+
+
+class WrongDatesTestCase(PublisherBase):
+
+    def setUp(self):
+        super().setUp()
+        self.start_date = "2020-01-32"
+        self.end_date = "some not date string"
+
+    def test_geotiff_wrong_date(self):
+        self.create_tiff()
+        command = Command()
+        command.handle()
+        result = Result.objects.first()
+        self.assertTrue(result.start_date is None)
+        self.assertTrue(result.end_date is None)
+
+    def test_geojson_wrong_date(self):
+        self.create_geojson()
+        command = Command()
+        command.handle()
+        result = Result.objects.first()
+        self.assertTrue(result.start_date is None)
+        self.assertTrue(result.end_date is None)
