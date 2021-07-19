@@ -16,10 +16,11 @@ export const ButtonWrapper = styled.div`
 export const Upload = styled.div`
   margin-top: ${em(32)};
   margin-bottom: ${em(12)};
+  & > button {
+    font-size: ${em(14)};
+  }
 `;
 
 export const UploadTitle = styled(Typography).attrs({ element: 'p' })`
-  ${({ theme }) => css`
-    font-size: ${rem(theme.fontSizes[1])};
-  `}
+  font-size: ${rem(11)};
 `;

@@ -9,7 +9,7 @@ import {
 
 export const ListItem = ({ request = {}, ...props }) => {
   const areaRef = useRef(null);
-  console.log(request);
+
   return (
     <RequestListItem
       {...props}

@@ -8,7 +8,7 @@ import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 import { Requests } from './Requests';
 
-import { selectAreasList, selectSidebarMode } from 'state';
+import { selectAreasList, selectSidebarMode, selectCurrentArea } from 'state';
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE } from '_constants';
 
@@ -23,6 +23,12 @@ export const AreasSidebar = ({ ...props }) => {
 
   const areas = useSelector(selectAreasList);
   const sidebarMode = useSelector(selectSidebarMode);
+  const currentAreaId = useSelector(selectCurrentArea);
+
+  const currentArea = areas.find(area => area.id === currentAreaId);
+  const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
+    sidebarMode === SIDEBAR_MODE.REQUESTS ? currentArea.name : null
+  }`;
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
@@ -36,11 +42,11 @@ export const AreasSidebar = ({ ...props }) => {
       <StyledAreasSidebar
         {...props}
         ref={rootRef}
-        heading={sidebarHeaders[sidebarMode]}
+        heading={sidebarHeader}
         withUnmountToggle={false}
       >
         {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areas} />}
-        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit areas={areas} />}
+        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
       </StyledAreasSidebar>
     </>

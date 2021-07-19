@@ -9,6 +9,7 @@ import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
+import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import {
@@ -17,10 +18,12 @@ import {
   useAreasActions,
   selectUser,
   selectSidebarMode,
-  useMapActions
+  getLoading
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
+
+import { useMapEvents } from './useMapEvents';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
@@ -42,16 +45,12 @@ export const Map = () => {
   const currentArea = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
-  const { saveArea, setCurrentArea } = useAreasActions();
-  const { setEditableShape } = useMapActions();
+  const isLoading = useSelector(getLoading);
+  const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
   const newAreaNumber = initialAreas.length
     ? initialAreas[initialAreas.length - 1].id + 1
     : 1;
-  const afterShapeCreated = e => {
-    setIsPopupVisible(true);
-    setCurrentShape(e.layer);
-  };
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -70,27 +69,18 @@ export const Map = () => {
     map.panTo(center).fitBounds(bounds);
   }, [currentArea, initialAreas, map]);
 
-  useEffect(() => {
-    if (map) {
-      map.on('draw:created', afterShapeCreated);
-      return () => map.off('draw:created', afterShapeCreated);
-    }
-  }, [map]);
+  useMapEvents(map, setIsPopupVisible, setCurrentShape);
 
   useEffect(() => {
-    const handleEditShape = e => setEditableShape(getShapePositionsString(e.layer));
-    if (map) {
-      map.on('editable:editing', handleEditShape);
-      return () => map.off('editable:editing', handleEditShape);
-    }
-  }, [map, setEditableShape]);
-
-  useEffect(() => {
-    return areasEvents.onCreateShape(e => {
-      if (e.json) {
-        const shape = L.geoJSON(e.json);
+    return areasEvents.onCreateShape(({ json, isShowPopup, shapeType }) => {
+      if (json) {
+        if (json.features[0].geometry.type !== 'Polygon') {
+          console.warn('Please add file with polygon coordinates'); // show error for user
+          return;
+        }
+        const shape = L.geoJSON(json, { style: SHAPE_OPTIONS });
         const createShape = () => {
-          if (e.isShowPopup) {
+          if (isShowPopup) {
             setIsPopupVisible(true);
           }
           setCurrentShape(shape);
@@ -104,7 +94,7 @@ export const Map = () => {
         map.panTo(center).fitBounds(bounds);
         return () => shape.off('add', createShape);
       } else {
-        const shape = new L.Draw[e.shapeType](map, { shapeOptions: SHAPE_OPTIONS });
+        const shape = new L.Draw[shapeType](map, { shapeOptions: SHAPE_OPTIONS });
         shape.enable();
       }
     });
@@ -121,7 +111,7 @@ export const Map = () => {
     setIsPopupVisible(false);
   };
 
-  const handleSaveShape = () => {
+  const handleSaveShape = async () => {
     setIsPopupVisible(false);
     const data = {
       user: currentUser.pk,
@@ -129,7 +119,8 @@ export const Map = () => {
       polygon: getShapePositionsString(currentShape)
     };
     map.removeLayer(currentShape);
-    saveArea(data);
+    await saveArea(data);
+    setSidebarMode(SIDEBAR_MODE.EDIT);
   };
 
   const handlePolygonClick = id => polygon => {
@@ -180,6 +171,7 @@ export const Map = () => {
               isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentArea}
             />
           ))}
+        {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
       {isPopupVisible && (
