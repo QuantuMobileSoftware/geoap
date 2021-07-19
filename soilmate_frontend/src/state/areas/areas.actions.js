@@ -6,7 +6,6 @@ import { API } from 'api';
 import { areasActions } from './areas.slice';
 import { useAsync } from 'hooks';
 import { normalizeAreas } from 'utils';
-import { SIDEBAR_MODE } from '_constants';
 
 export const useAreasActions = () => {
   const dispatch = useDispatch();
@@ -39,15 +38,14 @@ export const useAreasActions = () => {
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
-        const area = await (await API.areas.saveArea(shape)).data;
+        const resp = await API.areas.saveArea(shape);
         dispatch(
           areasActions.setEntities(
-            normalizeAreas([{ ...area, requests: [], results: [] }])
+            normalizeAreas([{ ...resp.data, requests: [], results: [] }])
           )
         );
-        dispatch(areasActions.setCurrentArea(area.id));
-        dispatch(areasActions.setSidebarMode(SIDEBAR_MODE.EDIT));
-      });
+        dispatch(areasActions.setCurrentArea(resp.data.id));
+      }, true);
     },
     [handleAsync, dispatch]
   );
@@ -55,10 +53,9 @@ export const useAreasActions = () => {
   const deleteArea = useCallback(
     async id => {
       await handleAsync(async () => {
-        const resp = await API.areas.deleteArea(id);
-        if (resp.status >= 400) return;
+        await API.areas.deleteArea(id);
         dispatch(areasActions.deleteAreaById(id));
-      });
+      }, true);
     },
     [handleAsync, dispatch]
   );
@@ -67,9 +64,8 @@ export const useAreasActions = () => {
     async (id, data) => {
       await handleAsync(async () => {
         const resp = await API.areas.patchArea(id, data);
-        if (resp.status >= 400) return;
         dispatch(areasActions.updateArea({ id, area: resp.data }));
-      });
+      }, true);
     },
     [dispatch, handleAsync]
   );

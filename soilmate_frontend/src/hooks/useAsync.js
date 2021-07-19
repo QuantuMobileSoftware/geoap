@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { areasActions } from 'state/areas/areas.slice';
 
 import { withFunction, mergeObjects } from 'utils';
 
@@ -10,6 +12,7 @@ const INITIAL_STATE = {
 export const useAsync = () => {
   const isMounted = useRef(true);
   const [state, setState] = useState(INITIAL_STATE);
+  const dispatch = useDispatch();
 
   const updateState = useCallback(state => {
     if (!isMounted.current) return;
@@ -22,19 +25,25 @@ export const useAsync = () => {
   }, []);
 
   const handleAsync = useCallback(
-    async callback => {
+    async (callback, loader = false) => {
       updateState({ isLoading: true });
-
+      let result;
+      if (loader) {
+        dispatch(areasActions.setLoading(true));
+      }
       try {
-        const result = await withFunction(callback);
+        result = await withFunction(callback);
         updateState(INITIAL_STATE);
-        return result;
       } catch (error) {
         updateState({ error, isLoading: false });
-        return handleError(error);
+        result = handleError(error);
       }
+      if (loader) {
+        dispatch(areasActions.setLoading(false));
+      }
+      return result;
     },
-    [updateState, handleError]
+    [updateState, handleError, dispatch]
   );
 
   useEffect(() => () => (isMounted.current = false), []);

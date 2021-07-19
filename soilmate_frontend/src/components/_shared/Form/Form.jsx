@@ -39,6 +39,7 @@ export const Form = forwardRef(
       ...params,
       initialValues,
       validationSchema,
+      enableReinitialize: true,
       onReset,
       onSubmit
     });

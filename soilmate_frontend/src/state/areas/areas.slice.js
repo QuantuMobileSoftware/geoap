@@ -6,7 +6,8 @@ import { SIDEBAR_MODE } from '_constants';
 const AREAS_INITIAL_STATE = {
   entities: {},
   current: null,
-  mode: SIDEBAR_MODE.LIST
+  mode: SIDEBAR_MODE.LIST,
+  isLoading: false
 };
 
 const areasSlice = createSlice({
@@ -30,10 +31,14 @@ const areasSlice = createSlice({
       const { id, area } = action.payload;
       const newArea = { [id]: { ...state.entities[id], ...area } };
       state.entities = { ...state.entities, ...newArea };
+    },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
     }
   }
 });
 
+export const getLoading = state => state.areas.isLoading;
 export const selectAreas = state => state.areas.entities;
 //get current area ID
 export const selectCurrentArea = state => state.areas.current;

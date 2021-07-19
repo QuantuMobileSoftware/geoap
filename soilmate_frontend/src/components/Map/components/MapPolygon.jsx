@@ -8,12 +8,14 @@ export const MapPolygon = ({ coordinates, onClick, isEditable }) => {
   const { setEditableShape } = useMapActions();
 
   useEffect(() => {
+    const { current } = polyRef;
     if (isEditable) {
       setEditableShape(null);
-      polyRef.current.enableEdit();
+      current.enableEdit();
     } else {
-      polyRef.current.disableEdit();
+      current.disableEdit();
     }
+    return () => current.disableEdit();
   }, [isEditable, setEditableShape]);
 
   return (
