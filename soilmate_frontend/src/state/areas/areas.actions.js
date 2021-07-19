@@ -75,6 +75,13 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const getLayers = useCallback(async () => {
+    await handleAsync(async () => {
+      const resp = await API.areas.getLayers();
+      dispatch(areasActions.setLayers(resp.data));
+    });
+  }, [dispatch, handleAsync]);
+
   return {
     isLoading,
     error,
@@ -83,6 +90,7 @@ export const useAreasActions = () => {
     saveArea,
     deleteArea,
     setSidebarMode,
-    patchArea
+    patchArea,
+    getLayers
   };
 };

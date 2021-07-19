@@ -9,7 +9,12 @@ import { AreasList } from './AreasList';
 import { Requests } from './Requests';
 import { RequestSettings } from './RequestSettings';
 
-import { selectAreasList, selectSidebarMode, selectCurrentArea } from 'state';
+import {
+  selectAreasList,
+  selectSidebarMode,
+  selectCurrentArea,
+  useAreasActions
+} from 'state';
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE } from '_constants';
 
@@ -26,6 +31,7 @@ export const AreasSidebar = ({ ...props }) => {
   const areas = useSelector(selectAreasList);
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
+  const { getLayers } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
@@ -37,6 +43,10 @@ export const AreasSidebar = ({ ...props }) => {
       rootRef.current.toggle(event.isOpen);
     });
   }, []);
+
+  useEffect(() => {
+    getLayers();
+  }, [getLayers]);
 
   return (
     <>
@@ -51,7 +61,7 @@ export const AreasSidebar = ({ ...props }) => {
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
         {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
-          <RequestSettings areas={areas} />
+          <RequestSettings areas={areas} currentArea={currentArea} />
         )}
       </StyledAreasSidebar>
     </>

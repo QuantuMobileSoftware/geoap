@@ -15,9 +15,14 @@ export const Select = forwardRef(
   ({ isOpen = false, onClose, onSelect, items, value, label }, ref) => {
     const selectToggleRef = useRef(null);
     const [_isOpen, setIsOpen] = useState();
-    const [selectValue, setSelectValue] = useState();
+    const [selectedItem, setSelectedItem] = useState({ name: 'Choose' });
     useEffect(() => setIsOpen(isOpen), [isOpen]);
-    useEffect(() => setSelectValue(value ?? items[0]?.value), [value, items]);
+    useEffect(() => {
+      const itemValue = items.find(item => item.value === value);
+      if (itemValue) {
+        setSelectedItem(itemValue);
+      }
+    }, [value, items]);
 
     const _clickOutsideParams = mergeObjects(
       { ignoredRefs: [selectToggleRef] },
@@ -32,7 +37,7 @@ export const Select = forwardRef(
     };
 
     const handleItemClick = value => {
-      setSelectValue(value);
+      setSelectedItem(value);
       onSelect?.(value);
     };
 
@@ -42,7 +47,7 @@ export const Select = forwardRef(
       <StyledSelect ref={ref}>
         {label && <Label>{label}</Label>}
         <SelectToggle ref={selectToggleRef} onClick={toggle}>
-          {selectValue}
+          {selectedItem.name}
           <StyledIcon open={_isOpen}>ExpandDown</StyledIcon>
           <SelectDropdown
             isOpen={_isOpen}
@@ -50,7 +55,7 @@ export const Select = forwardRef(
             onClose={handleClose}
           >
             {items?.map((item, i) => (
-              <Option key={i} onClick={() => handleItemClick(item.value)}>
+              <Option key={i} onClick={() => handleItemClick(item)}>
                 {item.name}
               </Option>
             ))}

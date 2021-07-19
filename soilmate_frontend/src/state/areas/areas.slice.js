@@ -7,6 +7,7 @@ const AREAS_INITIAL_STATE = {
   entities: {},
   current: null,
   mode: SIDEBAR_MODE.LIST,
+  layers: [],
   isLoading: false
 };
 
@@ -31,6 +32,9 @@ const areasSlice = createSlice({
       const { id, area } = action.payload;
       const newArea = { [id]: { ...state.entities[id], ...area } };
       state.entities = { ...state.entities, ...newArea };
+    },
+    setLayers: (state, action) => {
+      state.layers = action.payload;
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
@@ -66,6 +70,11 @@ export const selectCurrentRequests = createSelector(
   (areas, areaID) => {
     return areas.flatMap(({ requests }) => requests).filter(i => i.aoi === areaID);
   }
+);
+
+export const selectLayers = createSelector(
+  state => state.areas.layers,
+  layers => layers.filter(l => l.success)
 );
 
 export const { reducer: areasReducer, actions: areasActions } = areasSlice;

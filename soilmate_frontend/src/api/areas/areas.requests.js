@@ -29,6 +29,10 @@ const patchArea = (id, data) => {
   return axiosInstance.patch(`${areasEndpoints.root}/${id}`, data);
 };
 
+const getLayers = () => {
+  return axiosInstance.get(areasEndpoints.layers);
+};
+
 export const areasRequests = {
   getAreas,
   getArea,
@@ -36,5 +40,6 @@ export const areasRequests = {
   getAreaResults,
   saveArea,
   deleteArea,
-  patchArea
+  patchArea,
+  getLayers
 };
