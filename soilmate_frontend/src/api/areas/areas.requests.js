@@ -13,6 +13,10 @@ const getAreaRequests = id => {
   return axiosInstance.get(areasEndpoints.requests(id));
 };
 
+const saveAreaRequest = request => {
+  return axiosInstance.post(areasEndpoints.request, request);
+};
+
 const getAreaResults = id => {
   return axiosInstance.get(areasEndpoints.results(id));
 };
@@ -37,6 +41,7 @@ export const areasRequests = {
   getAreas,
   getArea,
   getAreaRequests,
+  saveAreaRequest,
   getAreaResults,
   saveArea,
   deleteArea,
