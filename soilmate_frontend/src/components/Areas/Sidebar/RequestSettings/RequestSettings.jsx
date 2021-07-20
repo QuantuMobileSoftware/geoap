@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Select } from 'components/_shared/Select';
 import { Button } from 'components/_shared/Button';
 import { SIDEBAR_MODE } from '_constants';
@@ -22,6 +22,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
   const [endDate, setEndDate] = useState(null);
   const [notebook, setNotebook] = useState(null);
   const [areaId, setAreaId] = useState(currentArea.id);
+  const [canSaveRequest, setCanSaveRequest] = useState(false);
 
   const selectOptionsAreas = useMemo(
     () => areas.map(({ name }) => ({ name, value: name })),
@@ -39,6 +40,8 @@ export const RequestSettings = ({ areas, currentArea }) => {
   };
 
   const handleSaveRequest = () => {
+    console.log(notebook && startDate && endDate && setCanSaveRequest(true));
+
     const request = {
       aoi: areaId,
       notebook: notebook,
@@ -48,6 +51,10 @@ export const RequestSettings = ({ areas, currentArea }) => {
     };
     saveAreaRequest(currentArea.id, request);
   };
+
+  useEffect(() => {
+    notebook && startDate && endDate && setCanSaveRequest(true);
+  }, [notebook, startDate, endDate]);
 
   return (
     <>
@@ -101,7 +108,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
         >
           Back to list
         </Button>
-        <Button variant='primary' onClick={handleSaveRequest}>
+        <Button variant='primary' disabled={!canSaveRequest} onClick={handleSaveRequest}>
           Save changes
         </Button>
       </ButtonWrapper>
