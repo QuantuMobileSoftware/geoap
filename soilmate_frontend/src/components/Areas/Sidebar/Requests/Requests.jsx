@@ -8,7 +8,7 @@ import { RequestsSidebarMessage, ButtonWrapper } from './Requests.styles';
 import { Button } from 'components/_shared/Button';
 import { useAreasActions, selectCurrentRequests } from 'state';
 
-export const Requests = () => {
+export const Requests = React.memo(() => {
   const requests = useSelector(selectCurrentRequests);
 
   const [isRequestNotFound, setIsRequestNotFound] = useState(false);
@@ -82,4 +82,4 @@ export const Requests = () => {
       </ButtonWrapper>
     </>
   );
-};
+});
