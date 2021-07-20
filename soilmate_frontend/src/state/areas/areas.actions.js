@@ -30,6 +30,17 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const saveAreaRequest = useCallback(
+    async (id, request) => {
+      await handleAsync(async () => {
+        const resp = await API.areas.saveAreaRequest(request);
+        console.log(resp);
+        dispatch(areasActions.setAreaRequest({ id, request: resp.data }));
+      });
+    },
+    [dispatch, handleAsync]
+  );
+
   const setCurrentArea = useCallback(
     id => dispatch(areasActions.setCurrentArea(id)),
     [dispatch]
@@ -91,6 +102,7 @@ export const useAreasActions = () => {
     deleteArea,
     setSidebarMode,
     patchArea,
-    getLayers
+    getLayers,
+    saveAreaRequest
   };
 };

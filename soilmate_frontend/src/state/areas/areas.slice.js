@@ -33,6 +33,10 @@ const areasSlice = createSlice({
       const newArea = { [id]: { ...state.entities[id], ...area } };
       state.entities = { ...state.entities, ...newArea };
     },
+    setAreaRequest: (state, action) => {
+      const { id, request } = action.payload;
+      state.entities[id].requests[request.id] = request;
+    },
     setLayers: (state, action) => {
       state.layers = action.payload;
     },
