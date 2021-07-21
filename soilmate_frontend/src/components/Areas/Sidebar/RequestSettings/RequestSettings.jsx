@@ -1,9 +1,10 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Select } from 'components/_shared/Select';
 import { Button } from 'components/_shared/Button';
+import { Calendar } from 'components/_shared/Calendar';
 import { SIDEBAR_MODE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
-import { ButtonWrapper, StyledDatePicker, ApplyButton } from './RequestSettings.styles';
+import { ButtonWrapper } from './RequestSettings.styles';
 import { useSelector } from 'react-redux';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -16,9 +17,8 @@ export const RequestSettings = ({ areas, currentArea }) => {
   const { setSidebarMode, saveAreaRequest } = useAreasActions();
   const currentUser = useSelector(selectUser);
   const layers = useSelector(selectLayers);
-  const calendarRef = useRef(null);
 
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [notebook, setNotebook] = useState(null);
   const [areaId, setAreaId] = useState(currentArea.id);
@@ -33,15 +33,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
     [layers]
   );
 
-  const onChange = dates => {
-    const [start, end] = dates;
-    setStartDate(start);
-    setEndDate(end);
-  };
-
   const handleSaveRequest = () => {
-    console.log(notebook && startDate && endDate && setCanSaveRequest(true));
-
     const request = {
       aoi: areaId,
       notebook: notebook,
@@ -71,32 +63,19 @@ export const RequestSettings = ({ areas, currentArea }) => {
       />
       <Select
         items={layerYears}
-        onSelect={item => setStartDate(new Date(item.value, 1))}
+        onSelect={item => {
+          setStartDate(new Date(item.value, 1));
+          setEndDate(null);
+        }}
         label='Year'
         value={new Date().getFullYear()}
       />
-      <StyledDatePicker
-        selected={startDate}
-        onChange={onChange}
+
+      <Calendar
         startDate={startDate}
         endDate={endDate}
-        selectsRange
-        shouldCloseOnSelect={false}
-        dateFormat='yyyy/MM/dd'
-        calendarContainer={({ children }) => {
-          return (
-            <div>
-              <div>{children}</div>
-              <ApplyButton
-                variant='primary'
-                onClick={() => calendarRef.current.setOpen(false)}
-              >
-                apply
-              </ApplyButton>
-            </div>
-          );
-        }}
-        ref={calendarRef}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
       />
 
       <ButtonWrapper>
