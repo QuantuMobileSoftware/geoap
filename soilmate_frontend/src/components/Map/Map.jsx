@@ -40,6 +40,7 @@ export const Map = () => {
   const [map, setMap] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
+  const [drawingShape, setDrawingShape] = useState();
 
   const initialAreas = useSelector(selectAreasList);
   const currentArea = useSelector(selectCurrentArea);
@@ -96,9 +97,16 @@ export const Map = () => {
       } else {
         const shape = new L.Draw[shapeType](map, { shapeOptions: SHAPE_OPTIONS });
         shape.enable();
+        setDrawingShape(shape);
       }
     });
   }, [map]);
+
+  useEffect(() => {
+    return areasEvents.onStopDrawing(() => {
+      drawingShape.disable();
+    });
+  }, [drawingShape]);
 
   useEffect(() => {
     if (currentShape) {
@@ -109,6 +117,7 @@ export const Map = () => {
   const handleCancelSaveShape = () => {
     map.removeLayer(currentShape);
     setIsPopupVisible(false);
+    areasEvents.closePopup();
   };
 
   const handleSaveShape = async () => {
