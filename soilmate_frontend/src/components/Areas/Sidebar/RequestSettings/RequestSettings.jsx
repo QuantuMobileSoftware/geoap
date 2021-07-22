@@ -1,12 +1,14 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+
 import { Select } from 'components/_shared/Select';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
+
 import { SIDEBAR_MODE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
-import { ButtonWrapper } from './RequestSettings.styles';
-import { useSelector } from 'react-redux';
 import 'react-datepicker/dist/react-datepicker.css';
+import { ButtonWrapper } from './RequestSettings.styles';
 
 const startYear = 2015;
 const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
