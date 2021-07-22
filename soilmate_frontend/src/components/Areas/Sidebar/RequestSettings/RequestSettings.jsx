@@ -44,6 +44,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
       user: currentUser.pk
     };
     saveAreaRequest(currentArea.id, request);
+    setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
   useEffect(() => {
@@ -78,6 +79,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
+        title='Date range'
       />
 
       <ButtonWrapper>
