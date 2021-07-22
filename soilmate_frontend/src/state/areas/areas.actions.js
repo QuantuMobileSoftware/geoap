@@ -34,7 +34,6 @@ export const useAreasActions = () => {
     async (id, request) => {
       await handleAsync(async () => {
         const resp = await API.areas.saveAreaRequest(request);
-        console.log(resp);
         dispatch(areasActions.setAreaRequest({ id, request: resp.data }));
       });
     },
