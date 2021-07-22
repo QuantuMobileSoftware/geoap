@@ -30,6 +30,17 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const saveAreaRequest = useCallback(
+    async (id, request) => {
+      await handleAsync(async () => {
+        const resp = await API.areas.saveAreaRequest(request);
+        console.log(resp);
+        dispatch(areasActions.setAreaRequest({ id, request: resp.data }));
+      });
+    },
+    [dispatch, handleAsync]
+  );
+
   const setCurrentArea = useCallback(
     id => dispatch(areasActions.setCurrentArea(id)),
     [dispatch]
@@ -75,6 +86,13 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const getLayers = useCallback(async () => {
+    await handleAsync(async () => {
+      const resp = await API.areas.getLayers();
+      dispatch(areasActions.setLayers(resp.data));
+    });
+  }, [dispatch, handleAsync]);
+
   return {
     isLoading,
     error,
@@ -83,6 +101,8 @@ export const useAreasActions = () => {
     saveArea,
     deleteArea,
     setSidebarMode,
-    patchArea
+    patchArea,
+    getLayers,
+    saveAreaRequest
   };
 };
