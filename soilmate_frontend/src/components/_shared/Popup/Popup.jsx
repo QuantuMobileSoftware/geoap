@@ -5,7 +5,10 @@ import { StyledPopup, Header } from './Popup.styled';
 import { Button } from '../Button';
 
 export const Popup = ({ header, confirmPopup, cancel, save }) => (
-  <Draggable defaultClassNameDragging='dragging'>
+  <Draggable
+    defaultClassNameDragging='dragging'
+    positionOffset={{ x: '-50%', y: '-50%' }}
+  >
     <StyledPopup>
       <Header>{header}</Header>
       <Button variant='secondary' onClick={cancel}>
