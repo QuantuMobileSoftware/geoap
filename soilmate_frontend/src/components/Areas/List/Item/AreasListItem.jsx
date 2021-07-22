@@ -67,7 +67,10 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
       </AreasListItemBody>
 
       <AreasIconButtonsHolder isActive={props.isActive}>
-        <AreasIconButton icon='Plus'></AreasIconButton>
+        <AreasIconButton
+          icon='Plus'
+          onClick={() => setSidebarMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
+        ></AreasIconButton>
         <AreasIconButton
           icon='List'
           onClick={() => {

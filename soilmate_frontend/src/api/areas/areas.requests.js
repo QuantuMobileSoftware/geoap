@@ -13,6 +13,10 @@ const getAreaRequests = id => {
   return axiosInstance.get(areasEndpoints.requests(id));
 };
 
+const saveAreaRequest = request => {
+  return axiosInstance.post(areasEndpoints.request, request);
+};
+
 const getAreaResults = id => {
   return axiosInstance.get(areasEndpoints.results(id));
 };
@@ -29,12 +33,18 @@ const patchArea = (id, data) => {
   return axiosInstance.patch(`${areasEndpoints.root}/${id}`, data);
 };
 
+const getLayers = () => {
+  return axiosInstance.get(areasEndpoints.layers);
+};
+
 export const areasRequests = {
   getAreas,
   getArea,
   getAreaRequests,
+  saveAreaRequest,
   getAreaResults,
   saveArea,
   deleteArea,
-  patchArea
+  patchArea,
+  getLayers
 };
