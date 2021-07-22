@@ -26,7 +26,7 @@ const renderDayContents = day => {
   );
 };
 
-export const Calendar = ({ startDate, endDate, setStartDate, setEndDate }) => {
+export const Calendar = ({ startDate, endDate, setStartDate, setEndDate, title }) => {
   const [isOpen, setIsOpen] = useState(false);
   const calendarRef = useRef(null);
 
@@ -49,7 +49,7 @@ export const Calendar = ({ startDate, endDate, setStartDate, setEndDate }) => {
 
   return (
     <>
-      <CalendarTitle>Date range</CalendarTitle>
+      {title && <CalendarTitle>{title}</CalendarTitle>}
       <DatePicker
         selected={startDate}
         onChange={handleOnChange}
