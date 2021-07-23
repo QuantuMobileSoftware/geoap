@@ -63,7 +63,7 @@ export const Map = () => {
 
   useEffect(() => {
     const polygon = initialAreas.find(area => area.id === currentArea);
-    if (!polygon) {
+    if (!polygon || !map) {
       return;
     }
     const { center, bounds } = getShapePositions(polygon);
