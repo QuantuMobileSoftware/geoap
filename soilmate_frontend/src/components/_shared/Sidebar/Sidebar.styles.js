@@ -8,21 +8,23 @@ import { Typography } from '../Typography';
 
 export const SidebarBody = styled.div``;
 
+export const SidebarHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${em(32)};
+`;
+
 export const SidebarHeading = styled(Typography).attrs({
   element: 'h2',
   variant: 'h2'
-})`
-  margin-bottom: ${em(32)};
-`;
+})``;
 
 export const SidebarButtonClose = styled(Button).attrs({
   variant: 'floating',
   icon: 'Cross'
 })`
   ${({ theme }) => css`
-    position: absolute;
-    right: ${rem(theme.spacing[8])};
-    top: ${rem(theme.spacing[10])};
     border: ${theme.borders.default(theme.fontSizes[1])};
     ${ButtonIcon} {
       width: ${rem(12)};
