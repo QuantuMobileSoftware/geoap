@@ -1,13 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { isNumber } from 'lodash-es';
 
+import { Checkbox } from 'components/_shared/Checkbox';
+
 import {
   AreasListItemBody,
   AreasListItemCoordinate,
   AreasListItemCoordinates,
   AreasListItemMenu,
   AreasListItemName,
-  AreasListItemThumbnail,
   AreasListItem,
   AreasListItemButton,
   AreasIconButton,
@@ -59,7 +60,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         setCurrentArea(area.id);
       }}
     >
-      <AreasListItemThumbnail backdropIcon='Image' />
+      <Checkbox />
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
