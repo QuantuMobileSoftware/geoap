@@ -5,6 +5,7 @@ import { SIDEBAR_MODE } from '_constants';
 
 const AREAS_INITIAL_STATE = {
   entities: {},
+  selectedEntitiesId: [],
   current: null,
   mode: SIDEBAR_MODE.LIST,
   layers: [],
@@ -17,6 +18,18 @@ const areasSlice = createSlice({
   reducers: {
     setEntities: (state, action) => {
       state.entities = { ...state.entities, ...action.payload };
+    },
+    setSelectedEntityId: (state, action) => {
+      state.selectedEntitiesId.push(action.payload);
+    },
+    deleteSelectedEntityId: (state, action) => {
+      if (action.payload) {
+        state.selectedEntitiesId = state.selectedEntitiesId.filter(
+          el => el !== action.payload
+        );
+      } else {
+        state.selectedEntitiesId = [];
+      }
     },
     //set current area ID
     setCurrentArea: (state, action) => {
@@ -51,6 +64,7 @@ export const selectAreas = state => state.areas.entities;
 //get current area ID
 export const selectCurrentArea = state => state.areas.current;
 export const selectSidebarMode = state => state.areas.mode;
+export const selectSelectedEntitiesId = state => state.areas.selectedEntitiesId;
 
 export const selectAreasList = createSelector(selectAreas, areas => {
   return Object.values(areas).map(area => ({
