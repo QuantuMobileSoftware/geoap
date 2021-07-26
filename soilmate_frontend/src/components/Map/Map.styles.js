@@ -6,11 +6,20 @@ import { MapContainer } from 'react-leaflet';
 
 import { Button } from 'components/_shared/Button';
 
+const markerIconSize = 14;
+
 export const MapHolder = styled.div`
   ${() => css`
     position: relative;
     width: 100%;
     height: 100%;
+    .leaflet-marker-icon.leaflet-interactive {
+      width: ${rem(markerIconSize)} !important;
+      height: ${rem(markerIconSize)} !important;
+      margin-left: ${rem(-(markerIconSize / 2))} !important;
+      margin-top: ${rem(-(markerIconSize / 2))} !important;
+      border-radius: 50%;
+    }
   `}
 `;
 

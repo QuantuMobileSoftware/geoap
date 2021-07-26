@@ -13,13 +13,15 @@ import {
   SidebarButtonClose,
   SidebarHeading,
   StyledSidebar,
-  ButtonWrapper
+  ButtonWrapper,
+  SidebarHeader
 } from './Sidebar.styles';
 
 import { Modal } from '../Modal';
 import { ModalItem } from '../ModalItem';
 import { Button } from '../Button';
 import { FileUploader } from '../FileUploader';
+import { BreadCrumbs } from './BreadCrumbs';
 import { MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
 
@@ -152,8 +154,11 @@ export const Sidebar = forwardRef(
         className={_className}
         withUnmountToggle={withUnmountToggle}
       >
-        {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
-        {heading && <SidebarHeading>{heading}</SidebarHeading>}
+        <BreadCrumbs />
+        <SidebarHeader>
+          {heading && <SidebarHeading>{heading}</SidebarHeading>}
+          {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
+        </SidebarHeader>
         {children && <SidebarBody>{children}</SidebarBody>}
         {isModalOpen && (
           <Modal header={modalChildren[modalType].header}>
