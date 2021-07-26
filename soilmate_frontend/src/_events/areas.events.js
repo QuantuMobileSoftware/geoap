@@ -25,6 +25,18 @@ class AreasEvents extends EventEmitter {
     this.on('updateShape', callback);
     return () => this.removeAllListeners('updateShape', callback);
   };
+
+  stopDrawing = () => this.emit('stopDrawing');
+  onStopDrawing = callback => {
+    this.on('stopDrawing', callback);
+    return () => this.removeAllListeners('stopDrawing', callback);
+  };
+
+  closePopup = () => this.emit('closePopup');
+  onClosePopup = callback => {
+    this.on('closePopup', callback);
+    return () => this.removeAllListeners('closePopup', callback);
+  };
 }
 
 export const areasEvents = new AreasEvents();

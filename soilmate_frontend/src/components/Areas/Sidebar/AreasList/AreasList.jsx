@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+
 import { List } from '../../List';
 import { Search } from 'components/_shared/Search';
+
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
 import { AreasSidebarMessage, AreasSidebarButton } from './AreasList.styles';
@@ -8,8 +10,21 @@ import { AreasSidebarMessage, AreasSidebarButton } from './AreasList.styles';
 export const AreasList = React.memo(({ areas }) => {
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => setListItems(areas), [areas]);
+
+  useEffect(() => {
+    return areasEvents.onCreateShape(() => {
+      setIsDrawing(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    return areasEvents.onClosePopup(() => {
+      setIsDrawing(false);
+    });
+  }, []);
 
   const resetAreas = () => {
     setIsAreasNotFound(false);
@@ -61,13 +76,25 @@ export const AreasList = React.memo(({ areas }) => {
 
       {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
-      <AreasSidebarButton
-        variant='primary'
-        icon='Plus'
-        onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
-      >
-        Add new area
-      </AreasSidebarButton>
+      {isDrawing ? (
+        <AreasSidebarButton
+          variant='primary'
+          onClick={() => {
+            areasEvents.stopDrawing();
+            setIsDrawing(false);
+          }}
+        >
+          Undo drawing
+        </AreasSidebarButton>
+      ) : (
+        <AreasSidebarButton
+          variant='primary'
+          icon='Plus'
+          onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
+        >
+          Add new area
+        </AreasSidebarButton>
+      )}
     </>
   );
 });
