@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
 import { List } from '../../List';
 import { Search } from 'components/_shared/Search';
+import { Button } from 'components/_shared/Button';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
-import { AreasSidebarMessage, AreasSidebarButton } from './AreasList.styles';
+import { selectSelectedEntitiesId } from 'state';
+import {
+  AreasSidebarMessage,
+  AreasSidebarButton,
+  StyledIcon,
+  ButtonWrapper
+} from './AreasList.styles';
 
 export const AreasList = React.memo(({ areas }) => {
+  const selectedAreas = useSelector(selectSelectedEntitiesId);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -71,6 +80,24 @@ export const AreasList = React.memo(({ areas }) => {
         onSubmit={handleSearchSubmit}
         onChange={handleSearchChange}
       />
+
+      <ButtonWrapper>
+        <Button>
+          Sorting <StyledIcon>ArrowUp</StyledIcon>
+        </Button>
+        {!!selectedAreas.length && (
+          <Button
+            onClick={() =>
+              areasEvents.toggleModal(true, {
+                type: MODAL_TYPE.DELETE,
+                id: selectedAreas
+              })
+            }
+          >
+            Delete
+          </Button>
+        )}
+      </ButtonWrapper>
 
       <List areas={listItems} />
 

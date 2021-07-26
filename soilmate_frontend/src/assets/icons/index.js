@@ -24,3 +24,4 @@ export { ReactComponent as Search } from './Search.svg';
 export { ReactComponent as Settings } from './Settings.svg';
 export { ReactComponent as Upload } from './Upload.svg';
 export { ReactComponent as User } from './User.svg';
+export { ReactComponent as ArrowUp } from './ArrowUp.svg';

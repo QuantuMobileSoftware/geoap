@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { em, rem } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 import { Button } from 'components/_shared/Button';
+import { Icon } from 'components/_shared/Icon';
 
 export const AreasSidebarButton = styled(Button)`
   ${({ theme }) => css`
@@ -17,4 +18,14 @@ export const AreasSidebarMessage = styled(Typography).attrs({
     text-align: center;
     padding: ${em([theme.spacing[11], theme.spacing[11], theme.spacing[8]])};
   `}
+`;
+
+export const StyledIcon = styled(Icon)`
+  display: inline-flex;
+`;
+
+export const ButtonWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: ${em(16)};
 `;

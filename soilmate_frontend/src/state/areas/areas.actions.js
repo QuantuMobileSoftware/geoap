@@ -45,6 +45,16 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const setSelectedEntityId = useCallback(
+    id => dispatch(areasActions.setSelectedEntityId(id)),
+    [dispatch]
+  );
+
+  const deleteSelectedEntityId = useCallback(
+    id => dispatch(areasActions.deleteSelectedEntityId(id)),
+    [dispatch]
+  );
+
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
@@ -63,8 +73,20 @@ export const useAreasActions = () => {
   const deleteArea = useCallback(
     async id => {
       await handleAsync(async () => {
-        await API.areas.deleteArea(id);
-        dispatch(areasActions.deleteAreaById(id));
+        if (Array.isArray(id)) {
+          Promise.all(id.map(id => API.areas.deleteArea(id))).then(resp => {
+            const deletedEl = resp.map((el, i) => {
+              if (el.status === 204) {
+                return id[i];
+              }
+            });
+            dispatch(areasActions.deleteAreaById(deletedEl));
+            dispatch(areasActions.deleteSelectedEntityId());
+          });
+        } else {
+          await API.areas.deleteArea(id);
+          dispatch(areasActions.deleteAreaById(id));
+        }
       }, true);
     },
     [handleAsync, dispatch]
@@ -97,6 +119,8 @@ export const useAreasActions = () => {
     error,
     getAreas,
     setCurrentArea,
+    setSelectedEntityId,
+    deleteSelectedEntityId,
     saveArea,
     deleteArea,
     setSidebarMode,
