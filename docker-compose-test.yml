@@ -21,5 +21,6 @@ services:
       - POSTGRES_PASSWORD=ahx5Yaiv
     volumes:
       - ./webapplication:/code
+      - ./data:/data
     depends_on:
       - db
