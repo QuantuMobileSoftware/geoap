@@ -26,6 +26,7 @@ class AOITestCase(UserBase):
             35.912753706054865 49.4508072987418 ,  \
             35.895191466414154 50.009453778741694 \
             ))",
+            "type": 1,
         }
 
         self.data_patch = {
@@ -101,6 +102,7 @@ class AOITestCase(UserBase):
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
         self.assertEqual(content['createdat'], serializer.data['createdat'])
+        self.assertEqual(content['type'], serializer.data['type'])
         
     def test_patch_aoi_with_wrong_user_id_by_owner(self):
         aoi_id = 1002
