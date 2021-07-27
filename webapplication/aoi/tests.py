@@ -482,6 +482,9 @@ class AOIRequestsTestCase(UserBase):
 class AOiTypeTestCase(UserBase):
     fixtures = ['user/fixtures/user_fixtures.json', ]
     
+    def setUp(self):
+        super().setUp()
+    
     def test_get_aoitype_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
         response = self.get_aoitype_list()
