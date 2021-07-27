@@ -40,6 +40,11 @@ export const useAreasActions = () => {
     [dispatch, handleAsync]
   );
 
+  const setEntitySize = useCallback(
+    (id, size) => dispatch(areasActions.setEntitySize({ id, size })),
+    [dispatch]
+  );
+
   const setCurrentArea = useCallback(
     id => dispatch(areasActions.setCurrentArea(id)),
     [dispatch]
@@ -118,6 +123,7 @@ export const useAreasActions = () => {
     isLoading,
     error,
     getAreas,
+    setEntitySize,
     setCurrentArea,
     setSelectedEntityId,
     deleteSelectedEntityId,

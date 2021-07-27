@@ -45,23 +45,11 @@ export const AreasListItemButton = styled(Button)`
   `}
 `;
 
-export const AreasListItemCoordinate = styled(Typography).attrs({
+export const AreasListItemSize = styled(Typography).attrs({
   element: 'p',
   variant: 'caption1'
 })`
-  ${({ theme }) => css`
-    &:not(:first-child) {
-      margin-left: ${rem(theme.spacing[3])};
-    }
-  `}
-`;
-
-export const AreasListItemCoordinates = styled.div`
-  ${({ theme }) => css`
-    display: flex;
-    align-items: center;
-    margin-top: ${rem(theme.spacing[0])};
-  `}
+  font-size: ${em(13)};
 `;
 
 export const AreasListItemName = styled(Typography).attrs({
