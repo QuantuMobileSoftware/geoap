@@ -12,7 +12,6 @@ class AoiType(models.Model):
         return self.name
     
     class Meta:
-        db_table = 'aoi_aoi_type'
         verbose_name = 'Area of interest type'
         verbose_name_plural = 'Areas of interest types'
         ordering = ['name']
