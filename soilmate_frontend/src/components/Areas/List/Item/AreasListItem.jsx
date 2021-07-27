@@ -5,8 +5,7 @@ import { Checkbox } from 'components/_shared/Checkbox';
 
 import {
   AreasListItemBody,
-  AreasListItemCoordinate,
-  AreasListItemCoordinates,
+  AreasListItemSize,
   AreasListItemMenu,
   AreasListItemName,
   AreasListItem,
@@ -40,24 +39,6 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     }
   };
 
-  const renderCoordinates = () => {
-    if (!hasCoordinates) {
-      return null;
-    }
-
-    return (
-      <AreasListItemCoordinates>
-        {coordinates.map(([axios, value]) => {
-          return value.toString ? (
-            <AreasListItemCoordinate
-              key={axios}
-            >{`${axios}: ${value}`}</AreasListItemCoordinate>
-          ) : null;
-        })}
-      </AreasListItemCoordinates>
-    );
-  };
-
   return (
     <AreasListItem
       {...props}
@@ -72,7 +53,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
-        {renderCoordinates()}
+        {area.size && <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>}
       </AreasListItemBody>
 
       <AreasIconButtonsHolder isActive={props.isActive}>
