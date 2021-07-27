@@ -6,7 +6,7 @@ import { Icon } from 'components/_shared/Icon';
 
 export const AreasSidebarButton = styled(Button)`
   ${({ theme }) => css`
-    margin: ${rem(theme.spacing[6])} auto ${rem(theme.spacing[6])} 0;
+    margin: ${rem(theme.spacing[6])} 0 ${rem(theme.spacing[6])} auto;
   `}
 `;
 
@@ -22,6 +22,7 @@ export const AreasSidebarMessage = styled(Typography).attrs({
 
 export const StyledIcon = styled(Icon)`
   display: inline-flex;
+  transform: rotate(${props => (props.up ? `0` : `180deg`)});
 `;
 
 export const ButtonWrapper = styled.div`

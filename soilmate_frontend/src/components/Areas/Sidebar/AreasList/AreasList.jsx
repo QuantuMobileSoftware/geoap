@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { List } from '../../List';
@@ -20,6 +20,7 @@ export const AreasList = React.memo(({ areas }) => {
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isUpSortList, setIsUpSortList] = useState(true);
 
   useEffect(() => setListItems(areas), [areas]);
 
@@ -72,6 +73,13 @@ export const AreasList = React.memo(({ areas }) => {
     resetAreas();
   };
 
+  const sortingListItems = useMemo(() => {
+    if (isUpSortList) {
+      return listItems.sort((prev, next) => prev.name.localeCompare(next.name));
+    }
+    return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
+  }, [isUpSortList, listItems]);
+
   return (
     <>
       <Search
@@ -82,8 +90,8 @@ export const AreasList = React.memo(({ areas }) => {
       />
 
       <ButtonWrapper>
-        <Button>
-          Sorting <StyledIcon>ArrowUp</StyledIcon>
+        <Button onClick={() => setIsUpSortList(!isUpSortList)}>
+          Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
         {!!selectedAreas.length && (
           <Button
@@ -99,7 +107,7 @@ export const AreasList = React.memo(({ areas }) => {
         )}
       </ButtonWrapper>
 
-      <List areas={listItems} />
+      <List areas={sortingListItems} />
 
       {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
