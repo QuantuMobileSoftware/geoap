@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Area of interest type',
                 'verbose_name_plural': 'Areas of interest types',
-                'db_table': 'aoi_aoi_type',
                 'ordering': ['name'],
             },
         ),
