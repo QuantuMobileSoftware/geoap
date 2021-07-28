@@ -1,71 +1,58 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { List } from '../../RequestsList';
-import { Search } from 'components/_shared/Search';
-import { SIDEBAR_MODE } from '_constants';
-import { RequestsSidebarMessage, ButtonWrapper } from './Requests.styles';
 import { Button } from 'components/_shared/Button';
+
 import { useAreasActions, selectCurrentRequests } from 'state';
+import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
+import { areasEvents } from '_events';
+import {
+  ButtonWrapper,
+  StyledIcon,
+  ButtonTopWrapper,
+  TabsWrapper,
+  TabItem
+} from './Requests.styles';
 
 export const Requests = React.memo(() => {
   const requests = useSelector(selectCurrentRequests);
 
-  const [isRequestNotFound, setIsRequestNotFound] = useState(false);
-  const [listItems, setListItems] = useState(requests);
+  const [isUpSortList, setIsUpSortList] = useState(true);
+  const [activeTab, setActiveTab] = useState(1);
   const { setSidebarMode } = useAreasActions();
 
-  const resetRequests = () => {
-    setIsRequestNotFound(false);
-    setListItems(requests);
-  };
-
-  const searchRequestsByQuery = query => {
-    if (!query) {
-      resetRequests();
-      return;
-    }
-
-    const foundRequests = requests.filter(area => {
-      return area.name.match(query, 'gi');
-    });
-
-    if (!foundRequests.length) {
-      setListItems([]);
-      setIsRequestNotFound(true);
-      return;
-    }
-
-    setIsRequestNotFound(false);
-    setListItems(foundRequests);
-  };
-
-  const handleSearchSubmit = values => {
-    searchRequestsByQuery(values.query);
-  };
-
-  const handleSearchChange = e => {
-    searchRequestsByQuery(e.target.value);
-  };
-
-  const handleSearchReset = () => {
-    resetRequests();
-  };
+  const filtered = useMemo(() => {
+    return activeTab === 1 ? requests : requests.filter(r => !r.finished_at);
+  }, [requests, activeTab]);
 
   return (
     <>
-      <Search
-        control={{ placeholder: 'Search by name', autoComplete: 'off' }}
-        onReset={handleSearchReset}
-        onSubmit={handleSearchSubmit}
-        onChange={handleSearchChange}
-      />
+      <TabsWrapper>
+        <TabItem isActive={activeTab === 1} onClick={() => setActiveTab(1)}>
+          Created reports
+        </TabItem>
+        <TabItem isActive={activeTab === 2} onClick={() => setActiveTab(2)}>
+          In progress
+        </TabItem>
+      </TabsWrapper>
+      <ButtonTopWrapper>
+        <Button onClick={() => setIsUpSortList(!isUpSortList)}>
+          Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
+        </Button>
+        <Button
+          onClick={() =>
+            areasEvents.toggleModal(true, {
+              type: MODAL_TYPE.DELETE
+              // id: reportId
+            })
+          }
+        >
+          Delete
+        </Button>
+      </ButtonTopWrapper>
 
-      <List requests={listItems} />
-
-      {isRequestNotFound && (
-        <RequestsSidebarMessage>Request not found</RequestsSidebarMessage>
-      )}
+      <List requests={filtered} />
 
       <ButtonWrapper>
         <Button

@@ -1,9 +1,10 @@
 import React, { useRef } from 'react';
 
+import { Checkbox } from 'components/_shared/Checkbox';
+
 import {
   RequestListItemBody,
   RequestListItemText,
-  RequestListItemThumbnail,
   RequestListItem
 } from './RequestListItem.styles';
 
@@ -18,7 +19,7 @@ export const ListItem = ({ request = {}, ...props }) => {
       //   setCurrentArea(request.id);
       // }}
     >
-      <RequestListItemThumbnail backdropIcon='Image' />
+      <Checkbox />
 
       <RequestListItemBody>
         <RequestListItemText>{request.notebook_name}</RequestListItemText>
