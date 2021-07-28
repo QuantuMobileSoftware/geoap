@@ -4,8 +4,6 @@ import os
 import os.path
 import tempfile
 from pathlib import Path
-import django
-django.setup()
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -146,8 +144,3 @@ class Command(BaseCommand):
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
-        
-        
-if __name__ == '__main__':
-    command = Command()
-    command.handle()
