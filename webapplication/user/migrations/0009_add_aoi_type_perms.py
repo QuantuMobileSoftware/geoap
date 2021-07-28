@@ -68,7 +68,7 @@ def update_ds_engineer_group_permissions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0016_aoi_type'),
+        ('user', '0008_merge_20210115_1546'),
     ]
 
     operations = [
