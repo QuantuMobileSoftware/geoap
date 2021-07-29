@@ -1,8 +1,9 @@
 import styled, { css } from 'styled-components';
-import { em } from 'styles';
+import { em, rem } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 
 import { Icon } from 'components/_shared/Icon';
+import { Select } from 'components/_shared/Select';
 
 export const RequestsSidebarMessage = styled(Typography).attrs({
   element: 'p',
@@ -32,8 +33,12 @@ export const StyledIcon = styled(Icon)`
 
 export const ButtonTopWrapper = styled.div`
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   margin-top: ${em(16)};
+  button {
+    color: ${({ theme }) => theme.colors.nature.n4};
+    font-size: ${rem(13)};
+  }
 `;
 
 export const TabsWrapper = styled.div`
@@ -48,5 +53,16 @@ export const TabItem = styled.div`
     border-color: ${isActive ? theme.colors.primary.p2 : theme.colors.nature.n3};
     cursor: pointer;
     text-align: center;
+  `}
+`;
+
+export const StyledSelect = styled(Select)`
+  ${({ theme }) => css`
+    /* flex-grow: 1; */
+    & > div {
+      border: none;
+      color: ${theme.colors.nature.n4};
+      font-size: ${rem(13)};
+    }
   `}
 `;

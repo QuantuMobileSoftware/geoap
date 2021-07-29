@@ -4,27 +4,51 @@ import { useSelector } from 'react-redux';
 import { List } from '../../RequestsList';
 import { Button } from 'components/_shared/Button';
 
-import { useAreasActions, selectCurrentRequests } from 'state';
-import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
-import { areasEvents } from '_events';
+import { useAreasActions, selectCurrentRequests, selectLayers } from 'state';
+import { SIDEBAR_MODE } from '_constants';
 import {
   ButtonWrapper,
   StyledIcon,
   ButtonTopWrapper,
   TabsWrapper,
-  TabItem
+  TabItem,
+  StyledSelect
 } from './Requests.styles';
 
 export const Requests = React.memo(() => {
   const requests = useSelector(selectCurrentRequests);
+  const requestTypes = useSelector(selectLayers);
 
   const [isUpSortList, setIsUpSortList] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
+  const [filterType, setFilterType] = useState('');
   const { setSidebarMode } = useAreasActions();
 
+  const selectItems = useMemo(
+    () => [
+      { name: 'All report type', value: '' },
+      ...requestTypes.map(({ name, id }) => ({ value: id, name }))
+    ],
+    [requestTypes]
+  );
+
   const filtered = useMemo(() => {
-    return activeTab === 1 ? requests : requests.filter(r => !r.finished_at);
-  }, [requests, activeTab]);
+    const filtered = filterType
+      ? requests.filter(r => r.notebook === filterType)
+      : requests;
+    return activeTab === 1 ? filtered : filtered.filter(r => !r.finished_at);
+  }, [requests, activeTab, filterType]);
+
+  const sortingListItems = useMemo(() => {
+    if (isUpSortList) {
+      return filtered.sort((prev, next) =>
+        prev.notebook_name.localeCompare(next.notebook_name)
+      );
+    }
+    return filtered.sort((prev, next) =>
+      next.notebook_name.localeCompare(prev.notebook_name)
+    );
+  }, [isUpSortList, filtered]);
 
   return (
     <>
@@ -40,19 +64,14 @@ export const Requests = React.memo(() => {
         <Button onClick={() => setIsUpSortList(!isUpSortList)}>
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
-        <Button
-          onClick={() =>
-            areasEvents.toggleModal(true, {
-              type: MODAL_TYPE.DELETE
-              // id: reportId
-            })
-          }
-        >
-          Delete
-        </Button>
+        <StyledSelect
+          items={selectItems}
+          value=''
+          onSelect={item => setFilterType(item.value)}
+        />
       </ButtonTopWrapper>
 
-      <List requests={filtered} />
+      <List requests={sortingListItems} />
 
       <ButtonWrapper>
         <Button

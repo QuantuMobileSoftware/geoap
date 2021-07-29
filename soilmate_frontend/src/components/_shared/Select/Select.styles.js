@@ -7,7 +7,7 @@ import { Typography } from '../Typography';
 import { Icon } from 'components/_shared/Icon';
 
 export const SelectDropdown = styled(Dropdown)`
-  width: 100%;
+  min-width: 100%;
   top: ${rem(43)};
   left: 0;
   padding: 0;
@@ -18,7 +18,6 @@ export const SelectToggle = styled.div`
     css`
       position: relative;
       border: ${theme.borders.default({ fontSize: theme.fontSizes[2] })};
-      color: ${theme.colors.nature.n3};
       padding: ${rem(9)} ${rem(10)} ${rem(7)};
       border-radius: ${em(theme.radius[0], theme.fontSizes[2])};
       cursor: pointer;
@@ -27,6 +26,14 @@ export const SelectToggle = styled.div`
         color: ${theme.colors.primary.p2};
       }
     `}
+`;
+
+export const SelectToggleText = styled.div`
+  padding-right: ${rem(18)};
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 export const StyledIcon = styled(Icon)`
@@ -38,7 +45,7 @@ export const StyledIcon = styled(Icon)`
 `;
 
 export const StyledSelect = styled.div`
-  margin-bottom: ${em(17)};
+  color: ${props => props.theme.colors.nature.n3};
 `;
 
 export const Option = styled.div`

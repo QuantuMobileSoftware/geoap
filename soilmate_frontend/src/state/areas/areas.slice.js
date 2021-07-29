@@ -93,9 +93,6 @@ export const selectCurrentRequests = createSelector(
   }
 );
 
-export const selectLayers = createSelector(
-  state => state.areas.layers,
-  layers => layers.filter(l => l.success)
-);
+export const selectLayers = state => state.areas.layers;
 
 export const { reducer: areasReducer, actions: areasActions } = areasSlice;
