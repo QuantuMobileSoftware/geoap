@@ -1,14 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-import { Select } from 'components/_shared/Select';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
 
 import { SIDEBAR_MODE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
-import { ButtonWrapper } from './RequestSettings.styles';
+import { ButtonWrapper, StyledSelect } from './RequestSettings.styles';
 
 const startYear = 2015;
 const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
@@ -26,13 +25,14 @@ export const RequestSettings = ({ areas, currentArea }) => {
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
 
+  const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
     () => areas.map(({ name }) => ({ name, value: name })),
     [areas]
   );
   const selectOptionsLayers = useMemo(
-    () => layers.map(({ name, id }) => ({ name, value: id })),
-    [layers]
+    () => filteredLayers.map(({ name, id }) => ({ name, value: id })),
+    [filteredLayers]
   );
 
   const handleSaveRequest = () => {
@@ -53,18 +53,18 @@ export const RequestSettings = ({ areas, currentArea }) => {
 
   return (
     <>
-      <Select
+      <StyledSelect
         items={selectOptionsAreas}
         value={currentArea.name}
         onSelect={item => setAreaId(item.value)}
         label='Choose area'
       />
-      <Select
+      <StyledSelect
         items={selectOptionsLayers}
         onSelect={item => setNotebook(item.value)}
         label='Select layers'
       />
-      <Select
+      <StyledSelect
         items={layerYears}
         onSelect={item => {
           setStartDate(new Date(item.value, 1));

@@ -1,6 +1,8 @@
 import styled, { css } from 'styled-components';
 import { em } from 'styles';
 
+import { Select } from 'components/_shared/Select';
+
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
     margin-top: ${em(33)};
@@ -10,4 +12,8 @@ export const ButtonWrapper = styled.div`
       border: ${theme.borders.default(theme.fontSizes[2])};
     }
   `}
+`;
+
+export const StyledSelect = styled(Select)`
+  margin-bottom: ${em(20)};
 `;
