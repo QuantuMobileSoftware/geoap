@@ -24,6 +24,7 @@ import {
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
 
 import { useMapEvents } from './useMapEvents';
+import { useMapRequests } from './useMapRequests';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
@@ -41,9 +42,10 @@ export const Map = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
   const [drawingShape, setDrawingShape] = useState();
+  const [selectedArea, setSelectedArea] = useState();
 
   const initialAreas = useSelector(selectAreasList);
-  const currentArea = useSelector(selectCurrentArea);
+  const currentAreaId = useSelector(selectCurrentArea);
   const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
@@ -62,15 +64,17 @@ export const Map = () => {
   }, [map]);
 
   useEffect(() => {
-    const polygon = initialAreas.find(area => area.id === currentArea);
+    const polygon = initialAreas.find(area => area.id === currentAreaId);
     if (!polygon || !map) {
       return;
     }
+    setSelectedArea(polygon);
     const { center, bounds } = getShapePositions(polygon);
     map.panTo(center).fitBounds(bounds);
-  }, [currentArea, initialAreas, map]);
+  }, [currentAreaId, initialAreas, map]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
+  useMapRequests(selectedArea, map);
 
   useEffect(() => {
     return areasEvents.onCreateShape(({ json, isShowPopup, shapeType }) => {
@@ -178,7 +182,7 @@ export const Map = () => {
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
-              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentArea}
+              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentAreaId}
             />
           ))}
         {isLoading && <Spinner />}

@@ -4,7 +4,12 @@ import { useSelector } from 'react-redux';
 import { List } from '../../RequestsList';
 import { Button } from 'components/_shared/Button';
 
-import { useAreasActions, selectCurrentRequests, selectLayers } from 'state';
+import {
+  useAreasActions,
+  selectCurrentRequests,
+  selectCurrentResults,
+  selectLayers
+} from 'state';
 import { SIDEBAR_MODE } from '_constants';
 import {
   ButtonWrapper,
@@ -17,6 +22,7 @@ import {
 
 export const Requests = React.memo(() => {
   const requests = useSelector(selectCurrentRequests);
+  const results = useSelector(selectCurrentResults);
   const requestTypes = useSelector(selectLayers);
 
   const [isUpSortList, setIsUpSortList] = useState(true);
@@ -32,23 +38,35 @@ export const Requests = React.memo(() => {
     [requestTypes]
   );
 
-  const filtered = useMemo(() => {
+  const filteredRequest = useMemo(() => {
     const filtered = filterType
       ? requests.filter(r => r.notebook === filterType)
       : requests;
     return activeTab === 1 ? filtered : filtered.filter(r => !r.finished_at);
   }, [requests, activeTab, filterType]);
 
+  const filteredResults = useMemo(() => {
+    const filtered = [];
+    if (activeTab === 2) return filteredRequest;
+    if (!filterType) return results;
+    results.forEach(r => {
+      const result = filteredRequest.some(item => item.id === r.request);
+      if (result) filtered.push(r);
+    });
+    return filtered;
+  }, [results, filteredRequest, filterType, activeTab]);
+
   const sortingListItems = useMemo(() => {
+    const getValue = obj => (obj.name ? obj.name : obj.filepath);
     if (isUpSortList) {
-      return filtered.sort((prev, next) =>
-        prev.notebook_name.localeCompare(next.notebook_name)
+      return filteredResults.sort((prev, next) =>
+        getValue(prev).localeCompare(getValue(next))
       );
     }
-    return filtered.sort((prev, next) =>
-      next.notebook_name.localeCompare(prev.notebook_name)
+    return filteredResults.sort((prev, next) =>
+      getValue(next).localeCompare(getValue(prev))
     );
-  }, [isUpSortList, filtered]);
+  }, [isUpSortList, filteredResults]);
 
   return (
     <>
@@ -82,7 +100,11 @@ export const Requests = React.memo(() => {
         >
           Cancel
         </Button>
-        <Button icon='Plus' variant='primary' onClick={() => {}}>
+        <Button
+          icon='Plus'
+          variant='primary'
+          onClick={() => setSidebarMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
+        >
           Create new
         </Button>
       </ButtonWrapper>

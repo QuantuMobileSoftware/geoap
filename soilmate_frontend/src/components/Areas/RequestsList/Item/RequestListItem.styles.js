@@ -9,6 +9,7 @@ export const RequestListItemText = styled(Typography).attrs({
   variant: 'body1'
 })`
   line-height: ${rem(16)};
+  cursor: pointer;
 `;
 
 export const RequestListItemBody = styled.div`
