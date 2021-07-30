@@ -208,3 +208,4 @@ BASE_CONTAINER_NAME = "sip_webapplication_1"
 PERSISTENT_STORAGE_PATH = '/data'
 CODE_PATH = '/code'
 
+KUBERNETES_ENV = False

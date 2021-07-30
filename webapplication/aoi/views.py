@@ -1,3 +1,4 @@
+from django.core import management
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
@@ -94,6 +95,7 @@ class RequestListCreateAPIView(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+        management.call_command("notebook_executor")
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
     

@@ -1,10 +1,12 @@
 import logging
 import sys
 import time
+from django.core import management
 from aoi.management.commands._notebook import NotebookThread, PublisherThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from aoi.management.commands.k8s_job import Job
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,22 @@ THREAD_SLEEP = 10
 NOTEBOOK_EXECUTOR_THREADS = 1
 
 
-class Command(BaseCommand):
+class CommandKubernetes(BaseCommand):
+    help = 'Run Jupyter notebooks in kubernetes jobs'
+
+    def handle(self, *args, **options):
+        child_process = Process(target=self.run, daemon=True)
+        child_process.start()
+        child_process.join()
+    
+    @staticmethod
+    def run():
+        jobs = Job(settings.K8S_NAME_SPACE)
+        jobs.handle()
+        management.call_command("publish")
+        
+        
+class CommandDocker(BaseCommand):
     help = "Manage running of Jupyter Notebooks and Publisher command"
 
     def handle(self, *args, **options):
@@ -23,8 +40,8 @@ class Command(BaseCommand):
             child_process.join()
             exitcode = child_process.exitcode
 
-    def run(self):
-
+    @staticmethod
+    def run():
         threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
         threads.append(PublisherThread(daemon=True))
 
@@ -46,7 +63,8 @@ class Command(BaseCommand):
                         raise thread.exception
                 working_time = time.time() - started_at
                 if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
-                    raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
+                    raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} \
+                    for threads was achieved")
                 time.sleep(THREAD_SLEEP)
         except Exception as ex:
             logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
@@ -65,3 +83,5 @@ class Command(BaseCommand):
         logger.info(f"All threads are stopped. Restart notebook_executor command")
         sys.exit(2)
 
+
+Command = CommandKubernetes if settings.KUBERNETES_ENV else CommandDocker

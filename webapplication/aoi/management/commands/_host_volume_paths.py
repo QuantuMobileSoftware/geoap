@@ -1,5 +1,8 @@
 import os
-from aoi.management.commands.executor import NotebookExecutor
+from pathlib import Path
+
+cwd = Path().absolute()
+file = cwd / 'aoi/management/commands/executor/NotebookExecutor.py'
 
 
 class HostVolumePaths:
@@ -17,7 +20,7 @@ class HostVolumePaths:
         source_path, dst_path = self._abs_host_path(basename)
 
         executor_volume_path = os.path.dirname(os.path.join(source_path,
-                                                            os.path.relpath(NotebookExecutor.__file__, dst_path)))
+                                                            os.path.relpath(file, dst_path)))
         return executor_volume_path
 
     def _abs_host_path(self, basename):

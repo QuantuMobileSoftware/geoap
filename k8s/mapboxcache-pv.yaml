@@ -1,0 +1,14 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mapboxcache-hostpath-pv
+  namespace: sip-prod
+spec:
+  storageClassName: microk8s-hostpath
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/home/sip/sip_mapboxcache"

@@ -1,0 +1,19 @@
+resources:
+  - namespace-sip-prod.yaml
+  - rbac.yaml
+  - postgres-pv.yaml
+  - postgres-pvc.yaml
+  - postgis-config.yaml
+  - postgis-deployment.yaml
+  - nfs-pv.yaml
+  - nfs-pvc.yaml
+#  - webapplication-development-deployment.yaml
+  - webapplication-deployment.yaml
+  - webserver-config.yaml
+  - mapboxcache-pv.yaml
+  - mapboxcache-pvc.yaml
+  - webserver-deployment.yaml
+#  - jupyter_example-deployment.yaml
+#  - jupyter_pbdnn-deployment.yaml
+#  - jupyter_pw-deployment.yaml
+#  - sip_ingress.yaml

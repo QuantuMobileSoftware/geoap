@@ -64,7 +64,7 @@ class Request(models.Model):
     finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Finished at')
     calculated = models.BooleanField(default=False, verbose_name='Notebook calculated')
     success = models.BooleanField(default=False, verbose_name='Execution succeeded')
-    error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
+    error = models.TextField(blank=True, null=True, verbose_name='Error')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
 
     @property

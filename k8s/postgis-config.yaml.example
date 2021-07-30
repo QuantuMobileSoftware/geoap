@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgis-db-config
+  namespace: sip-prod
+  labels:
+    app: sip
+data:
+  POSTGRES_DB: sip_db
+  POSTGRES_USER: sip
+  POSTGRES_PASSWORD: xxxx
+
