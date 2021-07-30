@@ -7,6 +7,7 @@ const AREAS_INITIAL_STATE = {
   entities: {},
   selectedEntitiesId: [],
   current: null,
+  selectedResults: [],
   mode: SIDEBAR_MODE.LIST,
   layers: [],
   isLoading: false
@@ -38,6 +39,16 @@ const areasSlice = createSlice({
     setCurrentArea: (state, action) => {
       state.current = action.payload;
     },
+    setSelectedResult: (state, action) => {
+      state.selectedResults.push(action.payload);
+    },
+    deleteSelectedResult: (state, action) => {
+      if (action.payload) {
+        state.selectedResults = state.selectedResults.filter(el => el !== action.payload);
+      } else {
+        state.selectedResults = [];
+      }
+    },
     deleteAreaById: (state, action) => {
       state.entities = omit(state.entities, action.payload);
     },
@@ -66,6 +77,7 @@ export const getLoading = state => state.areas.isLoading;
 export const selectAreas = state => state.areas.entities;
 //get current area ID
 export const selectCurrentArea = state => state.areas.current;
+export const selectSelectedResults = state => state.areas.selectedResults;
 export const selectSidebarMode = state => state.areas.mode;
 export const selectSelectedEntitiesId = state => state.areas.selectedEntitiesId;
 
@@ -90,6 +102,14 @@ export const selectCurrentRequests = createSelector(
   selectCurrentArea,
   (areas, areaID) => {
     return areas.flatMap(({ requests }) => requests).filter(i => i.aoi === areaID);
+  }
+);
+
+export const selectCurrentResults = createSelector(
+  selectAreasList,
+  selectCurrentArea,
+  (areas, areaID) => {
+    return areas.filter(({ id }) => id === areaID)[0].results;
   }
 );
 

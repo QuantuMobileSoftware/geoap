@@ -1,6 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { Checkbox } from 'components/_shared/Checkbox';
+import { useAreasActions } from 'state';
+import { areasEvents } from '_events';
 
 import {
   RequestListItemBody,
@@ -10,22 +12,31 @@ import {
 
 export const ListItem = ({ request = {}, ...props }) => {
   const areaRef = useRef(null);
+  const { setSelectedResult, deleteSelectedResult } = useAreasActions();
+  const [isChecked, setIsChecked] = useState(false);
+  const handleRequestClick = () => {
+    if (isChecked) {
+      deleteSelectedResult(request.id);
+    } else {
+      setSelectedResult(request.id);
+    }
+    setIsChecked(!isChecked);
+    areasEvents.selectRequest();
+  };
+
+  const isResult = request.hasOwnProperty('request');
+  const { name, filepath, notebook_name, end_date, date_to } = request;
 
   return (
-    <RequestListItem
-      {...props}
-      ref={areaRef}
-      // onClick={() => {
-      //   setCurrentArea(request.id);
-      // }}
-    >
-      <Checkbox />
+    <RequestListItem {...props} ref={areaRef} onClick={handleRequestClick}>
+      <Checkbox checked={isChecked} />
 
       <RequestListItemBody>
-        <RequestListItemText>{request.notebook_name}</RequestListItemText>
         <RequestListItemText>
-          {request.date_from ? `From: ${request.date_from} ` : ''}{' '}
-          {request.date_to ? `To: ${request.date_to}` : ''}
+          {isResult ? (name ? name : filepath) : notebook_name}
+        </RequestListItemText>
+        <RequestListItemText>
+          {isResult ? (end_date ? end_date : '') : date_to ? date_to : ''}
         </RequestListItemText>
       </RequestListItemBody>
     </RequestListItem>
