@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0013_request_add_run_validation_success'),
+        ('aoi', '0016_aoi_type'),
     ]
 
     operations = [

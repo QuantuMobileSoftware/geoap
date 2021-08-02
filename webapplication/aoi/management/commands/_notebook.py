@@ -111,8 +111,9 @@ class NotebookThread(StoppableThread):
                 request.calculated = True
                 request.save(update_fields=['calculated'])
             else:
-                request.finished_at=localtime()
-                request.save(update_fields=['finished_at'])
+                request.finished_at = localtime()
+                request.error = attrs['logs']
+                request.save(update_fields=['finished_at', 'error'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
             try:

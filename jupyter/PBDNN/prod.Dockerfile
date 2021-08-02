@@ -1,9 +1,7 @@
 FROM cschranz/gpu-jupyter:latest
 
 USER root
-RUN apt-get update && \
-    apt-get install -y \
-    gcc libspatialindex-dev python3-dev
+RUN apt-get update && apt-get install -y gcc libspatialindex-dev python3-dev
 
 RUN conda install --quiet --yes -c conda-forge jupyterlab-git && \
     conda clean --all -f -y && \
@@ -14,29 +12,31 @@ RUN conda install --quiet --yes -c conda-forge jupyterlab-git && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
-#RUN pip install --upgrade jupyterlab jupyterlab-git
-#RUN jupyter labextension install @jupyterlab/git && \
-#RUN jupyter lab build && \
-#    fix-permissions /home/$NB_USER
 
 USER $NB_UID
 WORKDIR $HOME
 
 
 
-COPY requirements.txt /tmp/
+COPY ./jupyter/PBDNN/requirements.txt /tmp/
 RUN pip install --upgrade pip && \
     pip uninstall -y torchaudio && \
     pip install --requirement /tmp/requirements.txt
-#    fix-permissions $CONDA_DIR && \
-#    fix-permissions /home/$NB_USER
 
-#USER root
-#
-#RUN pip install jupyter_contrib_nbextensions jupyterlab-git && \
-#    jupyter labextension install @jupyterlab/git && \
-#    jupyter lab build
+#RUN pip install nbconvert==6.0.7
+#RUN pip install nbformat==5.1.3
 
-#USER $NB_UID
+COPY ./jupyter/PBDNN/jupyter_notebook_config.json /etc/jupyter/
 
-COPY jupyter_notebook_config.json /etc/jupyter/
+RUN mkdir -p /home/jovyan/code/src
+COPY ./webapplication/aoi/management/commands/executor/NotebookExecutor.py /home/jovyan/code
+WORKDIR $HOME
+
+
+ARG NOTEBOOK_NAME='PBDNN_inference.ipynb'
+ARG NOTEBOOK_PATH='/home/jovyan/code/src'
+ENV NOTEBOOK_PATH ${NOTEBOOK_PATH}
+ENV NOTEBOOK_NAME ${NOTEBOOK_NAME}
+
+COPY ./data/notebooks/pbdnn/sip_plot_boundary_detection_nn ${NOTEBOOK_PATH}
+WORKDIR $HOME/code/src

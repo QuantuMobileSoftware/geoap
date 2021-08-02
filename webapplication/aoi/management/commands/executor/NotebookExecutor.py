@@ -1,19 +1,22 @@
 # python 3.6
 import argparse
-import json
+# import json
 import logging
 import os
 import sys
 from pathlib import Path
 from datetime import datetime
-from subprocess import Popen, PIPE, TimeoutExpired
-import nbformat
+# from subprocess import Popen, PIPE, TimeoutExpired
 from nbconvert.preprocessors import ExecutePreprocessor
+
+import nbformat
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-NOTEBOOK_EXECUTION_PATH = os.getenv('NOTEBOOK_EXECUTION_PATH', None)
+NOTEBOOK_PATH = os.getenv('NOTEBOOK_PATH', None)
+NOTEBOOK_NAME = os.getenv('NOTEBOOK_NAME', None)
+notebook_execution_path = f'{NOTEBOOK_PATH}/{NOTEBOOK_NAME}'
 
 
 class NotebookExecutor:
@@ -50,7 +53,7 @@ class NotebookExecutor:
         return "\n".join(f"{name} = {value!r}" for name, value in self.PARAMS.items())
 
     def read(self):
-        notebook_path = NOTEBOOK_EXECUTION_PATH if NOTEBOOK_EXECUTION_PATH else self.input_path
+        notebook_path = notebook_execution_path if NOTEBOOK_PATH else self.input_path
         logger.info(f'Try to open notebook {notebook_path}')
         notebook = nbformat.read(notebook_path, as_version=4)
         
@@ -74,33 +77,31 @@ class NotebookExecutor:
         executed_save_path = self.save_path.parent / f'{self.save_path.stem}_executed{self.save_path.suffix}'
         nbformat.write(nb, executed_save_path, version=nbformat.NO_CONVERT, )
         
-    
-    def execute(self):
-        command = ["jupyter",
-                   "nbconvert",
-                   "--inplace",
-                   "--to=notebook",
-                   "--execute",
-                   self.save_path,
-                   "--allow-errors",
-                   "--ExecutePreprocessor.timeout",
-                   str(self.cell_timeout), ]
-
-        if self.kernel_name:
-            command.append(f"--ExecutePreprocessor.kernel_name={self.kernel_name}")
-
-        process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-
-        try:
-            out, err = process.communicate(timeout=self.notebook_timeout)
-            if process.returncode != 0:
-                raise RuntimeError(f"Failed {command}\nOutput: {out}, err: {err}")
-        except TimeoutExpired as te:
-            logger.error(f"Failed {command} error: {str(te)}. Killing process...")
-            process.kill()
-            out, err = process.communicate()
-            logger.error(f"Failed {command} output: {out}, err: {err}")
-            raise
+    # def execute(self):
+    #     command = ["jupyter",
+    #                "nbconvert",
+    #                "--inplace",
+    #                "--to=notebook",
+    #                "--execute",
+    #                self.save_path,
+    #                "--ExecutePreprocessor.timeout",
+    #                str(self.cell_timeout), ]
+    #
+    #     if self.kernel_name:
+    #         command.append(f"--ExecutePreprocessor.kernel_name={self.kernel_name}")
+    #
+    #     process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+    #
+    #     try:
+    #         out, err = process.communicate(timeout=self.notebook_timeout)
+    #         if process.returncode != 0:
+    #             raise RuntimeError(f"Failed {command}\nOutput: {out}, err: {err}")
+    #     except TimeoutExpired as te:
+    #         logger.error(f"Failed {command} error: {str(te)}. Killing process...")
+    #         process.kill()
+    #         out, err = process.communicate()
+    #         logger.error(f"Failed {command} output: {out}, err: {err}")
+    #         raise
         
 
 def main():
