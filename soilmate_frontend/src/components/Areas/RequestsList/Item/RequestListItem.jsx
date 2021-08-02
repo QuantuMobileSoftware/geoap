@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 import { useAreasActions } from 'state';
-import { areasEvents } from '_events';
 
 import {
   RequestListItemBody,
@@ -21,7 +20,6 @@ export const ListItem = ({ request = {}, ...props }) => {
       setSelectedResult(request.id);
     }
     setIsChecked(!isChecked);
-    areasEvents.selectRequest();
   };
 
   const isResult = request.hasOwnProperty('request');
