@@ -37,12 +37,6 @@ class AreasEvents extends EventEmitter {
     this.on('closePopup', callback);
     return () => this.removeAllListeners('closePopup', callback);
   };
-
-  selectRequest = id => this.emit('selectRequest', { id });
-  onSelectRequest = callback => {
-    this.on('selectRequest', callback);
-    return () => this.removeAllListeners('selectRequest', callback);
-  };
 }
 
 export const areasEvents = new AreasEvents();
