@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { List } from '../../List';
@@ -73,6 +73,17 @@ export const AreasList = React.memo(({ areas }) => {
     resetAreas();
   };
 
+  const handleSortChange = useCallback(() => {
+    setIsUpSortList(!isUpSortList);
+  }, [isUpSortList]);
+
+  const handleDelete = useCallback(() => {
+    areasEvents.toggleModal(true, {
+      type: MODAL_TYPE.DELETE,
+      id: selectedAreas
+    });
+  }, [selectedAreas]);
+
   const sortingListItems = useMemo(() => {
     if (isUpSortList) {
       return listItems.sort((prev, next) => prev.name.localeCompare(next.name));
@@ -90,21 +101,10 @@ export const AreasList = React.memo(({ areas }) => {
       />
 
       <ButtonWrapper>
-        <Button onClick={() => setIsUpSortList(!isUpSortList)}>
+        <Button onClick={handleSortChange}>
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
-        {!!selectedAreas.length && (
-          <Button
-            onClick={() =>
-              areasEvents.toggleModal(true, {
-                type: MODAL_TYPE.DELETE,
-                id: selectedAreas
-              })
-            }
-          >
-            Delete
-          </Button>
-        )}
+        {!!selectedAreas.length && <Button onClick={handleDelete}>Delete</Button>}
       </ButtonWrapper>
 
       <List areas={sortingListItems} />
