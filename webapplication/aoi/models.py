@@ -4,11 +4,25 @@ from django.utils import timezone
 from user.models import User
 
 
+class AoiType(models.Model):
+    name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='AOI type name')
+    description = models.TextField(blank=True, default='', verbose_name='AOI type description')
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Area of interest type'
+        verbose_name_plural = 'Areas of interest types'
+        ordering = ['name']
+
+
 class AoI(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User id', related_name='aoi')
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='AOI name')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
+    type = models.ForeignKey(AoiType, default=1, on_delete=models.CASCADE, verbose_name='AOI type')
 
     def __str__(self):
         return self.name

@@ -26,6 +26,7 @@ class AOITestCase(UserBase):
             35.912753706054865 49.4508072987418 ,  \
             35.895191466414154 50.009453778741694 \
             ))",
+            "type": 1,
         }
 
         self.data_patch = {
@@ -101,6 +102,7 @@ class AOITestCase(UserBase):
         self.assertEqual(content['name'], self.data_patch['name'])
         self.assertEqual(content['polygon'], serializer.data['polygon'])
         self.assertEqual(content['createdat'], serializer.data['createdat'])
+        self.assertEqual(content['type'], serializer.data['type'])
         
     def test_patch_aoi_with_wrong_user_id_by_owner(self):
         aoi_id = 1002
@@ -475,3 +477,51 @@ class AOIRequestsTestCase(UserBase):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(content), expected_requests_len)
+
+
+class AOiTypeTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json', ]
+    
+    def test_get_aoitype_list_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_aoitype_list()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_aoitype_list_as_not_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.get_aoitype_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+        
+    def test_get_aoitype_list_as_staff_user(self):
+        expected_results_len = 2
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_aoitype_list()
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(content), expected_results_len)
+
+    def test_get_aoitype_as_not_auth_user(self):
+        self.client.force_authenticate(user=None)
+        response = self.get_aoitype(1)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_aoitype_as_not_staff_user(self):
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.get_aoitype(1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_get_aoitype_as_staff_user(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.get_aoitype(1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def get_aoitype_list(self):
+        url = reverse('aoi:aoi_type_list')
+        return self.client.get(url)
+        
+    def get_aoitype(self, aoitype_id):
+        url = reverse('aoi:aoi_type', kwargs={'pk': aoitype_id})
+        return self.client.get(url)

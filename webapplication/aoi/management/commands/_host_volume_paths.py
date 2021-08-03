@@ -22,7 +22,7 @@ class HostVolumePaths:
 
     def _abs_host_path(self, basename):
         for mount in self.container_attrs['Mounts']:
-            if basename == os.path.basename(mount['Source']):
+            if basename == mount['Destination']:
                 return mount['Source'], mount['Destination']
         else:
             raise ValueError(f"For host volume basename {basename}, mount['Source'], mount['Destination'] "
