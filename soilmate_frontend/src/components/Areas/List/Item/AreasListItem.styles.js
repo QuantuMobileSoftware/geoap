@@ -3,7 +3,6 @@ import styled, { css } from 'styled-components';
 import { rem, em } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
-import { Image } from 'components/_shared/Image';
 import { Menu, MenuDropdown } from 'components/_shared/Menu';
 import { Button } from 'components/_shared/Button';
 
@@ -46,23 +45,11 @@ export const AreasListItemButton = styled(Button)`
   `}
 `;
 
-export const AreasListItemCoordinate = styled(Typography).attrs({
+export const AreasListItemSize = styled(Typography).attrs({
   element: 'p',
   variant: 'caption1'
 })`
-  ${({ theme }) => css`
-    &:not(:first-child) {
-      margin-left: ${rem(theme.spacing[3])};
-    }
-  `}
-`;
-
-export const AreasListItemCoordinates = styled.div`
-  ${({ theme }) => css`
-    display: flex;
-    align-items: center;
-    margin-top: ${rem(theme.spacing[0])};
-  `}
+  font-size: ${em(13)};
 `;
 
 export const AreasListItemName = styled(Typography).attrs({
@@ -74,19 +61,11 @@ export const AreasListItemBody = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+  margin-left: ${em(10)};
 
   > * {
     transition: inherit;
   }
-`;
-
-export const AreasListItemThumbnail = styled(Image)`
-  ${({ theme }) => css`
-    width: ${rem(34)};
-    height: ${rem(34)};
-    border-radius: ${rem(theme.radius[1])};
-    margin-right: ${rem(theme.spacing[4])};
-  `}
 `;
 
 export const AreasListItem = styled.li`

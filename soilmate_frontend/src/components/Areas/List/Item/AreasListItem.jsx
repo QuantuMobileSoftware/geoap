@@ -1,13 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { isNumber } from 'lodash-es';
 
+import { Checkbox } from 'components/_shared/Checkbox';
+
 import {
   AreasListItemBody,
-  AreasListItemCoordinate,
-  AreasListItemCoordinates,
+  AreasListItemSize,
   AreasListItemMenu,
   AreasListItemName,
-  AreasListItemThumbnail,
   AreasListItem,
   AreasListItemButton,
   AreasIconButton,
@@ -21,7 +21,8 @@ import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
 
 export const ListItem = ({ area = {}, parent, ...props }) => {
-  const { setCurrentArea, setSidebarMode } = useAreasActions();
+  const { setCurrentArea, setSidebarMode, setSelectedEntityId, deleteSelectedEntityId } =
+    useAreasActions();
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -30,23 +31,12 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
-
-  const renderCoordinates = () => {
-    if (!hasCoordinates) {
-      return null;
+  const handleChangeCheckbox = isChecked => {
+    if (isChecked) {
+      setSelectedEntityId(area.id);
+    } else {
+      deleteSelectedEntityId(area.id);
     }
-
-    return (
-      <AreasListItemCoordinates>
-        {coordinates.map(([axios, value]) => {
-          return value.toString ? (
-            <AreasListItemCoordinate
-              key={axios}
-            >{`${axios}: ${value}`}</AreasListItemCoordinate>
-          ) : null;
-        })}
-      </AreasListItemCoordinates>
-    );
   };
 
   return (
@@ -59,11 +49,11 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         setCurrentArea(area.id);
       }}
     >
-      <AreasListItemThumbnail backdropIcon='Image' />
+      <Checkbox onChange={handleChangeCheckbox} />
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
-        {renderCoordinates()}
+        {area.size && <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>}
       </AreasListItemBody>
 
       <AreasIconButtonsHolder isActive={props.isActive}>

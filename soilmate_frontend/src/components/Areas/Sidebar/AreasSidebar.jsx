@@ -57,7 +57,7 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areas} />}
+        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={[...areas]} />}
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
         {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
