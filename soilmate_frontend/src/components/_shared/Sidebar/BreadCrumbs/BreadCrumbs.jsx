@@ -5,16 +5,18 @@ import { selectSidebarMode, useAreasActions } from 'state';
 import { SIDEBAR_MODE } from '_constants';
 import { StyledBreadCrumbs, StyledTitle, StyledDash } from './BreadCrumbs.styles';
 
-const { LIST, REQUESTS, REQUEST_SETTINGS } = SIDEBAR_MODE;
+const { LIST, REQUESTS, REQUEST_SETTINGS, EDIT } = SIDEBAR_MODE;
 
 const areas = { title: 'Areas', mode: LIST };
-const request = { title: 'Request', mode: REQUESTS };
-const requestSettings = { title: 'Settings', mode: REQUEST_SETTINGS };
+const request = { title: 'Reports', mode: REQUESTS };
+const requestSettings = { title: 'Create report', mode: REQUEST_SETTINGS };
+const editArea = { title: 'Editing', mode: EDIT };
 
 const breadCrumbsTitles = {
   [LIST]: [areas],
   [REQUESTS]: [areas, request],
-  [REQUEST_SETTINGS]: [areas, request, requestSettings]
+  [REQUEST_SETTINGS]: [areas, request, requestSettings],
+  [EDIT]: [areas, editArea]
 };
 
 export const BreadCrumbs = () => {

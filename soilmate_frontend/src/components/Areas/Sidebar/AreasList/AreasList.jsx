@@ -1,16 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
 import { List } from '../../List';
 import { Search } from 'components/_shared/Search';
+import { Button } from 'components/_shared/Button';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
-import { AreasSidebarMessage, AreasSidebarButton } from './AreasList.styles';
+import { selectSelectedEntitiesId } from 'state';
+import {
+  AreasSidebarMessage,
+  AreasSidebarButton,
+  StyledIcon,
+  ButtonWrapper
+} from './AreasList.styles';
 
 export const AreasList = React.memo(({ areas }) => {
+  const selectedAreas = useSelector(selectSelectedEntitiesId);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isUpSortList, setIsUpSortList] = useState(true);
 
   useEffect(() => setListItems(areas), [areas]);
 
@@ -63,6 +73,24 @@ export const AreasList = React.memo(({ areas }) => {
     resetAreas();
   };
 
+  const handleSortChange = useCallback(() => {
+    setIsUpSortList(!isUpSortList);
+  }, [isUpSortList]);
+
+  const handleDelete = useCallback(() => {
+    areasEvents.toggleModal(true, {
+      type: MODAL_TYPE.DELETE,
+      id: selectedAreas
+    });
+  }, [selectedAreas]);
+
+  const sortingListItems = useMemo(() => {
+    if (isUpSortList) {
+      return listItems.sort((prev, next) => prev.name.localeCompare(next.name));
+    }
+    return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
+  }, [isUpSortList, listItems]);
+
   return (
     <>
       <Search
@@ -72,7 +100,14 @@ export const AreasList = React.memo(({ areas }) => {
         onChange={handleSearchChange}
       />
 
-      <List areas={listItems} />
+      <ButtonWrapper>
+        <Button onClick={handleSortChange}>
+          Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
+        </Button>
+        {!!selectedAreas.length && <Button onClick={handleDelete}>Delete</Button>}
+      </ButtonWrapper>
+
+      <List areas={sortingListItems} />
 
       {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
