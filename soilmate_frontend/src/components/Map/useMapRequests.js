@@ -20,17 +20,24 @@ export const useMapRequests = (selectedArea, map) => {
     });
 
     if (selectedResults.length < renderedLayers.length) {
-      let deletedLayer;
+      const deletedLayers = [];
       const filteredLayers = renderedLayers.filter(rendered => {
         if (selectedResults.some(l => l.id === rendered.id)) {
           return rendered;
         } else {
-          deletedLayer = rendered;
+          deletedLayers.push(rendered);
         }
       });
       setRenderedLayers(filteredLayers);
-      map.removeLayer(deletedLayer.layer);
+      deletedLayers.forEach(l => map.removeLayer(l.layer));
     }
+
+    const addLayerInMap = (layer, selectedLayer) => {
+      if (!renderedLayers.some(l => l.id === selectedLayer.id)) {
+        map.addLayer(layer);
+        setRenderedLayers([...renderedLayers, { id: selectedLayer.id, layer }]);
+      }
+    };
 
     selectedResults.forEach(async selectedLayer => {
       let layer = null;
@@ -61,10 +68,7 @@ export const useMapRequests = (selectedArea, map) => {
         if (resp.ok) {
           const jsonResponse = await resp.json();
           layer.addData(jsonResponse);
-          if (!renderedLayers.some(l => l.id === selectedLayer.id)) {
-            map.addLayer(layer);
-            setRenderedLayers([...renderedLayers, { id: selectedLayer.id, layer }]);
-          }
+          addLayerInMap(layer, selectedLayer);
         } else {
           console.error(`Error: ${resp.status} ${resp.statusText}`);
         }
@@ -94,19 +98,13 @@ export const useMapRequests = (selectedArea, map) => {
           },
           interactive: true
         });
-        if (!renderedLayers.some(l => l.id === selectedLayer.id)) {
-          map.addLayer(layer);
-          setRenderedLayers([...renderedLayers, { id: selectedLayer.id, layer }]);
-        }
+        addLayerInMap(layer, selectedLayer);
       } else if (selectedLayer.layer_type === 'XYZ') {
         layer = L.tileLayer(selectedLayer.rel_url, {
           minZoom: 10,
           maxZoom: 16
         });
-        if (!renderedLayers.some(l => l.id === selectedLayer.id)) {
-          map.addLayer(layer);
-          setRenderedLayers([...renderedLayers, { id: selectedLayer.id, layer }]);
-        }
+        addLayerInMap(layer, selectedLayer);
       }
 
       const lastId = renderedLayers[renderedLayers.length - 1]?.id;
