@@ -2,13 +2,19 @@
 Aoi serializer module.
 """
 from rest_framework import serializers
-from .models import AoI, JupyterNotebook, Request
+from .models import AoI, AoiType, JupyterNotebook, Request
+
+
+class AoiTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AoiType
+        fields = ('id', 'name', 'description')
 
 
 class AoISerializer(serializers.ModelSerializer):
     class Meta:
         model = AoI
-        fields = ('id', 'user', 'name', 'polygon', 'createdat', )
+        fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type')
         read_only_fields = ['createdat', ]
 
 

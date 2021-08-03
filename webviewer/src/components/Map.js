@@ -131,10 +131,18 @@ export default function createMap(
     let geojson = null;
     let layersToRender = {};
 
-    let startPoint = [48.95, 31.53];
+    let startPoint = [40.4173, -82.9071];
 
     const handleMapControlAddClick = () => {
         requestModel.openFeatureRequestDialog();
+    }
+
+    const setUserCoordinates = (map, zoom) => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            map.setView([position.coords.latitude, position.coords.longitude], zoom)
+        });
+      } 
     }
 
     mapElt.componentDidMount = () => {
@@ -142,6 +150,8 @@ export default function createMap(
             startPoint,
             8
         );
+        //move to user position
+        setUserCoordinates(map, 8)
 
         // add controls to map
         initializeControls(map, { isDemoUser: userModel.isDemoUser, onAddClick: handleMapControlAddClick });
