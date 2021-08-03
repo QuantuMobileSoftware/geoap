@@ -116,9 +116,19 @@ class File(metaclass=ABCMeta):
         if self.name:
             dict_['name'] = self.name
         if self.start_date:
-            dict_['start_date'] = timestamp_parser.parse(self.start_date)
+            try:
+                dict_['start_date'] = timestamp_parser.parse(self.start_date)
+            except Exception as ex:
+                dict_['start_date'] = None
+                logger.error(f"Error when getting  start_date from file {dict_['filepath']}")
+                logger.error(str(ex))
         if self.end_date:
-            dict_['end_date'] = timestamp_parser.parse(self.end_date)
+            try:
+                dict_['end_date'] = timestamp_parser.parse(self.end_date)
+            except Exception as ex:
+                dict_['end_date'] = None
+                logger.error(f"Error when getting  end_date from file {dict_['filepath']}")
+                logger.error(str(ex))
         if self.request:
             try:
                 request = Request.objects.get(pk=self.request)

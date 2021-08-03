@@ -64,8 +64,8 @@ class Container:
         base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
-        host_data_volume = host_paths.data_volume(settings.HOST_VOLUME_DATA_BASENAME)
-        host_executor_volume = host_paths.executor_volume(settings.HOST_VOLUME_WEBAPPLICATION_BASENAME)
+        host_data_volume = host_paths.data_volume(settings.PERSISTENT_STORAGE_PATH)
+        host_executor_volume = host_paths.executor_volume(settings.CODE_PATH)
 
         volumes = {host_data_volume: {"bind": self.container_data_volume, "mode": "rw"},
                    host_executor_volume: {"bind": self.container_executor_volume, "mode": "rw"}, }
