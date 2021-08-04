@@ -11,5 +11,10 @@ export const useMapActions = () => {
     [dispatch]
   );
 
-  return { setEditableShape };
+  const setLayerOpacity = useCallback(
+    opacity => dispatch(mapActions.setLayerOpacity(opacity)),
+    [dispatch]
+  );
+
+  return { setEditableShape, setLayerOpacity };
 };

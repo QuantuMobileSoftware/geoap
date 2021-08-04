@@ -7,7 +7,7 @@ import { EditControl } from 'react-leaflet-draw';
 
 import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
-import { MapControls, MapPolygon } from './components';
+import { MapControls, MapPolygon, MapRange } from './components';
 import { Popup } from 'components/_shared/Popup';
 import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
@@ -18,7 +18,8 @@ import {
   useAreasActions,
   selectUser,
   selectSidebarMode,
-  getLoading
+  getLoading,
+  selectSelectedResults
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -49,6 +50,7 @@ export const Map = () => {
   const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
+  const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
   const newAreaNumber = initialAreas.length
@@ -188,6 +190,7 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
+      {map && selectedResults.length && <MapRange />}
       {isPopupVisible && (
         <Popup
           header='Are you sure with this area?'

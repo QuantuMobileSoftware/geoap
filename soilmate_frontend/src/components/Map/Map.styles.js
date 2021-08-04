@@ -55,3 +55,42 @@ export const StyledMapContainer = styled(MapContainer)`
     }
   `}
 `;
+
+export const StyledMapRange = styled.div`
+  ${({ theme }) => css`
+    position: absolute;
+    right: ${rem(10)};
+    top: ${rem(10)};
+    width: ${rem(140)};
+    padding: ${em(14)} ${em(10)} ${em(17)};
+    background-color: ${theme.colors.nature.n0};
+    border-radius: ${em(theme.radius[1])};
+    z-index: ${theme.zIndexes[1]};
+  `}
+`;
+
+export const RangeThumb = styled.div`
+  width: ${rem(12)};
+  height: ${rem(12)};
+  border-radius: 50%;
+  background-color: ${props => props.theme.colors.primary.p2};
+  outline: none;
+  cursor: pointer;
+`;
+
+export const RangeTrack = styled.div`
+  ${({ theme, value }) => css`
+    width: 100%;
+    height: ${rem(5)};
+    margin-top: ${rem(8)};
+    border-radius: ${rem(4)};
+    background: linear-gradient(
+      90deg,
+      ${theme.colors.primary.p2} 0%,
+      ${theme.colors.primary.p2} ${value}%,
+      ${theme.colors.nature.n2} ${value}%,
+      ${theme.colors.nature.n2} 100%
+    );
+    outline: none;
+  `}
+`;
