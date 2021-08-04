@@ -23,20 +23,8 @@ RUN pip install --upgrade pip && \
     pip uninstall -y torchaudio && \
     pip install --requirement /tmp/requirements.txt
 
-#RUN pip install nbconvert==6.0.7
-#RUN pip install nbformat==5.1.3
-
-COPY ./jupyter/PBDNN/jupyter_notebook_config.json /etc/jupyter/
+#COPY ./jupyter/PBDNN/jupyter_notebook_config.json /etc/jupyter/
 
 RUN mkdir -p /home/jovyan/code/src
 COPY ./webapplication/aoi/management/commands/executor/NotebookExecutor.py /home/jovyan/code
 WORKDIR $HOME
-
-
-ARG NOTEBOOK_NAME='PBDNN_inference.ipynb'
-ARG NOTEBOOK_PATH='/home/jovyan/code/src'
-ENV NOTEBOOK_PATH ${NOTEBOOK_PATH}
-ENV NOTEBOOK_NAME ${NOTEBOOK_NAME}
-
-COPY ./data/notebooks/pbdnn/sip_plot_boundary_detection_nn ${NOTEBOOK_PATH}
-WORKDIR $HOME/code/src

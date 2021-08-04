@@ -883,6 +883,8 @@ COPY public.aoi_aoitype (id, name, description) FROM stdin;
 COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, run_validation, success) FROM stdin;
 1	TCI_NDVI	prod_sip_jupyter-tci_ndvi:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	\N	f	f
 2	Plot Boundaries	prod_pbdnn_nvidia_jupyter:latest	work/notebooks/pbdnn/sip_plot_boundary_detection_nn/PBDNN_inference.ipynb	python3	\N	f	f
+3	water_stress	prod_water_stress_detection:latest	work/notebooks/dd/water_stress_calculation.ipynb	python3	\N	f	f
+4	CropType Classification	prod_crop_type_classification:latest	work/notebooks/pw/croptype_pipeline.ipynb	pw	{"volumes": "{\\"/mnt/disk1\\":\\"/mnt/disk1\\"}"}	f	f
 \.
 
 
