@@ -1,17 +1,25 @@
-#for adding planet_watchers package to sip project:
+# Planetwatchers
+
+- `sentinel2_download` - the scripts to download Sentinel-2 Level-A or Level-C images.
+- `sentinel1_download` - the scripts to download Sentinel-1 images.
+- `preprocessing` - the scripts and instructions to preprocess Sentinel-1 and Sentinel-2 images.
+- `modelling` - the scripts and instructions to train, evaluate the model and run a model on an area of interest.
+- `notebook` - Jupyter notebooks with different experiments, model analysis, imagery preprocessing, etc
+
+# for adding planet_watchers package to sip project:
 ```
 cd data/notebooks
 git clone git@github.com:QuantuMobileSoftware/planetwatchers.git pw
 cd pw
 ```
 
-#for enabling nfs support
+# for enabling nfs support
 ```
 sudo apt-get install cifs-utils
 sudo apt-get install nfs-common
 ```
 
-#get some requirements from NFS server
+# get some requirements from NFS server
 go to project SIP root directory
 ```
 sudo mount 192.168.1.58:/volume1/SIP /home/quantum/sip
@@ -20,18 +28,18 @@ cp -r --remove-destination /home/quantum/sip/.prod_notebooks_requirements/pw/dat
 sudo umount /home/quantum/sip
 ```
 
-#for building images for prod
+# for building images for prod
 after updating all files from git repository, go to project SIP root directory
-##copy requirements from repository to jupyter folder
+## copy requirements from repository to jupyter folder
 ```
 cp -r --remove-destination data/notebooks/pw/environment.yml jupyter/PW/environment.yml
 ```
-##for building common_disease_detection:latest
+## for building common_disease_detection:latest
 ```
 echo 'start building common_planet_watchers:latest'
 docker build -f ./jupyter/PW/base.Dockerfile -t common_planet_watchers:latest .
 ```
-##for building prod_crop_type:latest
+## for building prod_crop_type:latest
 ```
 echo 'start building prod_crop_type:latest'
 docker build -f ./jupyter/PW/crop_type/prod.Dockerfile -t prod_sip_jupyter_pw:latest .
