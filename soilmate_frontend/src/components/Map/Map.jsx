@@ -190,7 +190,7 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {map && selectedResults.length && <MapRange />}
+      {map && selectedResults.length ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
           header='Are you sure with this area?'
