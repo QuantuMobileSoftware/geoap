@@ -104,7 +104,7 @@ export const AreasList = React.memo(({ areas }) => {
         <Button onClick={handleSortChange}>
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
-        {!!selectedAreas.length && <Button onClick={handleDelete}>Delete</Button>}
+        {!!selectedAreas.length && <Button onClick={handleDelete} icon='Delete' />}
       </ButtonWrapper>
 
       <List areas={sortingListItems} />
