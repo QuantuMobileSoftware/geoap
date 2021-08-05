@@ -16,9 +16,9 @@ USER $NB_UID
 WORKDIR $HOME
 
 
-COPY ./jupyter/PBDNN/requirements.txt /tmp/
+COPY requirements.txt /tmp/
 RUN pip install --upgrade pip && \
     pip uninstall -y torchaudio && \
     pip install --requirement /tmp/requirements.txt
 
-COPY ./jupyter/PBDNN/jupyter_notebook_config.json /etc/jupyter/
+COPY jupyter_notebook_config.json /etc/jupyter/
