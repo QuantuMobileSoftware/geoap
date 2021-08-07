@@ -123,7 +123,13 @@ export const useMapRequests = (selectedArea, map) => {
 
   useEffect(() => {
     const selectedLayer = last(renderedLayers);
-    const fillOpacity = opacity / (1 / FILL_OPACITY);
-    selectedLayer?.layer.setStyle({ opacity, fillOpacity });
+    if (selectedLayer) {
+      const fillOpacity = opacity / (1 / FILL_OPACITY);
+      if (selectedLayer.layer.setStyle) {
+        selectedLayer.layer.setStyle({ opacity, fillOpacity });
+      } else {
+        selectedLayer.layer.setOpacity(opacity);
+      }
+    }
   }, [renderedLayers, opacity]);
 };
