@@ -9,7 +9,14 @@ import { FileUploader } from 'components/_shared/FileUploader';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
 import { SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
-import { ButtonWrapper, Upload, UploadTitle } from './AreasEdit.styles';
+import {
+  ButtonWrapper,
+  Upload,
+  UploadTitle,
+  StyledModal,
+  ModalButtonWrapper,
+  ModalText
+} from './AreasEdit.styles';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required()
@@ -21,6 +28,7 @@ export const AreasEdit = ({ currentArea }) => {
   const editableShapeCoords = useSelector(getShapeCoords);
   const [isOpenUploader, setIsOpenUploader] = useState(false);
   const [shapeCoords, setShapeCoords] = useState(null);
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -50,36 +58,66 @@ export const AreasEdit = ({ currentArea }) => {
   };
 
   return (
-    <Form
-      initialValues={{
-        name: currentArea.name,
-        x: latLangsCurrentArea[0][0].toFixed(1),
-        y: latLangsCurrentArea[0][1].toFixed(1)
-      }}
-      validationSchema={validationSchema}
-    >
-      {({ values }) => (
-        <>
-          <FormField autoFocus label='Name' name='name' placeholder='City...' />
-          <Upload onClick={() => setIsOpenUploader(true)}>
-            <Button icon='Upload'>Upload file</Button>
-            <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
-            <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
-          </Upload>
-          <ButtonWrapper>
-            <Button
-              variant='secondary'
-              padding={50}
-              onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
-            >
-              Cancel
-            </Button>
-            <Button variant='primary' onClick={() => handleSaveArea(values)}>
-              Save changes
-            </Button>
-          </ButtonWrapper>
-        </>
+    <>
+      <Form
+        initialValues={{
+          name: currentArea.name,
+          x: latLangsCurrentArea[0][0].toFixed(1),
+          y: latLangsCurrentArea[0][1].toFixed(1)
+        }}
+        validationSchema={validationSchema}
+      >
+        {({ values }) => (
+          <>
+            <FormField autoFocus label='Name' name='name' placeholder='City...' />
+            <Upload>
+              <Button icon='Upload' onClick={() => setIsOpenModal(true)}>
+                Upload file
+              </Button>
+              <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
+              <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
+            </Upload>
+            <ButtonWrapper>
+              <Button
+                variant='secondary'
+                padding={50}
+                onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
+              >
+                Cancel
+              </Button>
+              <Button variant='primary' onClick={() => handleSaveArea(values)}>
+                Save changes
+              </Button>
+            </ButtonWrapper>
+          </>
+        )}
+      </Form>
+      {isOpenModal && (
+        <StyledModal
+          header='Are you sure to download new file?'
+          close={() => setIsOpenModal(false)}
+        >
+          <>
+            <ModalText>
+              When the new file is downloaded, the old file will be deleted automatically
+            </ModalText>
+            <ModalButtonWrapper>
+              <Button variant='secondary' onClick={() => setIsOpenModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant='primary'
+                onClick={() => {
+                  setIsOpenModal(false);
+                  setIsOpenUploader(true);
+                }}
+              >
+                Yes, Download
+              </Button>
+            </ModalButtonWrapper>
+          </>
+        </StyledModal>
       )}
-    </Form>
+    </>
   );
 };
