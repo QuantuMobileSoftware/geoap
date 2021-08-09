@@ -91,6 +91,17 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         >
           Edit
         </AreasListItemButton>
+        <AreasListItemButton onClick={() => setSidebarMode(SIDEBAR_MODE.FIELDS)}>
+          Check fields
+        </AreasListItemButton>
+        <AreasListItemButton
+          onClick={() => {
+            setCurrentArea(area.id);
+            setSidebarMode(SIDEBAR_MODE.REQUESTS);
+          }}
+        >
+          View reports
+        </AreasListItemButton>
         <AreasListItemButton
           variantType='danger'
           onClick={() =>
