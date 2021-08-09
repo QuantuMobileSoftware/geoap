@@ -6,4 +6,4 @@ ENV NOTEBOOK_PATH ${NOTEBOOK_PATH}
 ENV NOTEBOOK_NAME ${NOTEBOOK_NAME}
 
 COPY ./data/notebooks/pbdnn/sip_plot_boundary_detection_nn ${NOTEBOOK_PATH}
-WORKDIR $HOME/code/src
+WORKDIR $HOME

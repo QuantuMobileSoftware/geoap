@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from django.core import management
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
@@ -188,10 +189,16 @@ class Job:
         job_name = f'execute-notebook-{str(request.id)}'
         image = request.notebook.image
         kernel = request.notebook.kernel_name if request.notebook.kernel_name else ""
+        notebook_path_original = Path(request.notebook.path)
+        logger.info(f'Notebook original path: {notebook_path_original}')
+        notebook_name = notebook_path_original.name
+        code_path = Path('/home/jovyan/code')
+        executor_path = code_path / 'NotebookExecutor.py'
+        executed_path = code_path / 'src' / notebook_name
         
         execute_command = [
-            'python3', '/home/jovyan/code/NotebookExecutor.py',
-            '--input_path', request.notebook.path,
+            'python3', str(executor_path),
+            '--input_path', str(executed_path),
             '--request_id', str(request.id),
             '--aoi', f'{request.polygon.wkt}',
             '--start_date', request.date_from,

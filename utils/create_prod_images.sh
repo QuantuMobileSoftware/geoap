@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-
-DOCKERFILES_PATH=./dockerfiles
-
 cd ..
-
 
 #EXAMPLE_COMMON
 echo 'start building prod_sip-jupyter-example:latest'
@@ -22,7 +18,6 @@ docker build -f ./jupyter/PBDNN/base.Dockerfile -t common_pbdnn:latest .
 echo 'start building prod_plot_boundaries_detection:latest'
 docker build -f ./jupyter/PBDNN/plot_boundaries/prod.Dockerfile -t prod_plot_boundaries_detection:latest .
 
-
 #DD_COMMON
 echo 'start building common_disease_detection:latest'
 docker build -f ./jupyter/DD/base.Dockerfile -t common_disease_detection:latest .
@@ -31,11 +26,10 @@ docker build -f ./jupyter/DD/base.Dockerfile -t common_disease_detection:latest 
 echo 'start building prod_water_stress_detection:latest'
 docker build -f ./jupyter/DD/water_stress/prod.Dockerfile -t prod_water_stress_detection:latest .
 
-
 #PLANET_WATCHERS_COMMON
 echo 'start building common_planet_watchers:latest'
 docker build -f ./jupyter/PW/base.Dockerfile -t common_planet_watchers:latest .
 
 #CROP_TYPE
 echo 'start building prod_crop_type:latest'
-docker build -f ./jupyter/PW/crop_type/prod.Dockerfile -t prod_sip_jupyter_pw:latest .
+docker build -f ./jupyter/PW/crop_type/prod.Dockerfile -t prod_crop_type_classification:latest .
