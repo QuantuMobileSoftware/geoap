@@ -9,5 +9,6 @@ export const SIDEBAR_MODE = {
   EDIT: 'edit_area',
   REPORT: 'area_reports',
   REQUEST_SETTINGS: 'request_settings',
-  REQUESTS: 'requests'
+  REQUESTS: 'requests',
+  FIELDS: 'fields'
 };

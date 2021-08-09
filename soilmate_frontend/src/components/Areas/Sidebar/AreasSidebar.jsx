@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { StyledAreasSidebar } from './AreasSidebar.styles';
@@ -8,6 +8,7 @@ import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 import { Requests } from './Requests';
 import { RequestSettings } from './RequestSettings';
+import { Fields } from './Fields';
 
 import {
   selectAreasList,
@@ -22,7 +23,8 @@ const sidebarHeaders = {
   [SIDEBAR_MODE.LIST]: 'My areas',
   [SIDEBAR_MODE.EDIT]: 'Edit my area',
   [SIDEBAR_MODE.REQUESTS]: 'All reports - ',
-  [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings'
+  [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings',
+  [SIDEBAR_MODE.FIELDS]: 'My fields'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -48,6 +50,9 @@ export const AreasSidebar = ({ ...props }) => {
     getLayers();
   }, [getLayers]);
 
+  const fields = useMemo(() => areas.filter(field => field.type === 2), [areas]);
+  const areasList = useMemo(() => areas.filter(field => field.type === 1), [areas]);
+
   return (
     <>
       <AreasSidebarToggle />
@@ -57,12 +62,13 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={[...areas]} />}
+        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areasList} />}
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
         {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
           <RequestSettings areas={areas} currentArea={currentArea} />
         )}
+        {sidebarMode === SIDEBAR_MODE.FIELDS && <Fields fields={fields} />}
       </StyledAreasSidebar>
     </>
   );
