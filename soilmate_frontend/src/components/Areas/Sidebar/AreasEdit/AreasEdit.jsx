@@ -6,6 +6,7 @@ import { useAreasActions, selectUser, getShapeCoords } from 'state';
 import { FormField, Form } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
 import { FileUploader } from 'components/_shared/FileUploader';
+import { Modal } from 'components/_shared/Modal';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { areasEvents } from '_events';
@@ -13,7 +14,6 @@ import {
   ButtonWrapper,
   Upload,
   UploadTitle,
-  StyledModal,
   ModalButtonWrapper,
   ModalText
 } from './AreasEdit.styles';
@@ -96,9 +96,10 @@ export const AreasEdit = ({ currentArea }) => {
         )}
       </Form>
       {isOpenModal && (
-        <StyledModal
+        <Modal
           header='Are you sure to download new file?'
           close={() => setIsOpenModal(false)}
+          textCenter={true}
         >
           <>
             <ModalText>
@@ -119,7 +120,7 @@ export const AreasEdit = ({ currentArea }) => {
               </Button>
             </ModalButtonWrapper>
           </>
-        </StyledModal>
+        </Modal>
       )}
     </>
   );

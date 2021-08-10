@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet-editable';
@@ -52,6 +52,14 @@ export const Map = () => {
   const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
   const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
+
+  const filteredAreas = useMemo(() => {
+    if (sidebarMode === SIDEBAR_MODE.FIELDS || selectedArea?.type === AOI_TYPE.FIELD) {
+      return initialAreas.filter(area => area.type === AOI_TYPE.FIELD);
+    } else {
+      return initialAreas.filter(area => area.type === AOI_TYPE.AREA);
+    }
+  }, [sidebarMode, initialAreas, selectedArea]);
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -167,8 +175,8 @@ export const Map = () => {
             }}
           />
         </FeatureGroup>
-        {initialAreas &&
-          initialAreas.map(area => (
+        {filteredAreas &&
+          filteredAreas.map(area => (
             <MapPolygon
               key={area.id}
               id={area.id}

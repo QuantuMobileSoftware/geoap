@@ -70,7 +70,9 @@ export const AreasSidebar = ({ ...props }) => {
       >
         {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areasList} />}
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
-        {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
+        {sidebarMode === SIDEBAR_MODE.REQUESTS && (
+          <Requests areaType={currentArea.type} />
+        )}
         {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
           <RequestSettings areas={areas} currentArea={currentArea} />
         )}

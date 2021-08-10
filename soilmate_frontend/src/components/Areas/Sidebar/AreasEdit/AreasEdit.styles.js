@@ -1,7 +1,6 @@
 import styled, { css } from 'styled-components';
 import { em, rem } from 'styles';
 import { Typography } from 'components/_shared/Typography';
-import { Modal } from 'components/_shared/Modal';
 
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
@@ -24,13 +23,6 @@ export const Upload = styled.div`
 
 export const UploadTitle = styled(Typography).attrs({ element: 'p' })`
   font-size: ${rem(11)};
-`;
-
-export const StyledModal = styled(Modal)`
-  text-align: center;
-  & > div {
-    max-width: ${rem(360)};
-  }
 `;
 
 export const ModalButtonWrapper = styled.div`
