@@ -2,9 +2,9 @@ import styled, { css } from 'styled-components';
 
 import { VIEWPORT_PADDING } from '_constants';
 
-import { rem } from 'styles';
+import { em, rem } from 'styles';
 
-import { StyledLogo } from 'components/Logo';
+import { StyledMenu } from './Menu';
 import { StyledUserbar } from 'components/Userbar';
 
 export const StyledHeader = styled.header`
@@ -16,8 +16,9 @@ export const StyledHeader = styled.header`
     box-shadow: ${theme.shadows()[0]};
     padding: ${rem([theme.spacing[3], VIEWPORT_PADDING])};
 
-    ${StyledLogo} {
+    ${StyledMenu} {
       margin-right: auto;
+      margin-left: ${em(25)};
     }
 
     ${StyledUserbar} {

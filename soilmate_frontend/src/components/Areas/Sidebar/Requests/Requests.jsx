@@ -30,7 +30,7 @@ export const Requests = React.memo(({ areaType }) => {
   const [filterType, setFilterType] = useState('');
   const { setSidebarMode } = useAreasActions();
 
-  const areaMode = areaType === AOI_TYPE.AREA ? SIDEBAR_MODE.LIST : SIDEBAR_MODE.FIELDS;
+  const areaMode = areaType === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
 
   const selectItems = useMemo(
     () => [

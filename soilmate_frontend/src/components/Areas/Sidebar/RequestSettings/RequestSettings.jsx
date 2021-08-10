@@ -44,7 +44,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
       user: currentUser.pk
     };
     saveAreaRequest(currentArea.id, request);
-    setSidebarMode(SIDEBAR_MODE.LIST);
+    setSidebarMode(SIDEBAR_MODE.AREAS);
   };
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
           icon='ArrowInCircle'
           variant='secondary'
           padding={50}
-          onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
+          onClick={() => setSidebarMode(SIDEBAR_MODE.AREAS)}
         >
           Back to list
         </Button>
