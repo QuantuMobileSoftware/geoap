@@ -6,7 +6,7 @@ export const MODAL_TYPE = {
 };
 
 export const SIDEBAR_MODE = {
-  LIST: 'area_list',
+  AREAS: 'area_list',
   EDIT: 'edit_area',
   REPORT: 'area_reports',
   REQUEST_SETTINGS: 'request_settings',

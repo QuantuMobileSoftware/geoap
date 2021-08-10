@@ -20,7 +20,7 @@ import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
 const sidebarHeaders = {
-  [SIDEBAR_MODE.LIST]: 'My areas',
+  [SIDEBAR_MODE.AREAS]: 'My areas',
   [SIDEBAR_MODE.EDIT]: 'Edit my area',
   [SIDEBAR_MODE.REQUESTS]: 'All reports - ',
   [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings',
@@ -68,7 +68,7 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={areasList} />}
+        {sidebarMode === SIDEBAR_MODE.AREAS && <AreasList areas={areasList} />}
         {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === SIDEBAR_MODE.REQUESTS && (
           <Requests areaType={currentArea.type} />

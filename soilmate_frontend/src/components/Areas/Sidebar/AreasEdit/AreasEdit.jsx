@@ -30,7 +30,7 @@ export const AreasEdit = ({ currentArea }) => {
   const [shapeCoords, setShapeCoords] = useState(null);
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  const { LIST, FIELDS } = SIDEBAR_MODE;
+  const { AREAS, FIELDS } = SIDEBAR_MODE;
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -56,7 +56,7 @@ export const AreasEdit = ({ currentArea }) => {
     };
     areasEvents.updateShape();
     patchArea(currentArea.id, areaData);
-    const mode = currentArea.type === AOI_TYPE.AREA ? LIST : FIELDS;
+    const mode = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
     setSidebarMode(mode);
   };
 
@@ -84,7 +84,7 @@ export const AreasEdit = ({ currentArea }) => {
               <Button
                 variant='secondary'
                 padding={50}
-                onClick={() => setSidebarMode(LIST)}
+                onClick={() => setSidebarMode(AREAS)}
               >
                 Cancel
               </Button>
