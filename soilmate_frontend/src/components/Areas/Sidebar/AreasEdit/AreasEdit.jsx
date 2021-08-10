@@ -7,7 +7,7 @@ import { FormField, Form } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
 import { FileUploader } from 'components/_shared/FileUploader';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { areasEvents } from '_events';
 import {
   ButtonWrapper,
@@ -29,6 +29,8 @@ export const AreasEdit = ({ currentArea }) => {
   const [isOpenUploader, setIsOpenUploader] = useState(false);
   const [shapeCoords, setShapeCoords] = useState(null);
   const [isOpenModal, setIsOpenModal] = useState(false);
+
+  const { LIST, FIELDS } = SIDEBAR_MODE;
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -54,7 +56,8 @@ export const AreasEdit = ({ currentArea }) => {
     };
     areasEvents.updateShape();
     patchArea(currentArea.id, areaData);
-    setSidebarMode(SIDEBAR_MODE.LIST);
+    const mode = currentArea.type === AOI_TYPE.AREA ? LIST : FIELDS;
+    setSidebarMode(mode);
   };
 
   return (
@@ -81,7 +84,7 @@ export const AreasEdit = ({ currentArea }) => {
               <Button
                 variant='secondary'
                 padding={50}
-                onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
+                onClick={() => setSidebarMode(LIST)}
               >
                 Cancel
               </Button>

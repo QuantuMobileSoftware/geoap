@@ -8,10 +8,10 @@ import {
   ModalHeader
 } from './Modal.styles';
 
-export const Modal = ({ children, header, close, ...props }) => {
+export const Modal = ({ children, header, close, textCenter, ...props }) => {
   return (
     <StyledModalWrapper {...props}>
-      <StyledModalMain>
+      <StyledModalMain textCenter={textCenter}>
         <CloseButton
           icon='Cross'
           onClick={() => (close ? close() : areasEvents.toggleModal(false))}

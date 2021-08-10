@@ -5,7 +5,8 @@ import 'leaflet-editable';
 import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
-import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
+import { useAreaData } from 'hooks';
+import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon, MapRange } from './components';
 import { Popup } from 'components/_shared/Popup';
@@ -16,7 +17,6 @@ import {
   selectAreasList,
   selectCurrentArea,
   useAreasActions,
-  selectUser,
   selectSidebarMode,
   getLoading,
   selectSelectedResults
@@ -47,15 +47,11 @@ export const Map = () => {
 
   const initialAreas = useSelector(selectAreasList);
   const currentAreaId = useSelector(selectCurrentArea);
-  const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
-
-  const newAreaNumber = initialAreas.length
-    ? initialAreas[initialAreas.length - 1].id + 1
-    : 1;
+  const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -128,13 +124,8 @@ export const Map = () => {
 
   const handleSaveShape = async () => {
     setIsPopupVisible(false);
-    const data = {
-      user: currentUser.pk,
-      name: `New area ${newAreaNumber}`,
-      polygon: getShapePositionsString(currentShape)
-    };
     map.removeLayer(currentShape);
-    await saveArea(data);
+    await saveArea(areaData);
     setSidebarMode(SIDEBAR_MODE.EDIT);
   };
 
