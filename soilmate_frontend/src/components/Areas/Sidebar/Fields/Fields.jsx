@@ -91,7 +91,7 @@ export const Fields = React.memo(({ fields }) => {
 
       <List areas={sortingListItems} />
 
-      {isAreasNotFound && <SidebarMessage>Areas not found</SidebarMessage>}
+      {isAreasNotFound && <SidebarMessage>Fields not found</SidebarMessage>}
     </>
   );
 });

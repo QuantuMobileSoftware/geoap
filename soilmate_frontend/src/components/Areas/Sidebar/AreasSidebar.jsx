@@ -17,7 +17,7 @@ import {
   useAreasActions
 } from 'state';
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
 const sidebarHeaders = {
   [SIDEBAR_MODE.LIST]: 'My areas',
@@ -50,8 +50,14 @@ export const AreasSidebar = ({ ...props }) => {
     getLayers();
   }, [getLayers]);
 
-  const fields = useMemo(() => areas.filter(field => field.type === 2), [areas]);
-  const areasList = useMemo(() => areas.filter(field => field.type === 1), [areas]);
+  const fields = useMemo(
+    () => areas.filter(field => field.type === AOI_TYPE.FIELD),
+    [areas]
+  );
+  const areasList = useMemo(
+    () => areas.filter(field => field.type === AOI_TYPE.AREA),
+    [areas]
+  );
 
   return (
     <>
