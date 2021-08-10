@@ -2,7 +2,7 @@ import docker
 import logging
 import os
 import json
-
+from pathlib import Path
 from typing import Optional
 from dateutil import parser as timestamp_parser
 from docker.types import DeviceRequest
@@ -18,7 +18,7 @@ class Container:
                  container_name: Optional[str] = None,
                  labels: Optional[str] = None,
                  container_data_volume: str = "/home/jovyan/work",
-                 container_executor_volume: str = "/home/jovyan/code",
+                 code_path: str = "/home/jovyan/code",
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,
                  gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
@@ -27,7 +27,7 @@ class Container:
         self.container_name = container_name
         self.labels = labels
         self.container_data_volume = container_data_volume
-        self.container_executor_volume = container_executor_volume
+        self.code_path = Path(code_path)
         self.shm_size = shm_size
 
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
@@ -123,10 +123,16 @@ class ContainerExecutor(Container):
         logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
 
         kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
-        notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
-
-        command = f"""python {notebook_executor_path}
-                      --input_path {self.notebook_path}
+        notebook_path_original = Path(self.request.notebook.path)
+        logger.info(f'Notebook original path: {notebook_path_original}')
+        notebook_name = notebook_path_original.name
+        executor_path = self.code_path / "NotebookExecutor.py"
+        path_to_execute = self.code_path / 'src' / notebook_name
+        output_path = notebook_path_original.parent
+        
+        command = f"""python {executor_path}
+                      --path_to_execute {str(path_to_execute)}
+                      --output_path, {str(output_path)}
                       --request_id {self.request.pk}
                       --aoi '{self.request.polygon.wkt}'
                       --start_date {self.request.date_from}

@@ -194,11 +194,13 @@ class Job:
         notebook_name = notebook_path_original.name
         code_path = Path('/home/jovyan/code')
         executor_path = code_path / 'NotebookExecutor.py'
-        executed_path = code_path / 'src' / notebook_name
+        path_to_execute = code_path / 'src' / notebook_name
+        output_path = notebook_path_original.parent
         
         execute_command = [
             'python3', str(executor_path),
-            '--input_path', str(executed_path),
+            '--path_to_execute', str(path_to_execute),
+            '--output_path', str(output_path),
             '--request_id', str(request.id),
             '--aoi', f'{request.polygon.wkt}',
             '--start_date', request.date_from,
@@ -207,9 +209,6 @@ class Job:
             '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
             '--kernel', kernel
            ]
-        # execute_command = [
-        #     '/bin/bash', '-c', 'sleep 1h'
-        # ]
         labels = {'request_id': str(request.id), 'job_type': 'execute-notebook'}
         return self._create_job_object(job_name, image, labels, execute_command,
                                        backoff_limit=settings.EXECUTE_NOTEBOOK_BACKOFF_LIMIT,

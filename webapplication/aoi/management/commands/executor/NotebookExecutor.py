@@ -2,7 +2,7 @@
 import argparse
 # import json
 import logging
-import os
+#import os
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -14,15 +14,20 @@ import nbformat
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-NOTEBOOK_PATH = os.getenv('NOTEBOOK_PATH', None)
-NOTEBOOK_NAME = os.getenv('NOTEBOOK_NAME', None)
-notebook_execution_path = f'{NOTEBOOK_PATH}/{NOTEBOOK_NAME}'
+# NOTEBOOK_PATH = os.getenv('NOTEBOOK_PATH', None)
+# NOTEBOOK_NAME = os.getenv('NOTEBOOK_NAME', None)
+# notebook_execution_path = f'{NOTEBOOK_PATH}/{NOTEBOOK_NAME}'
 
 
 class NotebookExecutor:
     def __init__(self, args):
-        self.input_path = args.input_path
+        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+        self.path_to_execute = Path(args.path_to_execute)
+        self.output_path = args.output_path
         self.request_id = args.request_id
+        self.notebook_stem = self.path_to_execute.stem
+        self.nb_suffix = self.path_to_execute.suffix
+        self.save_path = Path(self.output_path) / f'{self.notebook_stem}_{self.request_id}_{timestamp}{self.nb_suffix}'
 
         self.PARAMS = dict(REQUEST_ID=args.request_id,
                            AOI=args.aoi,
@@ -33,10 +38,7 @@ class NotebookExecutor:
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel
         self.notebook = self.read()
-
-        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-
-        self.save_path = Path.home() / f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+        # self.save_path = Path.home() / f"{os.path.splitext(self.output_path)[0]}_{self.request_id}_{timestamp}.ipynb"
         logger.info(f'path for saving notebook: {self.save_path}')
 
     def edit(self):
@@ -53,60 +55,29 @@ class NotebookExecutor:
         return "\n".join(f"{name} = {value!r}" for name, value in self.PARAMS.items())
 
     def read(self):
-        notebook_path = notebook_execution_path if NOTEBOOK_PATH else self.input_path
-        logger.info(f'Try to open notebook {notebook_path}')
-        notebook = nbformat.read(notebook_path, as_version=4)
-        
-        # with open(notebook_path) as file:
-        #     notebook = json.load(file)
-        #     logger.info(f'Notebook {notebook_path} was opened successfully')
+        logger.info(f'Try to open notebook {self.path_to_execute}')
+        notebook = nbformat.read(self.path_to_execute, as_version=4)
+        logger.info(f'Notebook {self.path_to_execute} was opened successfully')
         return notebook
 
     def write(self):
-        logger.info(f'Try to save notebook as {self.save_path}')
+        logger.info(f'Try to save notebook in {self.save_path}')
         nbformat.write(self.notebook, self.save_path, version=nbformat.NO_CONVERT, )
-        # with open(self.save_path, "w") as file:
-        #     json.dump(self.notebook, file)
-        #     logger.info(f'Notebook was saved successfully')
+        logger.info(f'Notebook was saved successfully in {self.save_path}')
 
     def execute_python(self):
-        with open(self.save_path) as f:
-            nb = nbformat.read(f, as_version=4)
+        # with open(self.save_path) as f:
+        #     nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=self.cell_timeout, kernel_name=self.kernel_name)
-        nb, resources = ep.preprocess(nb, {'metadata': {'path': self.save_path.parent}})
+        nb, resources = ep.preprocess(self.notebook, {'metadata': {'path': self.path_to_execute.parent}})
         executed_save_path = self.save_path.parent / f'{self.save_path.stem}_executed{self.save_path.suffix}'
         nbformat.write(nb, executed_save_path, version=nbformat.NO_CONVERT, )
         
-    # def execute(self):
-    #     command = ["jupyter",
-    #                "nbconvert",
-    #                "--inplace",
-    #                "--to=notebook",
-    #                "--execute",
-    #                self.save_path,
-    #                "--ExecutePreprocessor.timeout",
-    #                str(self.cell_timeout), ]
-    #
-    #     if self.kernel_name:
-    #         command.append(f"--ExecutePreprocessor.kernel_name={self.kernel_name}")
-    #
-    #     process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-    #
-    #     try:
-    #         out, err = process.communicate(timeout=self.notebook_timeout)
-    #         if process.returncode != 0:
-    #             raise RuntimeError(f"Failed {command}\nOutput: {out}, err: {err}")
-    #     except TimeoutExpired as te:
-    #         logger.error(f"Failed {command} error: {str(te)}. Killing process...")
-    #         process.kill()
-    #         out, err = process.communicate()
-    #         logger.error(f"Failed {command} output: {out}, err: {err}")
-    #         raise
         
-
 def main():
     parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
-    parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
+    parser.add_argument('--path_to_execute', type=str, help='Path to notebook for executing', required=True)
+    parser.add_argument('--output_path', type=str, help='Path for saving output notebooks', required=True)
     parser.add_argument('--request_id', type=int, help='Request id', required=True)
     parser.add_argument('--aoi', type=str, help='AOI polygon as WKT string', required=True)
     parser.add_argument('--start_date', type=str, help='Start date of calculations', required=True)
@@ -117,9 +88,9 @@ def main():
                         required=True)
     args = parser.parse_args()
     notebook_executor = NotebookExecutor(args)
-    notebook_executor.edit()
+    if int(args.request_id) > 0:
+        notebook_executor.edit()
     try:
-        # notebook_executor.execute()
         notebook_executor.execute_python()
     except:
         logger.exception("Exited from NotebookExecutor")
