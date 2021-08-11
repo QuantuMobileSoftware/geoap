@@ -12,7 +12,7 @@ export const DropdownChild = styled(({ children, ...props }) => {
 export const StyledDropdown = styled(Paper)`
   ${({ theme }) => css`
     position: absolute;
-    top: ${`calc(100% + ${rem(1)})`};
+    top: 0;
     z-index: ${theme.zIndexes[1]};
 
     &::before {
