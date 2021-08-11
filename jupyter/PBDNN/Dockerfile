@@ -20,5 +20,3 @@ COPY requirements.txt /tmp/
 RUN pip install --upgrade pip && \
     pip uninstall -y torchaudio && \
     pip install --requirement /tmp/requirements.txt
-
-COPY jupyter_notebook_config.json /etc/jupyter/

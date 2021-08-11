@@ -132,7 +132,7 @@ class ContainerExecutor(Container):
         
         command = f"""python {executor_path}
                       --path_to_execute {str(path_to_execute)}
-                      --output_path, {str(output_path)}
+                      --output_path {str(output_path)}
                       --request_id {self.request.pk}
                       --aoi '{self.request.polygon.wkt}'
                       --start_date {self.request.date_from}

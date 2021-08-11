@@ -882,9 +882,9 @@ COPY public.aoi_aoitype (id, name, description) FROM stdin;
 
 COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, run_validation, success) FROM stdin;
 1	TCI_NDVI	prod_sip_jupyter-tci_ndvi:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	\N	f	f
-2	Plot Boundaries	prod_pbdnn_nvidia_jupyter:latest	work/notebooks/pbdnn/sip_plot_boundary_detection_nn/PBDNN_inference.ipynb	python3	\N	f	f
 3	water_stress	prod_water_stress_detection:latest	work/notebooks/dd/water_stress_calculation.ipynb	python3	\N	f	f
 4	CropType Classification	prod_crop_type_classification:latest	work/notebooks/pw/croptype_pipeline.ipynb	pw	{"volumes": "{\\"/mnt/disk1\\":\\"/mnt/disk1\\"}"}	f	f
+2	Plot Boundaries	prod_plot_boundaries_detection:latest	work/notebooks/pbdnn/sip_plot_boundary_detection_nn/PBDNN_inference.ipynb	python3	\N	f	f
 \.
 
 
@@ -894,6 +894,7 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, ru
 
 COPY public.aoi_request (id, date_from, date_to, started_at, finished_at, error, aoi_id, notebook_id, user_id, success, polygon, calculated) FROM stdin;
 1	2020-07-01	2020-08-01	\N	\N	\N	2	1	2	f	0103000020E610000001000000050000001651137D3E3E42403D0CAD4ECEF448403198BF42E64E424076AA7CCF480049404A404CC2855C4240BA6B09F9A0FD484058C7F143A5534240F3936A9F8EED48401651137D3E3E42403D0CAD4ECEF44840	f
+2	2020-05-01	2020-08-31	\N	\N	\N	2	2	2	f	0103000020E610000001000000050000001651137D3E3E42403D0CAD4ECEF448403198BF42E64E424076AA7CCF480049404A404CC2855C4240BA6B09F9A0FD484058C7F143A5534240F3936A9F8EED48401651137D3E3E42403D0CAD4ECEF44840	f
 \.
 
 
@@ -1284,7 +1285,7 @@ SELECT pg_catalog.setval('public.aoi_jupyternotebook_id_seq', 8, true);
 -- Name: aoi_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.aoi_request_id_seq', 9, true);
+SELECT pg_catalog.setval('public.aoi_request_id_seq', 10, true);
 
 
 --
