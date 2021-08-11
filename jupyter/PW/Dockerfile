@@ -35,5 +35,3 @@ RUN fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
 USER $NB_UID
-
-COPY jupyter_notebook_config.json /etc/jupyter/
