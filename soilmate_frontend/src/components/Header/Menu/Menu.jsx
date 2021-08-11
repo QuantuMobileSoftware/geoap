@@ -2,15 +2,27 @@ import React from 'react';
 
 import { useAreasActions } from 'state';
 import { SIDEBAR_MODE } from '_constants';
+import { areasEvents } from '_events';
 
 import { MenuItem, StyledMenu } from './Menu.styles';
 
 export const Menu = () => {
   const { setSidebarMode } = useAreasActions();
+
+  const handleOpenFields = () => {
+    areasEvents.toggleSidebar(true);
+    setSidebarMode(SIDEBAR_MODE.FIELDS);
+  };
+
+  const handleOpenAreas = () => {
+    areasEvents.toggleSidebar(true);
+    setSidebarMode(SIDEBAR_MODE.AREAS);
+  };
+
   return (
     <StyledMenu>
-      <MenuItem onClick={() => setSidebarMode(SIDEBAR_MODE.FIELDS)}>Fields</MenuItem>
-      <MenuItem onClick={() => setSidebarMode(SIDEBAR_MODE.AREAS)}>Areas</MenuItem>
+      <MenuItem onClick={handleOpenFields}>Fields</MenuItem>
+      <MenuItem onClick={handleOpenAreas}>Areas</MenuItem>
     </StyledMenu>
   );
 };

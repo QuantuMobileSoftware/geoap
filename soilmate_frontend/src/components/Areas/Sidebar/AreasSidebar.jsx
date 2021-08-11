@@ -19,12 +19,14 @@ import {
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
+const { AREAS, EDIT, REQUESTS, REQUEST_SETTINGS, FIELDS } = SIDEBAR_MODE;
+
 const sidebarHeaders = {
-  [SIDEBAR_MODE.AREAS]: 'My areas',
-  [SIDEBAR_MODE.EDIT]: 'Edit my area',
-  [SIDEBAR_MODE.REQUESTS]: 'All reports - ',
-  [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings',
-  [SIDEBAR_MODE.FIELDS]: 'My fields'
+  [AREAS]: 'My areas',
+  [EDIT]: 'Edit my area',
+  [REQUESTS]: 'All reports - ',
+  [REQUEST_SETTINGS]: 'Settings',
+  [FIELDS]: 'My fields'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -33,12 +35,18 @@ export const AreasSidebar = ({ ...props }) => {
   const areas = useSelector(selectAreasList);
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
-  const { getLayers } = useAreasActions();
+  const { getLayers, deleteSelectedResult } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
-    sidebarMode === SIDEBAR_MODE.REQUESTS ? currentArea.name : ''
+    sidebarMode === REQUESTS ? currentArea.name : ''
   }`;
+
+  useEffect(() => {
+    if (sidebarMode === FIELDS || sidebarMode === AREAS) {
+      deleteSelectedResult();
+    }
+  }, [sidebarMode, deleteSelectedResult]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
@@ -68,15 +76,13 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === SIDEBAR_MODE.AREAS && <AreasList areas={areasList} />}
-        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
-        {sidebarMode === SIDEBAR_MODE.REQUESTS && (
-          <Requests areaType={currentArea.type} />
-        )}
-        {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
+        {sidebarMode === AREAS && <AreasList areas={areasList} />}
+        {sidebarMode === EDIT && <AreasEdit currentArea={currentArea} />}
+        {sidebarMode === REQUESTS && <Requests areaType={currentArea.type} />}
+        {sidebarMode === REQUEST_SETTINGS && (
           <RequestSettings areas={areas} currentArea={currentArea} />
         )}
-        {sidebarMode === SIDEBAR_MODE.FIELDS && <Fields fields={fields} />}
+        {sidebarMode === FIELDS && <Fields fields={fields} />}
       </StyledAreasSidebar>
     </>
   );
