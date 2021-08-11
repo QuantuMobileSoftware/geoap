@@ -64,6 +64,5 @@ Go to http://127.0.0.1:8888/
 password: God9uumi
 
 ## k8s
-
-read _install/k8s/kubeadm/README.txt
+read utils/k8s/kubeadm/README.txt
 

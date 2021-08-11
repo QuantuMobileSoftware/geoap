@@ -16,7 +16,7 @@ Then you can install cluster with gpu support. Run -
 install_cluster.sh
 
 now You can run all SIP system by single command. Run -
-cd ../../k8s/utils
+cd ../../../k8s/utils
 start.sh
 
 For stopping all run -
