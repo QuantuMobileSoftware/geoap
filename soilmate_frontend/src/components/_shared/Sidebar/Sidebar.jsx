@@ -79,8 +79,12 @@ export const Sidebar = forwardRef(
     };
 
     const toggle = isOpen => {
-      const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
-      shouldClose ? handleClose() : setIsOpen(true);
+      if (isOpen === _isOpen) return;
+      if (!isUndefined(isOpen)) {
+        setIsOpen(isOpen);
+      } else {
+        _isOpen ? handleClose() : setIsOpen(true);
+      }
     };
 
     useEffect(() => {
