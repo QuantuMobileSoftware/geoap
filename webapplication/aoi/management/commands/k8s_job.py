@@ -124,8 +124,6 @@ class Job:
             pod_label_selector = f'controller-uid={controller_uid}'
             logger.info(f"request_id: {job_labels['request_id']} job.status: {job.status}")
             
-            # print(f'job.status: {job.status}')
-            
             if job.status.succeeded == 1:
                 pod_result = self.get_results_from_pods(pod_label_selector)
                 request = Request.objects.get(id=job_labels['request_id'])
