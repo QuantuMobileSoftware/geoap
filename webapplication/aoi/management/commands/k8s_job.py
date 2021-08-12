@@ -146,14 +146,18 @@ class Job:
                 self._delete_job(job)
                 
             if job.status.failed in (1, 2):
-                pod_result = self.get_results_from_pods(pod_label_selector)
                 request = Request.objects.get(id=job_labels['request_id'])
-                request.started_at = pod_result['started_at']
-                request.finished_at = pod_result['finished_at']
-                print(pod_result)
-                if pod_result['reason'] == 'Error' and not pod_result['message']:
-                    request.error = pod_result['pod_log']
-                    logger.error(f"Job Error: {pod_result['pod_log']}")
+                try:
+                    pod_result = self.get_results_from_pods(pod_label_selector)
+                    request.started_at = pod_result['started_at']
+                    request.finished_at = pod_result['finished_at']
+                    print(pod_result)
+                    if pod_result['reason'] == 'Error' and not pod_result['message']:
+                        request.error = pod_result['pod_log']
+                        logger.error(f"Job Error: {pod_result['pod_log']}")
+                except ApiException as e:
+                    request.error = f'not able to get pod_result, {e}'
+                    request.started_at = job.status.start_time
                 request.save()
                 self._delete_job(job)
     
