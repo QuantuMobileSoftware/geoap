@@ -26,7 +26,6 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-#    path: /minikube-host/Projects/quantum/sip/webapplication
     path: /sip/webapplication
 ---
 apiVersion: v1
