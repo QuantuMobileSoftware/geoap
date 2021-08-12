@@ -47,11 +47,17 @@ export const Requests = React.memo(() => {
 
   const filteredResults = useMemo(() => {
     const filtered = [];
-    if (activeTab === 2) return filteredRequest;
-    if (!filterType) return results;
+    if (activeTab === 2) {
+      return filteredRequest;
+    }
+    if (!filterType) {
+      return results;
+    }
     results.forEach(r => {
       const result = filteredRequest.some(item => item.id === r.request);
-      if (result) filtered.push(r);
+      if (result) {
+        filtered.push(r);
+      }
     });
     return filtered;
   }, [results, filteredRequest, filterType, activeTab]);
@@ -68,25 +74,27 @@ export const Requests = React.memo(() => {
     );
   }, [isUpSortList, filteredResults]);
 
+  const handleTabItemOneClick = () => setActiveTab(1);
+  const handleTabItemTwoClick = () => setActiveTab(2);
+  const handleSortChange = () => setIsUpSortList(!isUpSortList);
+  const handleSelectChange = item => setFilterType(item.value);
+  const handleChangeMode = mode => () => setSidebarMode(mode);
+
   return (
     <>
       <TabsWrapper>
-        <TabItem isActive={activeTab === 1} onClick={() => setActiveTab(1)}>
+        <TabItem isActive={activeTab === 1} onClick={handleTabItemOneClick}>
           Created reports
         </TabItem>
-        <TabItem isActive={activeTab === 2} onClick={() => setActiveTab(2)}>
+        <TabItem isActive={activeTab === 2} onClick={handleTabItemTwoClick}>
           In progress
         </TabItem>
       </TabsWrapper>
       <ButtonTopWrapper>
-        <Button onClick={() => setIsUpSortList(!isUpSortList)}>
+        <Button onClick={handleSortChange}>
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
-        <StyledSelect
-          items={selectItems}
-          value=''
-          onSelect={item => setFilterType(item.value)}
-        />
+        <StyledSelect items={selectItems} value='' onSelect={handleSelectChange} />
       </ButtonTopWrapper>
 
       <List requests={sortingListItems} />
@@ -96,14 +104,14 @@ export const Requests = React.memo(() => {
           icon='ArrowInCircle'
           variant='secondary'
           padding={50}
-          onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
+          onClick={handleChangeMode(SIDEBAR_MODE.LIST)}
         >
           Cancel
         </Button>
         <Button
           icon='Plus'
           variant='primary'
-          onClick={() => setSidebarMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
+          onClick={handleChangeMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
         >
           Create new
         </Button>
