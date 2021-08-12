@@ -1,22 +1,14 @@
-# python 3.6
 import argparse
-# import json
 import logging
-#import os
+import nbformat
 import sys
 from pathlib import Path
 from datetime import datetime
-# from subprocess import Popen, PIPE, TimeoutExpired
 from nbconvert.preprocessors import ExecutePreprocessor
 
-import nbformat
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# NOTEBOOK_PATH = os.getenv('NOTEBOOK_PATH', None)
-# NOTEBOOK_NAME = os.getenv('NOTEBOOK_NAME', None)
-# notebook_execution_path = f'{NOTEBOOK_PATH}/{NOTEBOOK_NAME}'
 
 
 class NotebookExecutor:
@@ -38,7 +30,6 @@ class NotebookExecutor:
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel
         self.notebook = self.read()
-        # self.save_path = Path.home() / f"{os.path.splitext(self.output_path)[0]}_{self.request_id}_{timestamp}.ipynb"
         logger.info(f'path for saving notebook: {self.save_path}')
 
     def edit(self):
