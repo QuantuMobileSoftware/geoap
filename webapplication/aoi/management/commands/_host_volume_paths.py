@@ -18,9 +18,7 @@ class HostVolumePaths:
 
     def executor_volume(self, basename):
         source_path, dst_path = self._abs_host_path(basename)
-
-        executor_volume_path = os.path.dirname(os.path.join(source_path,
-                                                            os.path.relpath(file, dst_path)))
+        executor_volume_path = os.path.dirname(os.path.join(source_path, os.path.relpath(file, dst_path)))
         return executor_volume_path
 
     def _abs_host_path(self, basename):
