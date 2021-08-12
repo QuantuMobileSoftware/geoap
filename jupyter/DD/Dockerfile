@@ -6,7 +6,7 @@ RUN apt-get update && \
     git \
     gcc libspatialindex-dev python3-dev
 
-COPY ./jupyter/DD/requirements.txt /tmp/
+COPY requirements.txt /tmp/
 RUN pip install --requirement /tmp/requirements.txt && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
@@ -16,5 +16,3 @@ RUN pip install jupyter_contrib_nbextensions jupyterlab-git && \
     jupyter lab build
 
 USER $NB_UID
-
-COPY jupyter_notebook_config.json /etc/jupyter/

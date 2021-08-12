@@ -62,16 +62,14 @@ class NotebookExecutor:
 
     def write(self):
         logger.info(f'Try to save notebook in {self.save_path}')
-        nbformat.write(self.notebook, self.save_path, version=nbformat.NO_CONVERT, )
+        nbformat.write(self.notebook, str(self.save_path), version=nbformat.NO_CONVERT, )
         logger.info(f'Notebook was saved successfully in {self.save_path}')
 
-    def execute_python(self):
-        # with open(self.save_path) as f:
-        #     nb = nbformat.read(f, as_version=4)
+    def execute(self):
         ep = ExecutePreprocessor(timeout=self.cell_timeout, kernel_name=self.kernel_name)
         nb, resources = ep.preprocess(self.notebook, {'metadata': {'path': self.path_to_execute.parent}})
         executed_save_path = self.save_path.parent / f'{self.save_path.stem}_executed{self.save_path.suffix}'
-        nbformat.write(nb, executed_save_path, version=nbformat.NO_CONVERT, )
+        nbformat.write(nb, str(executed_save_path), version=nbformat.NO_CONVERT, )
         
         
 def main():
@@ -91,7 +89,7 @@ def main():
     if int(args.request_id) > 0:
         notebook_executor.edit()
     try:
-        notebook_executor.execute_python()
+        notebook_executor.execute()
     except:
         logger.exception("Exited from NotebookExecutor")
         sys.exit(1)
