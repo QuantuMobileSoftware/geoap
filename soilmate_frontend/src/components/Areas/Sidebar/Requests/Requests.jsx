@@ -74,8 +74,7 @@ export const Requests = React.memo(() => {
     );
   }, [isUpSortList, filteredResults]);
 
-  const handleTabItemOneClick = () => setActiveTab(1);
-  const handleTabItemTwoClick = () => setActiveTab(2);
+  const handleTabItemClick = tab => () => setActiveTab(tab);
   const handleSortChange = () => setIsUpSortList(!isUpSortList);
   const handleSelectChange = item => setFilterType(item.value);
   const handleChangeMode = mode => () => setSidebarMode(mode);
@@ -83,10 +82,10 @@ export const Requests = React.memo(() => {
   return (
     <>
       <TabsWrapper>
-        <TabItem isActive={activeTab === 1} onClick={handleTabItemOneClick}>
+        <TabItem isActive={activeTab === 1} onClick={handleTabItemClick(1)}>
           Created reports
         </TabItem>
-        <TabItem isActive={activeTab === 2} onClick={handleTabItemTwoClick}>
+        <TabItem isActive={activeTab === 2} onClick={handleTabItemClick(2)}>
           In progress
         </TabItem>
       </TabsWrapper>
