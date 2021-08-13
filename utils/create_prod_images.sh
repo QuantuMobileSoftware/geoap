@@ -9,7 +9,6 @@ docker build -f ./jupyter/example/base.Dockerfile -t prod_sip-jupyter-example:la
 #EXAMPLE/tci_ndvi
 echo 'start building prod_sip_jupyter-tci_ndvi:latest'
 docker build -f ./jupyter/example/tci_ndvi/prod.Dockerfile -t prod_sip_jupyter-tci_ndvi:latest .
-exit 0
 
 #PBDNN_COMMON
 echo 'start building common_pbdnn:latest'
