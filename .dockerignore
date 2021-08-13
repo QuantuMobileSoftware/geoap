@@ -10,3 +10,4 @@ data/mapboxcache
 data/satellite_imagery
 data/results
 data/tiles
+.ipynb_checkpoints
