@@ -27,7 +27,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
 
   const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
-    () => areas.map(({ name }) => ({ name, value: name })),
+    () => areas.map(({ name, id }) => ({ name, value: id })),
     [areas]
   );
   const selectOptionsLayers = useMemo(
@@ -51,25 +51,33 @@ export const RequestSettings = ({ areas, currentArea }) => {
     notebook && startDate && endDate && setCanSaveRequest(true);
   }, [notebook, startDate, endDate]);
 
+  const handleAreChange = item => setAreaId(item.value);
+
+  const handleNoteBookChange = item => setNotebook(item.value);
+
+  const handleYearChange = item => {
+    setStartDate(new Date(item.value, 1));
+    setEndDate(null);
+  };
+
+  const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.LIST);
+
   return (
     <>
       <StyledSelect
         items={selectOptionsAreas}
-        value={currentArea.name}
-        onSelect={item => setAreaId(item.value)}
+        value={currentArea.id}
+        onSelect={handleAreChange}
         label='Choose area'
       />
       <StyledSelect
         items={selectOptionsLayers}
-        onSelect={item => setNotebook(item.value)}
+        onSelect={handleNoteBookChange}
         label='Select layers'
       />
       <StyledSelect
         items={layerYears}
-        onSelect={item => {
-          setStartDate(new Date(item.value, 1));
-          setEndDate(null);
-        }}
+        onSelect={handleYearChange}
         label='Year'
         value={new Date().getFullYear()}
       />
@@ -87,7 +95,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
           icon='ArrowInCircle'
           variant='secondary'
           padding={50}
-          onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
+          onClick={handleChangeSidebarMode}
         >
           Back to list
         </Button>

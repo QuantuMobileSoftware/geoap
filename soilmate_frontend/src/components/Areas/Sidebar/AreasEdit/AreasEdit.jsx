@@ -57,6 +57,15 @@ export const AreasEdit = ({ currentArea }) => {
     setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
+  const handleToggleModal = isOpen => () => setIsOpenModal(isOpen);
+
+  const handleDownloadClick = () => {
+    setIsOpenModal(false);
+    setIsOpenUploader(true);
+  };
+
+  const handleSidebarMode = () => setSidebarMode(SIDEBAR_MODE.LIST);
+
   return (
     <>
       <Form
@@ -71,18 +80,14 @@ export const AreasEdit = ({ currentArea }) => {
           <>
             <FormField autoFocus label='Name' name='name' placeholder='City...' />
             <Upload>
-              <Button icon='Upload' onClick={() => setIsOpenModal(true)}>
+              <Button icon='Upload' onClick={handleToggleModal(true)}>
                 Upload file
               </Button>
               <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
               <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
             </Upload>
             <ButtonWrapper>
-              <Button
-                variant='secondary'
-                padding={50}
-                onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
-              >
+              <Button variant='secondary' padding={50} onClick={handleSidebarMode}>
                 Cancel
               </Button>
               <Button variant='primary' onClick={() => handleSaveArea(values)}>
@@ -95,23 +100,17 @@ export const AreasEdit = ({ currentArea }) => {
       {isOpenModal && (
         <StyledModal
           header='Are you sure to download new file?'
-          close={() => setIsOpenModal(false)}
+          close={handleToggleModal(false)}
         >
           <>
             <ModalText>
               When the new file is downloaded, the old file will be deleted automatically
             </ModalText>
             <ModalButtonWrapper>
-              <Button variant='secondary' onClick={() => setIsOpenModal(false)}>
+              <Button variant='secondary' onClick={handleToggleModal(false)}>
                 Cancel
               </Button>
-              <Button
-                variant='primary'
-                onClick={() => {
-                  setIsOpenModal(false);
-                  setIsOpenUploader(true);
-                }}
-              >
+              <Button variant='primary' onClick={handleDownloadClick}>
                 Yes, Download
               </Button>
             </ModalButtonWrapper>
