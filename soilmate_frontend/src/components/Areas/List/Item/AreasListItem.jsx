@@ -52,6 +52,15 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     }
   };
 
+  const handleChangeSidebarMode = mode => () => {
+    setCurrentArea(area.id);
+    setSidebarMode(mode);
+  };
+
+  const handleMenuClick = () => {
+    setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
+  };
+
   return (
     <AreasListItem
       {...props}
@@ -74,32 +83,15 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         ></AreasIconButton>
         <AreasIconButton
           icon='List'
-          onClick={() => {
-            setCurrentArea(area.id);
-            setSidebarMode(SIDEBAR_MODE.REQUESTS);
-          }}
+          onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}
         ></AreasIconButton>
       </AreasIconButtonsHolder>
 
-      <AreasListItemMenu
-        onClick={() => {
-          setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
-        }}
-      >
-        <AreasListItemButton
-          onClick={() => {
-            setCurrentArea(area.id);
-            setSidebarMode(SIDEBAR_MODE.EDIT);
-          }}
-        >
+      <AreasListItemMenu onClick={handleMenuClick}>
+        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.EDIT)}>
           Edit
         </AreasListItemButton>
-        <AreasListItemButton
-          onClick={() => {
-            setCurrentArea(area.id);
-            setSidebarMode(SIDEBAR_MODE.REQUESTS);
-          }}
-        >
+        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}>
           View reports
         </AreasListItemButton>
         <AreasListItemButton
