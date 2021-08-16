@@ -5,6 +5,7 @@ import { mergeObjects } from 'utils';
 import {
   SelectDropdown,
   SelectToggle,
+  SelectToggleText,
   StyledSelect,
   Option,
   StyledIcon,
@@ -12,13 +13,25 @@ import {
 } from './Select.styles';
 
 export const Select = forwardRef(
-  ({ isOpen = false, onClose, onSelect, items, value, label }, ref) => {
+  (
+    {
+      isOpen = false,
+      onClose,
+      onSelect,
+      items,
+      value,
+      placeholder = 'Choose',
+      label,
+      ...props
+    },
+    ref
+  ) => {
     const selectToggleRef = useRef(null);
     const [_isOpen, setIsOpen] = useState();
-    const [selectedItem, setSelectedItem] = useState({ name: 'Choose' });
+    const [selectedItem, setSelectedItem] = useState({ name: placeholder });
     useEffect(() => setIsOpen(isOpen), [isOpen]);
     useEffect(() => {
-      const itemValue = items.find(item => item.value === value);
+      const itemValue = items?.find(item => item.value === value);
       if (itemValue) {
         setSelectedItem(itemValue);
       }
@@ -44,10 +57,10 @@ export const Select = forwardRef(
     const toggle = () => (_isOpen ? handleClose() : setIsOpen(true));
 
     return (
-      <StyledSelect ref={ref}>
+      <StyledSelect ref={ref} {...props}>
         {label && <Label>{label}</Label>}
         <SelectToggle ref={selectToggleRef} onClick={toggle}>
-          {selectedItem.name}
+          <SelectToggleText>{selectedItem.name}</SelectToggleText>
           <StyledIcon open={_isOpen}>ExpandDown</StyledIcon>
           <SelectDropdown
             isOpen={_isOpen}

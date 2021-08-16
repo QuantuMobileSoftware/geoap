@@ -50,6 +50,16 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const setSelectedResult = useCallback(
+    id => dispatch(areasActions.setSelectedResult(id)),
+    [dispatch]
+  );
+
+  const deleteSelectedResult = useCallback(
+    id => dispatch(areasActions.deleteSelectedResult(id)),
+    [dispatch]
+  );
+
   const setSelectedEntityId = useCallback(
     id => dispatch(areasActions.setSelectedEntityId(id)),
     [dispatch]
@@ -125,6 +135,8 @@ export const useAreasActions = () => {
     getAreas,
     setEntitySize,
     setCurrentArea,
+    setSelectedResult,
+    deleteSelectedResult,
     setSelectedEntityId,
     deleteSelectedEntityId,
     saveArea,
