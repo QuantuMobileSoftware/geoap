@@ -21,8 +21,13 @@ import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 import { useAreasActions } from 'state';
 
 export const ListItem = ({ area = {}, parent, ...props }) => {
-  const { setCurrentArea, setSidebarMode, setSelectedEntityId, deleteSelectedEntityId } =
-    useAreasActions();
+  const {
+    setCurrentArea,
+    setSidebarMode,
+    setSelectedEntityId,
+    deleteSelectedEntityId,
+    deleteSelectedResult
+  } = useAreasActions();
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -31,6 +36,12 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
+
+  const handleAreaListItemClick = () => {
+    setCurrentArea(area.id);
+    deleteSelectedResult();
+  };
+
   const handleChangeCheckbox = isChecked => {
     if (isChecked) {
       setSelectedEntityId(area.id);
@@ -45,9 +56,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
       top={isTopPosition}
       ref={areaRef}
       hasCoordinates={hasCoordinates}
-      onClick={() => {
-        setCurrentArea(area.id);
-      }}
+      onClick={handleAreaListItemClick}
     >
       <Checkbox onChange={handleChangeCheckbox} />
 

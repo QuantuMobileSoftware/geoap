@@ -3,30 +3,23 @@ import styled, { css } from 'styled-components';
 import { rem, em } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
-import { Image } from 'components/_shared/Image';
 
 export const RequestListItemText = styled(Typography).attrs({
   element: 'h4',
   variant: 'body1'
-})``;
+})`
+  line-height: ${rem(16)};
+  cursor: pointer;
+`;
 
 export const RequestListItemBody = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-
+  margin-left: ${em(10)};
   > * {
     transition: inherit;
   }
-`;
-
-export const RequestListItemThumbnail = styled(Image)`
-  ${({ theme }) => css`
-    width: ${rem(34)};
-    height: ${rem(34)};
-    border-radius: ${rem(theme.radius[1])};
-    margin-right: ${rem(theme.spacing[4])};
-  `}
 `;
 
 export const RequestListItem = styled.li`
