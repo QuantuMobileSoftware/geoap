@@ -37,6 +37,13 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
+
+  const handleAreaListItemClick = () => {
+    setCurrentArea(area.id);
+    deleteSelectedResult();
+    setLayerOpacity(1);
+  };
+
   const handleChangeCheckbox = isChecked => {
     if (isChecked) {
       setSelectedEntityId(area.id);
@@ -51,11 +58,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
       top={isTopPosition}
       ref={areaRef}
       hasCoordinates={hasCoordinates}
-      onClick={() => {
-        setCurrentArea(area.id);
-        deleteSelectedResult();
-        setLayerOpacity(1);
-      }}
+      onClick={handleAreaListItemClick}
     >
       <Checkbox onChange={handleChangeCheckbox} />
 
