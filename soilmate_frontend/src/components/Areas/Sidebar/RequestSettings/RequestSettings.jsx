@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
 
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ButtonWrapper, StyledSelect } from './RequestSettings.styles';
@@ -25,9 +25,12 @@ export const RequestSettings = ({ areas, currentArea }) => {
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
 
+  const { AREAS, FIELDS } = SIDEBAR_MODE;
+  const areaType = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
+
   const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
-    () => areas.map(({ name }) => ({ name, value: name })),
+    () => areas.map(({ name, id }) => ({ name, value: id })),
     [areas]
   );
   const selectOptionsLayers = useMemo(
@@ -44,32 +47,40 @@ export const RequestSettings = ({ areas, currentArea }) => {
       user: currentUser.pk
     };
     saveAreaRequest(currentArea.id, request);
-    setSidebarMode(SIDEBAR_MODE.AREAS);
+    setSidebarMode(areaType);
   };
 
   useEffect(() => {
     notebook && startDate && endDate && setCanSaveRequest(true);
   }, [notebook, startDate, endDate]);
 
+  const handleAreChange = item => setAreaId(item.value);
+
+  const handleNoteBookChange = item => setNotebook(item.value);
+
+  const handleYearChange = item => {
+    setStartDate(new Date(item.value, 1));
+    setEndDate(null);
+  };
+
+  const handleChangeSidebarMode = () => setSidebarMode(areaType);
+
   return (
     <>
       <StyledSelect
         items={selectOptionsAreas}
-        value={currentArea.name}
-        onSelect={item => setAreaId(item.value)}
+        value={currentArea.id}
+        onSelect={handleAreChange}
         label='Choose area'
       />
       <StyledSelect
         items={selectOptionsLayers}
-        onSelect={item => setNotebook(item.value)}
+        onSelect={handleNoteBookChange}
         label='Select layers'
       />
       <StyledSelect
         items={layerYears}
-        onSelect={item => {
-          setStartDate(new Date(item.value, 1));
-          setEndDate(null);
-        }}
+        onSelect={handleYearChange}
         label='Year'
         value={new Date().getFullYear()}
       />
@@ -87,7 +98,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
           icon='ArrowInCircle'
           variant='secondary'
           padding={50}
-          onClick={() => setSidebarMode(SIDEBAR_MODE.AREAS)}
+          onClick={handleChangeSidebarMode}
         >
           Back to list
         </Button>

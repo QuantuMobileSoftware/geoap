@@ -9,13 +9,12 @@ import {
 } from './Modal.styles';
 
 export const Modal = ({ children, header, close, textCenter, ...props }) => {
+  const handleCloseClick = () => (close ? close() : areasEvents.toggleModal(false));
+
   return (
     <StyledModalWrapper {...props}>
       <StyledModalMain textCenter={textCenter}>
-        <CloseButton
-          icon='Cross'
-          onClick={() => (close ? close() : areasEvents.toggleModal(false))}
-        />
+        <CloseButton icon='Cross' onClick={handleCloseClick} />
         {header && <ModalHeader>{header}</ModalHeader>}
         {children && children}
       </StyledModalMain>

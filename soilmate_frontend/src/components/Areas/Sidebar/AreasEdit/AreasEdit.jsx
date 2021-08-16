@@ -32,6 +32,8 @@ export const AreasEdit = ({ currentArea }) => {
 
   const { AREAS, FIELDS } = SIDEBAR_MODE;
 
+  const mode = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
+
   useEffect(() => {
     setIsOpenUploader(false);
   }, [isOpenUploader]);
@@ -56,9 +58,17 @@ export const AreasEdit = ({ currentArea }) => {
     };
     areasEvents.updateShape();
     patchArea(currentArea.id, areaData);
-    const mode = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
     setSidebarMode(mode);
   };
+
+  const handleToggleModal = isOpen => () => setIsOpenModal(isOpen);
+
+  const handleDownloadClick = () => {
+    setIsOpenModal(false);
+    setIsOpenUploader(true);
+  };
+
+  const handleSidebarMode = () => setSidebarMode(mode);
 
   return (
     <>
@@ -74,18 +84,14 @@ export const AreasEdit = ({ currentArea }) => {
           <>
             <FormField autoFocus label='Name' name='name' placeholder='City...' />
             <Upload>
-              <Button icon='Upload' onClick={() => setIsOpenModal(true)}>
+              <Button icon='Upload' onClick={handleToggleModal(true)}>
                 Upload file
               </Button>
               <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
               <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
             </Upload>
             <ButtonWrapper>
-              <Button
-                variant='secondary'
-                padding={50}
-                onClick={() => setSidebarMode(AREAS)}
-              >
+              <Button variant='secondary' padding={50} onClick={handleSidebarMode}>
                 Cancel
               </Button>
               <Button variant='primary' onClick={() => handleSaveArea(values)}>
@@ -98,7 +104,7 @@ export const AreasEdit = ({ currentArea }) => {
       {isOpenModal && (
         <Modal
           header='Are you sure to download new file?'
-          close={() => setIsOpenModal(false)}
+          close={handleToggleModal(false)}
           textCenter={true}
         >
           <>
@@ -106,16 +112,10 @@ export const AreasEdit = ({ currentArea }) => {
               When the new file is downloaded, the old file will be deleted automatically
             </ModalText>
             <ModalButtonWrapper>
-              <Button variant='secondary' onClick={() => setIsOpenModal(false)}>
+              <Button variant='secondary' onClick={handleToggleModal(false)}>
                 Cancel
               </Button>
-              <Button
-                variant='primary'
-                onClick={() => {
-                  setIsOpenModal(false);
-                  setIsOpenUploader(true);
-                }}
-              >
+              <Button variant='primary' onClick={handleDownloadClick}>
                 Yes, Download
               </Button>
             </ModalButtonWrapper>
