@@ -4,17 +4,24 @@ import { useSelector } from 'react-redux';
 import { List } from '../../List';
 import { Search } from 'components/_shared/Search';
 import { Button } from 'components/_shared/Button';
+import { FieldsModal } from './FieldsModal';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
 import { selectSelectedEntitiesId } from 'state';
-import { SidebarMessage, StyledIcon, ButtonWrapper } from './Fields.styles';
+import {
+  SidebarMessage,
+  StyledIcon,
+  ButtonWrapper,
+  CreateFieldButton
+} from './Fields.styles';
 
 export const Fields = React.memo(({ fields }) => {
   const selectedAreas = useSelector(selectSelectedEntitiesId);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(fields);
   const [isUpSortList, setIsUpSortList] = useState(true);
+  const [isShowModal, setIsShowModal] = useState(false);
 
   useEffect(() => setListItems(fields), [fields]);
 
@@ -73,6 +80,9 @@ export const Fields = React.memo(({ fields }) => {
     return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
   }, [isUpSortList, listItems]);
 
+  const handleOpenModal = () => setIsShowModal(true);
+  const handleCloseModal = () => setIsShowModal(false);
+
   return (
     <>
       <Search
@@ -92,6 +102,12 @@ export const Fields = React.memo(({ fields }) => {
       <List areas={sortingListItems} />
 
       {isAreasNotFound && <SidebarMessage>Fields not found</SidebarMessage>}
+
+      <CreateFieldButton variant='primary' icon='Plus' onClick={handleOpenModal}>
+        Add new field
+      </CreateFieldButton>
+
+      {isShowModal && <FieldsModal closeModal={handleCloseModal} />}
     </>
   );
 });
