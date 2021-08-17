@@ -30,3 +30,9 @@ export const ButtonWrapper = styled.div`
   justify-content: space-between;
   margin-top: ${em(16)};
 `;
+
+export const CreateFieldButton = styled(Button)`
+  ${({ theme }) => css`
+    margin: ${rem(theme.spacing[6])} 0 ${rem(theme.spacing[6])} auto;
+  `}
+`;

@@ -51,15 +51,21 @@ export const Map = () => {
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
-  const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
+
+  const { FIELDS, EDIT } = SIDEBAR_MODE;
+  const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
+  const areaData = useAreaData(currentShape, aoiType);
+  const PopupHeaderText = `Are you sure with this ${
+    aoiType === AOI_TYPE.AREA ? 'area' : 'field'
+  }?`;
 
   const filteredAreas = useMemo(() => {
-    if (sidebarMode === SIDEBAR_MODE.FIELDS || selectedArea?.type === AOI_TYPE.FIELD) {
+    if (sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD) {
       return initialAreas.filter(area => area.type === AOI_TYPE.FIELD);
     } else {
       return initialAreas.filter(area => area.type === AOI_TYPE.AREA);
     }
-  }, [sidebarMode, initialAreas, selectedArea]);
+  }, [sidebarMode, initialAreas, selectedArea, FIELDS]);
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -134,7 +140,7 @@ export const Map = () => {
     setIsPopupVisible(false);
     map.removeLayer(currentShape);
     await saveArea(areaData);
-    setSidebarMode(SIDEBAR_MODE.EDIT);
+    setSidebarMode(EDIT);
   };
 
   const handlePolygonClick = id => polygon => {
@@ -183,7 +189,7 @@ export const Map = () => {
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
-              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentAreaId}
+              isEditable={sidebarMode === EDIT && area.id === currentAreaId}
             />
           ))}
         {isLoading && <Spinner />}
@@ -192,7 +198,7 @@ export const Map = () => {
       {map && selectedResults.length ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
-          header='Are you sure with this area?'
+          header={PopupHeaderText}
           confirmPopup='Choose this selection'
           cancel={handleCancelSaveShape}
           save={handleSaveShape}
