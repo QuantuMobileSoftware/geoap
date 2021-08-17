@@ -41,7 +41,7 @@ export const AreasEdit = ({ currentArea }) => {
     setShapeCoords(coordinates);
   };
 
-  const handleSaveArea = values => {
+  const handleSaveArea = values => () => {
     const polygon = shapeCoords
       ? { polygon: getShapePositionsString(shapeCoords) }
       : editableShapeCoords
@@ -57,7 +57,8 @@ export const AreasEdit = ({ currentArea }) => {
     setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
-  const handleToggleModal = isOpen => () => setIsOpenModal(isOpen);
+  const handleOpenModal = () => setIsOpenModal(true);
+  const handleCloseModal = () => setIsOpenModal(false);
 
   const handleDownloadClick = () => {
     setIsOpenModal(false);
@@ -80,7 +81,7 @@ export const AreasEdit = ({ currentArea }) => {
           <>
             <FormField autoFocus label='Name' name='name' placeholder='City...' />
             <Upload>
-              <Button icon='Upload' onClick={handleToggleModal(true)}>
+              <Button icon='Upload' onClick={handleOpenModal}>
                 Upload file
               </Button>
               <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
@@ -90,7 +91,7 @@ export const AreasEdit = ({ currentArea }) => {
               <Button variant='secondary' padding={50} onClick={handleSidebarMode}>
                 Cancel
               </Button>
-              <Button variant='primary' onClick={() => handleSaveArea(values)}>
+              <Button variant='primary' onClick={handleSaveArea(values)}>
                 Save changes
               </Button>
             </ButtonWrapper>
@@ -98,16 +99,13 @@ export const AreasEdit = ({ currentArea }) => {
         )}
       </Form>
       {isOpenModal && (
-        <StyledModal
-          header='Are you sure to download new file?'
-          close={handleToggleModal(false)}
-        >
+        <StyledModal header='Are you sure to download new file?' close={handleCloseModal}>
           <>
             <ModalText>
               When the new file is downloaded, the old file will be deleted automatically
             </ModalText>
             <ModalButtonWrapper>
-              <Button variant='secondary' onClick={handleToggleModal(false)}>
+              <Button variant='secondary' onClick={handleCloseModal}>
                 Cancel
               </Button>
               <Button variant='primary' onClick={handleDownloadClick}>
