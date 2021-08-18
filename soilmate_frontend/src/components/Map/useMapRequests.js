@@ -21,7 +21,7 @@ export const useMapRequests = (selectedArea, map) => {
   useEffect(() => {
     const selectedResults = [];
     results.forEach(id => {
-      const result = selectedArea.results.find(result => result.id === id);
+      const result = selectedArea?.results.find(result => result.id === id);
       if (result) {
         selectedResults.push(result);
       }

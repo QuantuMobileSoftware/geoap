@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
-import { useAreasActions } from 'state';
+import { useAreasActions, selectSelectedResults } from 'state';
 
 import {
   RequestListItemBody,
@@ -10,9 +11,12 @@ import {
 } from './RequestListItem.styles';
 
 export const ListItem = ({ request = {}, ...props }) => {
+  const selectedResults = useSelector(selectSelectedResults);
+  const isCheckedDefault = selectedResults.some(item => item === request.id);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult } = useAreasActions();
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(isCheckedDefault);
+
   const handleRequestClick = () => {
     if (isChecked) {
       deleteSelectedResult(request.id);
