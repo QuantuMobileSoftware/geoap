@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet.vectorgrid';
-import { selectSelectedResults } from 'state';
-import { EDITABLE_SHAPE_OPTIONS, SHAPE_OPTIONS } from '_constants';
+import { last } from 'lodash';
+import { selectSelectedResults, getLayerOpacity } from 'state';
+import { EDITABLE_SHAPE_OPTIONS, SHAPE_OPTIONS, FILL_OPACITY } from '_constants';
 import { getPolygonPositions } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
   const results = useSelector(selectSelectedResults);
+  const opacity = useSelector(getLayerOpacity);
   const [renderedLayers, setRenderedLayers] = useState([]);
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export const useMapRequests = (selectedArea, map) => {
         addLayerInMap(layer, selectedLayer);
       }
 
-      const lastId = renderedLayers[renderedLayers.length - 1]?.id;
+      const lastId = last(renderedLayers)?.id;
       if (lastId) {
         const layer = selectedResults.find(l => l.id === lastId);
         if (layer) {
@@ -118,4 +120,16 @@ export const useMapRequests = (selectedArea, map) => {
       }
     });
   }, [map, selectedArea, results, renderedLayers]);
+
+  useEffect(() => {
+    const selectedLayer = last(renderedLayers);
+    if (selectedLayer) {
+      const fillOpacity = opacity / (1 / FILL_OPACITY);
+      if (selectedLayer.layer.setStyle) {
+        selectedLayer.layer.setStyle({ opacity, fillOpacity });
+      } else {
+        selectedLayer.layer.setOpacity(opacity);
+      }
+    }
+  }, [renderedLayers, opacity]);
 };

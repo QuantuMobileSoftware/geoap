@@ -18,7 +18,7 @@ import { getPolygonPositions, getElementBottom } from 'utils/helpers';
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
-import { useAreasActions } from 'state';
+import { useAreasActions, useMapActions } from 'state';
 
 export const ListItem = ({ area = {}, parent, ...props }) => {
   const {
@@ -28,6 +28,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     deleteSelectedEntityId,
     deleteSelectedResult
   } = useAreasActions();
+  const { setLayerOpacity } = useMapActions();
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -40,6 +41,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
   const handleAreaListItemClick = () => {
     setCurrentArea(area.id);
     deleteSelectedResult();
+    setLayerOpacity(1);
   };
 
   const handleChangeCheckbox = isChecked => {

@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState
 } from 'react';
+import { useSelector } from 'react-redux';
 import cn from 'classnames';
 import { isUndefined } from 'lodash-es';
 
@@ -23,7 +24,7 @@ import { Button } from '../Button';
 import { FileUploader } from '../FileUploader';
 import { BreadCrumbs } from './BreadCrumbs';
 import { MODAL_TYPE } from '_constants';
-import { useAreasActions } from 'state';
+import { useAreasActions, selectSelectedEntitiesId } from 'state';
 
 import { areasEvents } from '_events';
 
@@ -52,6 +53,10 @@ export const Sidebar = forwardRef(
     const [removedAreaId, setRemovedAreaId] = useState();
     const [isOpenUploader, setIsOpenUploader] = useState(false);
     const { deleteArea } = useAreasActions();
+    const selectedAreas = useSelector(selectSelectedEntitiesId);
+
+    const deleteAreasText =
+      selectedAreas.length > 1 ? `${selectedAreas.length} areas` : 'this area';
 
     const _className = cn(className, { isOpen: _isOpen });
 
@@ -126,7 +131,7 @@ export const Sidebar = forwardRef(
         )
       },
       [MODAL_TYPE.DELETE]: {
-        header: 'Are you sure to delete this area?',
+        header: `Are you sure to delete ${deleteAreasText}?`,
         content: () => (
           <ButtonWrapper>
             <Button variant='secondary' onClick={() => areasEvents.toggleModal(false)}>

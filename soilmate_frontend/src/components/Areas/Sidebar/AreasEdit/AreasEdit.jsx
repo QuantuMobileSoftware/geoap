@@ -9,7 +9,14 @@ import { FileUploader } from 'components/_shared/FileUploader';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
 import { SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
-import { ButtonWrapper, Upload, UploadTitle } from './AreasEdit.styles';
+import {
+  ButtonWrapper,
+  Upload,
+  UploadTitle,
+  StyledModal,
+  ModalButtonWrapper,
+  ModalText
+} from './AreasEdit.styles';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required()
@@ -21,6 +28,7 @@ export const AreasEdit = ({ currentArea }) => {
   const editableShapeCoords = useSelector(getShapeCoords);
   const [isOpenUploader, setIsOpenUploader] = useState(false);
   const [shapeCoords, setShapeCoords] = useState(null);
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -33,7 +41,7 @@ export const AreasEdit = ({ currentArea }) => {
     setShapeCoords(coordinates);
   };
 
-  const handleSaveArea = values => {
+  const handleSaveArea = values => () => {
     const polygon = shapeCoords
       ? { polygon: getShapePositionsString(shapeCoords) }
       : editableShapeCoords
@@ -49,37 +57,64 @@ export const AreasEdit = ({ currentArea }) => {
     setSidebarMode(SIDEBAR_MODE.LIST);
   };
 
+  const handleOpenModal = () => setIsOpenModal(true);
+  const handleCloseModal = () => setIsOpenModal(false);
+
+  const handleDownloadClick = () => {
+    setIsOpenModal(false);
+    setIsOpenUploader(true);
+  };
+
+  const handleSidebarMode = () => setSidebarMode(SIDEBAR_MODE.LIST);
+
   return (
-    <Form
-      initialValues={{
-        name: currentArea.name,
-        x: latLangsCurrentArea[0][0].toFixed(1),
-        y: latLangsCurrentArea[0][1].toFixed(1)
-      }}
-      validationSchema={validationSchema}
-    >
-      {({ values }) => (
-        <>
-          <FormField autoFocus label='Name' name='name' placeholder='City...' />
-          <Upload onClick={() => setIsOpenUploader(true)}>
-            <Button icon='Upload'>Upload file</Button>
-            <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
-            <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
-          </Upload>
-          <ButtonWrapper>
-            <Button
-              variant='secondary'
-              padding={50}
-              onClick={() => setSidebarMode(SIDEBAR_MODE.LIST)}
-            >
-              Cancel
-            </Button>
-            <Button variant='primary' onClick={() => handleSaveArea(values)}>
-              Save changes
-            </Button>
-          </ButtonWrapper>
-        </>
+    <>
+      <Form
+        initialValues={{
+          name: currentArea.name,
+          x: latLangsCurrentArea[0][0].toFixed(1),
+          y: latLangsCurrentArea[0][1].toFixed(1)
+        }}
+        validationSchema={validationSchema}
+      >
+        {({ values }) => (
+          <>
+            <FormField autoFocus label='Name' name='name' placeholder='City...' />
+            <Upload>
+              <Button icon='Upload' onClick={handleOpenModal}>
+                Upload file
+              </Button>
+              <UploadTitle>Please upload files in *.GeoJSOn or *.KML</UploadTitle>
+              <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
+            </Upload>
+            <ButtonWrapper>
+              <Button variant='secondary' padding={50} onClick={handleSidebarMode}>
+                Cancel
+              </Button>
+              <Button variant='primary' onClick={handleSaveArea(values)}>
+                Save changes
+              </Button>
+            </ButtonWrapper>
+          </>
+        )}
+      </Form>
+      {isOpenModal && (
+        <StyledModal header='Are you sure to download new file?' close={handleCloseModal}>
+          <>
+            <ModalText>
+              When the new file is downloaded, the old file will be deleted automatically
+            </ModalText>
+            <ModalButtonWrapper>
+              <Button variant='secondary' onClick={handleCloseModal}>
+                Cancel
+              </Button>
+              <Button variant='primary' onClick={handleDownloadClick}>
+                Yes, Download
+              </Button>
+            </ModalButtonWrapper>
+          </>
+        </StyledModal>
       )}
-    </Form>
+    </>
   );
 };
