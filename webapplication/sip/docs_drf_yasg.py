@@ -9,7 +9,7 @@ schema_view = get_schema_view(
       default_version='v1',
       description="""
       <h1>Sip API</h1>
-      For working with SIP API you need to get an {{access_token}}.
+      <p><strong>For working with SIP API you need to get an {{access_token}}</strong>.</p>
       
       <h2>Get access token</h2>
       <h3>POST: api/login</h3>
