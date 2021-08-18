@@ -37,6 +37,16 @@ class FilesView(APIView):
 class ResultListAPIView(ListAPIView):
     """
     Get list of all results for stuff or list of all results with released=True for not staff authenticated users.
+    Accepts GET method.
+    
+    Display fields: 'id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options',
+                    'description', 'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request',
+                    'styles_url', 'labels'
+                    
+    Read-only fields: 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
+                      'request', 'styles_url', 'labels'
+                      
+    Returns: list of ResultModel fields.
     """
     permission_classes = (ModelPermissions, )
     queryset = Result.objects.all()
@@ -53,6 +63,21 @@ class ResultListAPIView(ListAPIView):
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    """
+    Reads, updates and deletes ResultModel fields.
+    Accepts: GET, PATCH, DELETE methods.
+
+    Accepted field: 'id'.
+    
+    Display fields: 'id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options',
+                    'description', 'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request',
+                    'styles_url', 'labels'.
+                    
+    Read-only fields: 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
+                      'request', 'styles_url', 'labels'.
+
+    Returns: ResultModel fields.
+    """
     permission_classes = (ModelPermissions, ResultByACLPermission)
     queryset = Result.objects.all()
     serializer_class = ResultSerializer

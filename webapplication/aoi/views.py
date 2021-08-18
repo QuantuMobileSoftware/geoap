@@ -13,6 +13,16 @@ from .permissions import AoIIsOwnerPermission
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
+    """
+    Get list of all 'Areas of interest' created by user, or create new 'Area of interest' for user.
+    Accepts GET, POST methods.
+    
+    Display fields: 'id', 'user', 'name', 'polygon', 'createdat', 'type'.
+    
+    Read-only fields: 'createdat'.
+    
+    Returns: list of AoIModel fields.
+    """
     permission_classes = (ModelPermissions, )
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
@@ -34,6 +44,14 @@ class AoIListCreateAPIView(ListCreateAPIView):
 
 
 class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    """
+    Reads, updates and deletes ResultModel fields.
+    Accepts: GET, PATCH, DELETE methods.
+    Accepted field: 'id'.
+    Display fields: 'id', 'user', 'name', 'polygon', 'createdat', 'type'.
+    Read-only fields: 'createdat'.
+    Returns: AoIModel fields.
+    """
     permission_classes = (ModelPermissions, AoIIsOwnerPermission)
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
@@ -48,6 +66,19 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 
 class AOIResultsListAPIView(ListAPIView):
+    """
+    Get list of all results for AoI.
+    
+    Accepts: GET method.
+    
+    Accepted field: 'id'.
+    
+    Display fields: 'id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options',
+                    'description', 'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request',
+                    'styles_url', 'labels'.
+    
+    Returns: list of ResultModel fields.
+    """
     permission_classes = (ModelPermissions, )
     serializer_class = ResultSerializer
     queryset = Result.objects.all()
@@ -64,6 +95,13 @@ class AOIResultsListAPIView(ListAPIView):
 
 
 class JupyterNotebookListCreateAPIView(ListCreateAPIView):
+    """
+    Get list of all JupyterNotebooks available in system, or creates new JupyterNotebook.
+    Accepts GET, POST methods.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options'.
+    Read-only fields: None
+    Returns: list of JupyterNotebookModel fields
+    """
     permission_classes = (ModelPermissions, )
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
@@ -71,6 +109,14 @@ class JupyterNotebookListCreateAPIView(ListCreateAPIView):
 
 
 class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    """
+    Reads, updates and deletes JupyterNotebook fields.
+    Accepts: GET, PATCH, DELETE methods.
+    Accepted field: 'id'.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options'.
+    Read-only fields: None.
+    Returns: JupyterNotebookModel fields.
+    """
     permission_classes = (ModelPermissions, )
     queryset = JupyterNotebook.objects.all()
     serializer_class = JupyterNotebookSerializer
@@ -78,6 +124,15 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     
     
 class RequestListCreateAPIView(ListCreateAPIView):
+    """
+    Get list of all Requests available for User, or creates new Request for calculation.
+    Accepts: GET, POST methods.
+    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to'.
+    Display fields (GET): 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at',
+                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+    Read-only fields: 'polygon'.
+    Returns: RequestModel fields.
+    """
     permission_classes = (ModelPermissions, )
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
@@ -100,6 +155,14 @@ class RequestListCreateAPIView(ListCreateAPIView):
     
     
 class RequestRetrieveAPIView(RetrieveAPIView):
+    """
+    Reads Request fields.
+    Accepts: GET method.
+    Accepted field: 'id'.
+    Display fields: 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at', 
+                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+    Returns: RequestModel fields.
+    """
     permission_classes = (ModelPermissions, IsOwnerPermission)
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
@@ -107,6 +170,14 @@ class RequestRetrieveAPIView(RetrieveAPIView):
     
     
 class AOIRequestListAPIView(ListAPIView):
+    """
+    Get list of all Requests that were created for given 'Area Of Interest'
+    Accepts: GET method.
+    Accepted field: None.
+    Display fields: 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at', 
+                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+    Returns: list of RequestModel fields.
+    """
     permission_classes = (ModelPermissions, )
     serializer_class = RequestSerializer
     queryset = Request.objects.all()
@@ -120,6 +191,13 @@ class AOIRequestListAPIView(ListAPIView):
 
 
 class AoiTypeListAPIView(ListAPIView):
+    """
+    Get list 'Areas Of Interest Type'(plot boundaries, forest, water).
+    Accepts: GET method.
+    Accepted field: None.
+    Display fields: 'id', 'name', 'description'.
+    Returns: list of AoiTypeModel fields
+    """
     permission_classes = (ModelPermissions,)
     serializer_class = AoiTypeSerializer
     queryset = AoiType.objects.all()
@@ -128,6 +206,13 @@ class AoiTypeListAPIView(ListAPIView):
     
     
 class AoiTypeRetrieveAPIView(RetrieveAPIView):
+    """
+    Get 'Area Of Interest Type'(plot boundaries, forest, water) by it's id
+    Accepts: GET method.
+    Accepted field: 'id'
+    Display fields: 'id', 'name', 'description'.
+    Returns: AoiTypeModel fields
+    """
     permission_classes = (ModelPermissions, )
     serializer_class = AoiTypeSerializer
     queryset = AoiType.objects.all()
