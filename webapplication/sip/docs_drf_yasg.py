@@ -145,9 +145,7 @@ schema_view = get_schema_view(
          ]
          </br>
       """,
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@sipxyz.com"),
-      license=openapi.License(name="BSD License"),
+      contact=openapi.Contact(email="welcome@soilmate.ai"),
    ),
    public=True,
    permission_classes=[permissions.AllowAny],
