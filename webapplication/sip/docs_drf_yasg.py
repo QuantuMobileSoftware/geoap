@@ -8,27 +8,44 @@ schema_view = get_schema_view(
       title="Sip API",
       default_version='v1',
       description="""
-      Sip API
-      For working with SIP API you need to get an {{access_token}}.
-      For getting {{access_token}} you need to log in using api/login, api/login will return you json string with
-      "key"={{access_token}}
-      Place 'apikey' parameter with this {{access_token}} as it's value in url - api/request?apikey={{access_token}}.
+      <h1>Sip API</h1>
+      <p><strong>For working with SIP API you need to get an {{access_token}}</strong>.</p>
       
-      Get your user_id:
-      GET: api/users/current?apikey={{access_token}}
-         return json example:
-            {
-                "pk": 2,
-                "username": "test",
-                "email": "",
-                "first_name": "",
-                "last_name": ""
-            }
+      <h2>Get access token</h2>
+      <h3>POST: api/login</h3>
+      <h3>body json example:</h3>
+         {
+            "username": "test",
+            "password": "pass"
+         }
+         </br>
+
+      <h3>return json example:</h3>
+         {
+            "key": "507928511085e6584cfa105c74339d46fc097dd5"
+         }
+         </br>
       
+      <p>
+         Place 'apikey' parameter with this {{access_token}} as it's value in url - api/request?apikey={{access_token}}.
+      </p>
+      </br>
       
-      Create Area of interest:
-      POST: api/aoi?apikey=your_token
-         body json example:
+      <h2>Get your user_id:</h2>
+      <h3>GET: api/users/current?apikey={{access_token}}<h3>
+      <h3>return json example:</h3>
+         {
+             "pk": 2,
+             "username": "test",
+             "email": "",
+             "first_name": "",
+             "last_name": ""
+         }
+      </br>
+      
+      <h2>Create Area of interest:</h2>
+      <h3>POST:</strong> api/aoi?apikey=your_token</h3>
+      <h3>body json example:</h3>
          {
             "user": 2,
             "name": "Demo Field",
@@ -36,23 +53,26 @@ schema_view = get_schema_view(
             -94.77622261129523 42.122962521825265 ,  -94.77539164407744 42.122972184234769 ,
             -94.77513075902069 42.122286153159621 ,  -94.77524670793478 42.114469263866667 ,
             -94.77618396165716 42.114449939047653))"
-         },
-         return json example:
-            {
-                "id": 1,
-                "user": 2,
-                "name": "Demo Field",
-                "polygon": "SRID=4326;POLYGON ((-94.77618396165715 42.11444993904765,
-                -94.77622261129522 42.12296252182527, -94.77539164407744 42.12297218423477,
-                -94.77513075902068 42.12228615315962, -94.77524670793478 42.11446926386667,
-                -94.77618396165715 42.11444993904765))",
-                "createdat": "2021-08-17T16:11:23.231130Z",
-                "type": 2
-            }
+         } 
+         </br>
+         
+      <h3>return json example:</h3>
+         {
+             "id": 1,
+             "user": 2,
+             "name": "Demo Field",
+             "polygon": "SRID=4326;POLYGON ((-94.77618396165715 42.11444993904765,
+             -94.77622261129522 42.12296252182527, -94.77539164407744 42.12297218423477,
+             -94.77513075902068 42.12228615315962, -94.77524670793478 42.11446926386667,
+             -94.77618396165715 42.11444993904765))",
+             "createdat": "2021-08-17T16:11:23.231130Z",
+             "type": 2
+         }
+         </br>
       
-      Create Request for calculation of TCI and NDVI on Sentinel-2 imagery for summer 2020
-      POST: api/request?apikey={{access_token}}
-      body json example:
+      <h2>Create Request for calculation of TCI and NDVI on Sentinel-2 imagery for summer 2020</h2>
+      <h3>POST: api/request?apikey={{access_token}}</h3>
+      <h3>body json example:</h3>
          {
            "user": 2,
            "aoi": 1,
@@ -60,7 +80,7 @@ schema_view = get_schema_view(
            "date_from": "2020-06-25",
            "date_to": "2020-07-25",
          }
-      return json example:
+      <h3>return json example:</h3>
          {
           "id": 1,
           "user": 2,
@@ -76,10 +96,12 @@ schema_view = get_schema_view(
           "success": false,
           "polygon": "SRID=4326;POLYGON ((36.33779525756836 50.05697345978498, 36.3123893737793 50.05592644394527, 36.30964279174805 50.04517943449594, 36.31367683410645 50.03520185144665, 36.33110046386719 50.03035012265608, 36.353759765625 50.031122021389, 36.36208534240722 50.04176193236391, 36.35839462280273 50.052675038602, 36.35135650634766 50.05724898647173, 36.33779525756836 50.05697345978498))"
          }
-      Once request is done one can observe results: TCI and NDVI
-      Get Results for given Area of interest
-      GET: api/aoi/1/results?apikey={{access_token}}
-      return json example:
+         </br>
+      <p>Once request is done one can observe results: TCI and NDVI</p>
+      
+      <h2>Get Results for given Area of interest</h2>
+      <h3>GET: api/aoi/1/results?apikey={{access_token}}</h3>
+      <h3>return json example:</h3>
          [
             {
                "id":1,
@@ -121,6 +143,7 @@ schema_view = get_schema_view(
                "styles_url":null,
                "labels":null}
          ]
+         </br>
       """,
       terms_of_service="https://www.google.com/policies/terms/",
       contact=openapi.Contact(email="contact@sipxyz.com"),
