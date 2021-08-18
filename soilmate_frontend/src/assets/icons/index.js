@@ -25,3 +25,4 @@ export { ReactComponent as Settings } from './Settings.svg';
 export { ReactComponent as Upload } from './Upload.svg';
 export { ReactComponent as User } from './User.svg';
 export { ReactComponent as ArrowUp } from './ArrowUp.svg';
+export { ReactComponent as Delete } from './Delete.svg';
