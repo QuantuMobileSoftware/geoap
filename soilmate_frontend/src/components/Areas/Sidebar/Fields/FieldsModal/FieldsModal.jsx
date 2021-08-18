@@ -1,11 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+
 import { Modal } from 'components/_shared/Modal';
 import { ModalItem } from 'components/_shared/ModalItem';
 import { FileUploader } from 'components/_shared/FileUploader';
+
 import { areasEvents } from '_events';
+import { SIDEBAR_MODE } from '_constants';
+import { selectAreas, useAreasActions } from 'state';
+
+import { StyledSelect } from './FieldsModal.styles';
+
+const hasBoundariesFields = ({ layer_type, name }) =>
+  layer_type === 'GEOJSON' && name === "Fields' boundaries";
 
 export const FieldsModal = ({ closeModal }) => {
+  const areasList = useSelector(selectAreas);
+  const { setCurrentArea, setSidebarMode, setSelectedResult } = useAreasActions();
   const [isOpenUploader, setIsOpenUploader] = useState(false);
+  const [isDetectedModal, setIsDetectedModal] = useState(false);
+
+  const filteredAreas = useMemo(
+    () =>
+      Object.values(areasList)
+        .filter(item => Object.values(item.results).some(hasBoundariesFields))
+        .map(({ id, name, results }) => ({
+          value: id,
+          name,
+          result: Object.values(results).find(hasBoundariesFields).id
+        })),
+    [areasList]
+  );
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -22,15 +47,22 @@ export const FieldsModal = ({ closeModal }) => {
     closeModal();
   };
 
-  const handleDetectField = () => console.log('detect');
+  const handleDetectField = () => setIsDetectedModal(true);
+
+  const handleSelectChange = ({ value, result }) => {
+    closeModal();
+    setCurrentArea(value);
+    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+    setSelectedResult(result);
+  };
 
   const newShapeFromFile = coordinates => {
     areasEvents.createShape('Polygon', coordinates);
     closeModal();
   };
 
-  return (
-    <Modal>
+  const createModalElements = (
+    <>
       <ModalItem
         header='Upload File'
         title='Please upload files in *.GeoJSOn or *.KML'
@@ -57,6 +89,22 @@ export const FieldsModal = ({ closeModal }) => {
         icon='Polygon'
         onClick={handleNewPolygon}
       />
+    </>
+  );
+
+  const selectAreaElements = filteredAreas.length ? (
+    <StyledSelect
+      items={filteredAreas}
+      placeholder='Choose area'
+      onSelect={handleSelectChange}
+    />
+  ) : (
+    <div>no areas detected</div>
+  );
+
+  return (
+    <Modal close={closeModal} header='Creating new field'>
+      {isDetectedModal ? selectAreaElements : createModalElements}
     </Modal>
   );
 };
