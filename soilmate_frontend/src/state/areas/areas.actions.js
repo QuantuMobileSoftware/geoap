@@ -60,6 +60,22 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const deleteResult = useCallback(
+    async ({ arrId, results }) => {
+      await handleAsync(async () => {
+        Promise.all(arrId.map(id => API.areas.deleteResult(id))).then(resp => {
+          resp.map((el, i) => {
+            if (el.status === 204) {
+              dispatch(areasActions.deleteSelectedResult(arrId[i]));
+              dispatch(areasActions.updateArea({ results }));
+            }
+          });
+        });
+      }, true);
+    },
+    [handleAsync, dispatch]
+  );
+
   const setSelectedEntityId = useCallback(
     id => dispatch(areasActions.setSelectedEntityId(id)),
     [dispatch]
@@ -111,7 +127,7 @@ export const useAreasActions = () => {
     async (id, data) => {
       await handleAsync(async () => {
         const resp = await API.areas.patchArea(id, data);
-        dispatch(areasActions.updateArea({ id, area: resp.data }));
+        dispatch(areasActions.updateArea(resp.data));
       }, true);
     },
     [dispatch, handleAsync]
@@ -137,6 +153,7 @@ export const useAreasActions = () => {
     setCurrentArea,
     setSelectedResult,
     deleteSelectedResult,
+    deleteResult,
     setSelectedEntityId,
     deleteSelectedEntityId,
     saveArea,
