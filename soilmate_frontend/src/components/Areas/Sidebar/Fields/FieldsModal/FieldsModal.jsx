@@ -9,7 +9,7 @@ import { areasEvents } from '_events';
 import { SIDEBAR_MODE } from '_constants';
 import { selectAreas, useAreasActions } from 'state';
 
-import { StyledSelect } from './FieldsModal.styles';
+import { StyledSelect, ModalText } from './FieldsModal.styles';
 
 const hasBoundariesFields = ({ layer_type, name }) =>
   layer_type === 'GEOJSON' && name === "Fields' boundaries";
@@ -99,7 +99,10 @@ export const FieldsModal = ({ closeModal }) => {
       onSelect={handleSelectChange}
     />
   ) : (
-    <div>no areas detected</div>
+    <ModalText>
+      No areas detected.
+      <br /> You can create new area to add field
+    </ModalText>
   );
 
   return (
