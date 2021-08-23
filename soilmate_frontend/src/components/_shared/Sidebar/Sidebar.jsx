@@ -23,7 +23,8 @@ import { ModalItem } from '../ModalItem';
 import { Button } from '../Button';
 import { FileUploader } from '../FileUploader';
 import { BreadCrumbs } from './BreadCrumbs';
-import { MODAL_TYPE } from '_constants';
+import { useAreaData } from 'hooks';
+import { MODAL_TYPE, SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { useAreasActions, selectSelectedEntitiesId } from 'state';
 
 import { areasEvents } from '_events';
@@ -51,9 +52,11 @@ export const Sidebar = forwardRef(
     const [isModalOpen, setIsModalOpen] = useState(isShowModal);
     const [modalType, setModalType] = useState(MODAL_TYPE.SAVE);
     const [removedAreaId, setRemovedAreaId] = useState();
+    const [fieldCoords, setFieldCoords] = useState();
     const [isOpenUploader, setIsOpenUploader] = useState(false);
-    const { deleteArea } = useAreasActions();
+    const { deleteArea, saveArea, setSidebarMode } = useAreasActions();
     const selectedAreas = useSelector(selectSelectedEntitiesId);
+    const fieldData = useAreaData(fieldCoords, AOI_TYPE.FIELD);
 
     const deleteAreasText =
       selectedAreas.length > 1 ? `${selectedAreas.length} areas` : 'this area';
@@ -76,8 +79,12 @@ export const Sidebar = forwardRef(
     };
 
     const toggle = isOpen => {
-      const shouldClose = (!isUndefined(isOpen) && !isOpen) || _isOpen;
-      shouldClose ? handleClose() : setIsOpen(true);
+      if (isOpen === _isOpen) return;
+      if (!isUndefined(isOpen)) {
+        setIsOpen(isOpen);
+      } else {
+        _isOpen ? handleClose() : setIsOpen(true);
+      }
     };
 
     useEffect(() => {
@@ -90,6 +97,7 @@ export const Sidebar = forwardRef(
         if (e.data) {
           setModalType(e.data.type);
           setRemovedAreaId(e.data.id);
+          setFieldCoords(e.data.coordinates);
         }
       });
     }, []);
@@ -131,7 +139,7 @@ export const Sidebar = forwardRef(
         )
       },
       [MODAL_TYPE.DELETE]: {
-        header: `Are you sure to delete ${deleteAreasText}?`,
+        header: `Are you sure to delete \n ${deleteAreasText}?`,
         content: () => (
           <ButtonWrapper>
             <Button variant='secondary' onClick={() => areasEvents.toggleModal(false)}>
@@ -146,6 +154,26 @@ export const Sidebar = forwardRef(
               }}
             >
               Yes, delete
+            </Button>
+          </ButtonWrapper>
+        )
+      },
+      [MODAL_TYPE.SAVE_FIELD]: {
+        header: 'Do you want to proceed to save the field?',
+        content: () => (
+          <ButtonWrapper>
+            <Button variant='secondary' onClick={() => areasEvents.toggleModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='primary'
+              onClick={async () => {
+                areasEvents.toggleModal(false);
+                await saveArea(fieldData);
+                setSidebarMode(SIDEBAR_MODE.EDIT);
+              }}
+            >
+              Yes, save
             </Button>
           </ButtonWrapper>
         )
@@ -166,7 +194,10 @@ export const Sidebar = forwardRef(
         </SidebarHeader>
         {children && <SidebarBody>{children}</SidebarBody>}
         {isModalOpen && (
-          <Modal header={modalChildren[modalType].header}>
+          <Modal
+            header={modalChildren[modalType].header}
+            textCenter={modalType !== MODAL_TYPE.SAVE}
+          >
             {modalChildren[modalType].content()}
           </Modal>
         )}

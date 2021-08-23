@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { StyledAreasSidebar } from './AreasSidebar.styles';
@@ -8,6 +8,7 @@ import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 import { Requests } from './Requests';
 import { RequestSettings } from './RequestSettings';
+import { Fields } from './Fields';
 
 import {
   selectAreasList,
@@ -16,13 +17,16 @@ import {
   useAreasActions
 } from 'state';
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+
+const { AREAS, EDIT, REQUESTS, REQUEST_SETTINGS, FIELDS } = SIDEBAR_MODE;
 
 const sidebarHeaders = {
-  [SIDEBAR_MODE.LIST]: 'My areas',
-  [SIDEBAR_MODE.EDIT]: 'Edit my area',
-  [SIDEBAR_MODE.REQUESTS]: 'All reports - ',
-  [SIDEBAR_MODE.REQUEST_SETTINGS]: 'Settings'
+  [AREAS]: 'My areas',
+  [EDIT]: 'Edit my area',
+  [REQUESTS]: 'All reports - ',
+  [REQUEST_SETTINGS]: 'Settings',
+  [FIELDS]: 'My fields'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -31,12 +35,18 @@ export const AreasSidebar = ({ ...props }) => {
   const areas = useSelector(selectAreasList);
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
-  const { getLayers } = useAreasActions();
+  const { getLayers, deleteSelectedResult } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
-    sidebarMode === SIDEBAR_MODE.REQUESTS ? currentArea.name : ''
+    sidebarMode === REQUESTS ? currentArea.name : ''
   }`;
+
+  useEffect(() => {
+    if (sidebarMode === FIELDS || sidebarMode === AREAS) {
+      deleteSelectedResult();
+    }
+  }, [sidebarMode, deleteSelectedResult]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
@@ -48,6 +58,32 @@ export const AreasSidebar = ({ ...props }) => {
     getLayers();
   }, [getLayers]);
 
+  const fields = useMemo(
+    () => areas.filter(field => field.type === AOI_TYPE.FIELD),
+    [areas]
+  );
+  const areasList = useMemo(
+    () => areas.filter(field => field.type === AOI_TYPE.AREA),
+    [areas]
+  );
+
+  const getSidebarContent = () => {
+    switch (sidebarMode) {
+      case AREAS:
+        return <AreasList areas={areasList} />;
+      case EDIT:
+        return <AreasEdit currentArea={currentArea} />;
+      case REQUESTS:
+        return <Requests areaType={currentArea.type} />;
+      case REQUEST_SETTINGS:
+        return <RequestSettings areas={areas} currentArea={currentArea} />;
+      case FIELDS:
+        return <Fields fields={fields} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <AreasSidebarToggle />
@@ -57,12 +93,7 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === SIDEBAR_MODE.LIST && <AreasList areas={[...areas]} />}
-        {sidebarMode === SIDEBAR_MODE.EDIT && <AreasEdit currentArea={currentArea} />}
-        {sidebarMode === SIDEBAR_MODE.REQUESTS && <Requests />}
-        {sidebarMode === SIDEBAR_MODE.REQUEST_SETTINGS && (
-          <RequestSettings areas={areas} currentArea={currentArea} />
-        )}
+        {getSidebarContent()}
       </StyledAreasSidebar>
     </>
   );

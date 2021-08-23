@@ -7,7 +7,7 @@ export const AreasList = styled.ul`
     margin: 0 -${rem(theme.spacing[8])};
     margin-top: ${rem(theme.spacing[2])};
     max-height: 80%;
-    min-height: ${isEmpty ? 0 : rem(150)};
+    min-height: ${isEmpty ? 0 : rem(207)};
     overflow-y: auto;
   `}
 `;

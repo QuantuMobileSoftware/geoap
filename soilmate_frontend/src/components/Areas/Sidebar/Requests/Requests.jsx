@@ -10,7 +10,7 @@ import {
   selectCurrentResults,
   selectLayers
 } from 'state';
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import {
   ButtonWrapper,
   StyledIcon,
@@ -20,7 +20,7 @@ import {
   StyledSelect
 } from './Requests.styles';
 
-export const Requests = React.memo(() => {
+export const Requests = React.memo(({ areaType }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const requestTypes = useSelector(selectLayers);
@@ -29,6 +29,8 @@ export const Requests = React.memo(() => {
   const [activeTab, setActiveTab] = useState(1);
   const [filterType, setFilterType] = useState('');
   const { setSidebarMode } = useAreasActions();
+
+  const areaMode = areaType === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
 
   const selectItems = useMemo(
     () => [
@@ -103,7 +105,7 @@ export const Requests = React.memo(() => {
           icon='ArrowInCircle'
           variant='secondary'
           padding={50}
-          onClick={handleChangeMode(SIDEBAR_MODE.LIST)}
+          onClick={handleChangeMode(areaMode)}
         >
           Cancel
         </Button>

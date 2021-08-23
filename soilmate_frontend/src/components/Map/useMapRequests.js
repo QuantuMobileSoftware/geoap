@@ -4,7 +4,13 @@ import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import { last } from 'lodash';
 import { selectSelectedResults, getLayerOpacity } from 'state';
-import { EDITABLE_SHAPE_OPTIONS, SHAPE_OPTIONS, FILL_OPACITY } from '_constants';
+import {
+  EDITABLE_SHAPE_OPTIONS,
+  SHAPE_OPTIONS,
+  FILL_OPACITY,
+  MODAL_TYPE
+} from '_constants';
+import { areasEvents } from '_events';
 import { getPolygonPositions } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
@@ -60,6 +66,10 @@ export const useMapRequests = (selectedArea, map) => {
                 layer.setStyle(EDITABLE_SHAPE_OPTIONS);
               }
               selectedLeafletLayer = layer;
+              areasEvents.toggleModal(true, {
+                type: MODAL_TYPE.SAVE_FIELD,
+                coordinates: layer
+              });
             });
             if (feature.properties.label) {
               layer.bindPopup(feature.properties.label);

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
 
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ButtonWrapper, StyledSelect } from './RequestSettings.styles';
@@ -25,6 +25,9 @@ export const RequestSettings = ({ areas, currentArea }) => {
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
 
+  const { AREAS, FIELDS } = SIDEBAR_MODE;
+  const areaType = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
+
   const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
     () => areas.map(({ name, id }) => ({ name, value: id })),
@@ -44,7 +47,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
       user: currentUser.pk
     };
     saveAreaRequest(currentArea.id, request);
-    setSidebarMode(SIDEBAR_MODE.LIST);
+    setSidebarMode(areaType);
   };
 
   useEffect(() => {
@@ -60,7 +63,7 @@ export const RequestSettings = ({ areas, currentArea }) => {
     setEndDate(null);
   };
 
-  const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.LIST);
+  const handleChangeSidebarMode = () => setSidebarMode(areaType);
 
   return (
     <>

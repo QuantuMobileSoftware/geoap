@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet-editable';
 import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
-import { SHAPE_OPTIONS, SIDEBAR_MODE } from '_constants';
+import { useAreaData } from 'hooks';
+import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon, MapRange } from './components';
 import { Popup } from 'components/_shared/Popup';
@@ -16,7 +17,6 @@ import {
   selectAreasList,
   selectCurrentArea,
   useAreasActions,
-  selectUser,
   selectSidebarMode,
   getLoading,
   selectSelectedResults
@@ -29,6 +29,7 @@ import { useMapRequests } from './useMapRequests';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
+const { FIELDS, EDIT } = SIDEBAR_MODE;
 
 const getShapePositions = polygon => {
   const latLangs = getPolygonPositions(polygon).coordinates[0];
@@ -37,6 +38,8 @@ const getShapePositions = polygon => {
   const bounds = polyline.getBounds();
   return { center, bounds };
 };
+
+const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
 
 export const Map = () => {
   const [map, setMap] = useState(null);
@@ -47,15 +50,16 @@ export const Map = () => {
 
   const initialAreas = useSelector(selectAreasList);
   const currentAreaId = useSelector(selectCurrentArea);
-  const currentUser = useSelector(selectUser);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
+  const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
 
-  const newAreaNumber = initialAreas.length
-    ? initialAreas[initialAreas.length - 1].id + 1
-    : 1;
+  const filteredAreas = useMemo(() => {
+    const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
+    return getFilteredAreas(initialAreas, isField ? AOI_TYPE.FIELD : AOI_TYPE.AREA);
+  }, [sidebarMode, initialAreas, selectedArea]);
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -128,14 +132,9 @@ export const Map = () => {
 
   const handleSaveShape = async () => {
     setIsPopupVisible(false);
-    const data = {
-      user: currentUser.pk,
-      name: `New area ${newAreaNumber}`,
-      polygon: getShapePositionsString(currentShape)
-    };
     map.removeLayer(currentShape);
-    await saveArea(data);
-    setSidebarMode(SIDEBAR_MODE.EDIT);
+    await saveArea(areaData);
+    setSidebarMode(EDIT);
   };
 
   const handlePolygonClick = id => polygon => {
@@ -176,15 +175,15 @@ export const Map = () => {
             }}
           />
         </FeatureGroup>
-        {initialAreas &&
-          initialAreas.map(area => (
+        {!!filteredAreas.length &&
+          filteredAreas.map(area => (
             <MapPolygon
               key={area.id}
               id={area.id}
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
-              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentAreaId}
+              isEditable={sidebarMode === EDIT && area.id === currentAreaId}
             />
           ))}
         {isLoading && <Spinner />}

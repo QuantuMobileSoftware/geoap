@@ -16,17 +16,19 @@ export const StyledModalWrapper = styled.div`
 `;
 
 export const StyledModalMain = styled.div`
-  ${({ theme }) => css`
+  ${({ theme, textCenter = false }) => css`
     position: absolute;
     left: 50%;
     top: 50%;
     min-width: ${rem(250)};
+    max-width: ${rem(360)};
     padding: ${em(44, theme.fontSizes[5])} ${em(40, theme.fontSizes[5])};
     transform: translate(-50%, -50%);
     background: ${theme.colors.nature.n0};
     box-shadow: ${theme.shadows()[0]};
     border-radius: ${rem(theme.radius[2])};
     color: ${theme.colors.nature.n5};
+    text-align: ${textCenter ? 'center' : 'left'};
   `}
 `;
 
