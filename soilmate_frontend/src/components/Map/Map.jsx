@@ -29,6 +29,7 @@ import { useMapRequests } from './useMapRequests';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
+const { FIELDS, EDIT } = SIDEBAR_MODE;
 
 const getShapePositions = polygon => {
   const latLangs = getPolygonPositions(polygon).coordinates[0];
@@ -37,6 +38,8 @@ const getShapePositions = polygon => {
   const bounds = polyline.getBounds();
   return { center, bounds };
 };
+
+const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
 
 export const Map = () => {
   const [map, setMap] = useState(null);
@@ -52,7 +55,6 @@ export const Map = () => {
   const selectedResults = useSelector(selectSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
-  const { FIELDS, EDIT } = SIDEBAR_MODE;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
@@ -60,12 +62,9 @@ export const Map = () => {
   }?`;
 
   const filteredAreas = useMemo(() => {
-    if (sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD) {
-      return initialAreas.filter(area => area.type === AOI_TYPE.FIELD);
-    } else {
-      return initialAreas.filter(area => area.type === AOI_TYPE.AREA);
-    }
-  }, [sidebarMode, initialAreas, selectedArea, FIELDS]);
+    const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
+    return getFilteredAreas(initialAreas, isField ? AOI_TYPE.FIELD : AOI_TYPE.AREA);
+  }, [sidebarMode, initialAreas, selectedArea]);
 
   useEffect(() => {
     if (map && 'geolocation' in navigator) {
@@ -181,7 +180,7 @@ export const Map = () => {
             }}
           />
         </FeatureGroup>
-        {filteredAreas &&
+        {filteredAreas.length > 0 &&
           filteredAreas.map(area => (
             <MapPolygon
               key={area.id}
