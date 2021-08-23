@@ -8,7 +8,7 @@ const AREAS_INITIAL_STATE = {
   selectedEntitiesId: [],
   current: null,
   selectedResults: [],
-  mode: SIDEBAR_MODE.LIST,
+  mode: SIDEBAR_MODE.AREAS,
   layers: [],
   isLoading: false
 };

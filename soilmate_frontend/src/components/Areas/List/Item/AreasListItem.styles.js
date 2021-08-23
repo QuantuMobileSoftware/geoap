@@ -11,7 +11,7 @@ export const AreasListItemMenu = styled(Menu)`
   margin-left: auto;
 
   ${MenuDropdown} {
-    right: 0;
+    right: ${rem(15)};
     ${({ theme }) => css`
       padding: ${rem(theme.spacing[2])} ${rem(theme.spacing[7])};
     `}
@@ -84,7 +84,8 @@ export const AreasListItem = styled.li`
 
       ${top
         ? `.isOpen > div {
-        top: ${em(-75)};
+        top: auto;
+        bottom: 0;
       }`
         : null}
 

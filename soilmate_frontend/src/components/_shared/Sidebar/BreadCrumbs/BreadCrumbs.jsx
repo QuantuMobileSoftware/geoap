@@ -1,27 +1,38 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { selectSidebarMode, useAreasActions } from 'state';
+import {
+  selectSidebarMode,
+  useAreasActions,
+  selectCurrentArea,
+  selectAreasList
+} from 'state';
 
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { StyledBreadCrumbs, StyledTitle, StyledDash } from './BreadCrumbs.styles';
 
-const { LIST, REQUESTS, REQUEST_SETTINGS, EDIT } = SIDEBAR_MODE;
+const { AREAS, FIELDS, REQUESTS, REQUEST_SETTINGS, EDIT } = SIDEBAR_MODE;
 
-const areas = { title: 'Areas', mode: LIST };
+const areas = { title: 'Areas', mode: AREAS };
+const fields = { title: 'Fields', mode: FIELDS };
 const request = { title: 'Reports', mode: REQUESTS };
 const requestSettings = { title: 'Create report', mode: REQUEST_SETTINGS };
 const editArea = { title: 'Editing', mode: EDIT };
 
-const breadCrumbsTitles = {
-  [LIST]: [areas],
-  [REQUESTS]: [areas, request],
-  [REQUEST_SETTINGS]: [areas, request, requestSettings],
-  [EDIT]: [areas, editArea]
-};
-
 export const BreadCrumbs = () => {
   const sidebarMode = useSelector(selectSidebarMode);
   const { setSidebarMode } = useAreasActions();
+  const currentAreaId = useSelector(selectCurrentArea);
+  const allAreas = useSelector(selectAreasList);
+  const currentArea = allAreas.find(area => area.id === currentAreaId);
+
+  const root = currentArea?.type === AOI_TYPE.AREA ? areas : fields;
+  const breadCrumbsTitles = {
+    [AREAS]: [areas],
+    [FIELDS]: [fields],
+    [REQUESTS]: [root, request],
+    [REQUEST_SETTINGS]: [root, request, requestSettings],
+    [EDIT]: [root, editArea]
+  };
 
   return (
     <StyledBreadCrumbs>
