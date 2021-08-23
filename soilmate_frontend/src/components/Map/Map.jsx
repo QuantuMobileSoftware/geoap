@@ -180,7 +180,7 @@ export const Map = () => {
             }}
           />
         </FeatureGroup>
-        {filteredAreas.length > 0 &&
+        {!!filteredAreas.length &&
           filteredAreas.map(area => (
             <MapPolygon
               key={area.id}
