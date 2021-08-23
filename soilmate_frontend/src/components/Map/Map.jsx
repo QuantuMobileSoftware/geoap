@@ -29,6 +29,7 @@ import { useMapRequests } from './useMapRequests';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
+const { FIELDS, EDIT } = SIDEBAR_MODE;
 
 const getShapePositions = polygon => {
   const latLangs = getPolygonPositions(polygon).coordinates[0];
@@ -37,6 +38,8 @@ const getShapePositions = polygon => {
   const bounds = polyline.getBounds();
   return { center, bounds };
 };
+
+const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
 
 export const Map = () => {
   const [map, setMap] = useState(null);
@@ -54,11 +57,8 @@ export const Map = () => {
   const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
 
   const filteredAreas = useMemo(() => {
-    if (sidebarMode === SIDEBAR_MODE.FIELDS || selectedArea?.type === AOI_TYPE.FIELD) {
-      return initialAreas.filter(area => area.type === AOI_TYPE.FIELD);
-    } else {
-      return initialAreas.filter(area => area.type === AOI_TYPE.AREA);
-    }
+    const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
+    return getFilteredAreas(initialAreas, isField ? AOI_TYPE.FIELD : AOI_TYPE.AREA);
   }, [sidebarMode, initialAreas, selectedArea]);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export const Map = () => {
     setIsPopupVisible(false);
     map.removeLayer(currentShape);
     await saveArea(areaData);
-    setSidebarMode(SIDEBAR_MODE.EDIT);
+    setSidebarMode(EDIT);
   };
 
   const handlePolygonClick = id => polygon => {
@@ -175,7 +175,7 @@ export const Map = () => {
             }}
           />
         </FeatureGroup>
-        {filteredAreas &&
+        {filteredAreas.length > 0 &&
           filteredAreas.map(area => (
             <MapPolygon
               key={area.id}
@@ -183,7 +183,7 @@ export const Map = () => {
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
-              isEditable={sidebarMode === SIDEBAR_MODE.EDIT && area.id === currentAreaId}
+              isEditable={sidebarMode === EDIT && area.id === currentAreaId}
             />
           ))}
         {isLoading && <Spinner />}

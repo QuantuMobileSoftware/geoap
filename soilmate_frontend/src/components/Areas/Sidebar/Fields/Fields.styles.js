@@ -22,7 +22,7 @@ export const SidebarMessage = styled(Typography).attrs({
 
 export const StyledIcon = styled(Icon)`
   display: inline-flex;
-  transform: rotate(${props => (props.up ? `0` : `180deg`)});
+  transform: rotate(${props => (props.$up ? `0` : `180deg`)});
 `;
 
 export const ButtonWrapper = styled.div`
