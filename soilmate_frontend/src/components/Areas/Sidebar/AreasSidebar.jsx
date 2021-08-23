@@ -9,6 +9,7 @@ import { AreasList } from './AreasList';
 import { Requests } from './Requests';
 import { RequestSettings } from './RequestSettings';
 import { Fields } from './Fields';
+import { CropResults } from './CropResults';
 
 import {
   selectAreasList,
@@ -19,14 +20,15 @@ import {
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
-const { AREAS, EDIT, REQUESTS, REQUEST_SETTINGS, FIELDS } = SIDEBAR_MODE;
+const { AREAS, EDIT, REQUESTS, REQUEST_SETTINGS, FIELDS, CROP_MAP } = SIDEBAR_MODE;
 
 const sidebarHeaders = {
   [AREAS]: 'My areas',
   [EDIT]: 'Edit my area',
   [REQUESTS]: 'All reports - ',
   [REQUEST_SETTINGS]: 'Settings',
-  [FIELDS]: 'My fields'
+  [FIELDS]: 'My fields',
+  [CROP_MAP]: 'Crop map'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -79,6 +81,7 @@ export const AreasSidebar = ({ ...props }) => {
         {sidebarMode === AREAS && <AreasList areas={areasList} />}
         {sidebarMode === EDIT && <AreasEdit currentArea={currentArea} />}
         {sidebarMode === REQUESTS && <Requests areaType={currentArea.type} />}
+        {sidebarMode === CROP_MAP && <CropResults currentArea={currentArea} />}
         {sidebarMode === REQUEST_SETTINGS && (
           <RequestSettings areas={areas} currentArea={currentArea} />
         )}
