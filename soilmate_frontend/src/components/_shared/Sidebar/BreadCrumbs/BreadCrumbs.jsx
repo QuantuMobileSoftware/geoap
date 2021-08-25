@@ -10,12 +10,12 @@ import {
 import { SIDEBAR_MODE, AOI_TYPE, CROP_MAP_LABEL } from '_constants';
 import { StyledBreadCrumbs, StyledTitle, StyledDash } from './BreadCrumbs.styles';
 
-const { AREAS, FIELDS, REQUESTS, REQUEST_SETTINGS, EDIT, CROP_MAP } = SIDEBAR_MODE;
+const { AREAS, FIELDS, REQUESTS, CREATE_REQUEST, EDIT, CROP_MAP } = SIDEBAR_MODE;
 
 const areas = { title: 'Areas', mode: AREAS };
 const fields = { title: 'Fields', mode: FIELDS };
 const request = { title: 'Reports', mode: REQUESTS };
-const requestSettings = { title: 'New report', mode: REQUEST_SETTINGS };
+const requestSettings = { title: 'New report', mode: CREATE_REQUEST };
 const editArea = { title: 'Editing', mode: EDIT };
 const cropMap = { title: CROP_MAP_LABEL, mode: CROP_MAP };
 
@@ -31,7 +31,7 @@ export const BreadCrumbs = () => {
     [AREAS]: [areas],
     [FIELDS]: [fields],
     [REQUESTS]: [root, request],
-    [REQUEST_SETTINGS]: [root, request, requestSettings],
+    [CREATE_REQUEST]: [root, request, requestSettings],
     [CROP_MAP]: [root, request, cropMap],
     [EDIT]: [root, editArea]
   };

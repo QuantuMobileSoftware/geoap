@@ -135,7 +135,7 @@ export const Requests = React.memo(({ areaType }) => {
         <Button
           icon='Plus'
           variant='primary'
-          onClick={handleChangeMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
+          onClick={handleChangeMode(SIDEBAR_MODE.CREATE_REQUEST)}
         >
           Create new
         </Button>
