@@ -46,9 +46,11 @@ services:
     volumes:
       - ./webserver/default.conf:/etc/nginx/conf.d/default.conf
       - ./data:/data
-    expose:
-      - 9000
-    ports:
-      - "9000:9000"
+#    expose:
+#      - 9000
+#      - 3000
+#    ports:
+#      - "9000:9000"
+#      - "3000:3000"
     depends_on:
       - webapplication
