@@ -17,6 +17,9 @@ const areasSlice = createSlice({
   name: 'areas',
   initialState: AREAS_INITIAL_STATE,
   reducers: {
+    setDefaultState: () => {
+      return AREAS_INITIAL_STATE;
+    },
     setEntities: (state, action) => {
       state.entities = { ...state.entities, ...action.payload };
     },

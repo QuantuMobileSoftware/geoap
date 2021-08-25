@@ -5,13 +5,19 @@ import { StyledUserbar, UserbarAvatar, UserbarMenu, UserbarName } from './Userba
 
 import { Button } from 'components/_shared/Button';
 
-import { selectUser, useUserActions } from 'state';
+import { selectUser, useUserActions, useAreasActions } from 'state';
 import { getStyledComponentClassName, getUserName } from 'utils';
 
 export const Userbar = ({ ...props }) => {
   const menuRef = useRef(null);
   const user = useSelector(selectUser);
   const { logout } = useUserActions();
+  const { resetAreasState } = useAreasActions();
+
+  const handleLogOut = () => {
+    logout();
+    resetAreasState();
+  };
 
   return (
     <StyledUserbar {...props} onClick={() => menuRef.current.toggle()}>
@@ -27,7 +33,7 @@ export const Userbar = ({ ...props }) => {
         }}
       >
         <Button icon='Settings'>Settings</Button>
-        <Button icon='LogOut' onClick={logout}>
+        <Button icon='LogOut' onClick={handleLogOut}>
           Log Out
         </Button>
       </UserbarMenu>
