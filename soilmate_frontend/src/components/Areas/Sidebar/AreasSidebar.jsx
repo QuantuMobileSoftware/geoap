@@ -69,6 +69,25 @@ export const AreasSidebar = ({ ...props }) => {
     [areas]
   );
 
+  const getSidebarContent = () => {
+    switch (sidebarMode) {
+      case AREAS:
+        return <AreasList areas={areasList} />;
+      case EDIT:
+        return <AreasEdit currentArea={currentArea} />;
+      case REQUESTS:
+        return <Requests areaType={currentArea.type} />;
+      case REQUEST_SETTINGS:
+        return <RequestSettings areas={areas} currentArea={currentArea} />;
+      case FIELDS:
+        return <Fields fields={fields} />;
+      case CROP_MAP:
+        return <CropResults currentArea={currentArea} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <AreasSidebarToggle />
@@ -78,14 +97,7 @@ export const AreasSidebar = ({ ...props }) => {
         heading={sidebarHeader}
         withUnmountToggle={false}
       >
-        {sidebarMode === AREAS && <AreasList areas={areasList} />}
-        {sidebarMode === EDIT && <AreasEdit currentArea={currentArea} />}
-        {sidebarMode === REQUESTS && <Requests areaType={currentArea.type} />}
-        {sidebarMode === CROP_MAP && <CropResults currentArea={currentArea} />}
-        {sidebarMode === REQUEST_SETTINGS && (
-          <RequestSettings areas={areas} currentArea={currentArea} />
-        )}
-        {sidebarMode === FIELDS && <Fields fields={fields} />}
+        {getSidebarContent()}
       </StyledAreasSidebar>
     </>
   );
