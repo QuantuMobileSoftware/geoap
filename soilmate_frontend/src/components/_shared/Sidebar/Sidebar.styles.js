@@ -8,17 +8,19 @@ import { Typography } from '../Typography';
 
 export const SidebarBody = styled.div``;
 
-export const SidebarHeader = styled.div`
+export const BreadcrumbsWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${em(32)};
+  margin-bottom: ${em(16)};
 `;
 
 export const SidebarHeading = styled(Typography).attrs({
   element: 'h2',
   variant: 'h2'
-})``;
+})`
+  margin-bottom: ${em(16)};
+`;
 
 export const SidebarButtonClose = styled(Button).attrs({
   variant: 'floating',

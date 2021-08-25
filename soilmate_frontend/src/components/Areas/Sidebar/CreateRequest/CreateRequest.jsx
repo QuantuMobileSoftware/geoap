@@ -7,14 +7,14 @@ import { Calendar } from 'components/_shared/Calendar';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
-import { ButtonWrapper, StyledSelect } from './RequestSettings.styles';
+import { ButtonWrapper, StyledSelect } from './CreateRequest.styles';
 
 const startYear = 2015;
 const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
   (el, i) => ({ value: startYear + i, name: startYear + i })
 );
 
-export const RequestSettings = ({ areas, currentArea }) => {
+export const CreateRequest = ({ areas, currentArea }) => {
   const { setSidebarMode, saveAreaRequest } = useAreasActions();
   const currentUser = useSelector(selectUser);
   const layers = useSelector(selectLayers);
