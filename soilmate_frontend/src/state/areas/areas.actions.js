@@ -145,6 +145,11 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const resetAreasState = useCallback(
+    () => dispatch(areasActions.setDefaultState()),
+    [dispatch]
+  );
+
   return {
     isLoading,
     error,
@@ -161,6 +166,7 @@ export const useAreasActions = () => {
     setSidebarMode,
     patchArea,
     getLayers,
-    saveAreaRequest
+    saveAreaRequest,
+    resetAreasState
   };
 };
