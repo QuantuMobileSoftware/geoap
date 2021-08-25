@@ -37,7 +37,7 @@ export const Fields = React.memo(({ fields }) => {
     }
 
     const foundAreas = fields.filter(area => {
-      return area.name.match(query, 'gi');
+      return area.name.match(query);
     });
 
     if (!foundAreas.length) {
@@ -94,7 +94,7 @@ export const Fields = React.memo(({ fields }) => {
 
       <ButtonWrapper>
         <Button onClick={handleSortChange}>
-          Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
+          Sorting <StyledIcon $up={isUpSortList}>ArrowUp</StyledIcon>
         </Button>
         {!!selectedAreas.length && <Button onClick={handleDelete} icon='Delete' />}
       </ButtonWrapper>
