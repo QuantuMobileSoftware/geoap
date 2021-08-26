@@ -90,8 +90,9 @@ export const Requests = React.memo(({ areaType }) => {
   const handleDelete = () => {
     const filteredResults = {};
     handleCloseModal();
-    remove(results, el => selectedResults.some(id => id === el.id));
-    results.forEach(item => (filteredResults[item.id] = item));
+    const res = [...results];
+    remove(res, el => selectedResults.some(id => id === el.id));
+    res.forEach(item => (filteredResults[item.id] = item));
     deleteResult({ arrId: selectedResults, results: filteredResults });
   };
   const handleCloseModal = () => setIsModalOpen(false);

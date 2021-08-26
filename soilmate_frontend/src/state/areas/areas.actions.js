@@ -65,10 +65,8 @@ export const useAreasActions = () => {
       await handleAsync(async () => {
         Promise.all(arrId.map(id => API.areas.deleteResult(id))).then(resp => {
           resp.map((el, i) => {
-            if (el.status === 204) {
-              dispatch(areasActions.deleteSelectedResult(arrId[i]));
-              dispatch(areasActions.updateArea({ results }));
-            }
+            dispatch(areasActions.deleteSelectedResult(arrId[i]));
+            dispatch(areasActions.updateArea({ results }));
           });
         });
       }, true);
