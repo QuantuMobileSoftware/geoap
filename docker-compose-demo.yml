@@ -49,8 +49,8 @@ services:
 #    expose:
 #      - 9000
 #      - 3000
-#    ports:
-#      - "9000:9000"
+    ports:
+       - "9000:9000"
 #      - "3000:3000"
     depends_on:
       - webapplication
