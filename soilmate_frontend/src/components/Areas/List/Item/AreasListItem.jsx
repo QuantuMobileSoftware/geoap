@@ -9,9 +9,7 @@ import {
   AreasListItemMenu,
   AreasListItemName,
   AreasListItem,
-  AreasListItemButton,
-  AreasIconButton,
-  AreasIconButtonsHolder
+  AreasListItemButton
 } from './AreasListItem.styles';
 
 import { getPolygonPositions, getElementBottom } from 'utils/helpers';
@@ -75,17 +73,6 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         <AreasListItemName>{area.name}</AreasListItemName>
         {area.size && <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>}
       </AreasListItemBody>
-
-      <AreasIconButtonsHolder isActive={props.isActive}>
-        <AreasIconButton
-          icon='Plus'
-          onClick={handleChangeSidebarMode(SIDEBAR_MODE.CREATE_REQUEST)}
-        ></AreasIconButton>
-        <AreasIconButton
-          icon='List'
-          onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}
-        ></AreasIconButton>
-      </AreasIconButtonsHolder>
 
       <AreasListItemMenu onClick={handleMenuClick}>
         <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.EDIT)}>
