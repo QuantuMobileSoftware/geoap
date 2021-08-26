@@ -89,13 +89,13 @@ export const useAreasActions = () => {
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
-        const resp = await API.areas.saveArea(shape);
+        const resp = (await API.areas.saveArea(shape)).data;
+        const results = (await API.areas.getAreaResults(resp.id)).data ?? [];
+        const requests = (await API.areas.getAreaRequests(resp.id)).data ?? [];
         dispatch(
-          areasActions.setEntities(
-            normalizeAreas([{ ...resp.data, requests: [], results: [] }])
-          )
+          areasActions.setEntities(normalizeAreas([{ ...resp, requests, results }]))
         );
-        dispatch(areasActions.setCurrentArea(resp.data.id));
+        dispatch(areasActions.setCurrentArea(resp.id));
       }, true);
     },
     [handleAsync, dispatch]
