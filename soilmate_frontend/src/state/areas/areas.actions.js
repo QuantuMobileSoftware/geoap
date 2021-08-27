@@ -131,6 +131,16 @@ export const useAreasActions = () => {
     [dispatch, handleAsync]
   );
 
+  const patchResults = useCallback(
+    async area => {
+      await handleAsync(async () => {
+        const resp = await API.areas.getAreaResults(area.id);
+        areasActions.setEntities(normalizeAreas([{ ...area, results: resp.data }]));
+      }, true);
+    },
+    [handleAsync]
+  );
+
   const setSidebarMode = useCallback(
     mode => dispatch(areasActions.setSidebarMode(mode)),
     [dispatch]
@@ -157,6 +167,7 @@ export const useAreasActions = () => {
     setSelectedResult,
     deleteSelectedResult,
     deleteResult,
+    patchResults,
     setSelectedEntityId,
     deleteSelectedEntityId,
     saveArea,
