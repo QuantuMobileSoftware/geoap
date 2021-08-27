@@ -24,7 +24,8 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     setSidebarMode,
     setSelectedEntityId,
     deleteSelectedEntityId,
-    deleteSelectedResult
+    deleteSelectedResult,
+    patchResults
   } = useAreasActions();
   const { setLayerOpacity } = useMapActions();
   const areaRef = useRef(null);
@@ -50,13 +51,23 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     }
   };
 
-  const handleChangeSidebarMode = mode => () => {
+  const handleEditArea = () => {
     setCurrentArea(area.id);
-    setSidebarMode(mode);
+    setSidebarMode(SIDEBAR_MODE.EDIT);
   };
 
   const handleMenuClick = () => {
     setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
+  };
+
+  const handleViewReports = () => {
+    setCurrentArea(area.id);
+    patchResults(area);
+    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+  };
+
+  const handleDeleteButton = () => {
+    areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id });
   };
 
   return (
@@ -75,18 +86,11 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
       </AreasListItemBody>
 
       <AreasListItemMenu onClick={handleMenuClick}>
-        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.EDIT)}>
-          Edit
-        </AreasListItemButton>
-        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}>
+        <AreasListItemButton onClick={handleEditArea}>Edit</AreasListItemButton>
+        <AreasListItemButton onClick={handleViewReports}>
           View reports
         </AreasListItemButton>
-        <AreasListItemButton
-          variantType='danger'
-          onClick={() =>
-            areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id })
-          }
-        >
+        <AreasListItemButton variantType='danger' onClick={handleDeleteButton}>
           Delete
         </AreasListItemButton>
       </AreasListItemMenu>
