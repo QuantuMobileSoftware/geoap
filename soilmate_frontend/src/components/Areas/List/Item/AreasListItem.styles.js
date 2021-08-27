@@ -25,6 +25,9 @@ export const AreasListItemMenu = styled(Menu)`
 export const AreasListItemButton = styled(Button)`
   ${({ theme }) => css`
     padding: ${rem(theme.spacing[2])} 0;
+    display: inline-block;
+    width: 100%;
+    text-align: left;
   `}
 `;
 
