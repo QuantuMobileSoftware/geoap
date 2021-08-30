@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { useAreasActions, selectSelectedResults } from 'state';
+import { useAreasActions, getSelectedResults } from 'state';
 import { SIDEBAR_MODE } from '_constants';
 
 import { Button } from 'components/_shared/Button';
@@ -10,7 +10,7 @@ import { ButtonWrapper, LabelsItem, ColorBlock, Title } from './CropResults.styl
 
 export const CropResults = ({ currentArea }) => {
   const { setSidebarMode } = useAreasActions();
-  const selectedResults = useSelector(selectSelectedResults);
+  const selectedResults = useSelector(getSelectedResults);
 
   const handleChangeMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
 
