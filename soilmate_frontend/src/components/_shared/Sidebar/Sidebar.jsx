@@ -25,7 +25,7 @@ import { FileUploader } from '../FileUploader';
 import { BreadCrumbs } from './BreadCrumbs';
 import { useAreaData } from 'hooks';
 import { MODAL_TYPE, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
-import { useAreasActions, selectSelectedEntitiesId } from 'state';
+import { useAreasActions, getSelectedEntitiesId } from 'state';
 
 import { areasEvents } from '_events';
 
@@ -55,7 +55,7 @@ export const Sidebar = forwardRef(
     const [fieldCoords, setFieldCoords] = useState();
     const [isOpenUploader, setIsOpenUploader] = useState(false);
     const { deleteArea, saveArea, setSidebarMode } = useAreasActions();
-    const selectedAreas = useSelector(selectSelectedEntitiesId);
+    const selectedAreas = useSelector(getSelectedEntitiesId);
     const fieldData = useAreaData(fieldCoords, AOI_TYPE.FIELD);
 
     const deleteAreasText =

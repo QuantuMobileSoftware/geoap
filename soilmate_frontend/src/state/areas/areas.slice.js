@@ -82,7 +82,7 @@ export const selectAreas = state => state.areas.entities;
 export const selectCurrentArea = state => state.areas.current;
 export const getSelectedResults = state => state.areas.selectedResults;
 export const selectSidebarMode = state => state.areas.mode;
-export const selectSelectedEntitiesId = state => state.areas.selectedEntitiesId;
+export const getSelectedEntitiesId = state => state.areas.selectedEntitiesId;
 
 export const selectAreasList = createSelector(selectAreas, areas => {
   return Object.values(areas).map(area => ({
