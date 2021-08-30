@@ -71,5 +71,5 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "npm run lint"
   },
-  "proxy": "http://localhost:9000"
+  "proxy": "http://webserver:9000"
 }
