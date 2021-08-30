@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import { last } from 'lodash';
-import { selectSelectedResults, getLayerOpacity } from 'state';
+import { getSelectedResults, getLayerOpacity } from 'state';
 import {
   EDITABLE_SHAPE_OPTIONS,
   SHAPE_OPTIONS,
@@ -14,14 +14,14 @@ import { areasEvents } from '_events';
 import { getPolygonPositions } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
-  const results = useSelector(selectSelectedResults);
+  const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const [renderedLayers, setRenderedLayers] = useState([]);
 
   useEffect(() => {
     const selectedResults = [];
     results.forEach(id => {
-      const result = selectedArea.results.find(result => result.id === id);
+      const result = selectedArea?.results.find(result => result.id === id);
       if (result) {
         selectedResults.push(result);
       }

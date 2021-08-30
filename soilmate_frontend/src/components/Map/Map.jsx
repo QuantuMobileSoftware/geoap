@@ -6,7 +6,7 @@ import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
 import { useAreaData } from 'hooks';
-import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon, MapRange } from './components';
 import { Popup } from 'components/_shared/Popup';
@@ -19,7 +19,7 @@ import {
   useAreasActions,
   selectSidebarMode,
   getLoading,
-  selectSelectedResults
+  getSelectedResults
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -52,9 +52,14 @@ export const Map = () => {
   const currentAreaId = useSelector(selectCurrentArea);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
-  const selectedResults = useSelector(selectSelectedResults);
+  const selectedResults = useSelector(getSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
-  const areaData = useAreaData(currentShape, AOI_TYPE.AREA);
+
+  const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
+  const areaData = useAreaData(currentShape, aoiType);
+  const PopupHeaderText = `Are you sure with this ${
+    aoiType === AOI_TYPE.AREA ? 'area' : 'field'
+  }?`;
 
   const filteredAreas = useMemo(() => {
     const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
@@ -85,7 +90,7 @@ export const Map = () => {
   useEffect(() => {
     return areasEvents.onCreateShape(({ json, isShowPopup, shapeType }) => {
       if (json) {
-        if (json.features[0].geometry.type !== 'Polygon') {
+        if (json.features[0].geometry.type !== SHAPE_NAMES.POLYGON) {
           console.warn('Please add file with polygon coordinates'); // show error for user
           return;
         }
@@ -192,7 +197,7 @@ export const Map = () => {
       {map && selectedResults.length ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
-          header='Are you sure with this area?'
+          header={PopupHeaderText}
           confirmPopup='Choose this selection'
           cancel={handleCancelSaveShape}
           save={handleSaveShape}
