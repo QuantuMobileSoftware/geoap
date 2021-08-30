@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 
-import { useAreasActions, selectSelectedResults } from 'state';
 import { SIDEBAR_MODE, CROP_MAP_LABEL } from '_constants';
+import { useAreasActions, getSelectedResults } from 'state';
 
 import {
   RequestListItemBody,
@@ -13,7 +13,7 @@ import {
 } from './RequestListItem.styles';
 
 export const ListItem = ({ request = {}, ...props }) => {
-  const selectedResults = useSelector(selectSelectedResults);
+  const selectedResults = useSelector(getSelectedResults);
   const isCheckedDefault = selectedResults.some(item => item === request.id);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
