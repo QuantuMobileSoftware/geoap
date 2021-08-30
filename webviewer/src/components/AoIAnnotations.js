@@ -43,12 +43,18 @@ export default function createAoIAnnotation({ aoiAnnotationModel } = {}) {
             );
         }
 
-        if (aoiAnnotation.labels) {
+        if (aoiAnnotation.labels.length) {
             children.push(
                 Div({ class: "aoi-annotation-lables" }).setChildren(
                     aoiAnnotation.labels.map(renderLabel)
                 )
             );
+        }
+
+        if (aoiAnnotation.type === "NDVI") {
+            children.push(
+                Div({ class: "aoi-annotation-area-ndvi" })
+            )
         }
 
         container.setChildren(children);

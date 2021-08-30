@@ -23,7 +23,8 @@ export default class AoIAnnotationModel extends EventTarget {
     getAoIAnnotation(aoiResult) {
         return {
             areaName: aoiResult.name,
-            labels: this.normalizeAoILables(aoiResult.labels)
+            labels: aoiResult.labels ? this.normalizeAoILables(aoiResult.labels) : [],
+            type: aoiResult.name.includes("(NDVI)") ? "NDVI" : ""
         };
     }
 

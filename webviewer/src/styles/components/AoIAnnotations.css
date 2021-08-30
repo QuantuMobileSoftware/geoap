@@ -59,3 +59,12 @@
 .aoi-annotaino-label-unit {
     margin-left: 2px;
 }
+
+.aoi-annotation-area-ndvi {
+    width: 100%;
+    height: 50px;
+    margin-top: 20px;
+    background-image: url("../../images/colorbarNDVI.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}

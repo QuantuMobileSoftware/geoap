@@ -265,6 +265,7 @@ export default function createAoisList(
             elem.addEventListener("click", e => {
                 mapModel.selectLayer(result);
                 !!result.labels && aoiAnnotationModel.openAoIAnnotation(result);
+                result.name.includes("(NDVI)") && aoiAnnotationModel.openAoIAnnotation(result);
 
                 const activeLayer = document.querySelector(`.${classNameActive}`);
                 activeLayer && activeLayer.classList.remove(classNameActive);
