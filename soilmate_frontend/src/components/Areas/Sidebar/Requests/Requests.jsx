@@ -11,7 +11,7 @@ import {
   selectCurrentRequests,
   selectCurrentResults,
   selectLayers,
-  selectSelectedResults
+  getSelectedResults
 } from 'state';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import {
@@ -29,7 +29,7 @@ export const Requests = React.memo(({ areaType }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const requestTypes = useSelector(selectLayers);
-  const selectedResults = useSelector(selectSelectedResults);
+  const selectedResults = useSelector(getSelectedResults);
   const { setSidebarMode, deleteResult } = useAreasActions();
 
   const [isUpSortList, setIsUpSortList] = useState(true);
