@@ -6,13 +6,15 @@ import { ModalItem } from 'components/_shared/ModalItem';
 import { FileUploader } from 'components/_shared/FileUploader';
 
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE } from '_constants';
+import { SIDEBAR_MODE, SHAPE_NAMES } from '_constants';
 import { selectAreas, useAreasActions } from 'state';
 
 import { StyledSelect, ModalText } from './FieldsModal.styles';
 
+const fieldsBoundariesName = "Fields' boundaries";
+
 const hasBoundariesFields = ({ layer_type, name }) =>
-  layer_type === 'GEOJSON' && name === "Fields' boundaries";
+  layer_type === 'GEOJSON' && name === fieldsBoundariesName;
 
 export const FieldsModal = ({ closeModal }) => {
   const areasList = useSelector(selectAreas);
@@ -39,11 +41,11 @@ export const FieldsModal = ({ closeModal }) => {
   const handleOpenUploader = () => setIsOpenUploader(true);
 
   const handleNewRectangle = () => {
-    areasEvents.createShape('Rectangle');
+    areasEvents.createShape(SHAPE_NAMES.RECTANGLE);
     closeModal();
   };
   const handleNewPolygon = () => {
-    areasEvents.createShape('Polygon');
+    areasEvents.createShape(SHAPE_NAMES.POLYGON);
     closeModal();
   };
 
@@ -57,7 +59,7 @@ export const FieldsModal = ({ closeModal }) => {
   };
 
   const newShapeFromFile = coordinates => {
-    areasEvents.createShape('Polygon', coordinates);
+    areasEvents.createShape(SHAPE_NAMES.POLYGON, coordinates);
     closeModal();
   };
 

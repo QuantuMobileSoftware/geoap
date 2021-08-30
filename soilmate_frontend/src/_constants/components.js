@@ -22,3 +22,8 @@ export const AOI_TYPE = {
   AREA: 1,
   FIELD: 2
 };
+
+export const SHAPE_NAMES = {
+  POLYGON: 'Polygon',
+  RECTANGLE: 'Rectangle'
+};

@@ -8,7 +8,7 @@ import { Button } from 'components/_shared/Button';
 import { FileUploader } from 'components/_shared/FileUploader';
 import { Modal } from 'components/_shared/Modal';
 import { getPolygonPositions, getShapePositionsString } from 'utils/helpers';
-import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
 import { areasEvents } from '_events';
 import {
   ButtonWrapper,
@@ -41,7 +41,7 @@ export const AreasEdit = ({ currentArea }) => {
   const latLangsCurrentArea = getPolygonPositions(currentArea).coordinates[0];
 
   const newShapeFromFile = coordinates => {
-    areasEvents.createShape('Polygon', coordinates, false);
+    areasEvents.createShape(SHAPE_NAMES.POLYGON, coordinates, false);
     setShapeCoords(coordinates);
   };
 
