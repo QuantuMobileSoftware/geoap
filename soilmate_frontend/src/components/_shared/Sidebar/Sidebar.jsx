@@ -24,7 +24,7 @@ import { Button } from '../Button';
 import { FileUploader } from '../FileUploader';
 import { BreadCrumbs } from './BreadCrumbs';
 import { useAreaData } from 'hooks';
-import { MODAL_TYPE, SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { MODAL_TYPE, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
 import { useAreasActions, selectSelectedEntitiesId } from 'state';
 
 import { areasEvents } from '_events';
@@ -75,7 +75,7 @@ export const Sidebar = forwardRef(
 
     const newShapeFromFile = coordinates => {
       areasEvents.toggleModal(false);
-      areasEvents.createShape('Polygon', coordinates);
+      areasEvents.createShape(SHAPE_NAMES.POLYGON, coordinates);
     };
 
     const toggle = isOpen => {
@@ -124,7 +124,7 @@ export const Sidebar = forwardRef(
               title='Lorem ipsum dolor sit amet'
               icon='Rectangle'
               onClick={() => {
-                handleNewShape('Rectangle');
+                handleNewShape(SHAPE_NAMES.RECTANGLE);
               }}
             />
             <ModalItem
@@ -132,7 +132,7 @@ export const Sidebar = forwardRef(
               title='Lorem ipsum dolor sit amet'
               icon='Polygon'
               onClick={() => {
-                handleNewShape('Polygon');
+                handleNewShape(SHAPE_NAMES.POLYGON);
               }}
             />
           </>

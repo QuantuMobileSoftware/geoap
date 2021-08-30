@@ -80,8 +80,7 @@ export const Fields = React.memo(({ fields }) => {
     return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
   }, [isUpSortList, listItems]);
 
-  const handleOpenModal = () => setIsShowModal(true);
-  const handleCloseModal = () => setIsShowModal(false);
+  const handleToggleModal = () => setIsShowModal(!isShowModal);
 
   return (
     <>
@@ -91,23 +90,18 @@ export const Fields = React.memo(({ fields }) => {
         onSubmit={handleSearchSubmit}
         onChange={handleSearchChange}
       />
-
       <ButtonWrapper>
         <Button onClick={handleSortChange}>
           Sorting <StyledIcon $up={isUpSortList}>ArrowUp</StyledIcon>
         </Button>
         {!!selectedAreas.length && <Button onClick={handleDelete} icon='Delete' />}
       </ButtonWrapper>
-
       <List areas={sortingListItems} />
-
       {isAreasNotFound && <SidebarMessage>Fields not found</SidebarMessage>}
-
-      <CreateFieldButton variant='primary' icon='Plus' onClick={handleOpenModal}>
+      <CreateFieldButton variant='primary' icon='Plus' onClick={handleToggleModal}>
         Add new field
       </CreateFieldButton>
-
-      {isShowModal && <FieldsModal closeModal={handleCloseModal} />}
+      {isShowModal && <FieldsModal closeModal={handleToggleModal} />}
     </>
   );
 });

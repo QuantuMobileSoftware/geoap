@@ -80,7 +80,7 @@ export const getLoading = state => state.areas.isLoading;
 export const selectAreas = state => state.areas.entities;
 //get current area ID
 export const selectCurrentArea = state => state.areas.current;
-export const selectSelectedResults = state => state.areas.selectedResults;
+export const getSelectedResults = state => state.areas.selectedResults;
 export const selectSidebarMode = state => state.areas.mode;
 export const selectSelectedEntitiesId = state => state.areas.selectedEntitiesId;
 
