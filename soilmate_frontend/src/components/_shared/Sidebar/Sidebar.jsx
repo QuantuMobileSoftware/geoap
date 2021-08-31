@@ -15,7 +15,7 @@ import {
   SidebarHeading,
   StyledSidebar,
   ButtonWrapper,
-  SidebarHeader
+  BreadcrumbsWrapper
 } from './Sidebar.styles';
 
 import { Modal } from '../Modal';
@@ -187,11 +187,11 @@ export const Sidebar = forwardRef(
         className={_className}
         withUnmountToggle={withUnmountToggle}
       >
-        <BreadCrumbs />
-        <SidebarHeader>
-          {heading && <SidebarHeading>{heading}</SidebarHeading>}
+        <BreadcrumbsWrapper>
+          <BreadCrumbs />
           {withCloseButton && <SidebarButtonClose onClick={handleClose} />}
-        </SidebarHeader>
+        </BreadcrumbsWrapper>
+        {heading && <SidebarHeading>{heading}</SidebarHeading>}
         {children && <SidebarBody>{children}</SidebarBody>}
         {isModalOpen && (
           <Modal

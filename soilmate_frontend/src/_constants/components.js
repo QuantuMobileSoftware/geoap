@@ -1,4 +1,7 @@
 export const VIEWPORT_PADDING = 20;
+
+export const CROP_MAP_LABEL = 'Crop map';
+
 export const MODAL_TYPE = {
   DELETE: 'delete',
   SAVE: 'save',
@@ -9,8 +12,9 @@ export const SIDEBAR_MODE = {
   AREAS: 'area_list',
   EDIT: 'edit_area',
   REPORT: 'area_reports',
-  REQUEST_SETTINGS: 'request_settings',
+  CREATE_REQUEST: 'create_request',
   REQUESTS: 'requests',
+  CROP_MAP: 'crop_map',
   FIELDS: 'fields'
 };
 

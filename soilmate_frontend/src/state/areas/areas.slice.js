@@ -56,8 +56,8 @@ const areasSlice = createSlice({
       state.mode = action.payload;
     },
     updateArea: (state, action) => {
-      const { id, area } = action.payload;
-      const newArea = { [id]: { ...state.entities[id], ...area } };
+      const id = state.current;
+      const newArea = { [id]: { ...state.entities[id], ...action.payload } };
       state.entities = { ...state.entities, ...newArea };
     },
     setAreaRequest: (state, action) => {
