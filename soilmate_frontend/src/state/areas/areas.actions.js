@@ -136,7 +136,7 @@ export const useAreasActions = () => {
       await handleAsync(async () => {
         const resp = await API.areas.getAreaResults(area.id);
         areasActions.setEntities(normalizeAreas([{ ...area, results: resp.data }]));
-      }, true);
+      });
     },
     [handleAsync]
   );

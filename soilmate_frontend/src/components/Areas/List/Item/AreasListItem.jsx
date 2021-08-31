@@ -24,8 +24,7 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     setSidebarMode,
     setSelectedEntityId,
     deleteSelectedEntityId,
-    deleteSelectedResult,
-    patchResults
+    deleteSelectedResult
   } = useAreasActions();
   const { setLayerOpacity } = useMapActions();
   const areaRef = useRef(null);
@@ -62,7 +61,6 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
 
   const handleViewReports = () => {
     setCurrentArea(area.id);
-    patchResults(area);
     setSidebarMode(SIDEBAR_MODE.REQUESTS);
   };
 
