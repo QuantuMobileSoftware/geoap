@@ -6,6 +6,10 @@ cd ../..
 docker build -f ./webapplication/Dockerfile -t 192.168.1.34:5000/sip-webapplication ./webapplication
 docker push 192.168.1.34:5000/sip-webapplication:latest
 
+#webserver
+docker build -f ./webserver/prod.Dockerfile -t 192.168.1.34:5000/sip-webserver ./
+docker push 192.168.1.34:5000/sip-webserver:latest
+
 #PBDNN_COMMON
 echo 'start building common_pbdnn:latest'
 docker build -f ./jupyter/PBDNN/base.Dockerfile -t common_pbdnn .

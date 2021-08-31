@@ -1,0 +1,162 @@
+import styled, { css } from 'styled-components';
+import { em, rem } from 'styles';
+import { rgba } from 'polished';
+import { Button } from '../Button';
+import { Icon } from '../Icon';
+import { Typography } from '../Typography';
+
+export const StyledDatePicker = styled.button`
+  ${({ theme }) => css`
+    width: 100%;
+    border: ${theme.borders.default({ fontSize: theme.fontSizes[2] })};
+    color: ${theme.colors.nature.n3};
+    padding: ${rem(9)} ${rem(10)} ${rem(7)};
+    border-radius: ${em(theme.radius[0], theme.fontSizes[2])};
+    background: ${theme.colors.nature.n0};
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+    font-size: ${rem(16)};
+    &:hover,
+    &:focus {
+      border-color: ${theme.colors.primary.p2};
+      color: ${theme.colors.primary.p2};
+    }
+  `}
+`;
+
+export const ApplyButton = styled(Button)`
+  display: block;
+  width: ${em(220)};
+  margin: auto;
+`;
+
+export const StyledIcon = styled(Icon)`
+  position: absolute;
+  top: 50%;
+  right: ${rem(13)};
+  transform: translateY(-50%);
+  transform: rotate(${props => (props.open ? 180 : 0)}deg);
+`;
+
+export const StyledCalendarContainer = styled.div`
+  ${({ theme }) => {
+    const dateAfter = `
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    background: ${rgba(theme.colors.primary.p1, 0.3)};
+    z-index: -1;
+    `;
+
+    return css`
+      width: ${em(260)};
+      & .react-datepicker__month-container {
+        width: 100%;
+        margin-bottom: ${em(30)};
+      }
+      & .react-datepicker__day--in-range {
+        color: ${theme.colors.nature.n5};
+        background: ${rgba(theme.colors.primary.p1, 0.3)};
+        border-radius: 0;
+      }
+      & .react-datepicker__day {
+        margin-right: 0;
+        margin-left: 0;
+        width: calc(100% / 7);
+        line-height: ${em(17)};
+      }
+      &
+        .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--selecting-range-start) {
+        background: ${rgba(theme.colors.primary.p1, 0.3)};
+        border-radius: 0;
+        &:hover {
+          position: relative;
+          background: inherit;
+          &:not(.react-datepicker__day--keyboard-selected):after {
+            ${dateAfter}
+            left: 0;
+            right: auto;
+          }
+          ${CalendarDay} {
+            background: ${theme.colors.primary.p2};
+            border-radius: 50%;
+          }
+        }
+      }
+      & .react-datepicker__day--range-start,
+      & .react-datepicker__day--range-end,
+      & .react-datepicker__day--selected,
+      & .react-datepicker__day--keyboard-selected {
+        color: ${theme.colors.nature.n0};
+        font-weight: normal;
+        background: inherit;
+        ${CalendarDay} {
+          background: ${theme.colors.primary.p2};
+          border-radius: 50%;
+        }
+      }
+      & .react-datepicker__day--range-start,
+      & .react-datepicker__day--selecting-range-start,
+      & .react-datepicker__day--range-end {
+        position: relative;
+        background: inherit;
+        &:after {
+          ${dateAfter}
+        }
+      }
+      & .react-datepicker__day--range-end:not(.react-datepicker__day--range-start) {
+        &:after {
+          left: 0;
+          right: auto;
+        }
+      }
+
+      // HEADER
+      & .react-datepicker__header {
+        background: ${theme.colors.nature.n0};
+        border: none;
+      }
+      & .react-datepicker__navigation {
+        top: ${rem(14)};
+      }
+      & .react-datepicker__current-month {
+        font-weight: ${theme.fontWeights[1]};
+        font-size: ${rem(16)};
+        color: ${theme.colors.nature.n5};
+      }
+      & .react-datepicker__day-names {
+        margin-top: ${em(6)};
+        padding: 0 ${rem(6)};
+        background: ${theme.colors.nature.n1};
+      }
+      & .react-datepicker__day-name {
+        width: calc(100% / 7);
+        font-size: ${em(10)};
+        margin: 0;
+      }
+    `;
+  }}
+`;
+
+export const CalendarDay = styled.div`
+  display: flex;
+  margin: auto;
+  font-size: ${rem(12)};
+  height: ${rem(28)};
+  width: ${rem(28)};
+  & > span {
+    display: block;
+    margin: auto;
+  }
+`;
+
+export const CalendarTitle = styled(Typography).attrs({ variant: 'caption1' })`
+  ${({ theme }) => css`
+    color: ${theme.colors.nature.n5};
+    font-size: ${rem(14)};
+  `}
+`;
