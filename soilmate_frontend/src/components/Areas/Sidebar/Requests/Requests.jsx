@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { remove } from 'lodash';
 
@@ -13,7 +13,7 @@ import {
   selectLayers,
   getSelectedResults
 } from 'state';
-import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, GET_DATA_INTERVAL } from '_constants';
 import {
   ButtonWrapper,
   StyledIcon,
@@ -25,19 +25,20 @@ import {
   ModalButtonsWrapper
 } from './Requests.styles';
 
-export const Requests = React.memo(({ areaType }) => {
+export const Requests = React.memo(({ currentArea }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const requestTypes = useSelector(selectLayers);
   const selectedResults = useSelector(getSelectedResults);
-  const { setSidebarMode, deleteResult } = useAreasActions();
+  const { setSidebarMode, deleteResult, patchResults } = useAreasActions();
 
   const [isUpSortList, setIsUpSortList] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
   const [filterType, setFilterType] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const areaMode = areaType === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
+  const areaMode =
+    currentArea.type === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
 
   const selectItems = useMemo(
     () => [
@@ -46,6 +47,14 @@ export const Requests = React.memo(({ areaType }) => {
     ],
     [requestTypes]
   );
+
+  useEffect(() => {
+    patchResults(currentArea);
+    const intervalId = setInterval(() => {
+      patchResults(currentArea);
+    }, GET_DATA_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [currentArea, patchResults]);
 
   const filteredRequest = useMemo(() => {
     const filtered = filterType
