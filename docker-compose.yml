@@ -31,7 +31,7 @@ services:
   webviewer:
     image: node:14.5.0
     volumes:
-      - ./webviewer:/client
+      - ./soilmate_frontend:/client
     working_dir: /client
     expose:
       - 3000
