@@ -42,18 +42,27 @@ export const StyledIcon = styled(Icon)`
 export const StyledCalendarContainer = styled.div`
   ${({ theme }) => {
     const dateAfter = `
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 100%;
-    width: 50%;
-    background: ${rgba(theme.colors.primary.p1, 0.3)};
-    z-index: -1;
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      background: ${rgba(theme.colors.primary.p1, 0.3)};
+    `;
+
+    const activeCalendarDay = `
+      position: relative;
+      background: ${theme.colors.primary.p2};
+      border-radius: 50%;
+      z-index: ${theme.zIndexes[0]};
     `;
 
     return css`
+      position: relative;
       width: ${em(260)};
+      background: ${theme.colors.nature.n0};
+      padding-bottom: 10px;
       & .react-datepicker__month-container {
         width: 100%;
         margin-bottom: ${em(30)};
@@ -82,8 +91,7 @@ export const StyledCalendarContainer = styled.div`
             right: auto;
           }
           ${CalendarDay} {
-            background: ${theme.colors.primary.p2};
-            border-radius: 50%;
+            ${activeCalendarDay}
           }
         }
       }
@@ -95,8 +103,7 @@ export const StyledCalendarContainer = styled.div`
         font-weight: normal;
         background: inherit;
         ${CalendarDay} {
-          background: ${theme.colors.primary.p2};
-          border-radius: 50%;
+          ${activeCalendarDay}
         }
       }
       & .react-datepicker__day--range-start,
@@ -121,7 +128,7 @@ export const StyledCalendarContainer = styled.div`
         border: none;
       }
       & .react-datepicker__navigation {
-        top: ${rem(14)};
+        top: ${rem(5)};
       }
       & .react-datepicker__current-month {
         font-weight: ${theme.fontWeights[1]};
