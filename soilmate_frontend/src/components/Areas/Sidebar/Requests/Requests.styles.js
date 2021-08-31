@@ -4,6 +4,7 @@ import { Typography } from 'components/_shared/Typography';
 
 import { Icon } from 'components/_shared/Icon';
 import { Select } from 'components/_shared/Select';
+import { Button } from 'components/_shared/Button';
 
 export const RequestsSidebarMessage = styled(Typography).attrs({
   element: 'p',
@@ -62,6 +63,19 @@ export const StyledSelect = styled(Select)`
       border: none;
       color: ${theme.colors.nature.n4};
       font-size: ${rem(13)};
+    }
+  `}
+`;
+
+export const DeleteButton = styled(Button)`
+  margin-left: auto;
+`;
+export const ModalButtonsWrapper = styled.div`
+  ${({ theme }) => css`
+    text-align: center;
+    & button:first-child {
+      margin-right: ${em(32, theme.fontSizes[2])};
+      border: ${theme.borders.default(theme.fontSizes[2])};
     }
   `}
 `;
