@@ -76,7 +76,7 @@ export const AreasSidebar = ({ ...props }) => {
       case EDIT:
         return <AreasEdit currentArea={currentArea} />;
       case REQUESTS:
-        return <Requests areaType={currentArea.type} />;
+        return <Requests currentArea={currentArea} />;
       case CREATE_REQUEST:
         return <CreateRequest areas={areas} currentArea={currentArea} />;
       case FIELDS:

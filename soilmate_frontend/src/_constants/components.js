@@ -27,3 +27,5 @@ export const SHAPE_NAMES = {
   POLYGON: 'Polygon',
   RECTANGLE: 'Rectangle'
 };
+
+export const GET_DATA_INTERVAL = 10000;

@@ -65,10 +65,8 @@ export const useAreasActions = () => {
       await handleAsync(async () => {
         Promise.all(arrId.map(id => API.areas.deleteResult(id))).then(resp => {
           resp.map((el, i) => {
-            if (el.status === 204) {
-              dispatch(areasActions.deleteSelectedResult(arrId[i]));
-              dispatch(areasActions.updateArea({ results }));
-            }
+            dispatch(areasActions.deleteSelectedResult(arrId[i]));
+            dispatch(areasActions.updateArea({ results }));
           });
         });
       }, true);
@@ -89,13 +87,13 @@ export const useAreasActions = () => {
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
-        const resp = await API.areas.saveArea(shape);
+        const resp = (await API.areas.saveArea(shape)).data;
+        const results = (await API.areas.getAreaResults(resp.id)).data ?? [];
+        const requests = (await API.areas.getAreaRequests(resp.id)).data ?? [];
         dispatch(
-          areasActions.setEntities(
-            normalizeAreas([{ ...resp.data, requests: [], results: [] }])
-          )
+          areasActions.setEntities(normalizeAreas([{ ...resp, requests, results }]))
         );
-        dispatch(areasActions.setCurrentArea(resp.data.id));
+        dispatch(areasActions.setCurrentArea(resp.id));
       }, true);
     },
     [handleAsync, dispatch]
@@ -133,6 +131,16 @@ export const useAreasActions = () => {
     [dispatch, handleAsync]
   );
 
+  const patchResults = useCallback(
+    async area => {
+      await handleAsync(async () => {
+        const resp = await API.areas.getAreaResults(area.id);
+        areasActions.setEntities(normalizeAreas([{ ...area, results: resp.data }]));
+      });
+    },
+    [handleAsync]
+  );
+
   const setSidebarMode = useCallback(
     mode => dispatch(areasActions.setSidebarMode(mode)),
     [dispatch]
@@ -145,6 +153,11 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const resetAreasState = useCallback(
+    () => dispatch(areasActions.setDefaultState()),
+    [dispatch]
+  );
+
   return {
     isLoading,
     error,
@@ -154,6 +167,7 @@ export const useAreasActions = () => {
     setSelectedResult,
     deleteSelectedResult,
     deleteResult,
+    patchResults,
     setSelectedEntityId,
     deleteSelectedEntityId,
     saveArea,
@@ -161,6 +175,7 @@ export const useAreasActions = () => {
     setSidebarMode,
     patchArea,
     getLayers,
-    saveAreaRequest
+    saveAreaRequest,
+    resetAreasState
   };
 };

@@ -7,7 +7,7 @@ import { Button } from 'components/_shared/Button';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
-import { selectSelectedEntitiesId } from 'state';
+import { getSelectedEntitiesId } from 'state';
 import {
   AreasSidebarMessage,
   AreasSidebarButton,
@@ -16,7 +16,7 @@ import {
 } from './AreasList.styles';
 
 export const AreasList = React.memo(({ areas }) => {
-  const selectedAreas = useSelector(selectSelectedEntitiesId);
+  const selectedAreas = useSelector(getSelectedEntitiesId);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
   const [isDrawing, setIsDrawing] = useState(false);

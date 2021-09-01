@@ -46,3 +46,10 @@ export const StyledUserbar = styled.div`
     ];
   }}
 `;
+
+export const ButtonWrapper = styled.div`
+  button:first-child {
+    margin-right: ${rem(16)};
+    border: ${({ theme }) => theme.borders.default(theme.fontSizes[2])};
+  }
+`;
