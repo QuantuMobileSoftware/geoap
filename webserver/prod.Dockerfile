@@ -1,7 +1,6 @@
 FROM node:14.5.0 as builder
 
 WORKDIR /code
-# This is the https://demo2.soilmate.ai/
 COPY ./soilmate_frontend /code
 RUN npm install && npm run build
 
