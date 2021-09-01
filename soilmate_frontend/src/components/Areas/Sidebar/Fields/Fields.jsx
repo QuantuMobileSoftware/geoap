@@ -8,7 +8,7 @@ import { FieldsModal } from './FieldsModal';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
-import { selectSelectedEntitiesId } from 'state';
+import { getSelectedEntitiesId } from 'state';
 import {
   SidebarMessage,
   StyledIcon,
@@ -17,7 +17,7 @@ import {
 } from './Fields.styles';
 
 export const Fields = React.memo(({ fields }) => {
-  const selectedAreas = useSelector(selectSelectedEntitiesId);
+  const selectedAreas = useSelector(getSelectedEntitiesId);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(fields);
   const [isUpSortList, setIsUpSortList] = useState(true);

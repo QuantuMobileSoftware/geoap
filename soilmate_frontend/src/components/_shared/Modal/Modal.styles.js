@@ -12,6 +12,7 @@ export const StyledModalWrapper = styled.div`
     height: 100vh;
     width: 100vw;
     background: ${rgba(theme.colors.black, 0.8)};
+    z-index: ${theme.zIndexes[2]};
   `}
 `;
 
