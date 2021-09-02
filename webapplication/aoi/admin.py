@@ -1,5 +1,5 @@
 from django.contrib.gis import admin
-from .models import AoI, AoiType, JupyterNotebook, Request
+from .models import AoI, JupyterNotebook, Request
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
 
@@ -31,9 +31,3 @@ class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'calculated', 'success', 'error', )
     readonly_fields = ('pk', 'started_at', 'finished_at', 'calculated', 'success', 'error', )
-
-
-@admin.register(AoiType)
-class AoiTypeAdmin(admin.OSMGeoAdmin):
-    list_display = ('name', 'description')
-    search_fields = ('name',)

@@ -2,13 +2,7 @@
 Aoi serializer module.
 """
 from rest_framework import serializers
-from .models import AoI, AoiType, JupyterNotebook, Request
-
-
-class AoiTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AoiType
-        fields = ('id', 'name', 'description')
+from .models import AoI, JupyterNotebook, Request
 
 
 class AoISerializer(serializers.ModelSerializer):
