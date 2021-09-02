@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { rem, em, sidebarList } from 'styles';
+import { rem, em, sidebarList, sidebarBtnMargin } from 'styles';
 
 export const LabelsItem = styled.li`
   display: flex;
@@ -22,7 +22,7 @@ export const ColorBlock = styled.div`
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
     text-align: center;
-    margin-top: ${em(24)};
+    margin-top: ${em(sidebarBtnMargin)};
     & button:first-child {
       margin-right: ${em(32, theme.fontSizes[2])};
       border: ${theme.borders.default(theme.fontSizes[2])};

@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, rem, sidebarTopButtons } from 'styles';
+import { em, rem, sidebarTopButtons, sidebarBtnMargin } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 
 import { Icon } from 'components/_shared/Icon';
@@ -18,7 +18,7 @@ export const RequestsSidebarMessage = styled(Typography).attrs({
 
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
-    margin-top: ${em(24)};
+    margin-top: ${em(sidebarBtnMargin)};
     text-align: right;
     button:first-child {
       margin-right: ${em(11)};

@@ -1,11 +1,11 @@
 import styled, { css } from 'styled-components';
-import { em, sidebarList } from 'styles';
+import { em, sidebarList, sidebarBtnMargin } from 'styles';
 
 import { Select } from 'components/_shared/Select';
 
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
-    margin-top: ${em(24)};
+    margin-top: ${em(sidebarBtnMargin)};
     text-align: right;
     button:first-child {
       margin-right: ${em(11)};
