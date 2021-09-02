@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, rem } from 'styles';
+import { em, rem, sidebarTopButtons } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 
 import { Icon } from 'components/_shared/Icon';
@@ -33,14 +33,7 @@ export const StyledIcon = styled(Icon)`
 `;
 
 export const ButtonTopWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  margin-top: ${em(24)};
-  button {
-    padding-left: 0;
-    color: ${({ theme }) => theme.colors.nature.n4};
-    font-size: ${rem(13)};
-  }
+  ${sidebarTopButtons};
 `;
 
 export const TabsWrapper = styled.div`

@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, rem } from 'styles';
+import { em, rem, sidebarTopButtons } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 import { Button } from 'components/_shared/Button';
 import { Icon } from 'components/_shared/Icon';
@@ -26,9 +26,8 @@ export const StyledIcon = styled(Icon)`
 `;
 
 export const ButtonWrapper = styled.div`
-  display: flex;
+  ${sidebarTopButtons};
   justify-content: space-between;
-  margin-top: ${em(16)};
 `;
 
 export const CreateFieldButton = styled(Button)`
