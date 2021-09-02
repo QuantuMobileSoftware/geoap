@@ -32,6 +32,6 @@ export const ButtonWrapper = styled.div`
 
 export const CreateFieldButton = styled(Button)`
   ${({ theme }) => css`
-    margin: ${rem(theme.spacing[6])} 0 ${rem(theme.spacing[6])} auto;
+    margin: ${rem(24)} 0 ${rem(theme.spacing[6])} auto;
   `}
 `;
