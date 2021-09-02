@@ -1,36 +1,44 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { remove } from 'lodash';
 
 import { List } from '../../RequestsList';
 import { Button } from 'components/_shared/Button';
+import { Modal } from 'components/_shared/Modal';
 
 import {
   useAreasActions,
   selectCurrentRequests,
   selectCurrentResults,
-  selectLayers
+  selectLayers,
+  getSelectedResults
 } from 'state';
-import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, GET_DATA_INTERVAL } from '_constants';
 import {
   ButtonWrapper,
   StyledIcon,
   ButtonTopWrapper,
   TabsWrapper,
   TabItem,
-  StyledSelect
+  StyledSelect,
+  DeleteButton,
+  ModalButtonsWrapper
 } from './Requests.styles';
 
-export const Requests = React.memo(({ areaType }) => {
+export const Requests = React.memo(({ currentArea }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const requestTypes = useSelector(selectLayers);
+  const selectedResults = useSelector(getSelectedResults);
+  const { setSidebarMode, deleteResult, patchResults } = useAreasActions();
 
   const [isUpSortList, setIsUpSortList] = useState(true);
   const [activeTab, setActiveTab] = useState(1);
   const [filterType, setFilterType] = useState('');
-  const { setSidebarMode } = useAreasActions();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const areaMode = areaType === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
+  const areaMode =
+    currentArea.type === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
 
   const selectItems = useMemo(
     () => [
@@ -39,6 +47,14 @@ export const Requests = React.memo(({ areaType }) => {
     ],
     [requestTypes]
   );
+
+  useEffect(() => {
+    patchResults(currentArea);
+    const intervalId = setInterval(() => {
+      patchResults(currentArea);
+    }, GET_DATA_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [currentArea, patchResults]);
 
   const filteredRequest = useMemo(() => {
     const filtered = filterType
@@ -80,6 +96,22 @@ export const Requests = React.memo(({ areaType }) => {
   const handleSortChange = () => setIsUpSortList(!isUpSortList);
   const handleSelectChange = item => setFilterType(item.value);
   const handleChangeMode = mode => () => setSidebarMode(mode);
+  const handleDelete = () => {
+    const filteredResults = {};
+    handleCloseModal();
+    const res = [...results];
+    remove(res, el => selectedResults.some(id => id === el.id));
+    res.forEach(item => (filteredResults[item.id] = item));
+    deleteResult({ arrId: selectedResults, results: filteredResults });
+  };
+  const handleCloseModal = () => setIsModalOpen(false);
+  const handleOpenModal = () => setIsModalOpen(true);
+
+  const resultLength = selectedResults.length;
+  const modalHeader =
+    resultLength > 1
+      ? `Are you sure to delete ${resultLength} reports ?`
+      : 'Are you sure to delete this report ?';
 
   return (
     <>
@@ -96,6 +128,7 @@ export const Requests = React.memo(({ areaType }) => {
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
         </Button>
         <StyledSelect items={selectItems} value='' onSelect={handleSelectChange} />
+        {resultLength > 0 && <DeleteButton onClick={handleOpenModal} icon='Delete' />}
       </ButtonTopWrapper>
 
       <List requests={sortingListItems} />
@@ -112,11 +145,23 @@ export const Requests = React.memo(({ areaType }) => {
         <Button
           icon='Plus'
           variant='primary'
-          onClick={handleChangeMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
+          onClick={handleChangeMode(SIDEBAR_MODE.CREATE_REQUEST)}
         >
           Create new
         </Button>
       </ButtonWrapper>
+      {isModalOpen && (
+        <Modal header={modalHeader} textCenter={true} close={handleCloseModal}>
+          <ModalButtonsWrapper>
+            <Button variant='secondary' padding={50} onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button variant='primary' onClick={handleDelete}>
+              Yes, delete
+            </Button>
+          </ModalButtonsWrapper>
+        </Modal>
+      )}
     </>
   );
 });

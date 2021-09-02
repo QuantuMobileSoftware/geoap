@@ -22,26 +22,12 @@ export const AreasListItemMenu = styled(Menu)`
   }
 `;
 
-export const AreasIconButtonsHolder = styled.div`
-  flex: 1;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 10px;
-  display: none;
-`;
-
-export const AreasIconButton = styled(Button)`
-  width: ${em(34)};
-  height: ${em(34)};
-  margin-left: 10px;
-  background: white;
-  cursor: pointer;
-  border-radius: 50%;
-`;
-
 export const AreasListItemButton = styled(Button)`
   ${({ theme }) => css`
     padding: ${rem(theme.spacing[2])} 0;
+    display: inline-block;
+    width: 100%;
+    text-align: left;
   `}
 `;
 
@@ -96,7 +82,7 @@ export const AreasListItem = styled.li`
           color: ${theme.colors.primary.p1};
         }
 
-        ${AreasListItemMenu}, ${AreasIconButtonsHolder} {
+        ${AreasListItemMenu}, ${AreasListItemMenu} {
           display: flex;
         }
       }

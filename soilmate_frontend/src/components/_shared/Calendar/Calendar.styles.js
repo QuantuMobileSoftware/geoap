@@ -42,21 +42,40 @@ export const StyledIcon = styled(Icon)`
 export const StyledCalendarContainer = styled.div`
   ${({ theme }) => {
     const dateAfter = `
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 100%;
-    width: 50%;
-    background: ${rgba(theme.colors.primary.p1, 0.3)};
-    z-index: -1;
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      background: ${rgba(theme.colors.primary.p1, 0.3)};
+    `;
+
+    const activeCalendarDay = `
+      position: relative;
+      background: ${theme.colors.primary.p2};
+      border-radius: 50%;
+      z-index: ${theme.zIndexes[0]};
     `;
 
     return css`
+      position: relative;
       width: ${em(260)};
+      background: ${theme.colors.nature.n0};
+      padding-bottom: 10px;
       & .react-datepicker__month-container {
         width: 100%;
         margin-bottom: ${em(30)};
+      }
+      & .react-datepicker__day--today {
+        font-weight: normal;
+        &:hover {
+          background: ${theme.colors.nature.n1};
+        }
+      }
+      & .react-datepicker__day--keyboard-selected {
+        background: ${theme.colors.nature.n0};
+        color: ${theme.colors.nature.n5};
       }
       & .react-datepicker__day--in-range {
         color: ${theme.colors.nature.n5};
@@ -72,31 +91,29 @@ export const StyledCalendarContainer = styled.div`
       &
         .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--selecting-range-start) {
         background: ${rgba(theme.colors.primary.p1, 0.3)};
+        color: ${theme.colors.nature.n0};
         border-radius: 0;
         &:hover {
           position: relative;
           background: inherit;
-          &:not(.react-datepicker__day--keyboard-selected):after {
+          &:after {
             ${dateAfter}
             left: 0;
             right: auto;
           }
           ${CalendarDay} {
-            background: ${theme.colors.primary.p2};
-            border-radius: 50%;
+            ${activeCalendarDay}
           }
         }
       }
-      & .react-datepicker__day--range-start,
-      & .react-datepicker__day--range-end,
-      & .react-datepicker__day--selected,
-      & .react-datepicker__day--keyboard-selected {
+      & .react-datepicker__day--selected.react-datepicker__day--range-start,
+      & .react-datepicker__day--selected.react-datepicker__day--range-end,
+      & .react-datepicker__day--selected {
         color: ${theme.colors.nature.n0};
         font-weight: normal;
         background: inherit;
         ${CalendarDay} {
-          background: ${theme.colors.primary.p2};
-          border-radius: 50%;
+          ${activeCalendarDay}
         }
       }
       & .react-datepicker__day--range-start,
@@ -104,6 +121,11 @@ export const StyledCalendarContainer = styled.div`
       & .react-datepicker__day--range-end {
         position: relative;
         background: inherit;
+        font-weight: normal;
+        color: ${theme.colors.nature.n0};
+        ${CalendarDay} {
+          ${activeCalendarDay}
+        }
         &:after {
           ${dateAfter}
         }
@@ -121,7 +143,7 @@ export const StyledCalendarContainer = styled.div`
         border: none;
       }
       & .react-datepicker__navigation {
-        top: ${rem(14)};
+        top: ${rem(5)};
       }
       & .react-datepicker__current-month {
         font-weight: ${theme.fontWeights[1]};
@@ -151,6 +173,7 @@ export const CalendarDay = styled.div`
   & > span {
     display: block;
     margin: auto;
+    padding-top: ${rem(1)};
   }
 `;
 
