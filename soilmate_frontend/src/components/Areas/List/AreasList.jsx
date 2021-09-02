@@ -21,6 +21,7 @@ export const List = ({ areas = [], ...props }) => {
       isActive={currentAreaId === area.id}
       area={area}
       parent={areasRef}
+      areaAmount={areas.length}
     />
   ));
 
