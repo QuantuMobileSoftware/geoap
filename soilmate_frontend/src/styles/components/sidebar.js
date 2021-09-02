@@ -29,3 +29,5 @@ export const sidebarTopButtons = css`
     font-weight: normal;
   }
 `;
+
+export const sidebarBtnMargin = 24;

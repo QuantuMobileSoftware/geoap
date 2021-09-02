@@ -1,12 +1,12 @@
 import styled, { css } from 'styled-components';
-import { em, rem, sidebarTopButtons } from 'styles';
+import { em, rem, sidebarTopButtons, sidebarBtnMargin } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 import { Button } from 'components/_shared/Button';
 import { Icon } from 'components/_shared/Icon';
 
 export const AreasSidebarButton = styled(Button)`
   ${({ theme }) => css`
-    margin: ${rem(24)} 0 ${rem(theme.spacing[6])} auto;
+    margin: ${rem(sidebarBtnMargin)} 0 ${rem(theme.spacing[6])} auto;
   `}
 `;
 
