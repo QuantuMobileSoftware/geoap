@@ -6,8 +6,8 @@ from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
-from .models import AoI, AoiType, JupyterNotebook, Request
-from .serializers import AoISerializer, AoiTypeSerializer, JupyterNotebookSerializer, RequestSerializer
+from .models import AoI, JupyterNotebook, Request
+from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 
@@ -188,32 +188,3 @@ class AOIRequestListAPIView(ListAPIView):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
         qs = self.queryset.filter(aoi=area_of_interest.id)
         return qs
-
-
-class AoiTypeListAPIView(ListAPIView):
-    """
-    Get list 'Areas Of Interest Type'(plot boundaries, forest, water).
-    Accepts: GET method.
-    Accepted field: None.
-    Display fields: 'id', 'name', 'description'.
-    Returns: list of AoiTypeModel fields
-    """
-    permission_classes = (ModelPermissions,)
-    serializer_class = AoiTypeSerializer
-    queryset = AoiType.objects.all()
-    pagination_class = None
-    http_method_names = ('get',)
-    
-    
-class AoiTypeRetrieveAPIView(RetrieveAPIView):
-    """
-    Get 'Area Of Interest Type'(plot boundaries, forest, water) by it's id
-    Accepts: GET method.
-    Accepted field: 'id'
-    Display fields: 'id', 'name', 'description'.
-    Returns: AoiTypeModel fields
-    """
-    permission_classes = (ModelPermissions, )
-    serializer_class = AoiTypeSerializer
-    queryset = AoiType.objects.all()
-    http_method_names = ('get',)
