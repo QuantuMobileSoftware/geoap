@@ -25,7 +25,7 @@ export const List = ({ areas = [], ...props }) => {
   ));
 
   return (
-    <AreasList ref={areasRef} {...props} isEmpty={!areas.length}>
+    <AreasList ref={areasRef} {...props} items={areas.length}>
       {areasList}
     </AreasList>
   );
