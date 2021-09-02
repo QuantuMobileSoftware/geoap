@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { rem, em, sidebarListStyle } from 'styles';
+import { rem, em, sidebarList } from 'styles';
 
 export const LabelsItem = styled.li`
   display: flex;
@@ -40,5 +40,5 @@ export const Title = styled.h3`
 `;
 
 export const List = styled.ul`
-  ${sidebarListStyle}
+  ${sidebarList}
 `;

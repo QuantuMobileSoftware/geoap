@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, sidebarListStyle } from 'styles';
+import { em, sidebarList } from 'styles';
 
 import { Select } from 'components/_shared/Select';
 
@@ -19,5 +19,8 @@ export const StyledSelect = styled(Select)`
 `;
 
 export const SelectsWrapper = styled.div`
-  ${sidebarListStyle}
+  ${sidebarList}
+  & .react-datepicker-wrapper {
+    width: 100%;
+  }
 `;
