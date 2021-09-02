@@ -56,6 +56,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user', '0004_add_client_group_update_ds_engineer_group'),
+        ('aoi', '0010_jupyternotebook_options')
     ]
 
     operations = [

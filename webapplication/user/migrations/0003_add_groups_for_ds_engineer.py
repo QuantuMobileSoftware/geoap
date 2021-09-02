@@ -78,6 +78,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user', '0002_auto_20201105_1840'),
+        ('aoi', '0001_initial'),
+        ('publisher', '0008_auto_20201207_1647'),
     ]
 
     operations = [

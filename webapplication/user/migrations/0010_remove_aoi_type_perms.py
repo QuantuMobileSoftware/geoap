@@ -33,7 +33,6 @@ def remove_permissions(apps, schema_editor):
     :param schema_editor:
     :return:
     """
-    table_name = 'aoitype'
     permission = apps.get_model("auth", "Permission")
     db_alias = schema_editor.connection.alias
     permission.objects.using(db_alias).filter(codename__in=permissions_list).delete()
@@ -49,12 +48,12 @@ def delete_model_from_content_type(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0009_add_aoi_type_perms'),
+        ('user', '0009_add_aoi_type_perms')
     ]
 
     operations = [
         migrations.RunPython(remove_client_group_permissions),
         migrations.RunPython(remove_ds_engineer_group_permissions),
         migrations.RunPython(remove_permissions),
-        migrations.RunPython(delete_model_from_content_type)
+        migrations.RunPython(delete_model_from_content_type),
     ]

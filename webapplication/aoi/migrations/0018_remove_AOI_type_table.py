@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aoi', '0017_request_update_error_to_text_field'),
+        ('user', '0010_remove_aoi_type_perms')
     ]
 
     operations = [
@@ -17,5 +18,5 @@ class Migration(migrations.Migration):
         ),
         migrations.DeleteModel(
             name='AoiType',
-        ),
+        )
     ]
