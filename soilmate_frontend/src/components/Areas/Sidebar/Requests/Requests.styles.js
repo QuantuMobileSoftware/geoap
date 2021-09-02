@@ -18,7 +18,7 @@ export const RequestsSidebarMessage = styled(Typography).attrs({
 
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
-    margin-top: ${em(33)};
+    margin-top: ${em(24)};
     text-align: right;
     button:first-child {
       margin-right: ${em(11)};
@@ -35,8 +35,9 @@ export const StyledIcon = styled(Icon)`
 export const ButtonTopWrapper = styled.div`
   display: flex;
   align-items: center;
-  margin-top: ${em(16)};
+  margin-top: ${em(24)};
   button {
+    padding-left: 0;
     color: ${({ theme }) => theme.colors.nature.n4};
     font-size: ${rem(13)};
   }
