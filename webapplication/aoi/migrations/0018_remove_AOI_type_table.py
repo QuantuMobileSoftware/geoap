@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0017_request_update_error_to_text_field'),
+        ('aoi', '0016_aoi_type'),
         ('user', '0010_remove_aoi_type_perms')
     ]
 
