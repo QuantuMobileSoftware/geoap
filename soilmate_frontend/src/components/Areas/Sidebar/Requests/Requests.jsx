@@ -50,6 +50,10 @@ export const Requests = React.memo(({ currentArea }) => {
 
   useEffect(() => {
     patchResults(currentArea);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       patchResults(currentArea);
     }, GET_DATA_INTERVAL);

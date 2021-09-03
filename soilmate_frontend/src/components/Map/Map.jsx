@@ -80,9 +80,12 @@ export const Map = () => {
       return;
     }
     setSelectedArea(polygon);
+    if (selectedResults.length) {
+      return;
+    }
     const { center, bounds } = getShapePositions(polygon);
     map.panTo(center).fitBounds(bounds);
-  }, [currentAreaId, initialAreas, map]);
+  }, [currentAreaId, initialAreas, map, selectedResults]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
   useMapRequests(selectedArea, map);
