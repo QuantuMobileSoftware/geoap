@@ -9,9 +9,7 @@ import {
   AreasListItemMenu,
   AreasListItemName,
   AreasListItem,
-  AreasListItemButton,
-  AreasIconButton,
-  AreasIconButtonsHolder
+  AreasListItemButton
 } from './AreasListItem.styles';
 
 import { getPolygonPositions, getElementBottom } from 'utils/helpers';
@@ -52,13 +50,22 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
     }
   };
 
-  const handleChangeSidebarMode = mode => () => {
+  const handleEditArea = () => {
     setCurrentArea(area.id);
-    setSidebarMode(mode);
+    setSidebarMode(SIDEBAR_MODE.EDIT);
   };
 
   const handleMenuClick = () => {
     setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
+  };
+
+  const handleViewReports = () => {
+    setCurrentArea(area.id);
+    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+  };
+
+  const handleDeleteButton = () => {
+    areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id });
   };
 
   return (
@@ -76,30 +83,12 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
         {area.size && <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>}
       </AreasListItemBody>
 
-      <AreasIconButtonsHolder isActive={props.isActive}>
-        <AreasIconButton
-          icon='Plus'
-          onClick={() => setSidebarMode(SIDEBAR_MODE.REQUEST_SETTINGS)}
-        ></AreasIconButton>
-        <AreasIconButton
-          icon='List'
-          onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}
-        ></AreasIconButton>
-      </AreasIconButtonsHolder>
-
       <AreasListItemMenu onClick={handleMenuClick}>
-        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.EDIT)}>
-          Edit
-        </AreasListItemButton>
-        <AreasListItemButton onClick={handleChangeSidebarMode(SIDEBAR_MODE.REQUESTS)}>
+        <AreasListItemButton onClick={handleEditArea}>Edit</AreasListItemButton>
+        <AreasListItemButton onClick={handleViewReports}>
           View reports
         </AreasListItemButton>
-        <AreasListItemButton
-          variantType='danger'
-          onClick={() =>
-            areasEvents.toggleModal(true, { type: MODAL_TYPE.DELETE, id: area.id })
-          }
-        >
+        <AreasListItemButton variantType='danger' onClick={handleDeleteButton}>
           Delete
         </AreasListItemButton>
       </AreasListItemMenu>

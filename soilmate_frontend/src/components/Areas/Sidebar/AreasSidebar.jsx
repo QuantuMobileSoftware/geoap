@@ -7,8 +7,9 @@ import { AreasSidebarToggle } from './Toggle';
 import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
 import { Requests } from './Requests';
-import { RequestSettings } from './RequestSettings';
+import { CreateRequest } from './CreateRequest';
 import { Fields } from './Fields';
+import { CropResults } from './CropResults';
 
 import {
   selectAreasList,
@@ -19,14 +20,15 @@ import {
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
-const { AREAS, EDIT, REQUESTS, REQUEST_SETTINGS, FIELDS } = SIDEBAR_MODE;
+const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, CROP_MAP } = SIDEBAR_MODE;
 
 const sidebarHeaders = {
   [AREAS]: 'My areas',
   [EDIT]: 'Edit my area',
-  [REQUESTS]: 'All reports - ',
-  [REQUEST_SETTINGS]: 'Settings',
-  [FIELDS]: 'My fields'
+  [REQUESTS]: '',
+  [CREATE_REQUEST]: 'Create new report',
+  [FIELDS]: 'My fields',
+  [CROP_MAP]: 'Crop map'
 };
 
 export const AreasSidebar = ({ ...props }) => {
@@ -74,11 +76,13 @@ export const AreasSidebar = ({ ...props }) => {
       case EDIT:
         return <AreasEdit currentArea={currentArea} />;
       case REQUESTS:
-        return <Requests areaType={currentArea.type} />;
-      case REQUEST_SETTINGS:
-        return <RequestSettings areas={areas} currentArea={currentArea} />;
+        return <Requests currentArea={currentArea} />;
+      case CREATE_REQUEST:
+        return <CreateRequest areas={areas} currentArea={currentArea} />;
       case FIELDS:
         return <Fields fields={fields} />;
+      case CROP_MAP:
+        return <CropResults currentArea={currentArea} />;
       default:
         return null;
     }

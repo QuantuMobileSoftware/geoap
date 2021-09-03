@@ -60,6 +60,20 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const deleteResult = useCallback(
+    async ({ arrId, results }) => {
+      await handleAsync(async () => {
+        Promise.all(arrId.map(id => API.areas.deleteResult(id))).then(resp => {
+          resp.map((el, i) => {
+            dispatch(areasActions.deleteSelectedResult(arrId[i]));
+            dispatch(areasActions.updateArea({ results }));
+          });
+        });
+      }, true);
+    },
+    [handleAsync, dispatch]
+  );
+
   const setSelectedEntityId = useCallback(
     id => dispatch(areasActions.setSelectedEntityId(id)),
     [dispatch]
@@ -73,13 +87,13 @@ export const useAreasActions = () => {
   const saveArea = useCallback(
     async shape => {
       await handleAsync(async () => {
-        const resp = await API.areas.saveArea(shape);
+        const resp = (await API.areas.saveArea(shape)).data;
+        const results = (await API.areas.getAreaResults(resp.id)).data ?? [];
+        const requests = (await API.areas.getAreaRequests(resp.id)).data ?? [];
         dispatch(
-          areasActions.setEntities(
-            normalizeAreas([{ ...resp.data, requests: [], results: [] }])
-          )
+          areasActions.setEntities(normalizeAreas([{ ...resp, requests, results }]))
         );
-        dispatch(areasActions.setCurrentArea(resp.data.id));
+        dispatch(areasActions.setCurrentArea(resp.id));
       }, true);
     },
     [handleAsync, dispatch]
@@ -111,10 +125,20 @@ export const useAreasActions = () => {
     async (id, data) => {
       await handleAsync(async () => {
         const resp = await API.areas.patchArea(id, data);
-        dispatch(areasActions.updateArea({ id, area: resp.data }));
+        dispatch(areasActions.updateArea(resp.data));
       }, true);
     },
     [dispatch, handleAsync]
+  );
+
+  const patchResults = useCallback(
+    async area => {
+      await handleAsync(async () => {
+        const resp = await API.areas.getAreaResults(area.id);
+        areasActions.setEntities(normalizeAreas([{ ...area, results: resp.data }]));
+      });
+    },
+    [handleAsync]
   );
 
   const setSidebarMode = useCallback(
@@ -129,6 +153,11 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const resetAreasState = useCallback(
+    () => dispatch(areasActions.setDefaultState()),
+    [dispatch]
+  );
+
   return {
     isLoading,
     error,
@@ -137,6 +166,8 @@ export const useAreasActions = () => {
     setCurrentArea,
     setSelectedResult,
     deleteSelectedResult,
+    deleteResult,
+    patchResults,
     setSelectedEntityId,
     deleteSelectedEntityId,
     saveArea,
@@ -144,6 +175,7 @@ export const useAreasActions = () => {
     setSidebarMode,
     patchArea,
     getLayers,
-    saveAreaRequest
+    saveAreaRequest,
+    resetAreasState
   };
 };
