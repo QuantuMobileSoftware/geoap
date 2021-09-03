@@ -1,3 +1,9 @@
 [submodule "data/notebooks/pbdnn/sip_plot_boundary_detection_nn"]
 	path = data/notebooks/pbdnn/sip_plot_boundary_detection_nn
 	url = https://github.com/QuantuMobileSoftware/sip_plot_boundary_detection_nn.git
+[submodule "data/notebooks/pw"]
+	path = data/notebooks/pw
+	url = git@github.com:QuantuMobileSoftware/planetwatchers.git
+[submodule "data/notebooks/dd"]
+	path = data/notebooks/dd
+	url = git@github.com:QuantuMobileSoftware/disease_detection.git
