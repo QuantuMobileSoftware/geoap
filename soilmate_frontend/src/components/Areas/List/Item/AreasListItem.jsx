@@ -18,7 +18,9 @@ import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
 import { useAreasActions, useMapActions } from 'state';
 
-export const ListItem = ({ area = {}, parent, ...props }) => {
+const itemSize = 60;
+
+export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
   const {
     setCurrentArea,
     setSidebarMode,
@@ -56,7 +58,11 @@ export const ListItem = ({ area = {}, parent, ...props }) => {
   };
 
   const handleMenuClick = () => {
-    setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef));
+    if (areaAmount > 1) {
+      setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef) + itemSize);
+    } else {
+      setIsTopPosition(false);
+    }
   };
 
   const handleViewReports = () => {
