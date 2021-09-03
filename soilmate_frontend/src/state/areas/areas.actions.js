@@ -7,6 +7,12 @@ import { areasActions } from './areas.slice';
 import { useAsync } from 'hooks';
 import { normalizeAreas } from 'utils';
 
+const getReportData = async id => {
+  const results = (await API.areas.getAreaResults(id)).data;
+  const requests = (await API.areas.getAreaRequests(id)).data;
+  return { results, requests };
+};
+
 export const useAreasActions = () => {
   const dispatch = useDispatch();
   const { isLoading, error, handleAsync } = useAsync();
@@ -88,8 +94,7 @@ export const useAreasActions = () => {
     async shape => {
       await handleAsync(async () => {
         const resp = (await API.areas.saveArea(shape)).data;
-        const results = (await API.areas.getAreaResults(resp.id)).data ?? [];
-        const requests = (await API.areas.getAreaRequests(resp.id)).data ?? [];
+        const { requests, results } = await getReportData(resp.id);
         dispatch(
           areasActions.setEntities(normalizeAreas([{ ...resp, requests, results }]))
         );
@@ -134,11 +139,13 @@ export const useAreasActions = () => {
   const patchResults = useCallback(
     async area => {
       await handleAsync(async () => {
-        const resp = await API.areas.getAreaResults(area.id);
-        areasActions.setEntities(normalizeAreas([{ ...area, results: resp.data }]));
+        const { requests, results } = await getReportData(area.id);
+        dispatch(
+          areasActions.setEntities(normalizeAreas([{ ...area, requests, results }]))
+        );
       });
     },
-    [handleAsync]
+    [handleAsync, dispatch]
   );
 
   const setSidebarMode = useCallback(
