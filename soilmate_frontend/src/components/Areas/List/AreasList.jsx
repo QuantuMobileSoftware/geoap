@@ -26,7 +26,7 @@ export const List = ({ areas = [], ...props }) => {
   ));
 
   return (
-    <AreasList ref={areasRef} {...props} items={areas.length}>
+    <AreasList ref={areasRef} {...props} areasAmount={areas.length}>
       {areasList}
     </AreasList>
   );
