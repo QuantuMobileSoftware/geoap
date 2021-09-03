@@ -184,10 +184,12 @@ class AOITestCase(UserBase):
     
 class AOIResultRestrictedAclTestCase(UserBase):
     fixtures = [
-        "user/fixtures/user_fixtures.json",
-        "aoi/fixtures/aoi_fixtures.json",
-        "publisher/fixtures/acl_fixtures.json",
-        "publisher/fixtures/results_restricted_acl_fixtures.json",
+        'user/fixtures/user_fixtures.json',
+        'aoi/fixtures/aoi_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+        'aoi/fixtures/request_fixtures.json',
+        'publisher/fixtures/acl_fixtures.json',
+        'publisher/fixtures/results_restricted_acl_fixtures.json'
     ]
     
     def test_get_aoi_results_as_ex_2_user(self):

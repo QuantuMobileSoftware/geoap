@@ -7,7 +7,9 @@ from publisher.models import ACL
 
 
 def filter_for_results_by_acl(restrict_projects_to):
-    return reduce(or_, (Q(filepath__istartswith=result_path) for result_path in restrict_projects_to))
+    query = reduce(or_, (Q(filepath__istartswith=result_path) for result_path in restrict_projects_to)) & Q(
+        request__isnull=True)
+    return query
 
 
 class ResultsByACLFilterBackend(filters.BaseFilterBackend):
@@ -23,10 +25,19 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
         try:
             acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
-                return queryset.all()
+                print('len ACL = 0')
+                queryset = queryset.filter(Q(request__isnull=True) | Q(request__user__id=request.user.id))
+                print(queryset)
+                return queryset
 
+            print(f'len ACL = {len(acl.restrict_projects_to)}')
             query = filter_for_results_by_acl(acl.restrict_projects_to)
-            return queryset.filter(query)
+            queryset = queryset.filter(query | Q(request__user__id=request.user.id))
+            print(queryset)
+            return queryset
         
         except ObjectDoesNotExist:
-            return queryset.all()
+            print('ACL is None')
+            queryset = queryset.filter(Q(request__isnull=True) | Q(request__user__id=request.user.id))
+            print(queryset)
+            return queryset
