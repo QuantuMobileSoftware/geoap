@@ -21,11 +21,12 @@ export const List = ({ areas = [], ...props }) => {
       isActive={currentAreaId === area.id}
       area={area}
       parent={areasRef}
+      areaAmount={areas.length}
     />
   ));
 
   return (
-    <AreasList ref={areasRef} {...props} isEmpty={!areas.length}>
+    <AreasList ref={areasRef} {...props} areasAmount={areas.length}>
       {areasList}
     </AreasList>
   );

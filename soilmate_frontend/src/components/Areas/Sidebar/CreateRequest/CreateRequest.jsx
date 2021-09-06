@@ -7,7 +7,7 @@ import { Calendar } from 'components/_shared/Calendar';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
-import { ButtonWrapper, StyledSelect } from './CreateRequest.styles';
+import { ButtonWrapper, StyledSelect, SelectsWrapper } from './CreateRequest.styles';
 
 const startYear = 2015;
 const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
@@ -67,32 +67,33 @@ export const CreateRequest = ({ areas, currentArea }) => {
 
   return (
     <>
-      <StyledSelect
-        items={selectOptionsAreas}
-        value={currentArea.id}
-        onSelect={handleAreChange}
-        label='Choose area'
-      />
-      <StyledSelect
-        items={selectOptionsLayers}
-        onSelect={handleNoteBookChange}
-        label='Select layers'
-      />
-      <StyledSelect
-        items={layerYears}
-        onSelect={handleYearChange}
-        label='Year'
-        value={new Date().getFullYear()}
-      />
+      <SelectsWrapper>
+        <StyledSelect
+          items={selectOptionsAreas}
+          value={currentArea.id}
+          onSelect={handleAreChange}
+          label='Choose area'
+        />
+        <StyledSelect
+          items={selectOptionsLayers}
+          onSelect={handleNoteBookChange}
+          label='Select layers'
+        />
+        <StyledSelect
+          items={layerYears}
+          onSelect={handleYearChange}
+          label='Year'
+          value={new Date().getFullYear()}
+        />
 
-      <Calendar
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-        title='Date range'
-      />
-
+        <Calendar
+          startDate={startDate}
+          endDate={endDate}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
+          title='Date range'
+        />
+      </SelectsWrapper>
       <ButtonWrapper>
         <Button
           icon='ArrowInCircle'

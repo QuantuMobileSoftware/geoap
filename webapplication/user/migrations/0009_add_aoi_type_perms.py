@@ -69,6 +69,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user', '0008_merge_20210115_1546'),
+        ('aoi', '0014_aoi_type')
     ]
 
     operations = [

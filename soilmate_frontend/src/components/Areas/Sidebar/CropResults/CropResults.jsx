@@ -6,7 +6,7 @@ import { SIDEBAR_MODE } from '_constants';
 
 import { Button } from 'components/_shared/Button';
 
-import { ButtonWrapper, LabelsItem, ColorBlock, Title } from './CropResults.styles';
+import { ButtonWrapper, LabelsItem, ColorBlock, Title, List } from './CropResults.styles';
 
 export const CropResults = ({ currentArea }) => {
   const { setSidebarMode } = useAreasActions();
@@ -20,7 +20,7 @@ export const CropResults = ({ currentArea }) => {
   return (
     <>
       <Title>{currentArea.name}</Title>
-      <ul>
+      <List>
         {labels.map(({ color, name, area }) => (
           <LabelsItem key={name}>
             <ColorBlock color={color} />
@@ -30,7 +30,7 @@ export const CropResults = ({ currentArea }) => {
             </div>
           </LabelsItem>
         ))}
-      </ul>
+      </List>
       <ButtonWrapper>
         <Button
           icon='ArrowInCircle'
