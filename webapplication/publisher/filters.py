@@ -7,16 +7,12 @@ from publisher.models import ACL
 
 
 def filter_for_results_by_acl(restrict_projects_to):
-    query = reduce(or_, (Q(filepath__istartswith=result_path) for result_path in restrict_projects_to)) & Q(
-        request__isnull=True)
-    return query
+    return reduce(or_, (Q(filepath__istartswith=result_path) for result_path in restrict_projects_to))
 
 
 class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     """
-    Filter Result objects that were created by user requests,
-    and
-    filter Result objects with null request and Result.filepath starts with any of items stored in
+    Filter that only allows users to see Result objects if Result.filepath starts with any of items stored in
     ACL.restrict_projects_to field and ACL.user == request.user.id,
     or
     request.user.id not in ACL table,
@@ -27,12 +23,10 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
         try:
             acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
-                queryset = queryset.filter(Q(request__isnull=True) | Q(request__user__id=request.user.id))
-                return queryset
+                return queryset.all()
+
             query = filter_for_results_by_acl(acl.restrict_projects_to)
-            queryset = queryset.filter(query | Q(request__user__id=request.user.id))
-            return queryset
+            return queryset.filter(query)
         
         except ObjectDoesNotExist:
-            queryset = queryset.filter(Q(request__isnull=True) | Q(request__user__id=request.user.id))
-            return queryset
+            return queryset.all()
