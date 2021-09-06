@@ -76,7 +76,7 @@
     "model": "publisher.result",
     "pk": 1007,
     "fields": {
-      "filepath": "filepath_1007",
+      "filepath": "example/filepath_1007",
       "modifiedat": "2020-11-10T15:07:51.835018Z",
       "layer_type": "XYZ",
       "bounding_polygon": "SRID=4326;POLYGON ((36.630593 49.987112, 36.622014 49.872935, 36.819203 49.866599, 36.828245 49.980749, 36.630593 49.987112))",

@@ -588,27 +588,27 @@ class ResultTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_results_list_as_staff_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.staff_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_ex_2_user(self):
-        expected_results_len = 5
+        expected_results_len = 4
         self.client.force_authenticate(user=self.ex_2_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_ex_3_user(self):
-        expected_results_len = 2
+        expected_results_len = 4
         self.client.force_authenticate(user=self.ex_3_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_all_results_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.all_results_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_all_results_no_acl_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.all_results_no_acl_user)
         self.get_results_list(expected_results_len)
 
