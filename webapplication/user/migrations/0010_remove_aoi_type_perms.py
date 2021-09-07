@@ -48,7 +48,7 @@ def delete_model_from_content_type(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0009_add_aoi_type_perms')
+        ('user', '0010_add_can_delete_results_perms_to_client_group')
     ]
 
     operations = [
