@@ -560,9 +560,12 @@ class CleanGeojsonPublisherTestCase(PublisherBase):
 
 class ResultTestCase(UserBase):
     fixtures = [
-        "user/fixtures/user_fixtures.json",
-        "publisher/fixtures/acl_fixtures.json",
-        "publisher/fixtures/results_restricted_acl_fixtures.json"
+        'user/fixtures/user_fixtures.json',
+        'aoi/fixtures/aoi_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+        'aoi/fixtures/request_fixtures.json',
+        'publisher/fixtures/acl_fixtures.json',
+        'publisher/fixtures/results_restricted_acl_fixtures.json'
     ]
 
     def setUp(self):
@@ -585,27 +588,27 @@ class ResultTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_results_list_as_staff_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.staff_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_ex_2_user(self):
-        expected_results_len = 3
+        expected_results_len = 4
         self.client.force_authenticate(user=self.ex_2_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_ex_3_user(self):
-        expected_results_len = 2
+        expected_results_len = 4
         self.client.force_authenticate(user=self.ex_3_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_all_results_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.all_results_user)
         self.get_results_list(expected_results_len)
 
     def test_get_results_list_as_all_results_no_acl_user(self):
-        expected_results_len = 6
+        expected_results_len = 10
         self.client.force_authenticate(user=self.all_results_no_acl_user)
         self.get_results_list(expected_results_len)
 
@@ -729,6 +732,21 @@ class ResultTestCase(UserBase):
         url = reverse('result', kwargs={'pk': 1001})
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_delete_result_by_request_no_acl_owner(self):
+        url = reverse('result', kwargs={'pk': 1008})
+        self.client.force_authenticate(user=self.all_results_no_acl_user)
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        result = Result.objects.get(id=1001)
+        result = Result.objects.get(id=1008)
         self.assertEqual(result.to_be_deleted, True)
+
+    def test_delete_result_by_request_acl_restricted_owner(self):
+        url = reverse('result', kwargs={'pk': 1007})
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        result = Result.objects.get(id=1007)
+        self.assertEqual(result.to_be_deleted, True)
+        
