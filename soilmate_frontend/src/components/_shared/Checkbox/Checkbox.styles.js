@@ -10,8 +10,11 @@ export const StyledCheckbox = styled.div`
     width: ${rem(size)};
     height: ${rem(size)};
     min-width: ${rem(size)};
-    border: ${borders.default({ fontSize: fontSizes[1], color: colors.nature.n2 })};
+    border: ${borders.default({ fontSize: fontSizes[1], color: colors.nature.n3 })};
     border-radius: ${rem(2)};
+    &:hover {
+      border: ${borders.default({ fontSize: fontSizes[1], color: colors.nature.n4 })};
+    }
   `}
 `;
 
