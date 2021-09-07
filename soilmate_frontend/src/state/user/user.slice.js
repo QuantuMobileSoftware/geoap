@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 
-// import { COOKIE_CSRF_TOKEN_VALUE } from '_constants';
+import { COOKIE_CSRF_TOKEN_VALUE } from '_constants';
 
 import { mergeObjects } from 'utils';
 
@@ -12,14 +12,14 @@ const USER_DEFAULT_STATE = {
   last_name: '',
   isAuthorized: false
 };
-// STATE FOR PRODUCTION >>>
-// const USER_INITIAL_STATE = mergeObjects(USER_DEFAULT_STATE, {
-//   isAuthorized: !!COOKIE_CSRF_TOKEN_VALUE
-// });
+
+const USER_INITIAL_STATE = mergeObjects(USER_DEFAULT_STATE, {
+  isAuthorized: !!COOKIE_CSRF_TOKEN_VALUE
+});
 
 const userSlice = createSlice({
   name: 'user',
-  initialState: USER_DEFAULT_STATE,
+  initialState: USER_INITIAL_STATE,
   reducers: {
     login: state => {
       state.isAuthorized = true;

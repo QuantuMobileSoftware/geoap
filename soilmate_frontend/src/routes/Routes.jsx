@@ -1,16 +1,21 @@
 import React, { useEffect } from 'react';
 import { Switch } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import { ROUTES } from '_constants';
-import { useUserActions } from 'state';
+import { useUserActions, selectIsAuthorized } from 'state';
 
 import { Route } from './Route';
 import { PageAuth, PageMain } from 'pages';
 
 export const Routes = () => {
   const { login } = useUserActions();
+  const isAuthorized = useSelector(selectIsAuthorized);
 
   useEffect(() => {
+    if (isAuthorized) {
+      return;
+    }
     const { REACT_APP_AUTOLOGIN, REACT_APP_AUTOPASSWORD } = process.env;
     if (REACT_APP_AUTOLOGIN && REACT_APP_AUTOPASSWORD) {
       login({
@@ -18,7 +23,8 @@ export const Routes = () => {
         password: REACT_APP_AUTOPASSWORD
       });
     }
-  }, [login]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Switch>
