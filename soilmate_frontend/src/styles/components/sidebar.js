@@ -19,6 +19,14 @@ export const sidebarList = ({ theme }) => css`
   }
 `;
 
+export const sidebarListItem = ({ theme }) => css`
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  padding: ${rem([theme.spacing[5], theme.spacing[8]])};
+  transition: ${theme.transitions.fast};
+`;
+
 export const sidebarTopButtons = css`
   display: flex;
   margin-top: ${em(16)};
