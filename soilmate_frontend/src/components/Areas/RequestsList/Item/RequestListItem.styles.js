@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 
-import { rem, em } from 'styles';
+import { rem, em, sidebarListItem } from 'styles';
+import { rgba } from 'polished';
 
 import { Typography } from 'components/_shared/Typography';
 
@@ -23,33 +24,22 @@ export const RequestListItemBody = styled.div`
 `;
 
 export const RequestListItem = styled.li`
-  ${({ theme, onClick, isActive, top }) => [
-    css`
-      position: relative;
-      display: flex;
-      justify-content: flex-start;
-      background: ${isActive ? theme.colors.primary.p4 : theme.colors.nature.n0};
-      padding: ${rem([theme.spacing[8] - 3, theme.spacing[8]])};
-      transition: ${theme.transitions.fast};
+  ${({ theme, onClick, isActive }) => {
+    const mainColor = theme.colors.primary.p1;
+    return [
+      css`
+        ${sidebarListItem};
+        background: ${isActive ? rgba(mainColor, 0.2) : theme.colors.nature.n0};
 
-      &:nth-child(even) {
-        background: ${isActive ? theme.colors.primary.p4 : theme.colors.misc.background3};
-      }
+        &:hover {
+          ${isActive ? '' : `background: ${rgba(mainColor, 0.1)}`};
 
-      ${top
-        ? `.isOpen > div {
-        top: ${em(-75)};
-      }`
-        : null}
-
-      &:hover {
-        background: ${theme.colors.primary.p4};
-
-        ${RequestListItemBody} {
-          color: ${theme.colors.primary.p1};
+          ${RequestListItemBody} {
+            color: ${theme.colors.primary.p1};
+          }
         }
-      }
-    `,
-    onClick && 'cursor: pointer;'
-  ]}
+      `,
+      onClick && 'cursor: pointer;'
+    ];
+  }}
 `;

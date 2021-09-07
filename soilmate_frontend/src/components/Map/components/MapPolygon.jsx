@@ -2,12 +2,14 @@ import React, { useRef, useEffect } from 'react';
 import L from 'leaflet';
 import { Polygon } from 'react-leaflet';
 import { useMapActions, useAreasActions } from 'state';
-import { SHAPE_OPTIONS } from '_constants';
+import { SHAPE_OPTIONS, SELECTED_SHAPE_OPTIONS } from '_constants';
 
-export const MapPolygon = ({ coordinates, onClick, isEditable, id }) => {
+export const MapPolygon = ({ coordinates, onClick, isEditable, id, currentAreaId }) => {
   const polyRef = useRef(null);
   const { setEditableShape } = useMapActions();
   const { setEntitySize } = useAreasActions();
+
+  const pathOptions = currentAreaId === id ? SELECTED_SHAPE_OPTIONS : SHAPE_OPTIONS;
 
   useEffect(() => {
     if (polyRef.current) {
@@ -31,7 +33,7 @@ export const MapPolygon = ({ coordinates, onClick, isEditable, id }) => {
     <Polygon
       ref={polyRef}
       positions={coordinates}
-      pathOptions={SHAPE_OPTIONS}
+      pathOptions={pathOptions}
       eventHandlers={{
         click: () => onClick(polyRef.current)
       }}

@@ -9,3 +9,8 @@ export const EDITABLE_SHAPE_OPTIONS = {
   fillColor: '#ffffff',
   fillOpacity: FILL_OPACITY
 };
+export const SELECTED_SHAPE_OPTIONS = {
+  color: '#FFE400 ',
+  fillColor: '#ffffff',
+  fillOpacity: FILL_OPACITY
+};
