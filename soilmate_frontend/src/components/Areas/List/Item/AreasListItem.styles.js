@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 
-import { rem, em } from 'styles';
+import { rem, em, sidebarListItem } from 'styles';
+import { rgba } from 'polished';
 
 import { Typography } from 'components/_shared/Typography';
 import { Menu, MenuDropdown } from 'components/_shared/Menu';
@@ -55,44 +56,39 @@ export const AreasListItemBody = styled.div`
 `;
 
 export const AreasListItem = styled.li`
-  ${({ theme, hasCoordinates, onClick, isActive, top }) => [
-    css`
-      position: relative;
-      display: flex;
-      justify-content: flex-start;
-      background: ${isActive ? theme.colors.primary.p4 : theme.colors.nature.n0};
-      padding: ${rem([theme.spacing[8] - 3, theme.spacing[8]])};
-      transition: ${theme.transitions.fast};
-
-      &:nth-child(even) {
-        background: ${isActive ? theme.colors.primary.p4 : theme.colors.misc.background3};
-      }
-
-      ${top
-        ? `.isOpen > div {
-        top: auto;
-        bottom: 0;
-      }`
-        : null}
-
-      &:hover {
-        background: ${theme.colors.primary.p4};
-
-        ${AreasListItemBody} {
-          color: ${theme.colors.primary.p1};
-        }
-
-        ${AreasListItemMenu}, ${AreasListItemMenu} {
-          display: flex;
-        }
-      }
-    `,
-    onClick && 'cursor: pointer;',
-    hasCoordinates &&
+  ${({ theme, hasCoordinates, onClick, isActive, top }) => {
+    const mainColor = theme.colors.primary.p1;
+    return [
       css`
-        ${AreasListItemName} {
-          margin-top: -${rem(3)};
+        ${sidebarListItem};
+        background: ${isActive ? rgba(mainColor, 0.2) : theme.colors.nature.n0};
+
+        ${top
+          ? `.isOpen > div {
+          top: auto;
+          bottom: 0;
+        }`
+          : null}
+
+        &:hover {
+          ${isActive ? '' : `background: ${rgba(mainColor, 0.1)}`};
+
+          ${AreasListItemBody} {
+            color: ${theme.colors.primary.p1};
+          }
+
+          ${AreasListItemMenu}, ${AreasListItemMenu} {
+            display: flex;
+          }
         }
-      `
-  ]}
+      `,
+      onClick && 'cursor: pointer;',
+      hasCoordinates &&
+        css`
+          ${AreasListItemName} {
+            margin-top: -${rem(3)};
+          }
+        `
+    ];
+  }}
 `;

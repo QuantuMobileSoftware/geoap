@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { isNumber } from 'lodash-es';
 
 import { Checkbox } from 'components/_shared/Checkbox';
@@ -16,7 +17,7 @@ import { getPolygonPositions, getElementBottom } from 'utils/helpers';
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
-import { useAreasActions, useMapActions } from 'state';
+import { useAreasActions, useMapActions, selectCurrentArea } from 'state';
 
 const itemSize = 60;
 
@@ -29,6 +30,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
     deleteSelectedResult
   } = useAreasActions();
   const { setLayerOpacity } = useMapActions();
+  const currentAreaId = useSelector(selectCurrentArea);
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
@@ -37,6 +39,12 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
     ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
+
+  useEffect(() => {
+    if (area.id === currentAreaId) {
+      areaRef.current.scrollIntoView();
+    }
+  }, [area.id, currentAreaId]);
 
   const handleAreaListItemClick = () => {
     setCurrentArea(area.id);
