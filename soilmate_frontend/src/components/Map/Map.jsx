@@ -188,6 +188,7 @@ export const Map = () => {
             <MapPolygon
               key={area.id}
               id={area.id}
+              currentAreaId={currentAreaId}
               map={map}
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
