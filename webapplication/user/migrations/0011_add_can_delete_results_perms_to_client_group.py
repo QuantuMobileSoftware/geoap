@@ -13,8 +13,8 @@ def add_can_delete_results_perms_to_client_group(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('user', '0009_add_aoi_type_perms'),
-        ('publisher', '0017_result_styles_url')
+        ('user', '0010_remove_aoi_type_perms'),
+        ('publisher', '0018_result_labels')
     ]
 
     operations = [
