@@ -162,10 +162,20 @@ export const Map = () => {
         zoomControl={false}
         whenCreated={setMap}
       >
-        <TileLayer
-          attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        />
+        {process.env.NODE_ENV === 'development' ? (
+          <TileLayer
+            attribution="&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors'>OpenStreetMap</a>"
+            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          />
+        ) : (
+          <TileLayer
+            attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
+            url='/tiles/mapbox/{z}/{x}/{y}.png'
+            tileSize={512}
+            maxZoom={16}
+            zoomOffset={-1}
+          />
+        )}
         <FeatureGroup>
           <EditControl
             position='topright'
