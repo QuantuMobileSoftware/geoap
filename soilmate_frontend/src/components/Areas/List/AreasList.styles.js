@@ -7,6 +7,6 @@ export const AreasList = styled.ul`
     ${sidebarList}
     margin: 0 -${rem(theme.spacing[8])};
     margin-top: ${rem(theme.spacing[2])};
-    overflow-y: ${areasAmount > 1 ? 'auto' : 'visible'};
+    overflow-y: ${areasAmount > 2 ? 'auto' : 'visible'};
   `}
 `;
