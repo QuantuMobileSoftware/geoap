@@ -42,7 +42,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
 
   useEffect(() => {
     if (area.id === currentAreaId) {
-      areaRef.current.scrollIntoView();
+      areaRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' });
     }
   }, [area.id, currentAreaId]);
 
@@ -66,7 +66,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
   };
 
   const handleMenuClick = () => {
-    if (areaAmount > 1) {
+    if (areaAmount > 2) {
       setIsTopPosition(getElementBottom(parent) <= getElementBottom(areaRef) + itemSize);
     } else {
       setIsTopPosition(false);
