@@ -8,13 +8,14 @@ import { EditControl } from 'react-leaflet-draw';
 import { useAreaData } from 'hooks';
 import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
 import { areasEvents } from '_events';
-import { MapControls, MapPolygon, MapRange } from './components';
+import { MapColorBar, MapControls, MapRange, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
 import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import {
   selectAreasList,
+  selectAreas,
   selectCurrentArea,
   useAreasActions,
   selectSidebarMode,
@@ -49,11 +50,21 @@ export const Map = () => {
   const [selectedArea, setSelectedArea] = useState();
 
   const initialAreas = useSelector(selectAreasList);
+  const areasObject = useSelector(selectAreas);
   const currentAreaId = useSelector(selectCurrentArea);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
+
+  const hasSelectedResults = !!selectedResults.length;
+  const hasColorBar = useMemo(() => {
+    if (currentAreaId && hasSelectedResults) {
+      return areasObject[currentAreaId].results[
+        selectedResults[selectedResults.length - 1]
+      ].name.includes('NDVI');
+    }
+  }, [selectedResults, areasObject, currentAreaId, hasSelectedResults]);
 
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
@@ -198,7 +209,8 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {map && selectedResults.length ? <MapRange /> : null}
+      {map && hasColorBar ? <MapColorBar /> : null}
+      {map && hasSelectedResults ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
           header={PopupHeaderText}
