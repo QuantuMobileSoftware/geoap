@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
@@ -14,10 +14,14 @@ import {
 
 export const ListItem = ({ request = {}, ...props }) => {
   const selectedResults = useSelector(getSelectedResults);
-  const isCheckedDefault = selectedResults.some(item => item === request.id);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
-  const [isChecked, setIsChecked] = useState(isCheckedDefault);
+  const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(
+    () => setIsChecked(selectedResults.some(item => item === request.id)),
+    [selectedResults, request.id]
+  );
 
   const handleRequestClick = () => {
     if (isChecked) {
