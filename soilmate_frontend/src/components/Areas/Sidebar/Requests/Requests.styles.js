@@ -53,6 +53,7 @@ export const TabItem = styled.div`
 
 export const StyledSelect = styled(Select)`
   ${({ theme }) => css`
+    max-width: 68%;
     & > div {
       border: none;
       color: ${theme.colors.nature.n4};
