@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
 
-import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ButtonWrapper, StyledSelect, SelectsWrapper } from './CreateRequest.styles';
@@ -15,7 +15,8 @@ const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1
 );
 
 export const CreateRequest = ({ areas, currentArea }) => {
-  const { setSidebarMode, saveAreaRequest } = useAreasActions();
+  const { setSidebarMode, saveAreaRequest, setRequestTab, setCurrentArea } =
+    useAreasActions();
   const currentUser = useSelector(selectUser);
   const layers = useSelector(selectLayers);
 
@@ -24,9 +25,6 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [notebook, setNotebook] = useState(null);
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
-
-  const { AREAS, FIELDS } = SIDEBAR_MODE;
-  const areaType = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
 
   const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
@@ -46,8 +44,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
       date_to: endDate.toLocaleDateString('en-CA'),
       user: currentUser.pk
     };
-    saveAreaRequest(currentArea.id, request);
-    setSidebarMode(areaType);
+    setCurrentArea(areaId);
+    saveAreaRequest(areaId, request);
+    setRequestTab(REQUEST_TABS.IN_PROGRESS);
+    setSidebarMode(SIDEBAR_MODE.REQUESTS);
   };
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setEndDate(null);
   };
 
-  const handleChangeSidebarMode = () => setSidebarMode(areaType);
+  const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
 
   return (
     <>
