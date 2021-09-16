@@ -94,7 +94,9 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
-        {area.size && <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>}
+        {area.hasOwnProperty('size') && (
+          <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>
+        )}
       </AreasListItemBody>
 
       <AreasListItemMenu onClick={handleMenuClick}>
