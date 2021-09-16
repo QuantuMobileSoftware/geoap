@@ -53,7 +53,7 @@ export const Map = () => {
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
-  const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
+  const { addNewArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
@@ -84,7 +84,11 @@ export const Map = () => {
       return;
     }
     const { center, bounds } = getShapePositions(polygon);
-    map.panTo(center).fitBounds(bounds);
+    if (isNaN(center.lat)) {
+      map.panTo(bounds._northEast).fitBounds(bounds);
+    } else {
+      map.panTo(center).fitBounds(bounds);
+    }
   }, [currentAreaId, initialAreas, map, selectedResults]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
@@ -141,7 +145,7 @@ export const Map = () => {
   const handleSaveShape = async () => {
     setIsPopupVisible(false);
     map.removeLayer(currentShape);
-    await saveArea(areaData);
+    await addNewArea(areaData);
     setSidebarMode(EDIT);
   };
 
