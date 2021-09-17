@@ -115,6 +115,7 @@ export const Requests = React.memo(({ currentArea }) => {
 
   const handleTabItemClick = tab => () => {
     setFilterType('');
+    deleteSelectedResult();
     setRequestTab(tab);
   };
   const handleSortChange = () => setIsUpSortList(!isUpSortList);
@@ -135,6 +136,7 @@ export const Requests = React.memo(({ currentArea }) => {
   const handleOpenModal = () => setIsModalOpen(true);
 
   const resultLength = selectedResults.length;
+  const isShowDelete = resultLength > 0 && activeTab === CREATED;
   const modalHeader =
     resultLength > 1
       ? `Are you sure to delete ${resultLength} reports ?`
@@ -162,7 +164,7 @@ export const Requests = React.memo(({ currentArea }) => {
           value={filterType}
           onSelect={handleSelectChange}
         />
-        {resultLength > 0 && <DeleteButton onClick={handleOpenModal} icon='Delete' />}
+        {isShowDelete && <DeleteButton onClick={handleOpenModal} icon='Delete' />}
       </ButtonTopWrapper>
 
       <List requests={sortingListItems} />
