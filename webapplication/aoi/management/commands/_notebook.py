@@ -1,5 +1,6 @@
 import docker
 import logging
+import time
 
 from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
@@ -161,3 +162,4 @@ class PublisherThread(StoppableThread):
         success_requests = Request.objects.filter(calculated=True, success=False)
         logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
         success_requests.update(finished_at=localtime(), success=True)
+        time.sleep(10)
