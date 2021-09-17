@@ -6,7 +6,13 @@ import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
 import { useAreaData } from 'hooks';
-import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
+import {
+  SHAPE_OPTIONS,
+  SIDEBAR_MODE,
+  AOI_TYPE,
+  SHAPE_NAMES,
+  REQUEST_TABS
+} from '_constants';
 import { areasEvents } from '_events';
 import { MapControls, MapPolygon, MapRange } from './components';
 import { Popup } from 'components/_shared/Popup';
@@ -19,7 +25,8 @@ import {
   useAreasActions,
   selectSidebarMode,
   getLoading,
-  getSelectedResults
+  getSelectedResults,
+  selectRequestTab
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -53,8 +60,10 @@ export const Map = () => {
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
+  const activeTab = useSelector(selectRequestTab);
   const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
+  const isShowRange = selectedResults.length && activeTab === REQUEST_TABS.CREATED;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
@@ -208,7 +217,7 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {map && selectedResults.length ? <MapRange /> : null}
+      {map && isShowRange ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
           header={PopupHeaderText}
