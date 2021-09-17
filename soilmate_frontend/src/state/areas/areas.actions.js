@@ -104,6 +104,27 @@ export const useAreasActions = () => {
     [handleAsync, dispatch]
   );
 
+  const addNewArea = useCallback(
+    async newArea => {
+      await handleAsync(() => {
+        const id = Date.now();
+        const area = { ...newArea, id, isTemporary: true, requests: [], results: [] };
+        dispatch(areasActions.setEntities(normalizeAreas([area])));
+        dispatch(areasActions.setCurrentArea(id));
+      }, true);
+    },
+    [handleAsync, dispatch]
+  );
+
+  const deleteNewArea = useCallback(
+    area => {
+      if (area.isTemporary) {
+        dispatch(areasActions.deleteAreaById(area.id));
+      }
+    },
+    [dispatch]
+  );
+
   const deleteArea = useCallback(
     async id => {
       await handleAsync(async () => {
@@ -189,6 +210,8 @@ export const useAreasActions = () => {
     patchArea,
     getLayers,
     saveAreaRequest,
-    resetAreasState
+    resetAreasState,
+    addNewArea,
+    deleteNewArea
   };
 };
