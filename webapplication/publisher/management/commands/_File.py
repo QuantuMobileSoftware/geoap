@@ -136,6 +136,8 @@ class File(metaclass=ABCMeta):
                 dict_['released'] = True
             except Request.DoesNotExist:
                 logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
+        if self.style_url:
+            dict_['styles_url'] = self.style_url
 
         return dict_
 
@@ -156,29 +158,25 @@ class File(metaclass=ABCMeta):
 
 
 class Geojson(File):
-    def __init__(self, path, basedir):
-        super().__init__(path, basedir)
 
+    def read_file(self):
         try:
-            self._read_file()
+            with open(self.path) as file:
+                geojson = json.load(file)
+
+                self.name = geojson.get('name')
+                self.start_date = geojson.get('start_date')
+                self.end_date = geojson.get('end_date')
+                self.request = geojson.get('request_id')
+
+            self.df = geopandas.read_file(self.path)
+            if str(self.df.crs) != self.crs:
+                logger.info(f"{self.path}: {self.df.crs}. Transform to {self.crs}")
+                self.df.to_crs(self.crs, inplace=True)
+
+            self.bound_box = str(box(*self.df.total_bounds))
         except Exception as ex:
             logger.error(f"Cannot read file {self.path}: {str(ex)}")
-
-    def _read_file(self):
-        with open(self.path) as file:
-            geojson = json.load(file)
-
-            self.name = geojson.get('name')
-            self.start_date = geojson.get('start_date')
-            self.end_date = geojson.get('end_date')
-            self.request = geojson.get('request_id')
-
-        self.df = geopandas.read_file(self.path)
-        if str(self.df.crs) != self.crs:
-            logger.info(f"{self.path}: {self.df.crs}. Transform to {self.crs}")
-            self.df.to_crs(self.crs, inplace=True)
-
-        self.bound_box = str(box(*self.df.total_bounds))
 
     @property
     def _need_create_mvt(self):
@@ -266,32 +264,28 @@ class Geojson(File):
 
 
 class Geotif(File):
-    def __init__(self, path, basedir):
-        super().__init__(path, basedir)
 
+    def read_file(self):
         try:
-            self._read_file()
+            with rasterio.open(self.path) as dataset:
+
+                bound_box = box(*dataset.bounds)
+
+                if str(dataset.crs).lower() != self.crs:
+                    project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
+                                                        pyproj.CRS(self.crs), always_xy=True).transform
+                    bound_box = transform(project, bound_box)
+
+                self.bound_box = str(bound_box)
+
+                tags = dataset.tags()
+                self.name = tags.get('name')
+                self.start_date = tags.get('start_date')
+                self.end_date = tags.get('end_date')
+                self.request = tags.get('request_id')
+                self.labels = tags.get('labels')
         except Exception as ex:
             logger.error(f"Cannot read file {self.path}: {str(ex)}")
-
-    def _read_file(self):
-        with rasterio.open(self.path) as dataset:
-
-            bound_box = box(*dataset.bounds)
-
-            if str(dataset.crs).lower() != self.crs:
-                project = pyproj.Transformer.from_crs(pyproj.CRS(dataset.crs),
-                                                      pyproj.CRS(self.crs), always_xy=True).transform
-                bound_box = transform(project, bound_box)
-
-            self.bound_box = str(bound_box)
-
-            tags = dataset.tags()
-            self.name = tags.get('name')
-            self.start_date = tags.get('start_date')
-            self.end_date = tags.get('end_date')
-            self.request = tags.get('request_id')
-            self.labels = tags.get('labels')
 
     def layer_type(self):
         return Result.XYZ
