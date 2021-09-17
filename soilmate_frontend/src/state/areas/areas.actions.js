@@ -117,7 +117,11 @@ export const useAreasActions = () => {
   );
 
   const deleteNewArea = useCallback(
-    id => dispatch(areasActions.deleteAreaById(id)),
+    area => {
+      if (area.isTemporary) {
+        dispatch(areasActions.deleteAreaById(area.id));
+      }
+    },
     [dispatch]
   );
 
