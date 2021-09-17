@@ -170,6 +170,11 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const setRequestTab = useCallback(
+    value => dispatch(areasActions.setRequestTab(value)),
+    [dispatch]
+  );
+
   const getLayers = useCallback(async () => {
     await handleAsync(async () => {
       const resp = await API.areas.getLayers();
@@ -197,6 +202,7 @@ export const useAreasActions = () => {
     saveArea,
     deleteArea,
     setSidebarMode,
+    setRequestTab,
     patchArea,
     getLayers,
     saveAreaRequest,

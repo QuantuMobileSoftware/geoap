@@ -29,3 +29,8 @@ export const SHAPE_NAMES = {
 };
 
 export const GET_DATA_INTERVAL = 10000;
+
+export const REQUEST_TABS = {
+  CREATED: 1,
+  IN_PROGRESS: 2
+};
