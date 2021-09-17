@@ -69,7 +69,7 @@ export const AreasEdit = ({ currentArea }) => {
         areaData.polygon = currentArea.polygon;
       }
       await saveArea({ ...areaData, type: currentArea.type });
-      deleteNewArea(currentArea.id);
+      deleteNewArea(currentArea);
     } else {
       await patchArea(currentArea.id, areaData);
     }
@@ -87,7 +87,7 @@ export const AreasEdit = ({ currentArea }) => {
 
   const handleCloseEditing = () => {
     setCurrentArea(null);
-    deleteNewArea(currentArea.id);
+    deleteNewArea(currentArea);
     setSidebarMode(mode);
   };
 
