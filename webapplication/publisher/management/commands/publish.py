@@ -80,13 +80,14 @@ class Command(BaseCommand):
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
-            result = Result.objects.filter(filepath=file_dict['filepath'])
+            result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
                 result = result[0]
-                if result.modifiedat < file_dict['modifiedat']:
+                if result.modifiedat < file.modifiedat():
+                    file.read_file()
                     file.delete_tiles(self.tiles_folder)
                     file.generate_tiles(self.tiles_folder)
-                    file_dict['styles_url'] = file.style_url
+                    file_dict = file.as_dict()
                     try:
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
@@ -94,8 +95,9 @@ class Command(BaseCommand):
                         logger.error(f'Error when updating Result from file_dict = {file_dict}\n {str(ex)}')
                         continue
             else:
+                file.read_file()
                 file.generate_tiles(self.tiles_folder)
-                file_dict['styles_url'] = file.style_url
+                file_dict = file.as_dict()
                 try:
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
