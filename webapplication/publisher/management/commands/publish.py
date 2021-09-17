@@ -34,12 +34,14 @@ def rm_empty_dirs(folder):
     """
        Remove empty dirs and sub dirs
     """
-    for dirpath, _, _, in os.walk(folder, topdown=False):
-        if dirpath != folder:
-            try:
-                os.rmdir(dirpath)
-            except OSError:
-                pass
+    # TODO(adolgarev): on prod takes too long to execute
+    return
+    # for dirpath, _, _, in os.walk(folder, topdown=False):
+    #     if dirpath != folder:
+    #         try:
+    #             os.rmdir(dirpath)
+    #         except OSError:
+    #             pass
 
 
 class Command(BaseCommand):
