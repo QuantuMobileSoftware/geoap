@@ -8,7 +8,7 @@ export const axiosInstance = axios.create({
 });
 
 const handleError = error => {
-  let parsedError = 'Request error';
+  let parsedError = error.response.data;
 
   if (error.response.data.detail) {
     parsedError = error.response.data.detail;

@@ -27,7 +27,7 @@ export const MapPolygon = ({ coordinates, onClick, isEditable, id, currentAreaId
       current.disableEdit();
     }
     return () => current.disableEdit();
-  }, [isEditable, setEditableShape]);
+  });
 
   return (
     <Polygon
