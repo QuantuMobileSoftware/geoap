@@ -20,7 +20,12 @@ export const FileUploader = ({ isOpen, createShape }) => {
       setIsShowProgress(false);
       return;
     }
-    if (!file.type.includes('json') && !file.type.includes('kml')) {
+    // See https://stackoverflow.com/questions/51724649/mime-type-of-file-returning-empty-in-javascript-on-some-machines
+    let fileType = file.type;
+    if (fileType === '') {
+      fileType = file.name.split('.').at(-1);
+    }
+    if (!fileType.includes('json') && !fileType.includes('kml')) {
       setFileError('Please upload file in geojson or kml format');
     }
 
@@ -33,7 +38,7 @@ export const FileUploader = ({ isOpen, createShape }) => {
 
     fileReader.onload = () => {
       try {
-        if (file.type.includes('kml')) {
+        if (fileType.includes('kml')) {
           const result = kml(
             new DOMParser().parseFromString(fileReader.result, 'text/xml')
           );

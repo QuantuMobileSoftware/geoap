@@ -6,7 +6,13 @@ import { TileLayer, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
 import { useAreaData } from 'hooks';
-import { SHAPE_OPTIONS, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
+import {
+  SHAPE_OPTIONS,
+  SIDEBAR_MODE,
+  AOI_TYPE,
+  SHAPE_NAMES,
+  REQUEST_TABS
+} from '_constants';
 import { areasEvents } from '_events';
 import { MapColorBar, MapControls, MapRange, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
@@ -20,7 +26,8 @@ import {
   useAreasActions,
   selectSidebarMode,
   getLoading,
-  getSelectedResults
+  getSelectedResults,
+  selectRequestTab
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -55,7 +62,8 @@ export const Map = () => {
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
-  const { saveArea, setCurrentArea, setSidebarMode } = useAreasActions();
+  const activeTab = useSelector(selectRequestTab);
+  const { addNewArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
   const hasSelectedResults = !!selectedResults.length;
   const hasColorBar = useMemo(() => {
@@ -66,6 +74,7 @@ export const Map = () => {
     }
   }, [selectedResults, areasObject, currentAreaId, hasSelectedResults]);
 
+  const isShowRange = selectedResults.length && activeTab === REQUEST_TABS.CREATED;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
@@ -95,7 +104,11 @@ export const Map = () => {
       return;
     }
     const { center, bounds } = getShapePositions(polygon);
-    map.panTo(center).fitBounds(bounds);
+    if (isNaN(center.lat)) {
+      map.panTo(bounds._northEast).fitBounds(bounds);
+    } else {
+      map.panTo(center).fitBounds(bounds);
+    }
   }, [currentAreaId, initialAreas, map, selectedResults]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
@@ -152,7 +165,7 @@ export const Map = () => {
   const handleSaveShape = async () => {
     setIsPopupVisible(false);
     map.removeLayer(currentShape);
-    await saveArea(areaData);
+    await addNewArea(areaData);
     setSidebarMode(EDIT);
   };
 
@@ -173,10 +186,20 @@ export const Map = () => {
         zoomControl={false}
         whenCreated={setMap}
       >
-        <TileLayer
-          attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        />
+        {process.env.NODE_ENV === 'development' ? (
+          <TileLayer
+            attribution="&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors'>OpenStreetMap</a>"
+            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          />
+        ) : (
+          <TileLayer
+            attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
+            url='/tiles/mapbox/{z}/{x}/{y}.png'
+            tileSize={512}
+            maxZoom={16}
+            zoomOffset={-1}
+          />
+        )}
         <FeatureGroup>
           <EditControl
             position='topright'
