@@ -23,16 +23,24 @@ const validationSchema = Yup.object().shape({
 });
 
 export const AreasEdit = ({ currentArea }) => {
-  const { setSidebarMode, patchArea } = useAreasActions();
+  const { setSidebarMode, patchArea, deleteNewArea, setCurrentArea, saveArea, error } =
+    useAreasActions();
   const currentUser = useSelector(selectUser);
   const editableShapeCoords = useSelector(getShapeCoords);
   const [isOpenUploader, setIsOpenUploader] = useState(false);
   const [shapeCoords, setShapeCoords] = useState(null);
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const [errorName, setErrorName] = useState();
 
   const { AREAS, FIELDS } = SIDEBAR_MODE;
 
   const mode = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
+
+  useEffect(() => {
+    if (error.name) {
+      setErrorName('This name already exists');
+    }
+  }, [error]);
 
   useEffect(() => {
     setIsOpenUploader(false);
@@ -45,7 +53,7 @@ export const AreasEdit = ({ currentArea }) => {
     setShapeCoords(coordinates);
   };
 
-  const handleSaveArea = values => () => {
+  const handleSaveArea = values => async () => {
     const polygon = shapeCoords
       ? { polygon: getShapePositionsString(shapeCoords) }
       : editableShapeCoords
@@ -56,8 +64,16 @@ export const AreasEdit = ({ currentArea }) => {
       name: values.name,
       ...polygon
     };
+    if (currentArea.isTemporary) {
+      if (!areaData.polygon) {
+        areaData.polygon = currentArea.polygon;
+      }
+      await saveArea({ ...areaData, type: currentArea.type });
+      deleteNewArea(currentArea);
+    } else {
+      await patchArea(currentArea.id, areaData);
+    }
     areasEvents.updateShape();
-    patchArea(currentArea.id, areaData);
     setSidebarMode(mode);
   };
 
@@ -69,7 +85,11 @@ export const AreasEdit = ({ currentArea }) => {
     setIsOpenUploader(true);
   };
 
-  const handleSidebarMode = () => setSidebarMode(mode);
+  const handleCloseEditing = () => {
+    setCurrentArea(null);
+    deleteNewArea(currentArea);
+    setSidebarMode(mode);
+  };
 
   return (
     <>
@@ -83,7 +103,13 @@ export const AreasEdit = ({ currentArea }) => {
       >
         {({ values }) => (
           <>
-            <FormField autoFocus label='Name' name='name' placeholder='City...' />
+            <FormField
+              autoFocus
+              label='Name'
+              name='name'
+              placeholder='City...'
+              error={errorName}
+            />
             <Upload>
               <Button icon='Upload' onClick={handleOpenModal}>
                 Upload file
@@ -92,7 +118,7 @@ export const AreasEdit = ({ currentArea }) => {
               <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
             </Upload>
             <ButtonWrapper>
-              <Button variant='secondary' padding={50} onClick={handleSidebarMode}>
+              <Button variant='secondary' padding={50} onClick={handleCloseEditing}>
                 Cancel
               </Button>
               <Button variant='primary' onClick={handleSaveArea(values)}>

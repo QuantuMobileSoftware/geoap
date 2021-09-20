@@ -1,10 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 
-import { SIDEBAR_MODE, CROP_MAP_LABEL } from '_constants';
-import { useAreasActions, getSelectedResults } from 'state';
+import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS } from '_constants';
+import { useAreasActions, getSelectedResults, selectRequestTab } from 'state';
 
 import {
   RequestListItemBody,
@@ -14,10 +14,17 @@ import {
 
 export const ListItem = ({ request = {}, ...props }) => {
   const selectedResults = useSelector(getSelectedResults);
-  const isCheckedDefault = selectedResults.some(item => item === request.id);
+  const activeTab = useSelector(selectRequestTab);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
-  const [isChecked, setIsChecked] = useState(isCheckedDefault);
+  const [isChecked, setIsChecked] = useState(false);
+
+  const isShowCheckbox = activeTab === REQUEST_TABS.CREATED;
+
+  useEffect(
+    () => setIsChecked(selectedResults.some(item => item === request.id)),
+    [selectedResults, request.id]
+  );
 
   const handleRequestClick = () => {
     if (isChecked) {
@@ -43,7 +50,7 @@ export const ListItem = ({ request = {}, ...props }) => {
       isActive={isActive}
       onClick={handleRequestClick}
     >
-      <Checkbox checked={isChecked} />
+      {isShowCheckbox && <Checkbox checked={isChecked} />}
 
       <RequestListItemBody>
         <RequestListItemText>
