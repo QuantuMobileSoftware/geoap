@@ -13,6 +13,13 @@ export const RequestListItemText = styled(Typography).attrs({
   cursor: pointer;
 `;
 
+export const RequestListItemDate = styled.div`
+  ${({ theme }) => css`
+    margin-top: ${rem(4)};
+    color: ${theme.colors.nature.n4};
+    font-size: ${em(13)};
+  `}
+`;
 export const RequestListItemBody = styled.div`
   display: flex;
   flex-direction: column;
