@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Switch } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { hotjar } from 'react-hotjar';
 
-import { ROUTES } from '_constants';
+import { ROUTES, HOTJAR_ID, HOTJAR_SV } from '_constants';
 import { useUserActions, selectIsAuthorized } from 'state';
 
 import { Route } from './Route';
@@ -12,6 +13,7 @@ export const Routes = () => {
   const { login } = useUserActions();
   const isAuthorized = useSelector(selectIsAuthorized);
 
+  useEffect(() => hotjar.initialize(HOTJAR_ID, HOTJAR_SV), []);
   useEffect(() => {
     if (isAuthorized) {
       return;
