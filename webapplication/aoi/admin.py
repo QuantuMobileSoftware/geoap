@@ -30,9 +30,4 @@ class JupyterNotebookAdmin(admin.OSMGeoAdmin):
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'calculated', 'success', 'error', )
-    readonly_fields = ['pk', 'started_at', 'finished_at', 'calculated', 'error', ]
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj and 'success' not in self.readonly_fields and not obj.calculated:
-            self.readonly_fields.append('success')
-        return self.readonly_fields
+    readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
