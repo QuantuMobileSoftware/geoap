@@ -141,7 +141,8 @@ class File(metaclass=ABCMeta):
 
         return dict_
 
-    def run_process(self, command, timeout):
+    @staticmethod
+    def run_process(command, timeout):
         process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
         try:
             out, err = process.communicate(timeout=timeout)
