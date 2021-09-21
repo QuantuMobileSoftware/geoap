@@ -36,7 +36,7 @@ def rm_empty_dirs():
     """
     logger.info('Removing of empty directories started ')
     command = ["find", settings.TILES_FOLDER, "-empty", "-type", "d", "-delete"]
-    File.run_process(command, settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS)
+    File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
     logger.info('Removing of empty directories finished ')
     return
 
