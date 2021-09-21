@@ -37,6 +37,12 @@ class AreasEvents extends EventEmitter {
     this.on('closePopup', callback);
     return () => this.removeAllListeners('closePopup', callback);
   };
+
+  toggleContactUs = isOpen => this.emit('toggleContactUs', { isOpen });
+  onToggleContactUs = callback => {
+    this.on('toggleContactUs', callback);
+    return () => this.removeAllListeners('toggleContactUs', callback);
+  };
 }
 
 export const areasEvents = new AreasEvents();
