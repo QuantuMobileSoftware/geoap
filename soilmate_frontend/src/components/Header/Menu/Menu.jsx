@@ -19,10 +19,15 @@ export const Menu = () => {
     setSidebarMode(SIDEBAR_MODE.AREAS);
   };
 
+  const handleOpenContactUs = () => {
+    areasEvents.toggleContactUs(true);
+  };
+
   return (
     <StyledMenu>
       <MenuItem onClick={handleOpenFields}>Fields</MenuItem>
       <MenuItem onClick={handleOpenAreas}>Areas</MenuItem>
+      <MenuItem onClick={handleOpenContactUs}>Contact us</MenuItem>
     </StyledMenu>
   );
 };
