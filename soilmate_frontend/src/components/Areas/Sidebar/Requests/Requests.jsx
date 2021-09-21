@@ -167,7 +167,7 @@ export const Requests = React.memo(({ currentArea }) => {
         {isShowDelete && <DeleteButton onClick={handleOpenModal} icon='Delete' />}
       </ButtonTopWrapper>
 
-      <List requests={sortingListItems} />
+      <List items={sortingListItems} />
 
       <ButtonWrapper>
         <Button
