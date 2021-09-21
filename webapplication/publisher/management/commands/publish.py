@@ -36,9 +36,12 @@ def rm_empty_dirs():
     """
     logger.info('Removing of empty directories started ')
     command = ["find", settings.TILES_FOLDER, "-empty", "-type", "d", "-delete"]
-    File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
-    logger.info('Removing of empty directories finished ')
-    return
+    try:
+        File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
+        logger.info('Removing of empty directories finished ')
+        return
+    except:
+        logger.error('error', exc_info=True)
 
 
 class Command(BaseCommand):
@@ -51,13 +54,13 @@ class Command(BaseCommand):
         self.tiles_folder = settings.TILES_FOLDER
         self.results_folder = settings.RESULTS_FOLDER
         self.scan()
+        rm_empty_dirs()
 
     def scan(self):
         files = self._read()
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        rm_empty_dirs()
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
