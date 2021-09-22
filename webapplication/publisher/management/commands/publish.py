@@ -35,7 +35,7 @@ def rm_empty_dirs():
        Remove empty dirs and sub dirs
     """
     logger.info('Removing of empty directories started ')
-    command = ["find", settings.TILES_FOLDER, "-empty", "-type", "d", "-delete"]
+    command = ["find", settings.TILES_FOLDER, "-mindepth", "1", "-empty", "-type", "d", "-delete"]
     File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
     logger.info('Removing of empty directories finished ')
     return
