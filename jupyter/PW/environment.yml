@@ -30,5 +30,6 @@ dependencies:
     - torch==1.4.0
     - torchvision==0.5.0
     - tqdm==4.51.0
+    - boto3=1.18.44
 prefix: /opt/conda/envs/PW
 
