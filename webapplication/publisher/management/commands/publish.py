@@ -40,7 +40,7 @@ def rm_empty_dirs():
         File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
         logger.info('Removing of empty directories finished ')
         return
-    except:
+    except OSError:
         logger.error('error', exc_info=True)
 
 

@@ -148,6 +148,8 @@ class File(metaclass=ABCMeta):
             out, err = process.communicate(timeout=timeout)
             if process.returncode != 0:
                 logger.error(f"Failed {command} output: {out}, err: {err}")
+                if err is not None and 'No such file or directory' in err:
+                    raise OSError(err)
                 raise Exception(f"Failed to run process")
             logger.info(f"Success {command} output: {out}, err: {err}")
         except TimeoutExpired as te:
