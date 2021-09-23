@@ -89,6 +89,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
       ref={areaRef}
       hasCoordinates={hasCoordinates}
       onClick={handleAreaListItemClick}
+      onDoubleClick={handleViewReports}
     >
       <Checkbox onChange={handleChangeCheckbox} />
 
