@@ -34,3 +34,5 @@ export const REQUEST_TABS = {
   CREATED: 1,
   IN_PROGRESS: 2
 };
+
+export const NO_DATA = 'No data';
