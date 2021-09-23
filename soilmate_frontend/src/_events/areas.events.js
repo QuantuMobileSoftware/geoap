@@ -37,6 +37,12 @@ class AreasEvents extends EventEmitter {
     this.on('closePopup', callback);
     return () => this.removeAllListeners('closePopup', callback);
   };
+
+  toggleErrorModal = error => this.emit('showError', { error });
+  onToggleErrorModal = callback => {
+    this.on('showError', callback);
+    return () => this.removeListener('showError', callback);
+  };
 }
 
 export const areasEvents = new AreasEvents();
