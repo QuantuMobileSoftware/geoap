@@ -20,6 +20,9 @@ export const ErrorModal = () => {
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
+      if (error.config.method === 'get') {
+        return;
+      }
       setError(error);
       if (typeof error === 'string') {
         setErrorText(error);
@@ -45,7 +48,6 @@ export const ErrorModal = () => {
           <Button variant='secondary' onClick={handleCloseModal}>
             Close
           </Button>
-          <Button variant='primary'>Send request</Button>
         </ButtonWrapper>
       </Modal>
     )
