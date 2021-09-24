@@ -9,8 +9,8 @@ export const RequestListItemText = styled(Typography).attrs({
   element: 'h4',
   variant: 'body1'
 })`
-  ${({ theme: { colors }, hasData }) => css`
-    color: ${hasData ? colors.nature.n5 : colors.danger};
+  ${({ theme: { colors }, $hasData }) => css`
+    color: ${$hasData ? colors.nature.n5 : colors.danger};
     line-height: ${rem(16)};
     cursor: pointer;
   `}
