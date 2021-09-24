@@ -9,7 +9,8 @@ class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
         fields = ('id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options', 'description',
-                  'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request', 'styles_url', 'labels')
+                  'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request', 'styles_url', 'labels',
+                  'colormap')
         
         read_only_fields = ['filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
-                            'request', 'styles_url', 'labels']
+                            'request', 'styles_url', 'labels', 'colormap']
