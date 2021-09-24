@@ -71,7 +71,7 @@ export const ListItem = ({ report = {}, ...props }) => {
       {isShowCheckbox && <Checkbox checked={isChecked} />}
 
       <RequestListItemBody>
-        <RequestListItemText hasData={hasData}>{reportName}</RequestListItemText>
+        <RequestListItemText $hasData={hasData}>{reportName}</RequestListItemText>
         <RequestListItemDate>{reportDate}</RequestListItemDate>
       </RequestListItemBody>
     </RequestListItem>
