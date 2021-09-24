@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { areasEvents } from '_events';
 
 import { API_CSRF_TOKEN_KEY, COOKIE_CSRF_TOKEN_VALUE } from '_constants';
 
@@ -8,7 +9,8 @@ export const axiosInstance = axios.create({
 });
 
 const handleError = error => {
-  let parsedError = error.response.data;
+  let parsedError = error.response;
+  areasEvents.toggleErrorModal(parsedError);
 
   if (error.response.data.detail) {
     parsedError = error.response.data.detail;
