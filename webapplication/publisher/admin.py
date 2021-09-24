@@ -12,7 +12,7 @@ class ResultAdmin(admin.OSMGeoAdmin):
     list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released')
     list_filter = ('layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', )
     search_fields = ('filepath', 'name', 'description', 'options')
-    readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'request', 'styles_url', 'labels')
+    readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'request', 'styles_url', 'labels', 'colormap')
 
     fieldsets = (
         ('Fill by Publisher', {
