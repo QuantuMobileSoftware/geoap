@@ -4,15 +4,15 @@ import { RequestsList } from './RequestsList.styles';
 
 import { ListItem } from './Item';
 
-export const List = ({ requests = [], ...props }) => {
+export const List = ({ items = [], ...props }) => {
   const requestsRef = useRef(null);
 
-  const requestsList = requests.map(request => (
-    <ListItem key={request.id} request={request} parent={requestsRef} />
+  const requestsList = items.map(item => (
+    <ListItem key={item.id} report={item} parent={requestsRef} />
   ));
 
   return (
-    <RequestsList ref={requestsRef} {...props} isEmpty={!requests.length}>
+    <RequestsList ref={requestsRef} {...props} isEmpty={!items.length}>
       {requestsList}
     </RequestsList>
   );

@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ProgressBar, FileInfo, StyledUploader } from './FileUploader.styles';
 import { kml } from '@tmcw/togeojson';
 
+import { areasEvents } from '_events';
+import { FILE_ERROR } from '_constants';
+
 export const FileUploader = ({ isOpen, createShape }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileName, setFileName] = useState('File');
@@ -48,7 +51,7 @@ export const FileUploader = ({ isOpen, createShape }) => {
           createShape(result);
         }
       } catch (err) {
-        console.error('Parse error', err);
+        areasEvents.toggleErrorModal(FILE_ERROR);
       }
     };
 

@@ -8,7 +8,8 @@ import {
   EDITABLE_SHAPE_OPTIONS,
   SHAPE_OPTIONS,
   FILL_OPACITY,
-  MODAL_TYPE
+  MODAL_TYPE,
+  NO_DATA
 } from '_constants';
 import { areasEvents } from '_events';
 import { getPolygonPositions } from 'utils';
@@ -66,10 +67,12 @@ export const useMapRequests = (selectedArea, map) => {
                 layer.setStyle(EDITABLE_SHAPE_OPTIONS);
               }
               selectedLeafletLayer = layer;
-              areasEvents.toggleModal(true, {
-                type: MODAL_TYPE.SAVE_FIELD,
-                coordinates: layer
-              });
+              if (feature.properties.label !== NO_DATA) {
+                areasEvents.toggleModal(true, {
+                  type: MODAL_TYPE.SAVE_FIELD,
+                  coordinates: layer
+                });
+              }
             });
             if (feature.properties.label) {
               layer.bindPopup(feature.properties.label);

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from publisher.management.commands._File import FileFactory
+from publisher.management.commands._File import FileFactory, File
 from publisher.models import Result
 
 logger = logging.getLogger(__name__)
@@ -30,18 +30,15 @@ def instance_already_running(label='default'):
     return already_running
 
 
-def rm_empty_dirs(folder):
+def rm_empty_dirs():
     """
        Remove empty dirs and sub dirs
     """
-    # TODO(adolgarev): on prod takes too long to execute
+    logger.info('Removing of empty directories started ')
+    command = ["find", settings.TILES_FOLDER, "-mindepth", "1", "-empty", "-type", "d", "-delete"]
+    File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
+    logger.info('Removing of empty directories finished ')
     return
-    # for dirpath, _, _, in os.walk(folder, topdown=False):
-    #     if dirpath != folder:
-    #         try:
-    #             os.rmdir(dirpath)
-    #         except OSError:
-    #             pass
 
 
 class Command(BaseCommand):
@@ -60,6 +57,7 @@ class Command(BaseCommand):
         self._update_or_create(files)
         self._clean(files)
         self._delete()
+        rm_empty_dirs()
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
@@ -120,12 +118,10 @@ class Command(BaseCommand):
                 filepath = os.path.join(self.results_folder, result.filepath)
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
-
             logger.info("Deleting tiles finished")
 
             to_delete.delete()
-
-            rm_empty_dirs(self.tiles_folder)
+            
         except Exception as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting finished")
@@ -142,8 +138,6 @@ class Command(BaseCommand):
             logger.info("Deleting tiles finished")
 
             to_delete.delete()
-
-            rm_empty_dirs(self.tiles_folder)
 
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
