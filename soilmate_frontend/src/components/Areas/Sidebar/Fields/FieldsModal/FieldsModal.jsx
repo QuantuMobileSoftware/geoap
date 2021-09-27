@@ -73,24 +73,13 @@ export const FieldsModal = ({ closeModal }) => {
       >
         <FileUploader isOpen={isOpenUploader} createShape={newShapeFromFile} />
       </ModalItem>
-      <ModalItem
-        header='Detect'
-        title='Lorem ipsum dolor sit amet'
-        icon='Detect'
-        onClick={handleDetectField}
-      />
+      <ModalItem header='Detect' icon='Detect' onClick={handleDetectField} />
       <ModalItem
         header='Rectangle selection'
-        title='Lorem ipsum dolor sit amet'
         icon='Rectangle'
         onClick={handleNewRectangle}
       />
-      <ModalItem
-        header='Polygon selection'
-        title='Lorem ipsum dolor sit amet'
-        icon='Polygon'
-        onClick={handleNewPolygon}
-      />
+      <ModalItem header='Polygon selection' icon='Polygon' onClick={handleNewPolygon} />
     </>
   );
 
