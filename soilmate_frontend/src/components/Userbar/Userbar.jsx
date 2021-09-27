@@ -43,7 +43,6 @@ export const Userbar = ({ ...props }) => {
             ignoredClassNames: [getStyledComponentClassName(StyledUserbar)]
           }}
         >
-          <Button icon='Settings'>Settings</Button>
           <Button icon='LogOut' onClick={handleToggleModal}>
             Log Out
           </Button>
