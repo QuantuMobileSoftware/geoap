@@ -1,20 +1,27 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 
-import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS } from '_constants';
-import { useAreasActions, getSelectedResults, selectRequestTab } from 'state';
+import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS, NO_DATA } from '_constants';
+import {
+  useAreasActions,
+  getSelectedResults,
+  selectRequestTab,
+  selectCurrentRequests
+} from 'state';
 
 import {
   RequestListItemBody,
   RequestListItemText,
-  RequestListItem
+  RequestListItem,
+  RequestListItemDate
 } from './RequestListItem.styles';
 
-export const ListItem = ({ request = {}, ...props }) => {
+export const ListItem = ({ report = {}, ...props }) => {
   const selectedResults = useSelector(getSelectedResults);
   const activeTab = useSelector(selectRequestTab);
+  const requests = useSelector(selectCurrentRequests);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
   const [isChecked, setIsChecked] = useState(false);
@@ -22,26 +29,37 @@ export const ListItem = ({ request = {}, ...props }) => {
   const isShowCheckbox = activeTab === REQUEST_TABS.CREATED;
 
   useEffect(
-    () => setIsChecked(selectedResults.some(item => item === request.id)),
-    [selectedResults, request.id]
+    () => setIsChecked(selectedResults.some(item => item === report.id)),
+    [selectedResults, report.id]
   );
 
   const handleRequestClick = () => {
     if (isChecked) {
-      deleteSelectedResult(request.id);
+      deleteSelectedResult(report.id);
     } else {
-      setSelectedResult(request.id);
-      if (request.name === CROP_MAP_LABEL && request.labels) {
+      setSelectedResult(report.id);
+      if (report.name === CROP_MAP_LABEL && report.labels) {
         setSidebarMode(SIDEBAR_MODE.CROP_MAP);
       }
     }
     setIsChecked(!isChecked);
   };
 
-  const isActive = selectedResults.some(item => item === request.id);
-
-  const isResult = request.hasOwnProperty('request');
-  const { name, filepath, notebook_name, end_date, date_to } = request;
+  const isActive = selectedResults.some(item => item === report.id);
+  const isResult = report.hasOwnProperty('request');
+  const { name, filepath, notebook_name } = report;
+  const hasData = !name?.includes(NO_DATA);
+  const reportName = isResult ? (name ? name : filepath) : notebook_name;
+  const reportDate = useMemo(() => {
+    const data = isResult ? requests.find(({ id }) => id === report.request) : report;
+    if (!data) return '';
+    const { date_from, date_to } = data;
+    if (date_from && date_to) {
+      return `${date_from} / ${date_to}`;
+    } else {
+      return '';
+    }
+  }, [isResult, report, requests]);
 
   return (
     <RequestListItem
@@ -53,12 +71,8 @@ export const ListItem = ({ request = {}, ...props }) => {
       {isShowCheckbox && <Checkbox checked={isChecked} />}
 
       <RequestListItemBody>
-        <RequestListItemText>
-          {isResult ? (name ? name : filepath) : notebook_name}
-        </RequestListItemText>
-        <RequestListItemText>
-          {isResult ? (end_date ? end_date : '') : date_to ? date_to : ''}
-        </RequestListItemText>
+        <RequestListItemText $hasData={hasData}>{reportName}</RequestListItemText>
+        <RequestListItemDate>{reportDate}</RequestListItemDate>
       </RequestListItemBody>
     </RequestListItem>
   );

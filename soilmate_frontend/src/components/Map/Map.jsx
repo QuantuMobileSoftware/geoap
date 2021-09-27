@@ -96,20 +96,23 @@ export const Map = () => {
 
   useEffect(() => {
     const polygon = initialAreas.find(area => area.id === currentAreaId);
-    if (!polygon || !map) {
+    if (polygon && map) {
+      setSelectedArea(polygon);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAreaId, map]);
+
+  useEffect(() => {
+    if (selectedResults.length || !selectedArea) {
       return;
     }
-    setSelectedArea(polygon);
-    if (selectedResults.length) {
-      return;
-    }
-    const { center, bounds } = getShapePositions(polygon);
+    const { center, bounds } = getShapePositions(selectedArea);
     if (isNaN(center.lat)) {
       map.panTo(bounds._northEast).fitBounds(bounds);
     } else {
       map.panTo(center).fitBounds(bounds);
     }
-  }, [currentAreaId, initialAreas, map, selectedResults]);
+  }, [map, selectedResults, selectedArea]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
   useMapRequests(selectedArea, map);

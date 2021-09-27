@@ -41,10 +41,10 @@ class ResultListAPIView(ListAPIView):
     
     Display fields: 'id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options',
                     'description', 'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request',
-                    'styles_url', 'labels'
+                    'styles_url', 'labels', 'colormap'.
                     
     Read-only fields: 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
-                      'request', 'styles_url', 'labels'
+                      'request', 'styles_url', 'labels', 'colormap'.
                       
     Returns: list of ResultModel fields.
     """
@@ -71,10 +71,10 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     
     Display fields: 'id', 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'options',
                     'description', 'released', 'start_date', 'end_date', 'name', 'to_be_deleted', 'request',
-                    'styles_url', 'labels'.
+                    'styles_url', 'labels', 'colormap'.
                     
     Read-only fields: 'filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
-                      'request', 'styles_url', 'labels'.
+                      'request', 'styles_url', 'labels', 'colormap'.
 
     Returns: ResultModel fields.
     """

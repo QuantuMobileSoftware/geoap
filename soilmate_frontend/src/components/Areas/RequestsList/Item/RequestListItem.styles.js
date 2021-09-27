@@ -9,10 +9,20 @@ export const RequestListItemText = styled(Typography).attrs({
   element: 'h4',
   variant: 'body1'
 })`
-  line-height: ${rem(16)};
-  cursor: pointer;
+  ${({ theme: { colors }, $hasData }) => css`
+    color: ${$hasData ? colors.nature.n5 : colors.danger};
+    line-height: ${rem(16)};
+    cursor: pointer;
+  `}
 `;
 
+export const RequestListItemDate = styled.div`
+  ${({ theme }) => css`
+    margin-top: ${rem(4)};
+    color: ${theme.colors.nature.n4};
+    font-size: ${em(13)};
+  `}
+`;
 export const RequestListItemBody = styled.div`
   display: flex;
   flex-direction: column;
