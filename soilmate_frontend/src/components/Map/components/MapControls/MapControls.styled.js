@@ -15,11 +15,9 @@ export const MapButton = styled(Button)`
 `;
 
 export const MapButtonsHolder = styled.div`
-  ${() => css`
-    ${mapControlsPosition};
-    display: flex;
-    flex-direction: column;
-    bottom: ${rem(110)};
-    z-index: 400;
-  `}
+  ${mapControlsPosition};
+  display: flex;
+  flex-direction: column;
+  bottom: ${rem(110)};
+  z-index: 400;
 `;
