@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { MapButtonsHolder, MapButton } from '../Map.styles';
+import { MapButtonsHolder, MapButton } from './MapControls.styled';
 
 export const MapControls = ({ map }) => {
   const handleIncreaseZoom = useCallback(() => {
