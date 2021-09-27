@@ -65,16 +65,16 @@ export const Map = () => {
   const activeTab = useSelector(selectRequestTab);
   const { addNewArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
-  const hasSelectedResults = !!selectedResults.length;
-  const hasColorBar = useMemo(() => {
-    if (currentAreaId && hasSelectedResults) {
+  const isCreatedTab = activeTab === REQUEST_TABS.CREATED;
+  const colorMap = useMemo(() => {
+    if (currentAreaId && !!selectedResults.length && isCreatedTab) {
       return areasObject[currentAreaId].results[
         selectedResults[selectedResults.length - 1]
-      ].name.includes('NDVI');
+      ].colormap;
     }
-  }, [selectedResults, areasObject, currentAreaId, hasSelectedResults]);
+  }, [selectedResults, areasObject, currentAreaId, isCreatedTab]);
 
-  const isShowRange = selectedResults.length && activeTab === REQUEST_TABS.CREATED;
+  const isShowRange = selectedResults.length && isCreatedTab;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
@@ -235,8 +235,8 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {map && hasColorBar ? <MapColorBar /> : null}
-      {map && hasSelectedResults ? <MapRange /> : null}
+      {map && !!colorMap ? <MapColorBar colorMap={JSON.parse(colorMap)} /> : null}
+      {map && isShowRange ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
           header={PopupHeaderText}
