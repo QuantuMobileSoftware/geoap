@@ -14,13 +14,14 @@ import {
   REQUEST_TABS
 } from '_constants';
 import { areasEvents } from '_events';
-import { MapControls, MapPolygon, MapRange } from './components';
+import { MapColorBar, MapControls, MapRange, MapPolygon } from './components';
 import { Popup } from 'components/_shared/Popup';
 import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import {
   selectAreasList,
+  selectAreas,
   selectCurrentArea,
   useAreasActions,
   selectSidebarMode,
@@ -56,6 +57,7 @@ export const Map = () => {
   const [selectedArea, setSelectedArea] = useState();
 
   const initialAreas = useSelector(selectAreasList);
+  const areasObject = useSelector(selectAreas);
   const currentAreaId = useSelector(selectCurrentArea);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
@@ -63,7 +65,16 @@ export const Map = () => {
   const activeTab = useSelector(selectRequestTab);
   const { addNewArea, setCurrentArea, setSidebarMode } = useAreasActions();
 
-  const isShowRange = selectedResults.length && activeTab === REQUEST_TABS.CREATED;
+  const isCreatedTab = activeTab === REQUEST_TABS.CREATED;
+  const colorMap = useMemo(() => {
+    if (currentAreaId && !!selectedResults.length && isCreatedTab) {
+      return areasObject[currentAreaId].results[
+        selectedResults[selectedResults.length - 1]
+      ].colormap;
+    }
+  }, [selectedResults, areasObject, currentAreaId, isCreatedTab]);
+
+  const isShowRange = selectedResults.length && isCreatedTab;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
@@ -224,6 +235,7 @@ export const Map = () => {
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
+      {map && !!colorMap ? <MapColorBar colorMap={JSON.parse(colorMap)} /> : null}
       {map && isShowRange ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
