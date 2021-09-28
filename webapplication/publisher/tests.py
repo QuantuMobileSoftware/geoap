@@ -335,6 +335,8 @@ class PublisherBase(APITestCase):
         {'color': (183, 255, 63), 'name': 'Developed areas', 'area': 2.4049}, \
         {'color': (255, 185, 0), 'name': 'Forest', 'area': 1.8071}, \
         {'color': (255, 48, 0), 'name': 'Grassland/Pasture', 'area': 2.4144}]"
+        self.colormap = '{"name": "Vegetation index", "colors": ["0,0,0", "3,1,1", "5,1,1", "8,1,1", "10,1,1"], \
+        "labels": ["low", "high"]}'
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
         self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
@@ -357,7 +359,8 @@ class PublisherBase(APITestCase):
                             end_date=end_date,
                             request_id=request_id,
                             labels=self.geotiff_labels,
-                            name=name)
+                            name=name,
+                            colormap=self.colormap)
             dst.write(raster, 1)
 
     @staticmethod
@@ -499,6 +502,7 @@ class GeotifPublisherTestCase(PublisherBase):
             self.assertEqual(str(self.test_tile_png_path), result.rel_url)
             self.assertEqual(result.layer_type, 'XYZ')
             self.assertEqual(result.labels, self.geotiff_labels)
+            self.assertEqual(result.colormap, self.colormap)
 
 
 class DeleteGeotifPublisherTestCase(PublisherBase):
