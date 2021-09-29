@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 
-import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS } from '_constants';
+import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS, NO_DATA } from '_constants';
 import {
   useAreasActions,
   getSelectedResults,
@@ -48,6 +48,7 @@ export const ListItem = ({ report = {}, ...props }) => {
   const isActive = selectedResults.some(item => item === report.id);
   const isResult = report.hasOwnProperty('request');
   const { name, filepath, notebook_name } = report;
+  const hasData = !name?.includes(NO_DATA);
   const reportName = isResult ? (name ? name : filepath) : notebook_name;
   const reportDate = useMemo(() => {
     const data = isResult ? requests.find(({ id }) => id === report.request) : report;
@@ -70,7 +71,7 @@ export const ListItem = ({ report = {}, ...props }) => {
       {isShowCheckbox && <Checkbox checked={isChecked} />}
 
       <RequestListItemBody>
-        <RequestListItemText>{reportName}</RequestListItemText>
+        <RequestListItemText $hasData={hasData}>{reportName}</RequestListItemText>
         <RequestListItemDate>{reportDate}</RequestListItemDate>
       </RequestListItemBody>
     </RequestListItem>

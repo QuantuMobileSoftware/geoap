@@ -121,7 +121,6 @@ export const Sidebar = forwardRef(
             </ModalItem>
             <ModalItem
               header='Rectangle selection'
-              title='Lorem ipsum dolor sit amet'
               icon='Rectangle'
               onClick={() => {
                 handleNewShape(SHAPE_NAMES.RECTANGLE);
@@ -129,7 +128,6 @@ export const Sidebar = forwardRef(
             />
             <ModalItem
               header='Polygon selection'
-              title='Lorem ipsum dolor sit amet'
               icon='Polygon'
               onClick={() => {
                 handleNewShape(SHAPE_NAMES.POLYGON);

@@ -53,6 +53,7 @@ class File(metaclass=ABCMeta):
         self.request = None
         self.style_url = None
         self.labels = ""
+        self.colormap = ""
 
     def filename(self):
         return os.path.basename(self.path)
@@ -111,7 +112,8 @@ class File(metaclass=ABCMeta):
                      end_date=None,
                      request=None,
                      released=False,
-                     labels=self.labels)
+                     labels=self.labels,
+                     colormap=self.colormap)
 
         if self.name:
             dict_['name'] = self.name
@@ -285,6 +287,7 @@ class Geotif(File):
                 self.end_date = tags.get('end_date')
                 self.request = tags.get('request_id')
                 self.labels = tags.get('labels')
+                self.colormap = tags.get('colormap')
         except Exception as ex:
             logger.error(f"Cannot read file {self.path}: {str(ex)}")
 

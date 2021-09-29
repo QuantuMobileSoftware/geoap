@@ -37,7 +37,7 @@ export const AreasEdit = ({ currentArea }) => {
   const mode = currentArea.type === AOI_TYPE.AREA ? AREAS : FIELDS;
 
   useEffect(() => {
-    if (error.name) {
+    if (error.status === 400) {
       setErrorName('This name already exists');
     }
   }, [error]);

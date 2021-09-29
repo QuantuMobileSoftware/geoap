@@ -11,7 +11,7 @@ import {
   StyledFormField
 } from './FormField.styles';
 
-import { InputText } from 'components/_shared/Input';
+import { InputText, TextArea } from 'components/_shared/Input';
 
 import { withFunction, mergeProps } from 'utils';
 
@@ -20,7 +20,8 @@ const FIELD_TYPE_CONTROLS = {
   text: <InputText type='text' />,
   email: <InputText type='email' />,
   password: <InputText type='password' />,
-  number: <InputText type='number' />
+  number: <InputText type='number' />,
+  textArea: <TextArea />
 };
 
 let previousFieldId = 0;
