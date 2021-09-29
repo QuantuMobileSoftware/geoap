@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Range } from 'react-range';
 import { useMapActions } from 'state';
-import { StyledMapRange, RangeThumb, RangeTrack } from '../Map.styles';
+import { StyledMapRange, RangeThumb, RangeTrack } from './MapRange.styles';
 
 export const MapRange = () => {
   const { setLayerOpacity } = useMapActions();
