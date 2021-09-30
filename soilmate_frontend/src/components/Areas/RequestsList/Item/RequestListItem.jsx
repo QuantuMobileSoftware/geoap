@@ -4,12 +4,7 @@ import { useSelector } from 'react-redux';
 import { Checkbox } from 'components/_shared/Checkbox';
 
 import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS, NO_DATA } from '_constants';
-import {
-  useAreasActions,
-  getSelectedResults,
-  selectRequestTab,
-  selectCurrentRequests
-} from 'state';
+import { useAreasActions, getSelectedResults, selectRequestTab } from 'state';
 
 import {
   RequestListItemBody,
@@ -21,7 +16,6 @@ import {
 export const ListItem = ({ report = {}, ...props }) => {
   const selectedResults = useSelector(getSelectedResults);
   const activeTab = useSelector(selectRequestTab);
-  const requests = useSelector(selectCurrentRequests);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
   const [isChecked, setIsChecked] = useState(false);
@@ -50,16 +44,15 @@ export const ListItem = ({ report = {}, ...props }) => {
   const { name, filepath, notebook_name } = report;
   const hasData = !name?.includes(NO_DATA);
   const reportName = isResult ? (name ? name : filepath) : notebook_name;
+
   const reportDate = useMemo(() => {
-    const data = isResult ? requests.find(({ id }) => id === report.request) : report;
-    if (!data) return '';
-    const { date_from, date_to } = data;
-    if (date_from && date_to) {
-      return `${date_from} / ${date_to}`;
+    const { date_from, date_to, start_date, end_date } = report;
+    if (date_from || date_to || start_date || end_date) {
+      return `${date_from ?? start_date ?? '-'} / ${date_to ?? end_date ?? '-'}`;
     } else {
       return '';
     }
-  }, [isResult, report, requests]);
+  }, [report]);
 
   return (
     <RequestListItem

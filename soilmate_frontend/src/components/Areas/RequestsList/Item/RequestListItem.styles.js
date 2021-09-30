@@ -13,6 +13,9 @@ export const RequestListItemText = styled(Typography).attrs({
     color: ${$hasData ? colors.nature.n5 : colors.danger};
     line-height: ${rem(16)};
     cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: ${em(290)};
   `}
 `;
 
