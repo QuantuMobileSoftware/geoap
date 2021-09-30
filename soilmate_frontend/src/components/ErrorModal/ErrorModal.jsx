@@ -20,7 +20,7 @@ export const ErrorModal = () => {
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
-      if (error.config.method === 'get') {
+      if (error.config?.method === 'get') {
         return;
       }
       setError(error);
@@ -40,6 +40,11 @@ export const ErrorModal = () => {
 
   const handleCloseModal = () => setError(null);
 
+  const handleOpenContactUs = () => {
+    setError(null);
+    areasEvents.toggleContactUs(true);
+  };
+
   return (
     error && (
       <Modal close={handleCloseModal} textCenter={true}>
@@ -47,6 +52,9 @@ export const ErrorModal = () => {
         <ButtonWrapper>
           <Button variant='secondary' onClick={handleCloseModal}>
             Close
+          </Button>
+          <Button variant='primary' onClick={handleOpenContactUs}>
+            Send request
           </Button>
         </ButtonWrapper>
       </Modal>
