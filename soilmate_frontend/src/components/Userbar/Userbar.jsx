@@ -23,7 +23,7 @@ export const Userbar = ({ ...props }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLogOut = () => {
-    logout();
+    logout(true);
     resetAreasState();
   };
 
