@@ -4,15 +4,14 @@ import { send } from 'emailjs-com';
 
 import { Modal } from 'components/_shared/Modal';
 import { Form } from 'components/_shared/Form';
-import { Button } from 'components/_shared/Button';
 
 import { areasEvents } from '_events';
 import { StyledFormField, StyledButton } from './ContactUs.styles';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required(),
-  email: Yup.string().email().required(),
-  message: Yup.string().required()
+  name: Yup.string().required().max(100),
+  email: Yup.string().email().required().max(100),
+  message: Yup.string().required().max(500)
 });
 
 const MESSAGE_ERROR = 'Failed to send your message, please try again later';
@@ -60,6 +59,7 @@ export const ContactUs = () => {
   const handleCloseContactUs = () => {
     setIsFormOpen(false);
     setIsModalOpen(false);
+    setIsDisabledSend(false);
   };
 
   if (!isFormOpen) return null;
@@ -68,9 +68,9 @@ export const ContactUs = () => {
     <>
       <Modal header={modalTitle} close={handleCloseContactUs} textCenter={isModalOpen}>
         {isModalOpen ? (
-          <Button variant='primary' onClick={handleCloseContactUs}>
-            Cancel
-          </Button>
+          <StyledButton variant='primary' onClick={handleCloseContactUs}>
+            Ok
+          </StyledButton>
         ) : (
           <Form
             initialValues={{
