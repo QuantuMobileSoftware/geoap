@@ -59,7 +59,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const handleNoteBookChange = item => setNotebook(item.value);
 
   const handleYearChange = item => {
-    setStartDate(new Date(item.value, 1));
+    setStartDate(new Date(item.value, 0));
     setEndDate(null);
   };
 
