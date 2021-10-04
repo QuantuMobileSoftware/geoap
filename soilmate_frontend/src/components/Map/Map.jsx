@@ -37,7 +37,7 @@ import { useMapRequests } from './useMapRequests';
 
 const center = [51.505, -0.09];
 const initZoom = 14;
-const { FIELDS, EDIT } = SIDEBAR_MODE;
+const { FIELDS, EDIT, AREAS } = SIDEBAR_MODE;
 
 const getShapePositions = polygon => {
   const latLangs = getPolygonPositions(polygon).coordinates[0];
@@ -176,6 +176,7 @@ export const Map = () => {
     const center = polygon.getCenter();
     const bounds = polygon.getBounds();
     map.panTo(center).fitBounds(bounds);
+    setSidebarMode(selectedArea.type === AOI_TYPE.AREA ? AREAS : FIELDS);
     setCurrentArea(id);
   };
 
