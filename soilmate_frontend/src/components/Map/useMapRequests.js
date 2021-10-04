@@ -18,6 +18,7 @@ export const useMapRequests = (selectedArea, map) => {
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const [renderedLayers, setRenderedLayers] = useState([]);
+  const [prevRenderedLayers, setPrevRenderedLayers] = useState([]);
 
   useEffect(() => {
     const selectedResults = [];
@@ -122,6 +123,10 @@ export const useMapRequests = (selectedArea, map) => {
         addLayerInMap(layer, selectedLayer);
       }
 
+      if (prevRenderedLayers.length === renderedLayers.length) {
+        return;
+      }
+      setPrevRenderedLayers(renderedLayers);
       const lastId = last(renderedLayers)?.id;
       if (lastId) {
         const layer = selectedResults.find(l => l.id === lastId);
@@ -132,7 +137,7 @@ export const useMapRequests = (selectedArea, map) => {
         }
       }
     });
-  }, [map, selectedArea, results, renderedLayers]);
+  }, [map, selectedArea, results, renderedLayers, prevRenderedLayers]);
 
   useEffect(() => {
     const selectedLayer = last(renderedLayers);
