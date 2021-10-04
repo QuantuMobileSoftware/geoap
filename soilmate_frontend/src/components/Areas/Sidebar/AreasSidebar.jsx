@@ -22,15 +22,6 @@ import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
 const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, CROP_MAP } = SIDEBAR_MODE;
 
-const sidebarHeaders = {
-  [AREAS]: 'My areas',
-  [EDIT]: 'Edit my area',
-  [REQUESTS]: '',
-  [CREATE_REQUEST]: 'Create new report',
-  [FIELDS]: 'My fields',
-  [CROP_MAP]: 'Crop map'
-};
-
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
 
@@ -40,9 +31,14 @@ export const AreasSidebar = ({ ...props }) => {
   const { getLayers, deleteSelectedResult } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
-  const sidebarHeader = `${sidebarHeaders[sidebarMode]} ${
-    sidebarMode === REQUESTS ? currentArea.name : ''
-  }`;
+  const sidebarHeaders = {
+    [AREAS]: 'My areas',
+    [EDIT]: `Edit my ${currentArea?.type === AOI_TYPE.AREA ? 'area' : 'field'}`,
+    [REQUESTS]: sidebarMode === REQUESTS ? currentArea.name : '',
+    [CREATE_REQUEST]: 'Create new report',
+    [FIELDS]: 'My fields',
+    [CROP_MAP]: 'Crop map'
+  };
 
   useEffect(() => {
     if (sidebarMode === FIELDS || sidebarMode === AREAS) {
@@ -94,7 +90,7 @@ export const AreasSidebar = ({ ...props }) => {
       <StyledAreasSidebar
         {...props}
         ref={rootRef}
-        heading={sidebarHeader}
+        heading={sidebarHeaders[sidebarMode]}
         withUnmountToggle={false}
       >
         {getSidebarContent()}
