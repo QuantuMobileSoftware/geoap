@@ -99,8 +99,7 @@ export const Map = () => {
     if (polygon && map) {
       setSelectedArea(polygon);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentAreaId, map]);
+  }, [currentAreaId, map, initialAreas]);
 
   useEffect(() => {
     if (selectedResults.length || !selectedArea) {
