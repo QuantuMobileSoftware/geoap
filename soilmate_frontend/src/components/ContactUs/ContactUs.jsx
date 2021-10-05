@@ -9,9 +9,9 @@ import { areasEvents } from '_events';
 import { StyledFormField, StyledButton } from './ContactUs.styles';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required().max(100),
+  name: Yup.string().trim().required().max(100),
   email: Yup.string().email().required().max(100),
-  message: Yup.string().required().max(500)
+  message: Yup.string().trim().required().max(500)
 });
 
 const MESSAGE_ERROR = 'Failed to send your message, please try again later';
@@ -60,6 +60,7 @@ export const ContactUs = () => {
     setIsFormOpen(false);
     setIsModalOpen(false);
     setIsDisabledSend(false);
+    setModalTitle(FORM_TITLE);
   };
 
   if (!isFormOpen) return null;
