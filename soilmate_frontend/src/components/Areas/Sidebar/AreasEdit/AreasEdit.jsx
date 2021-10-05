@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
+import { isEmpty } from 'lodash';
 
 import { useAreasActions, selectUser, getShapeCoords } from 'state';
 import { FormField, Form } from 'components/_shared/Form';
@@ -19,7 +20,9 @@ import {
 } from './AreasEdit.styles';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required()
+  name: Yup.string()
+    .required()
+    .max(200, 'The Area Name field contains more than 200 characters')
 });
 
 export const AreasEdit = ({ currentArea }) => {
@@ -38,7 +41,7 @@ export const AreasEdit = ({ currentArea }) => {
 
   useEffect(() => {
     if (error.status === 400) {
-      setErrorName('This name already exists');
+      setErrorName(error.data.name);
     }
   }, [error]);
 
@@ -101,7 +104,7 @@ export const AreasEdit = ({ currentArea }) => {
         }}
         validationSchema={validationSchema}
       >
-        {({ values }) => (
+        {({ values, errors }) => (
           <>
             <FormField
               autoFocus
@@ -109,6 +112,7 @@ export const AreasEdit = ({ currentArea }) => {
               name='name'
               placeholder='City...'
               error={errorName}
+              onBlur={() => setErrorName('')}
             />
             <Upload>
               <Button icon='Upload' onClick={handleOpenModal}>
@@ -121,7 +125,11 @@ export const AreasEdit = ({ currentArea }) => {
               <Button variant='secondary' padding={50} onClick={handleCloseEditing}>
                 Cancel
               </Button>
-              <Button variant='primary' onClick={handleSaveArea(values)}>
+              <Button
+                variant='primary'
+                onClick={handleSaveArea(values)}
+                disabled={!isEmpty(errors)}
+              >
                 Save changes
               </Button>
             </ButtonWrapper>

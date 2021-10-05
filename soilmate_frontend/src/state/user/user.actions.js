@@ -20,12 +20,15 @@ export const useUserActions = () => {
     [dispatch, handleAsync]
   );
 
-  const logout = useCallback(() => {
-    handleAsync(async () => {
-      await API.auth.logout();
-      dispatch(userActions.logout());
-    });
-  }, [dispatch, handleAsync]);
+  const logout = useCallback(
+    isAutoLogged => {
+      handleAsync(async () => {
+        await API.auth.logout();
+        dispatch(userActions.logout(isAutoLogged));
+      });
+    },
+    [dispatch, handleAsync]
+  );
 
   const getCurrentUser = useCallback(async () => {
     try {
@@ -34,7 +37,7 @@ export const useUserActions = () => {
         dispatch(userActions.setEntity(user));
       });
     } catch (error) {
-      logout();
+      logout(false);
     }
   }, [dispatch, handleAsync, logout]);
 

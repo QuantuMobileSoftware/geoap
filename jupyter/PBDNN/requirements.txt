@@ -15,3 +15,4 @@ opencv-python-headless==4.5.1.48
 pytorch-lightning==0.10.0
 pytorch-toolbelt==0.4.2
 yacs==0.1.8
+geojson==2.5.0
