@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
+import { send } from 'emailjs-com';
 
 import { Modal } from 'components/_shared/Modal';
 import { Form } from 'components/_shared/Form';
@@ -8,61 +9,101 @@ import { areasEvents } from '_events';
 import { StyledFormField, StyledButton } from './ContactUs.styles';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required(),
-  email: Yup.string().email().required(),
-  message: Yup.string().required()
+  name: Yup.string().required().max(100),
+  email: Yup.string().email().required().max(100),
+  message: Yup.string().required().max(500)
 });
 
+const MESSAGE_ERROR = 'Failed to send your message, please try again later';
+const MESSAGE_SUCCESS = 'Your message has been successfully sent';
+const FORM_TITLE =
+  'Please leave your Name, email address and a message in the fields below:';
+const {
+  REACT_APP_EMAILJS_SERVICE_ID,
+  REACT_APP_EMAILJS_TEMPLATE_ID,
+  REACT_APP_EMAILJS_USER_ID
+} = process.env;
+
 export const ContactUs = () => {
-  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState(FORM_TITLE);
+  const [isDisabledSend, setIsDisabledSend] = useState(false);
+
   useEffect(() => {
-    return areasEvents.onToggleContactUs(isOpen => setIsOpenModal(isOpen));
+    return areasEvents.onToggleContactUs(isOpen => setIsFormOpen(isOpen));
   }, []);
 
   const handleSendForm = values => {
-    console.log(values); // send data to server
-    setIsOpenModal(false);
+    setIsDisabledSend(true);
+    send(
+      REACT_APP_EMAILJS_SERVICE_ID,
+      REACT_APP_EMAILJS_TEMPLATE_ID,
+      values,
+      REACT_APP_EMAILJS_USER_ID
+    )
+      .then(
+        () => {
+          setModalTitle(MESSAGE_SUCCESS);
+        },
+        () => {
+          setModalTitle(MESSAGE_ERROR);
+        }
+      )
+      .then(() => {
+        setIsModalOpen(true);
+        setIsDisabledSend(false);
+      });
   };
 
-  const handleCloseContactUs = () => setIsOpenModal(false);
+  const handleCloseContactUs = () => {
+    setIsFormOpen(false);
+    setIsModalOpen(false);
+    setIsDisabledSend(false);
+  };
 
-  if (!isOpenModal) return null;
+  if (!isFormOpen) return null;
 
   return (
-    <Modal
-      header='Please leave your Name, email address and a message in the fields below:'
-      close={handleCloseContactUs}
-    >
-      <Form
-        initialValues={{
-          name: '',
-          email: '',
-          message: ''
-        }}
-        validationSchema={validationSchema}
-        onSubmit={handleSendForm}
-      >
-        {() => (
-          <>
-            <StyledFormField autoFocus label='Name' name='name' placeholder='Name' />
-            <StyledFormField
-              label='Email'
-              name='email'
-              placeholder='Email'
-              type='email'
-            />
-            <StyledFormField
-              label='Message'
-              name='message'
-              placeholder='Message'
-              type='textArea'
-            />
-            <StyledButton type='submit' variant='primary'>
-              Send
-            </StyledButton>
-          </>
+    <>
+      <Modal header={modalTitle} close={handleCloseContactUs} textCenter={isModalOpen}>
+        {isModalOpen ? (
+          <StyledButton variant='primary' onClick={handleCloseContactUs}>
+            Ok
+          </StyledButton>
+        ) : (
+          <Form
+            initialValues={{
+              name: '',
+              email: '',
+              message: ''
+            }}
+            validationSchema={validationSchema}
+            onSubmit={handleSendForm}
+          >
+            {() => (
+              <>
+                <StyledFormField autoFocus label='Name' name='name' placeholder='Name' />
+                <StyledFormField
+                  label='Email'
+                  name='email'
+                  placeholder='Email'
+                  type='email'
+                />
+                <StyledFormField
+                  label='Message'
+                  name='message'
+                  placeholder='Message'
+                  type='textArea'
+                />
+                <StyledButton type='submit' variant='primary' disabled={isDisabledSend}>
+                  Send
+                </StyledButton>
+              </>
+            )}
+          </Form>
         )}
-      </Form>
-    </Modal>
+      </Modal>
+    </>
   );
 };

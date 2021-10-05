@@ -10,7 +10,8 @@ const USER_DEFAULT_STATE = {
   email: '',
   first_name: '',
   last_name: '',
-  isAuthorized: false
+  isAuthorized: false,
+  isAutoLogged: false
 };
 
 const USER_INITIAL_STATE = mergeObjects(USER_DEFAULT_STATE, {
@@ -25,7 +26,10 @@ const userSlice = createSlice({
       state.isAuthorized = true;
     },
 
-    logout: () => USER_DEFAULT_STATE,
+    logout: (state, action) =>
+      mergeObjects(USER_DEFAULT_STATE, {
+        isAutoLogged: action.payload
+      }),
 
     setEntity: (state, action) => mergeObjects(state, action.payload)
   }
@@ -39,3 +43,5 @@ export const selectIsAuthorized = createSelector(
   selectUser,
   ({ isAuthorized }) => isAuthorized
 );
+
+export const selectIsAutoLogged = state => state.user.isAutoLogged;
