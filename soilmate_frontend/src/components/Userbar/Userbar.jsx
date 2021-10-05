@@ -22,6 +22,8 @@ export const Userbar = ({ ...props }) => {
   const { resetAreasState } = useAreasActions();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const hasDemoUser = process.env.REACT_APP_AUTOLOGIN === user.username;
+
   const handleLogOut = () => {
     logout(true);
     resetAreasState();
@@ -31,23 +33,29 @@ export const Userbar = ({ ...props }) => {
 
   return (
     <>
-      <StyledUserbar {...props} onClick={() => menuRef.current.toggle()}>
-        <UserbarAvatar src={user.avatar} backdropIcon='User' />
+      {hasDemoUser ? (
+        <Button variant='primary' onClick={handleLogOut}>
+          Log in
+        </Button>
+      ) : (
+        <StyledUserbar {...props} onClick={() => menuRef.current.toggle()}>
+          <UserbarAvatar src={user.avatar} backdropIcon='User' />
 
-        <UserbarName>{getUserName(user)}</UserbarName>
+          <UserbarName>{getUserName(user)}</UserbarName>
 
-        <UserbarMenu
-          ref={menuRef}
-          toggleIcon='ExpandDown'
-          clickOutsideParams={{
-            ignoredClassNames: [getStyledComponentClassName(StyledUserbar)]
-          }}
-        >
-          <Button icon='LogOut' onClick={handleToggleModal}>
-            Log Out
-          </Button>
-        </UserbarMenu>
-      </StyledUserbar>
+          <UserbarMenu
+            ref={menuRef}
+            toggleIcon='ExpandDown'
+            clickOutsideParams={{
+              ignoredClassNames: [getStyledComponentClassName(StyledUserbar)]
+            }}
+          >
+            <Button icon='LogOut' onClick={handleToggleModal}>
+              Log Out
+            </Button>
+          </UserbarMenu>
+        </StyledUserbar>
+      )}
       {isModalOpen && (
         <Modal
           header='Are you sure to log out from account?'
