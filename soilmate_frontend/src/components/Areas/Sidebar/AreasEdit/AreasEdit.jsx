@@ -20,9 +20,7 @@ import {
 } from './AreasEdit.styles';
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string()
-    .required()
-    .max(200, 'The Area Name field contains more than 200 characters')
+  name: Yup.string().required().max(200, 'This field contains more than 200 characters')
 });
 
 export const AreasEdit = ({ currentArea }) => {
