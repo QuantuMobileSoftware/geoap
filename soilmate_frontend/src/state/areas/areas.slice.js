@@ -57,7 +57,6 @@ const areasSlice = createSlice({
       state.entities = omit(state.entities, action.payload);
     },
     setSidebarMode: (state, action) => {
-      state.selectedResults = [];
       state.mode = action.payload;
     },
     setRequestTab: (state, action) => {
