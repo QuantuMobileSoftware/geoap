@@ -53,6 +53,7 @@ export const useMapRequests = (selectedArea, map) => {
       let layer = null;
       let selectedLeafletLayer = null;
       let layerStyle = null;
+
       if (selectedLayer.layer_type === 'GEOJSON') {
         layer = L.geoJSON(undefined, {
           style: feature => {
@@ -113,6 +114,9 @@ export const useMapRequests = (selectedArea, map) => {
             }
           },
           interactive: true
+        });
+        layer.addEventListener('click', e => {
+          console.log('latlng', e.latlng); //send to server
         });
         addLayerInMap(layer, selectedLayer);
       } else if (selectedLayer.layer_type === 'XYZ') {
