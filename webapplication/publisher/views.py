@@ -120,8 +120,7 @@ class FieldFromResultCreateAPIView(CreateAPIView):
         point = Point(point_serializer.validated_data['lat'], point_serializer.validated_data['lng'])
         try:
             df = gpd.read_file(Path(settings.RESULTS_FOLDER) / result.filepath)
-        except Exception as ex:
-            print(f"Cannot read file {result.filepath}: {str(ex)}")
+        except Exception:
             raise APIException(detail=f'result with id {self.kwargs[self.lookup_url_kwarg]} \
             does not contain valid geojson')
 
