@@ -20,6 +20,7 @@ export const ErrorModal = () => {
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
+      console.log(error);
       if (error.config?.method === 'get') {
         return;
       }
