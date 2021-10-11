@@ -3,18 +3,21 @@ import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import { last } from 'lodash';
-import { getSelectedResults, getLayerOpacity } from 'state';
+import { getSelectedResults, getLayerOpacity, useAreasActions } from 'state';
+import { API } from 'api';
 import {
   EDITABLE_SHAPE_OPTIONS,
   SHAPE_OPTIONS,
   FILL_OPACITY,
   MODAL_TYPE,
-  NO_DATA
+  NO_DATA,
+  SIDEBAR_MODE
 } from '_constants';
 import { areasEvents } from '_events';
 import { getPolygonPositions } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
+  const { addNewArea, setSidebarMode } = useAreasActions();
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const [renderedLayers, setRenderedLayers] = useState([]);
@@ -115,8 +118,14 @@ export const useMapRequests = (selectedArea, map) => {
           },
           interactive: true
         });
-        layer.addEventListener('click', e => {
-          console.log('latlng', e.latlng); //send to server
+        layer.addEventListener('click', async e => {
+          console.log('latlng', e.latlng, selectedLayer); //send to server
+          const polygon = await API.areas.getField(
+            selectedLayer.id,
+            JSON.stringify(e.latlng)
+          );
+          addNewArea(getPolygonPositions(polygon).coordinates[0]);
+          setSidebarMode(SIDEBAR_MODE.EDIT);
         });
         addLayerInMap(layer, selectedLayer);
       } else if (selectedLayer.layer_type === 'XYZ') {
@@ -141,7 +150,15 @@ export const useMapRequests = (selectedArea, map) => {
         }
       }
     });
-  }, [map, selectedArea, results, renderedLayers, prevRenderedLayers]);
+  }, [
+    map,
+    selectedArea,
+    results,
+    renderedLayers,
+    prevRenderedLayers,
+    addNewArea,
+    setSidebarMode
+  ]);
 
   useEffect(() => {
     const selectedLayer = last(renderedLayers);
