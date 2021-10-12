@@ -14,3 +14,11 @@ class ResultSerializer(serializers.ModelSerializer):
         
         read_only_fields = ['filepath', 'modifiedat', 'layer_type', 'bounding_polygon', 'rel_url', 'to_be_deleted',
                             'request', 'styles_url', 'labels', 'colormap']
+
+
+class PointSerializer(serializers.Serializer):
+    lat = serializers.FloatField()
+    lng = serializers.FloatField()
+    
+    class Meta:
+        fields = ['lat', 'lng']
