@@ -29,6 +29,15 @@ export const ApplyButton = styled(Button)`
   display: block;
   width: ${em(220)};
   margin: auto;
+  margin-top: ${em(30)};
+  clear: both;
+`;
+
+export const WarningText = styled.p`
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: ${rem(9)};
+  text-align: center;
+  clear: both;
 `;
 
 export const StyledIcon = styled(Icon)`
@@ -60,12 +69,12 @@ export const StyledCalendarContainer = styled.div`
 
     return css`
       position: relative;
-      width: ${em(260)};
+      width: ${em(520)};
       background: ${theme.colors.nature.n0};
       padding-bottom: 10px;
       & .react-datepicker__month-container {
-        width: 100%;
-        margin-bottom: ${em(30)};
+        width: 50%;
+        margin-bottom: ${em(20)};
       }
       & .react-datepicker__day--today {
         font-weight: normal;
@@ -76,6 +85,9 @@ export const StyledCalendarContainer = styled.div`
       & .react-datepicker__day--keyboard-selected {
         background: ${theme.colors.nature.n0};
         color: ${theme.colors.nature.n5};
+        &.react-datepicker__day--disabled {
+          color: #cccccc;
+        }
       }
       & .react-datepicker__day--in-range {
         color: ${theme.colors.nature.n5};

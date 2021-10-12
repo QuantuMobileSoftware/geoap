@@ -85,13 +85,13 @@ export const CreateRequest = ({ areas, currentArea }) => {
           label='Year'
           value={new Date().getFullYear()}
         />
-
         <Calendar
           startDate={startDate}
           endDate={endDate}
           setStartDate={setStartDate}
           setEndDate={setEndDate}
           title='Date range'
+          notebook={notebook}
         />
       </SelectsWrapper>
       <ButtonWrapper>

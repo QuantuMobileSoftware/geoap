@@ -63,7 +63,8 @@ export const Map = () => {
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
   const activeTab = useSelector(selectRequestTab);
-  const { addNewArea, setCurrentArea, setSidebarMode } = useAreasActions();
+  const { addNewArea, setCurrentArea, setSidebarMode, deleteSelectedResult } =
+    useAreasActions();
 
   const isCreatedTab = activeTab === REQUEST_TABS.CREATED;
   const colorMap = useMemo(() => {
@@ -172,11 +173,14 @@ export const Map = () => {
   };
 
   const handlePolygonClick = id => polygon => {
-    const center = polygon.getCenter();
-    const bounds = polygon.getBounds();
-    map.panTo(center).fitBounds(bounds);
+    if (!currentAreaId) {
+      setCurrentArea(id);
+    }
+    if (id === currentAreaId || !selectedArea) return;
     setSidebarMode(selectedArea.type === AOI_TYPE.AREA ? AREAS : FIELDS);
     setCurrentArea(id);
+    deleteSelectedResult();
+    map.panTo(polygon.getCenter()).fitBounds(polygon.getBounds());
   };
 
   return (
