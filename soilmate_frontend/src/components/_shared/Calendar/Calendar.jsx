@@ -6,8 +6,12 @@ import {
   StyledIcon,
   StyledCalendarContainer,
   CalendarDay,
-  CalendarTitle
+  CalendarTitle,
+  WarningText
 } from './Calendar.styles';
+
+const oneDay = 86400000;
+const minRangeInDays = 55;
 
 const CalendarInput = forwardRef(({ value, onClick, open }, ref) => {
   return (
@@ -26,7 +30,14 @@ const renderDayContents = day => {
   );
 };
 
-export const Calendar = ({ startDate, endDate, setStartDate, setEndDate, title }) => {
+export const Calendar = ({
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
+  title,
+  notebook
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const calendarRef = useRef(null);
 
@@ -36,10 +47,33 @@ export const Calendar = ({ startDate, endDate, setStartDate, setEndDate, title }
     setEndDate(endDate);
   };
 
+  const isCropType = notebook === 3;
+  const filterDate = date => {
+    if (!isCropType || !date) return true;
+    const now = date.getTime();
+    const daysRange = oneDay * minRangeInDays;
+    const dateStart = new Date(date.getFullYear(), 4, 1).getTime();
+    const dateEnd = new Date(date.getFullYear(), 8, 30).getTime();
+    let _dateEnd = dateEnd - daysRange;
+    if (startDate && !endDate) {
+      _dateEnd = dateEnd;
+      const startMinRange = startDate.getTime();
+      const endMinRange = startDate.getTime() + daysRange;
+      if (startMinRange < now && now < endMinRange) return false;
+    }
+    return dateStart <= now && now <= _dateEnd;
+  };
+
   const CalendarContainer = ({ children }) => {
     return (
       <StyledCalendarContainer>
         <div>{children}</div>
+        {isCropType && (
+          <WarningText>
+            You can choose only dates from May to September to have actual result. Select
+            at least 55 days
+          </WarningText>
+        )}
         <ApplyButton variant='primary' onClick={() => calendarRef.current.setOpen(false)}>
           apply
         </ApplyButton>
@@ -51,7 +85,6 @@ export const Calendar = ({ startDate, endDate, setStartDate, setEndDate, title }
     <>
       {title && <CalendarTitle>{title}</CalendarTitle>}
       <DatePicker
-        selected={startDate}
         onChange={handleOnChange}
         startDate={startDate}
         endDate={endDate}
@@ -64,6 +97,8 @@ export const Calendar = ({ startDate, endDate, setStartDate, setEndDate, title }
         calendarContainer={CalendarContainer}
         ref={calendarRef}
         renderDayContents={renderDayContents}
+        filterDate={filterDate}
+        monthsShown={2}
       />
     </>
   );
