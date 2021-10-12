@@ -10,8 +10,8 @@ import {
   WarningText
 } from './Calendar.styles';
 
-const oneDay = 86400000;
-const minRangeInDays = 55;
+const ONE_DAY = 86400000;
+const MIN_DAYS = 55;
 
 const CalendarInput = forwardRef(({ value, onClick, open }, ref) => {
   return (
@@ -51,7 +51,7 @@ export const Calendar = ({
   const filterDate = date => {
     if (!isCropType || !date) return true;
     const now = date.getTime();
-    const daysRange = oneDay * minRangeInDays;
+    const daysRange = ONE_DAY * MIN_DAYS;
     const dateStart = new Date(date.getFullYear(), 4, 1).getTime();
     const dateEnd = new Date(date.getFullYear(), 8, 30).getTime();
     let _dateEnd = dateEnd - daysRange;
