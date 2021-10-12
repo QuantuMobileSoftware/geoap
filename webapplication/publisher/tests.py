@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import rasterio
 import geopandas
+import shapely.wkt
 from rasterio import Affine
 from rasterio.crs import CRS
 from geojson import Feature, FeatureCollection, Polygon
@@ -560,6 +561,45 @@ class CleanGeojsonPublisherTestCase(PublisherBase):
         command.handle()
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
+        
+        
+class PbdnnGeojsonPublisherTestCase(UserBase, PublisherBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+                'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json',
+                'aoi/fixtures/request_fixtures.json',
+                ]
+    
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
+    def create_pbdnn_geojson(self):
+        fixture_path = Path('publisher/fixtures/')
+        self.geojson_name = Path('pbdnn.geojson')
+        self.input_geojson_path = fixture_path / self.geojson_name
+        shutil.copy(self.input_geojson_path, self.test_results_folder / self.geojson_name)
+    
+    def test_get_field_from_result(self):
+        lat = 6.77629528
+        lng = 49.8461371
+        polygon_orig_wkt = 'Polygon ((6.77515386 49.8471128, 6.77515386 49.8471128, 6.77515386 49.8471128, \
+                6.77515386 49.8471128, 6.77736484 49.84708319, 6.77738458 49.8452078, 6.77532166 49.84509923, \
+                6.77532166 49.84509923, 6.77533153 49.84509923, 6.77515386 49.8471128))'
+        self.create_pbdnn_geojson()
+        command = Command()
+        command.handle()
+        result = Result.objects.all().get(name="Fields' boundaries")
+        id = result.id
+        url = reverse('field_from_result', kwargs={'pk': id})
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.get(url, {'lat': lat, 'lng': lng})
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        polygon_response_wkt = content['polygon'].split(';')[1]
+        polygon_response = shapely.wkt.loads(polygon_response_wkt)
+        polygon_orig = shapely.wkt.loads(polygon_orig_wkt)
+        self.assertEqual(polygon_orig.almost_equals(polygon_response), True)
 
 
 class ResultTestCase(UserBase):
