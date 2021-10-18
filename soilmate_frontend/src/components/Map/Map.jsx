@@ -173,7 +173,10 @@ export const Map = () => {
   };
 
   const handlePolygonClick = id => polygon => {
-    if (id === currentAreaId) return;
+    if (!currentAreaId) {
+      setCurrentArea(id);
+    }
+    if (id === currentAreaId || !selectedArea) return;
     setSidebarMode(selectedArea.type === AOI_TYPE.AREA ? AREAS : FIELDS);
     setCurrentArea(id);
     deleteSelectedResult();
