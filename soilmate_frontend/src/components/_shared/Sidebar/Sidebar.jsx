@@ -23,9 +23,14 @@ import { ModalItem } from '../ModalItem';
 import { Button } from '../Button';
 import { FileUploader } from '../FileUploader';
 import { BreadCrumbs } from './BreadCrumbs';
-import { useAreaData } from 'hooks';
-import { MODAL_TYPE, SIDEBAR_MODE, AOI_TYPE, SHAPE_NAMES } from '_constants';
-import { useAreasActions, getSelectedEntitiesId, selectSidebarMode } from 'state';
+import { MODAL_TYPE, SIDEBAR_MODE, SHAPE_NAMES } from '_constants';
+import {
+  useAreasActions,
+  getSelectedEntitiesId,
+  selectSidebarMode,
+  selectCurrentArea,
+  selectAreasList
+} from 'state';
 
 import { areasEvents } from '_events';
 
@@ -52,12 +57,14 @@ export const Sidebar = forwardRef(
     const [isModalOpen, setIsModalOpen] = useState(isShowModal);
     const [modalType, setModalType] = useState(MODAL_TYPE.SAVE);
     const [removedAreaId, setRemovedAreaId] = useState();
-    const [fieldCoords, setFieldCoords] = useState();
+    const [prevAreaId, setPrevAreaId] = useState();
     const [isOpenUploader, setIsOpenUploader] = useState(false);
-    const { deleteArea, saveArea, setSidebarMode } = useAreasActions();
+    const { deleteArea, setSidebarMode, deleteNewArea, setCurrentArea } =
+      useAreasActions();
+    const currentAreaId = useSelector(selectCurrentArea);
+    const initialAreas = useSelector(selectAreasList);
     const selectedAreas = useSelector(getSelectedEntitiesId);
     const sidebarMode = useSelector(selectSidebarMode);
-    const fieldData = useAreaData(fieldCoords, AOI_TYPE.FIELD);
 
     const aoiType = sidebarMode === SIDEBAR_MODE.AREAS ? 'area' : 'field';
     const deleteAreasText =
@@ -101,7 +108,7 @@ export const Sidebar = forwardRef(
         if (e.data) {
           setModalType(e.data.type);
           setRemovedAreaId(e.data.id);
-          setFieldCoords(e.data.coordinates);
+          setPrevAreaId(e.data.prevArea);
         }
       });
     }, []);
@@ -164,14 +171,20 @@ export const Sidebar = forwardRef(
         header: 'Do you want to proceed to save the field?',
         content: () => (
           <ButtonWrapper>
-            <Button variant='secondary' onClick={() => areasEvents.toggleModal(false)}>
+            <Button
+              variant='secondary'
+              onClick={() => {
+                setCurrentArea(prevAreaId);
+                deleteNewArea(initialAreas.find(area => area.id === currentAreaId));
+                areasEvents.toggleModal(false);
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant='primary'
               onClick={async () => {
                 areasEvents.toggleModal(false);
-                await saveArea(fieldData);
                 setSidebarMode(SIDEBAR_MODE.EDIT);
               }}
             >
