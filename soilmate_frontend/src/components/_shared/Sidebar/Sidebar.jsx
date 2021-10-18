@@ -84,6 +84,17 @@ export const Sidebar = forwardRef(
       areasEvents.createShape(shape);
     };
 
+    const handleSaveField = () => {
+      areasEvents.toggleModal(false);
+      setSidebarMode(SIDEBAR_MODE.EDIT);
+    };
+
+    const handleCancelField = () => {
+      setCurrentArea(prevAreaId);
+      deleteNewArea(initialAreas.find(area => area.id === currentAreaId));
+      areasEvents.toggleModal(false);
+    };
+
     const newShapeFromFile = coordinates => {
       areasEvents.toggleModal(false);
       areasEvents.createShape(SHAPE_NAMES.POLYGON, coordinates);
@@ -171,23 +182,10 @@ export const Sidebar = forwardRef(
         header: 'Do you want to proceed to save the field?',
         content: () => (
           <ButtonWrapper>
-            <Button
-              variant='secondary'
-              onClick={() => {
-                setCurrentArea(prevAreaId);
-                deleteNewArea(initialAreas.find(area => area.id === currentAreaId));
-                areasEvents.toggleModal(false);
-              }}
-            >
+            <Button variant='secondary' onClick={handleCancelField}>
               Cancel
             </Button>
-            <Button
-              variant='primary'
-              onClick={async () => {
-                areasEvents.toggleModal(false);
-                setSidebarMode(SIDEBAR_MODE.EDIT);
-              }}
-            >
+            <Button variant='primary' onClick={handleSaveField}>
               Yes, save
             </Button>
           </ButtonWrapper>

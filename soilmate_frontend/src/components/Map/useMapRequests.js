@@ -11,12 +11,19 @@ import {
   selectAreasList
 } from 'state';
 import { API } from 'api';
-import { SHAPE_OPTIONS, FILL_OPACITY, MODAL_TYPE, NO_DATA, AOI_TYPE } from '_constants';
+import {
+  SHAPE_OPTIONS,
+  FILL_OPACITY,
+  MODAL_TYPE,
+  NO_DATA,
+  AOI_TYPE,
+  SIDEBAR_MODE
+} from '_constants';
 import { areasEvents } from '_events';
 import { getPolygonPositions, getNewAreaNumber, getShapePositionsString } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
-  const { addNewArea, setSidebarMode } = useAreasActions();
+  const { addNewArea, deleteSelectedResult, setSidebarMode } = useAreasActions();
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const currentUser = useSelector(selectUser);
@@ -32,6 +39,19 @@ export const useMapRequests = (selectedArea, map) => {
       type: 2
     }),
     [currentUser, initialAreas]
+  );
+
+  const addNewField = useCallback(
+    polygon => {
+      setSidebarMode(SIDEBAR_MODE.REQUESTS);
+      addNewArea(polygon);
+      deleteSelectedResult();
+      areasEvents.toggleModal(true, {
+        type: MODAL_TYPE.SAVE_FIELD,
+        prevArea: selectedArea.id
+      });
+    },
+    [deleteSelectedResult, selectedArea, setSidebarMode, addNewArea]
   );
 
   useEffect(() => {
@@ -80,12 +100,8 @@ export const useMapRequests = (selectedArea, map) => {
                 selectedLeafletLayer.setStyle(layerStyle ?? SHAPE_OPTIONS);
               }
               selectedLeafletLayer = layer;
-              addNewArea(createField(getShapePositionsString(layer)));
               if (feature.properties.label !== NO_DATA) {
-                areasEvents.toggleModal(true, {
-                  type: MODAL_TYPE.SAVE_FIELD,
-                  prevArea: selectedArea.id
-                });
+                addNewField(createField(getShapePositionsString(layer)));
               }
             });
             if (feature.properties.label) {
@@ -130,11 +146,7 @@ export const useMapRequests = (selectedArea, map) => {
         layer.addEventListener('click', async e => {
           const coords = { lat: e.latlng.lng, lng: e.latlng.lat };
           const resp = await API.areas.getField(selectedLayer.id, coords);
-          addNewArea(createField(resp.data.polygon));
-          areasEvents.toggleModal(true, {
-            type: MODAL_TYPE.SAVE_FIELD,
-            prevArea: selectedArea.id
-          });
+          addNewField(createField(resp.data.polygon));
         });
         addLayerInMap(layer, selectedLayer);
       } else if (selectedLayer.layer_type === 'XYZ') {
@@ -165,9 +177,8 @@ export const useMapRequests = (selectedArea, map) => {
     results,
     renderedLayers,
     prevRenderedLayers,
-    addNewArea,
-    setSidebarMode,
-    createField
+    createField,
+    addNewField
   ]);
 
   useEffect(() => {
