@@ -1,27 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import { last } from 'lodash';
-import { getSelectedResults, getLayerOpacity, useAreasActions } from 'state';
-import { API } from 'api';
 import {
-  EDITABLE_SHAPE_OPTIONS,
-  SHAPE_OPTIONS,
-  FILL_OPACITY,
-  MODAL_TYPE,
-  NO_DATA,
-  SIDEBAR_MODE
-} from '_constants';
+  getSelectedResults,
+  getLayerOpacity,
+  useAreasActions,
+  selectUser,
+  selectAreasList
+} from 'state';
+import { API } from 'api';
+import { SHAPE_OPTIONS, FILL_OPACITY, MODAL_TYPE, NO_DATA, AOI_TYPE } from '_constants';
 import { areasEvents } from '_events';
-import { getPolygonPositions } from 'utils';
+import { getPolygonPositions, getNewAreaNumber, getShapePositionsString } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
   const { addNewArea, setSidebarMode } = useAreasActions();
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
+  const currentUser = useSelector(selectUser);
+  const initialAreas = useSelector(selectAreasList);
   const [renderedLayers, setRenderedLayers] = useState([]);
   const [prevRenderedLayers, setPrevRenderedLayers] = useState([]);
+
+  const createField = useCallback(
+    coords => ({
+      user: currentUser.pk,
+      name: `New field ${getNewAreaNumber(initialAreas, AOI_TYPE.FIELD)}`,
+      polygon: coords,
+      type: 2
+    }),
+    [currentUser, initialAreas]
+  );
 
   useEffect(() => {
     const selectedResults = [];
@@ -68,14 +79,12 @@ export const useMapRequests = (selectedArea, map) => {
               if (selectedLeafletLayer != null && selectedLeafletLayer.setStyle) {
                 selectedLeafletLayer.setStyle(layerStyle ?? SHAPE_OPTIONS);
               }
-              if (layer.setStyle) {
-                layer.setStyle(EDITABLE_SHAPE_OPTIONS);
-              }
               selectedLeafletLayer = layer;
+              addNewArea(createField(getShapePositionsString(layer)));
               if (feature.properties.label !== NO_DATA) {
                 areasEvents.toggleModal(true, {
                   type: MODAL_TYPE.SAVE_FIELD,
-                  coordinates: layer
+                  prevArea: selectedArea.id
                 });
               }
             });
@@ -119,13 +128,13 @@ export const useMapRequests = (selectedArea, map) => {
           interactive: true
         });
         layer.addEventListener('click', async e => {
-          console.log('latlng', e.latlng, selectedLayer); //send to server
-          const polygon = await API.areas.getField(
-            selectedLayer.id,
-            JSON.stringify(e.latlng)
-          );
-          addNewArea(getPolygonPositions(polygon).coordinates[0]);
-          setSidebarMode(SIDEBAR_MODE.EDIT);
+          const coords = { lat: e.latlng.lng, lng: e.latlng.lat };
+          const resp = await API.areas.getField(selectedLayer.id, coords);
+          addNewArea(createField(resp.data.polygon));
+          areasEvents.toggleModal(true, {
+            type: MODAL_TYPE.SAVE_FIELD,
+            prevArea: selectedArea.id
+          });
         });
         addLayerInMap(layer, selectedLayer);
       } else if (selectedLayer.layer_type === 'XYZ') {
@@ -157,7 +166,8 @@ export const useMapRequests = (selectedArea, map) => {
     renderedLayers,
     prevRenderedLayers,
     addNewArea,
-    setSidebarMode
+    setSidebarMode,
+    createField
   ]);
 
   useEffect(() => {

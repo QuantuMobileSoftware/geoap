@@ -42,7 +42,7 @@ const getLayers = () => {
 };
 
 const getField = (id, data) => {
-  return axiosInstance.post(areasEndpoints.field(id), data);
+  return axiosInstance.get(areasEndpoints.field(id), { params: data });
 };
 
 export const areasRequests = {
