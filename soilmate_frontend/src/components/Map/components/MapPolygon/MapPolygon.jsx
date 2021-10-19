@@ -14,26 +14,26 @@ export const MapPolygon = ({
   selectedResult
 }) => {
   const polyRef = useRef(null);
+  const prevAreaIdRef = useRef(currentAreaId);
   const { setEditableShape } = useMapActions();
   const { setEntitySize } = useAreasActions();
-  const [prevAreaId, setPrevAreaId] = useState(currentAreaId);
   const [hasMvtResult, setHasMvtResult] = useState(false);
 
   const pathOptions = currentAreaId === id ? SELECTED_SHAPE_OPTIONS : SHAPE_OPTIONS;
 
   useEffect(() => {
-    if (!prevAreaId) {
-      setPrevAreaId(currentAreaId);
+    if (!prevAreaIdRef.current) {
+      prevAreaIdRef.current = currentAreaId;
     }
-    if (hasMvtResult && prevAreaId !== currentAreaId) {
+    if (hasMvtResult && prevAreaIdRef.current !== currentAreaId) {
       polyRef.current
         .getPane()
         .querySelectorAll('svg path')
         .forEach(item => (item.style.pointerEvents = 'auto'));
-      setPrevAreaId(currentAreaId);
+      prevAreaIdRef.current = currentAreaId;
       setHasMvtResult(false);
     }
-  }, [currentAreaId, prevAreaId, hasMvtResult]);
+  }, [currentAreaId, prevAreaIdRef, hasMvtResult]);
 
   useEffect(() => {
     if (
