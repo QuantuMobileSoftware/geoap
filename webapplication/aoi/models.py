@@ -1,7 +1,6 @@
 from django.contrib.gis.db import models
 from django.db.models import JSONField
 from django.utils import timezone
-from user.models import User
 
 
 class AoI(models.Model):
@@ -12,7 +11,7 @@ class AoI(models.Model):
         (FIELD_TYPE, 'FIELD')
     )
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User id', related_name='aoi')
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, verbose_name='User id', related_name='aoi')
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='AOI name')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
@@ -46,7 +45,7 @@ class JupyterNotebook(models.Model):
         
         
 class Request(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='User id')
+    user = models.ForeignKey('user.User', on_delete=models.PROTECT, verbose_name='User id')
     aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
     notebook = models.ForeignKey(
         JupyterNotebook, on_delete=models.PROTECT,
