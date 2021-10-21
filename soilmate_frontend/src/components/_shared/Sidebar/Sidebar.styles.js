@@ -12,7 +12,7 @@ export const BreadcrumbsWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${em(16)};
+  margin-bottom: ${em(14)};
 `;
 
 export const SidebarHeading = styled(Typography).attrs({
@@ -28,13 +28,15 @@ export const SidebarButtonClose = styled(Button).attrs({
 })`
   ${({ theme }) => css`
     border: ${theme.borders.default(theme.fontSizes[1])};
+    width: ${rem(35)};
+    height: ${rem(35)};
     ${ButtonIcon} {
       width: ${rem(12)};
     }
   `}
 `;
 
-export const StyledSidebar = styled(Paper).attrs({ padding: 4 })`
+export const StyledSidebar = styled(Paper).attrs({ padding: 1 })`
   ${({ theme, withUnmountToggle }) => [
     css`
       position: absolute;
