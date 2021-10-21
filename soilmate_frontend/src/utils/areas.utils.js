@@ -26,3 +26,9 @@ export const normalizeAreas = (areas = []) => {
     return { ...areas, [area.id]: normalizeArea(area) };
   }, {});
 };
+
+export const getNewAreaNumber = (areas, type) => {
+  return areas.filter(area => area.type === type).length
+    ? areas[areas.length - 1].id + 1
+    : 1;
+};

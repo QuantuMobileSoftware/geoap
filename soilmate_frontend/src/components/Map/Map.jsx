@@ -67,11 +67,11 @@ export const Map = () => {
     useAreasActions();
 
   const isCreatedTab = activeTab === REQUEST_TABS.CREATED;
-  const colorMap = useMemo(() => {
+  const currentResult = useMemo(() => {
     if (currentAreaId && !!selectedResults.length && isCreatedTab) {
       return areasObject[currentAreaId].results[
         selectedResults[selectedResults.length - 1]
-      ].colormap;
+      ];
     }
   }, [selectedResults, areasObject, currentAreaId, isCreatedTab]);
 
@@ -234,12 +234,16 @@ export const Map = () => {
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
               isEditable={sidebarMode === EDIT && area.id === currentAreaId}
+              currentAreaIndex={filteredAreas.indexOf(selectedArea)}
+              selectedResult={currentResult}
             />
           ))}
         {isLoading && <Spinner />}
       </StyledMapContainer>
       {map ? <MapControls map={map} /> : null}
-      {map && !!colorMap ? <MapColorBar colorMap={JSON.parse(colorMap)} /> : null}
+      {map && !!currentResult?.colormap ? (
+        <MapColorBar colorMap={JSON.parse(currentResult.colormap)} />
+      ) : null}
       {map && isShowRange ? <MapRange /> : null}
       {isPopupVisible && (
         <Popup
