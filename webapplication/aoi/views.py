@@ -72,8 +72,6 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         
         if 'polygon' in serializer.initial_data:
             user = User.objects.get(id=serializer.initial_data['user'])
-            print(f'serializer.initial_data: {serializer.initial_data}')
-            print(f'self.lookup_field: {self.lookup_field}')
             if not user.can_update_area(self.kwargs[self.lookup_url_kwarg], serializer.initial_data['polygon']):
                 raise PermissionDenied(detail='To access more areas, please contact the administrator')
         
