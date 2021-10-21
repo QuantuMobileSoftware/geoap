@@ -18,6 +18,8 @@ class User(AbstractUser):
         return total
     
     def can_add_new_area(self, polygon_str):
+        if not self.area_limit:
+            return True
         polygon = GEOSGeometry(polygon_str, srid=4326)
         polygon.transform(3857)
         if (polygon.area / 10000 + self.get_areas_total) > self.area_limit:
@@ -25,6 +27,8 @@ class User(AbstractUser):
         return True
     
     def can_update_area(self, aoi_id, polygon_str):
+        if not self.area_limit:
+            return True
         polygon = GEOSGeometry(polygon_str, srid=4326)
         polygon.transform(3857)
         new_area = polygon.area / 10000
