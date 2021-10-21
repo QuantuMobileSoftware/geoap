@@ -41,6 +41,10 @@ const getLayers = () => {
   return axiosInstance.get(areasEndpoints.layers);
 };
 
+const getField = (id, data) => {
+  return axiosInstance.get(areasEndpoints.field(id), { params: data });
+};
+
 export const areasRequests = {
   getAreas,
   getArea,
@@ -51,5 +55,6 @@ export const areasRequests = {
   saveArea,
   deleteArea,
   patchArea,
-  getLayers
+  getLayers,
+  getField
 };
