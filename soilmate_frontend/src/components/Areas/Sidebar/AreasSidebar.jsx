@@ -32,11 +32,11 @@ export const AreasSidebar = ({ ...props }) => {
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const sidebarHeaders = {
-    [AREAS]: 'My areas',
+    [AREAS]: '',
     [EDIT]: `Edit my ${currentArea?.type === AOI_TYPE.AREA ? 'area' : 'field'}`,
     [REQUESTS]: sidebarMode === REQUESTS ? currentArea.name : '',
     [CREATE_REQUEST]: 'Create new report',
-    [FIELDS]: 'My fields',
+    [FIELDS]: '',
     [CROP_MAP]: 'Crop map'
   };
 
