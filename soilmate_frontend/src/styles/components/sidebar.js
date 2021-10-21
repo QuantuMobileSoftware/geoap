@@ -23,7 +23,7 @@ export const sidebarListItem = ({ theme }) => css`
   position: relative;
   display: flex;
   justify-content: flex-start;
-  padding: ${rem([theme.spacing[5], theme.spacing[8]])};
+  padding: ${rem([theme.spacing[5], theme.spacing[6]])};
   transition: ${theme.transitions.fast};
 `;
 
