@@ -36,7 +36,7 @@ const fonts = {
 
 const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 22, 24, 32, 40, 48, 64, 96, 128];
 
-const fontSizes = [8, 9, 12, 13, 16, 20];
+const fontSizes = [8, 10, 12, 13, 16, 20];
 
 const fontWeights = [400, 500];
 

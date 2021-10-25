@@ -21,7 +21,7 @@ export const ColorBlock = styled.div`
 
 export const ButtonWrapper = styled.div`
   ${({ theme }) => css`
-    text-align: center;
+    text-align: right;
     margin-top: ${em(sidebarBtnMargin)};
     & button:first-child {
       margin-right: ${em(32, theme.fontSizes[2])};

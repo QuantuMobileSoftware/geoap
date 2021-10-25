@@ -7,8 +7,14 @@ import { Calendar } from 'components/_shared/Calendar';
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
 import 'react-datepicker/dist/react-datepicker.css';
-import { ButtonWrapper, StyledSelect, SelectsWrapper } from './CreateRequest.styles';
+import {
+  ButtonWrapper,
+  StyledSelect,
+  SelectsWrapper,
+  Wrapper
+} from './CreateRequest.styles';
 
+const plotBoundariesId = 4;
 const startYear = 2015;
 const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
   (el, i) => ({ value: startYear + i, name: startYear + i })
@@ -20,6 +26,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const currentUser = useSelector(selectUser);
   const layers = useSelector(selectLayers);
 
+  const [year, setYear] = useState(new Date().getFullYear());
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [notebook, setNotebook] = useState(null);
@@ -51,22 +58,38 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   useEffect(() => {
-    notebook && startDate && endDate && setCanSaveRequest(true);
+    if (notebook && startDate && endDate) {
+      setCanSaveRequest(true);
+    } else {
+      setCanSaveRequest(false);
+    }
   }, [notebook, startDate, endDate]);
 
   const handleAreChange = item => setAreaId(item.value);
+  const setDates = (year, notebook) => {
+    if (notebook === plotBoundariesId) {
+      setStartDate(new Date(year, 5, 1));
+      setEndDate(new Date(year, 6, 30));
+    } else {
+      setStartDate(new Date(year, 0));
+      setEndDate(null);
+    }
+  };
 
-  const handleNoteBookChange = item => setNotebook(item.value);
+  const handleNoteBookChange = item => {
+    setNotebook(item.value);
+    setDates(year, item.value);
+  };
 
   const handleYearChange = item => {
-    setStartDate(new Date(item.value, 0));
-    setEndDate(null);
+    setYear(item.value);
+    setDates(item.value, notebook);
   };
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
 
   return (
-    <>
+    <Wrapper>
       <SelectsWrapper>
         <StyledSelect
           items={selectOptionsAreas}
@@ -83,16 +106,18 @@ export const CreateRequest = ({ areas, currentArea }) => {
           items={layerYears}
           onSelect={handleYearChange}
           label='Year'
-          value={new Date().getFullYear()}
+          value={year}
         />
-        <Calendar
-          startDate={startDate}
-          endDate={endDate}
-          setStartDate={setStartDate}
-          setEndDate={setEndDate}
-          title='Date range'
-          notebook={notebook}
-        />
+        {notebook !== plotBoundariesId && (
+          <Calendar
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+            title='Date range'
+            notebook={notebook}
+          />
+        )}
       </SelectsWrapper>
       <ButtonWrapper>
         <Button
@@ -107,6 +132,6 @@ export const CreateRequest = ({ areas, currentArea }) => {
           Save changes
         </Button>
       </ButtonWrapper>
-    </>
+    </Wrapper>
   );
 };
