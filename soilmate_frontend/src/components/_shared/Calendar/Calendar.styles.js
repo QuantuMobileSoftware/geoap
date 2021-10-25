@@ -35,7 +35,7 @@ export const ApplyButton = styled(Button)`
 
 export const WarningText = styled.p`
   color: ${({ theme }) => theme.colors.danger};
-  font-size: ${rem(9)};
+  font-size: ${rem(12)};
   text-align: center;
   clear: both;
 `;
@@ -134,6 +134,7 @@ export const StyledCalendarContainer = styled.div`
         position: relative;
         background: inherit;
         font-weight: normal;
+        pointer-events: none;
         color: ${theme.colors.nature.n0};
         ${CalendarDay} {
           ${activeCalendarDay}

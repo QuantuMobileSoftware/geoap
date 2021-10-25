@@ -4,7 +4,7 @@ import { rem, em } from 'styles';
 
 export const sidebarList = ({ theme }) => css`
   padding-top: ${rem(theme.spacing[2])};
-  max-height: calc(100vh - 300px - 70px);
+  max-height: calc(100vh - 300px - 50px);
   overflow-y: auto;
   &::-webkit-scrollbar-track {
     background-color: ${theme.colors.nature.n2};

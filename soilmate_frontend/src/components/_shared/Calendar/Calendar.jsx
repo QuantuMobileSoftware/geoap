@@ -70,8 +70,8 @@ export const Calendar = ({
         <div>{children}</div>
         {isCropType && (
           <WarningText>
-            You can choose only dates from May to September to have actual result. Select
-            at least 55 days
+            You can choose only dates from May to September to have actual result.
+            <br /> Select at least 55 days
           </WarningText>
         )}
         <ApplyButton variant='primary' onClick={() => calendarRef.current.setOpen(false)}>
