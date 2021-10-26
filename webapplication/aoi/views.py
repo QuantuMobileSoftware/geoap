@@ -41,7 +41,8 @@ class AoIListCreateAPIView(ListCreateAPIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
         polygon_str = serializer.validated_data.get('polygon')
-        if not self.request.user.can_add_new_area(polygon_str):
+        user = serializer.validated_data.get('user')
+        if not user.can_add_new_area(polygon_str):
             raise PermissionDenied(detail='To access more areas, please contact the administrator')
         
         self.perform_create(serializer)

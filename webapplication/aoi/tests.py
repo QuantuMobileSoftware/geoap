@@ -15,7 +15,7 @@ class AOILimitedTestCase(UserBase):
     
     def setUp(self):
         super().setUp()
-        self.ex_2_user.area_limit = 10
+        self.ex_2_user.area_limit_ha = 10
         self.ex_2_user.save()
         self.data_create = {
             "user": 1002,
@@ -68,10 +68,10 @@ class AOITestCase(UserBase):
 
     def setUp(self):
         super().setUp()
-        self.ex_2_user.area_limit = 0
+        self.ex_2_user.area_limit_ha = 0
         self.ex_2_user.save()
         
-        self.staff_user.area_limit = 0
+        self.staff_user.area_limit_ha = 0
         self.staff_user.save()
         
         self.data_create = {
