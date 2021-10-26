@@ -6,15 +6,14 @@ import { ModalItem } from 'components/_shared/ModalItem';
 import { FileUploader } from 'components/_shared/FileUploader';
 
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE, SHAPE_NAMES } from '_constants';
+import { SIDEBAR_MODE, SHAPE_NAMES, AOI_TYPE } from '_constants';
 import { selectAreas, useAreasActions } from 'state';
 
 import { StyledSelect, ModalText } from './FieldsModal.styles';
 
 const fieldsBoundariesName = "Fields' boundaries";
 
-const hasBoundariesFields = ({ layer_type, name }) =>
-  layer_type === 'GEOJSON' && name === fieldsBoundariesName;
+const hasBoundariesFields = ({ name }) => name === fieldsBoundariesName;
 
 export const FieldsModal = ({ closeModal }) => {
   const areasList = useSelector(selectAreas);
@@ -25,7 +24,12 @@ export const FieldsModal = ({ closeModal }) => {
   const filteredAreas = useMemo(
     () =>
       Object.values(areasList)
-        .filter(item => Object.values(item.results).some(hasBoundariesFields))
+        .filter(item => {
+          if (item.type === AOI_TYPE.FIELD) {
+            return false;
+          }
+          return Object.values(item.results).some(hasBoundariesFields);
+        })
         .map(({ id, name, results }) => ({
           value: id,
           name,

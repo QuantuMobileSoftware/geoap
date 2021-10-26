@@ -183,6 +183,9 @@ export const Map = () => {
     map.panTo(polygon.getCenter()).fitBounds(polygon.getBounds());
   };
 
+  const getPolygonIndex = () =>
+    filteredAreas.indexOf(filteredAreas.find(a => a.id === currentAreaId));
+
   return (
     <MapHolder>
       <StyledMapContainer
@@ -234,7 +237,7 @@ export const Map = () => {
               coordinates={getPolygonPositions(area).coordinates[0]}
               onClick={handlePolygonClick(area.id)}
               isEditable={sidebarMode === EDIT && area.id === currentAreaId}
-              currentAreaIndex={filteredAreas.indexOf(selectedArea)}
+              currentAreaIndex={getPolygonIndex()}
               selectedResult={currentResult}
             />
           ))}
