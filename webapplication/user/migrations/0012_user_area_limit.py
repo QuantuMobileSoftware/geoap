@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='user',
-            name='area_limit',
+            name='area_limit_ha',
             field=models.IntegerField(default=10),
         ),
     ]
