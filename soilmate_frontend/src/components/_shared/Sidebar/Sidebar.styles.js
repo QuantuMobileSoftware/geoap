@@ -6,7 +6,9 @@ import { Button, ButtonIcon } from '../Button';
 import { Paper } from '../Paper';
 import { Typography } from '../Typography';
 
-export const SidebarBody = styled.div``;
+export const SidebarBody = styled.div`
+  flex-grow: 1;
+`;
 
 export const BreadcrumbsWrapper = styled.div`
   display: flex;
@@ -44,6 +46,8 @@ export const StyledSidebar = styled(Paper).attrs({ padding: 1 })`
       left: 0;
       width: ${rem(300)};
       height: 100%;
+      display: flex;
+      flex-direction: column;
       border-top-right-radius: 0;
       border-bottom-right-radius: 0;
       z-index: ${theme.zIndexes[1]};
