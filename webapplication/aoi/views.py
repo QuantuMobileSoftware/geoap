@@ -43,7 +43,11 @@ class AoIListCreateAPIView(ListCreateAPIView):
         polygon_str = serializer.validated_data.get('polygon')
         user = serializer.validated_data.get('user')
         if not user.can_add_new_area(polygon_str):
-            raise PermissionDenied(detail='To access more areas, please contact the administrator')
+            data = {
+                "errorCode": 603,
+                "detail": "Limit is exceeded! To access more areas, please contact the administrator."
+                }
+            return Response(data, status=status.HTTP_403_FORBIDDEN)
         
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -74,7 +78,11 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         if 'polygon' in serializer.initial_data:
             user = User.objects.get(id=serializer.initial_data['user'])
             if not user.can_update_area(self.kwargs[self.lookup_url_kwarg], serializer.initial_data['polygon']):
-                raise PermissionDenied(detail='To access more areas, please contact the administrator')
+                data = {
+                    "errorCode": 603,
+                    "detail": "Limit is exceeded! To access more areas, please contact the administrator."
+                }
+                return Response(data, status=status.HTTP_403_FORBIDDEN)
         
         return self.partial_update(request, *args, **kwargs)
 
