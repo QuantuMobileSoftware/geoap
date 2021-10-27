@@ -40,9 +40,6 @@ export const CropResults = ({ currentArea }) => {
         >
           Back
         </Button>
-        <Button icon='Download' variant='primary'>
-          Download
-        </Button>
       </ButtonWrapper>
     </>
   );
