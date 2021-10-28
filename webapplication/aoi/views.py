@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
@@ -9,6 +10,7 @@ from .models import AoI, JupyterNotebook, Request
 from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
+from user.models import User
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -37,6 +39,15 @@ class AoIListCreateAPIView(ListCreateAPIView):
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
+        polygon_str = serializer.validated_data.get('polygon')
+        user = serializer.validated_data.get('user')
+        if not user.can_add_new_area(polygon_str):
+            data = {
+                "errorCode": settings.AREA_IS_OVER_LIMITED_CODE,
+                "detail": "Limit is exceeded! To access more areas, please contact the administrator."
+                }
+            return Response(data, status=status.HTTP_403_FORBIDDEN)
+        
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -55,12 +66,23 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = AoI.objects.all()
     serializer_class = AoISerializer
     http_method_names = ("get", "patch", 'delete')
+    lookup_url_kwarg = "pk"
     
     def patch(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        if 'polygon' in serializer.initial_data:
+            user = User.objects.get(id=serializer.initial_data['user'])
+            if not user.can_update_area(self.kwargs[self.lookup_url_kwarg], serializer.initial_data['polygon']):
+                data = {
+                    "errorCode": settings.AREA_IS_OVER_LIMITED_CODE,
+                    "detail": "Limit is exceeded! To access more areas, please contact the administrator."
+                }
+                return Response(data, status=status.HTTP_403_FORBIDDEN)
+        
         return self.partial_update(request, *args, **kwargs)
 
 
