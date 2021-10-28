@@ -2,6 +2,7 @@ import json
 import logging
 from rest_framework import status
 from django.urls import reverse
+from django.conf import settings
 from user.models import User
 from .models import AoI, JupyterNotebook
 from .serializers import AoISerializer
@@ -10,6 +11,60 @@ from user.tests import UserBase
 logger = logging.getLogger('root')
 
 
+class AOILimitedTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json', 'aoi/fixtures/aoi_10_ha_fixtures.json']
+    
+    def setUp(self):
+        super().setUp()
+        self.ex_2_user.area_limit_ha = 10
+        self.ex_2_user.save()
+        self.data_create = {
+            "user": 1002,
+            "name": "Aoi_10_ha_ex_2_user_data_create",
+            "polygon": "SRID=4326;POLYGON ((35.95425 50.005195, 35.955237 50.005367, \
+            35.955387 50.004967, 35.954508 50.004733, 35.95425 50.005195))",
+            "type": 1,
+        }
+
+        self.data_patch_decrease = {
+            "user": 1002,
+            "name": "Aoi_10_ha_ex_2_user_patch_decrease",
+            "polygon": "SRID=4326;POLYGON ((35.951021 50.005905, 35.953445 50.006125, 35.954239 50.004526, \
+            35.952684 50.005236, 35.951986 50.004043, 35.951021 50.005905))",
+            "createdat": "2020-11-20T00:00:00.000000Z",
+        }
+
+        self.data_patch_increase = {
+            "user": 1002,
+            "name": "Aoi_10_ha_ex_2_user_patch_increase",
+            "polygon": "SRID=4326;POLYGON ((35.951021 50.005905, 35.953445 50.006125, 35.954239 50.004526, 35.953445 \
+            50.003719, 35.951986 50.004043, 35.951021 50.005905))",
+            "createdat": "2020-11-20T00:00:00.000000Z",
+        }
+        
+    def test_add_over_limited_area(self):
+        url = reverse('aoi:aoi_list_or_create')
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        content = json.loads(response.content)
+        self.assertEqual(content['errorCode'], settings.AREA_IS_OVER_LIMITED_CODE)
+        
+    def test_patch_decrease_aoi(self):
+        aoi_id = 1002
+        url = reverse('aoi:aoi', kwargs={'pk': aoi_id})
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.patch(url, self.data_patch_decrease)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_patch_increase_aoi(self):
+        aoi_id = 1002
+        url = reverse('aoi:aoi', kwargs={'pk': aoi_id})
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.patch(url, self.data_patch_increase)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        
 class AOITestCase(UserBase):
     fixtures = ['user/fixtures/user_fixtures.json', 'aoi/fixtures/aoi_fixtures.json',
                 'aoi/fixtures/results_bbox_fixtures.json']
@@ -19,26 +74,16 @@ class AOITestCase(UserBase):
         self.data_create = {
             "user": 1001,
             "name": "Aoi_test",
-            "polygon": "SRID=4326;POLYGON (( \
-            35.895191466414154 50.009453778741694 ,  \
-            36.336338200246395 50.008199333053057 ,  \
-            36.344659254377753 49.460584684398697 , \
-            35.912753706054865 49.4508072987418 ,  \
-            35.895191466414154 50.009453778741694 \
-            ))",
+            "polygon": "SRID=4326;POLYGON ((35.951777 50.006346, 35.952673 50.006339, 35.952662 50.005953, \
+            35.951734 50.00596, 35.951777 50.006346))",
             "type": 1,
         }
 
         self.data_patch = {
             "user": 1002,
             "name": "Aoi_test_new",
-            "polygon": "SRID=4326;POLYGON ((\
-            35.895191466414154 50.009453778741694, \
-            36.336338200246395 50.008199333053057, \
-            36.344659254377753 49.460584684398697, \
-            35.912753706054865 49.4508072987418, \
-            35.895191466414154 50.009453778741694\
-            ))",
+            "polygon": "SRID=4326;POLYGON ((35.953724 50.006239, 35.954942 50.006388, 35.955151 50.005795, \
+            35.953971 50.005601, 35.953724 50.006239))",
             "createdat": "2020-11-20T00:00:00.000000Z",
         }
 
