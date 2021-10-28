@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
@@ -6,10 +5,10 @@ from aoi.models import AoI
 
 
 class User(AbstractUser):
-    area_limit_ha = models.IntegerField(default=settings.AREA_LIMIT_DEFAULT_HA)
+    area_limit_ha = models.IntegerField(null=True, default=None)
 
     @property
-    def areas_total(self):
+    def areas_total_ha(self):
         total = 0
         polygon_union = AoI.objects.filter(user=self).values('id', 'polygon')
         for record in polygon_union:
@@ -25,7 +24,7 @@ class User(AbstractUser):
             return True
         polygon = GEOSGeometry(polygon_str, srid=4326)
         polygon.transform(3857)
-        if (polygon.area / 10000 + self.areas_total) > self.area_limit_ha:
+        if (polygon.area / 10000 + self.areas_total_ha) > self.area_limit_ha:
             return False
         return True
     
@@ -40,13 +39,7 @@ class User(AbstractUser):
         aoi_polygon = aoi.polygon
         aoi_polygon.transform(3857)
         old_area_ha = aoi_polygon.area / 10000
-
-        total_area_ha = 0
-        polygon_union = AoI.objects.filter(user=self).values('id', 'polygon')
-        for record in polygon_union:
-            record['polygon'].transform(3857)
-            total_area_ha = total_area_ha + record['polygon'].area / 10000
         
-        if total_area_ha - old_area_ha + new_area_ha > self.area_limit_ha:
+        if self.areas_total_ha - old_area_ha + new_area_ha > self.area_limit_ha:
             return False
         return True

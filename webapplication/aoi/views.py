@@ -1,7 +1,6 @@
-from django.contrib.gis.geos import GEOSGeometry
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
@@ -44,7 +43,7 @@ class AoIListCreateAPIView(ListCreateAPIView):
         user = serializer.validated_data.get('user')
         if not user.can_add_new_area(polygon_str):
             data = {
-                "errorCode": 603,
+                "errorCode": settings.AREA_IS_OVER_LIMITED_CODE,
                 "detail": "Limit is exceeded! To access more areas, please contact the administrator."
                 }
             return Response(data, status=status.HTTP_403_FORBIDDEN)
@@ -79,7 +78,7 @@ class AoIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
             user = User.objects.get(id=serializer.initial_data['user'])
             if not user.can_update_area(self.kwargs[self.lookup_url_kwarg], serializer.initial_data['polygon']):
                 data = {
-                    "errorCode": 603,
+                    "errorCode": settings.AREA_IS_OVER_LIMITED_CODE,
                     "detail": "Limit is exceeded! To access more areas, please contact the administrator."
                 }
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
