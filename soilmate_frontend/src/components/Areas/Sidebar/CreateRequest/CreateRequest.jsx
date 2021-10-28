@@ -11,7 +11,8 @@ import {
   ButtonWrapper,
   StyledSelect,
   SelectsWrapper,
-  Wrapper
+  Wrapper,
+  WarningText
 } from './CreateRequest.styles';
 
 const plotBoundariesId = 4;
@@ -108,7 +109,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
           label='Year'
           value={year}
         />
-        {notebook !== plotBoundariesId && (
+        {notebook !== plotBoundariesId ? (
           <Calendar
             startDate={startDate}
             endDate={endDate}
@@ -117,6 +118,11 @@ export const CreateRequest = ({ areas, currentArea }) => {
             title='Date range'
             notebook={notebook}
           />
+        ) : (
+          <WarningText>
+            To have better quality and result, Plot Boundaries detection will apply dates
+            from June to August
+          </WarningText>
         )}
       </SelectsWrapper>
       <ButtonWrapper>
