@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { em, sidebarList, sidebarBtnMargin } from 'styles';
 
 import { Select } from 'components/_shared/Select';
+import { Typography } from 'components/_shared/Typography';
 
 export const Wrapper = styled.div`
   height: 100%;
@@ -30,4 +31,10 @@ export const SelectsWrapper = styled.div`
   & .react-datepicker-wrapper {
     width: 100%;
   }
+`;
+
+export const WarningText = styled(Typography).attrs({ variant: 'caption1' })`
+  ${({ theme }) => css`
+    color: ${theme.colors.danger};
+  `}
 `;

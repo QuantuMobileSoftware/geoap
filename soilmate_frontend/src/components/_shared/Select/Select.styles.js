@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem, em } from 'styles';
+import { rem, em, scrollbar } from 'styles';
 
 import { Dropdown } from '../Dropdown';
 import { Typography } from '../Typography';
@@ -8,9 +8,12 @@ import { Icon } from 'components/_shared/Icon';
 
 export const SelectDropdown = styled(Dropdown)`
   min-width: 100%;
+  max-height: ${rem(260)};
   top: ${rem(43)};
   left: 0;
   padding: 0;
+  overflow: auto;
+  ${scrollbar}
 `;
 
 export const SelectToggle = styled.div`
