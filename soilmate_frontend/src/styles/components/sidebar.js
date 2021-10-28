@@ -2,10 +2,7 @@ import { css } from 'styled-components';
 
 import { rem, em } from 'styles';
 
-export const sidebarList = ({ theme }) => css`
-  padding-top: ${rem(theme.spacing[2])};
-  max-height: calc(100vh - 300px - 50px);
-  overflow-y: auto;
+export const scrollbar = ({ theme }) => css`
   &::-webkit-scrollbar-track {
     background-color: ${theme.colors.nature.n2};
     border-radius: ${rem(10)};
@@ -17,6 +14,13 @@ export const sidebarList = ({ theme }) => css`
   &::-webkit-scrollbar {
     width: 6px;
   }
+`;
+
+export const sidebarList = ({ theme }) => css`
+  padding-top: ${rem(theme.spacing[2])};
+  max-height: calc(100vh - 350px);
+  overflow-y: auto;
+  ${scrollbar}
 `;
 
 export const sidebarListItem = ({ theme }) => css`
