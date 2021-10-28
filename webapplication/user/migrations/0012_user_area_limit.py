@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='area_limit_ha',
-            field=models.IntegerField(default=10),
+            field=models.IntegerField(null=True, default=None),
         ),
     ]

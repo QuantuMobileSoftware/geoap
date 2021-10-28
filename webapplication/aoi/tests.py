@@ -2,6 +2,7 @@ import json
 import logging
 from rest_framework import status
 from django.urls import reverse
+from django.conf import settings
 from user.models import User
 from .models import AoI, JupyterNotebook
 from .serializers import AoISerializer
@@ -46,6 +47,8 @@ class AOILimitedTestCase(UserBase):
         self.client.force_authenticate(user=self.ex_2_user)
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        content = json.loads(response.content)
+        self.assertEqual(content['errorCode'], settings.AREA_IS_OVER_LIMITED_CODE)
         
     def test_patch_decrease_aoi(self):
         aoi_id = 1002
@@ -68,12 +71,6 @@ class AOITestCase(UserBase):
 
     def setUp(self):
         super().setUp()
-        self.ex_2_user.area_limit_ha = 0
-        self.ex_2_user.save()
-        
-        self.staff_user.area_limit_ha = 0
-        self.staff_user.save()
-        
         self.data_create = {
             "user": 1001,
             "name": "Aoi_test",
