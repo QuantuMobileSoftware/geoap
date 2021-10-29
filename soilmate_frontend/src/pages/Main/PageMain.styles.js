@@ -1,7 +1,5 @@
 import styled, { css } from 'styled-components';
 
-import { VIEWPORT_PADDING } from '_constants';
-
 import { rem } from 'styles';
 
 import { Page, PageBody } from 'components/_shared/Page';
@@ -24,7 +22,6 @@ export const StyledPageMain = styled(Page)`
 
     ${PageBody} {
       flex: 1;
-      padding: ${rem(VIEWPORT_PADDING)};
     }
 
     ${StyledAreasSidebarToggle} {

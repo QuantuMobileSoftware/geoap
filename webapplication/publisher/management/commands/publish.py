@@ -30,14 +30,14 @@ def instance_already_running(label='default'):
     return already_running
 
 
-def rm_empty_dirs():
+def rm_empty_dirs(folder):
     """
        Remove empty dirs and sub dirs
     """
-    logger.info('Removing of empty directories started ')
-    command = ["find", settings.TILES_FOLDER, "-mindepth", "1", "-empty", "-type", "d", "-delete"]
-    File.run_process(command, settings.MAX_TIMEOUT_FOR_TILES_FOLDER_CLEANING)
-    logger.info('Removing of empty directories finished ')
+    logger.info(f'Removing of empty directories in {folder} started ')
+    command = ["find", folder, "-mindepth", "1", "-empty", "-type", "d", "-delete"]
+    File.run_process(command, settings.MAX_TIMEOUT_FOR_FOLDER_CLEANING)
+    logger.info(f'Removing of empty directories in {folder} finished ')
     return
 
 
@@ -57,7 +57,8 @@ class Command(BaseCommand):
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        rm_empty_dirs()
+        rm_empty_dirs(settings.TILES_FOLDER)
+        rm_empty_dirs(settings.RESULTS_FOLDER)
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
