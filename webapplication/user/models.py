@@ -5,7 +5,7 @@ from aoi.models import AoI
 
 
 class User(AbstractUser):
-    area_limit_ha = models.IntegerField(null=True, default=None)
+    area_limit_ha = models.IntegerField(null=True, default=None, blank=True)
 
     @property
     def areas_total_ha(self):
