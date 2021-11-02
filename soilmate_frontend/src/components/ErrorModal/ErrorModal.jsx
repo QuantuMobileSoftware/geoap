@@ -4,7 +4,7 @@ import { Button } from 'components/_shared/Button';
 import { useLocation } from 'react-router';
 
 import { areasEvents } from '_events';
-import { ROUTES, PERMISSION_ERROR, SERVER_ERROR } from '_constants';
+import { ROUTES, PERMISSION_ERROR, SERVER_ERROR, SIZE_ERROR } from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
 
 export const ErrorModal = () => {
@@ -28,7 +28,11 @@ export const ErrorModal = () => {
         setErrorText(error);
       } else {
         if (error.status === 403) {
-          setErrorText(PERMISSION_ERROR);
+          if (error.data.errorCode === 603) {
+            setErrorText(SIZE_ERROR);
+          } else {
+            setErrorText(PERMISSION_ERROR);
+          }
         } else if (error.status === 500) {
           setErrorText(SERVER_ERROR);
         } else {
