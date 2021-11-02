@@ -47,6 +47,13 @@ export const Calendar = ({
     setEndDate(endDate);
   };
 
+  const handleOnOpen = () => {
+    setIsOpen(true);
+    setStartDate(null);
+  };
+
+  const handleOnClose = () => setIsOpen(false);
+
   const isCropType = notebook === 3;
   const filterDate = date => {
     if (!isCropType || !date) return true;
@@ -92,8 +99,8 @@ export const Calendar = ({
         shouldCloseOnSelect={false}
         dateFormat='yyyy/MM/dd'
         customInput={<CalendarInput open={isOpen} />}
-        onCalendarClose={() => setIsOpen(false)}
-        onCalendarOpen={() => setIsOpen(true)}
+        onCalendarClose={handleOnClose}
+        onCalendarOpen={handleOnOpen}
         calendarContainer={CalendarContainer}
         ref={calendarRef}
         renderDayContents={renderDayContents}
