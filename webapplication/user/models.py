@@ -32,12 +32,12 @@ class User(AbstractUser):
         if not self.area_limit_ha:
             return True
         polygon = GEOSGeometry(polygon_str, srid=4326)
-        polygon.transform(3857)
+        polygon.transform(8857)
         new_area_ha = polygon.area / 10000
         
         aoi = AoI.objects.get(id=aoi_id)
         aoi_polygon = aoi.polygon
-        aoi_polygon.transform(3857)
+        aoi_polygon.transform(8857)
         old_area_ha = aoi_polygon.area / 10000
         
         if self.areas_total_ha - old_area_ha + new_area_ha > self.area_limit_ha:
