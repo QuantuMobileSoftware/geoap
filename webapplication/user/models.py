@@ -14,8 +14,8 @@ class User(AbstractUser):
         for record in polygon_union:
             # EPSG:4326 has degree units
             # EPSG:3857 has metre units
-            # we need to convert EPSG:4326 to EPSG:3857
-            record['polygon'].transform(3857)
+            # we need to convert EPSG:4326 to EPSG:8857
+            record['polygon'].transform(8857)
             total = total + record['polygon'].area / 10000
         return total
     
@@ -23,7 +23,7 @@ class User(AbstractUser):
         if not self.area_limit_ha:
             return True
         polygon = GEOSGeometry(polygon_str, srid=4326)
-        polygon.transform(3857)
+        polygon.transform(8857)
         if (polygon.area / 10000 + self.areas_total_ha) > self.area_limit_ha:
             return False
         return True
