@@ -13,7 +13,7 @@ class User(AbstractUser):
         polygon_union = AoI.objects.filter(user=self).values('id', 'polygon')
         for record in polygon_union:
             # EPSG:4326 has degree units
-            # EPSG:3857 has metre units
+            # EPSG:8857 has metre units
             # we need to convert EPSG:4326 to EPSG:8857
             record['polygon'].transform(8857)
             total = total + record['polygon'].area / 10000
