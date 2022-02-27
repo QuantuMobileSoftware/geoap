@@ -73,17 +73,6 @@ def run_prod(ctx):
 
 
 @task
-def run_ukraine(ctx):
-    init_db(ctx)
-    collect_static_element(ctx)
-
-    thread_cron = threading.Thread(target=devcron, args=(ctx,))
-    thread_cron.start()
-
-    ctx.run('uwsgi --ini uwsgi.ini')
-
-
-@task
 def test(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
     ctx.run('python -m manage test')
