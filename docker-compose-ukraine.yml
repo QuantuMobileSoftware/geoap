@@ -1,0 +1,52 @@
+version: "3.5"
+services:
+
+  db:
+    image: postgis/postgis:13-3.0
+    volumes:
+      - /home/quantum/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=Foo0roo0
+    networks:
+      - sip
+
+  webapplication:
+    build:
+      context: ./webapplication
+      dockerfile: prod.Dockerfile
+    volumes:
+      - ./webapplication:/code
+      - ../data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip.settings-ukraine
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=Foo0roo0
+    command: /bin/bash -c "exec invoke run-ukraine"
+    depends_on:
+      - db
+    networks:
+      - sip
+
+  webserver:
+    build:
+      context: ./
+      dockerfile: ./webserver/prod.Dockerfile
+    volumes:
+      - ../data:/data
+    expose:
+      - 80
+    ports:
+      - "80:80"
+    depends_on:
+      - webapplication
+    networks:
+      - sip
+    env_file:
+      - ../webserver.env
+
+networks:
+  sip:
