@@ -5,9 +5,20 @@ upstream webapplication {
 }
 
 server {
-    listen       80;
-    listen  [::]:80;
-    server_name  localhost;
+    listen 80;
+    server_name soilmateukraine.quantumobile.co;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name  soilmateukraine.quantumobile.co;
+
+    ssl_certificate /etc/letsencrypt/live/soilmateukraine.quantumobile.co/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/soilmateukraine.quantumobile.co/privkey.pem;
 
     gzip on;
     gzip_types      text/plain application/xml application/javascript;
