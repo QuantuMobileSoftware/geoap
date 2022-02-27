@@ -25,7 +25,7 @@ services:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
       - POSTGRES_PASSWORD=Foo0roo0
-    command: /bin/bash -c "exec invoke run-prod"
+    command: /bin/bash -c "exec invoke run-ukraine"
     depends_on:
       - db
     networks:
