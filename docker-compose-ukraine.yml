@@ -37,6 +37,7 @@ services:
       dockerfile: ./webserver/prod.Dockerfile
     volumes:
       - ../data:/data
+      - /etc/letsencrypt:/etc/letsencrypt
     expose:
       - 80
     ports:
