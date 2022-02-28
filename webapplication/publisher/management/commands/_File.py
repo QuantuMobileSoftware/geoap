@@ -307,7 +307,7 @@ class Geotif(File):
                    "--xyz",
                    "--webviewer=none",
                    "--processes=6",
-                   "--zoom=8-19",
+                   "--zoom=8-16",
                    self.path,
                    save_path,
                    ]
