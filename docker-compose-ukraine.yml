@@ -36,13 +36,13 @@ services:
       context: ./
       dockerfile: ./webserver/prod.Dockerfile
       args:
-        - REACT_APP_HOTJAR_ID=${REACT_APP_HOTJAR_ID}
-        - REACT_APP_HOTJAR_SV=${REACT_APP_HOTJAR_SV}
-        - REACT_APP_EMAILJS_SERVICE_ID=${REACT_APP_EMAILJS_SERVICE_ID}
-        - REACT_APP_EMAILJS_TEMPLATE_ID=${REACT_APP_EMAILJS_TEMPLATE_ID}
-        - REACT_APP_EMAILJS_USER_ID=${REACT_APP_EMAILJS_USER_ID}
-        - REACT_APP_AUTOLOGIN=${REACT_APP_AUTOLOGIN}
-        - REACT_APP_AUTOPASSWORD=${REACT_APP_AUTOPASSWORD}
+        REACT_APP_HOTJAR_ID:
+        REACT_APP_HOTJAR_SV:
+        REACT_APP_EMAILJS_SERVICE_ID:
+        REACT_APP_EMAILJS_TEMPLATE_ID:
+        REACT_APP_EMAILJS_USER_ID:
+        REACT_APP_AUTOLOGIN:
+        REACT_APP_AUTOPASSWORD:
     volumes:
       - ../data:/data
       - /etc/letsencrypt:/etc/letsencrypt
@@ -57,7 +57,7 @@ services:
     networks:
       - sip
     env_file:
-      - /home/ec2-user/webserver.env
+      - .env
 
 networks:
   sip:
