@@ -52,7 +52,15 @@ if __name__ == "__main__":
                         type=str,
                         required=True,
                         help="""path to save merged raster""")
+    parser.add_argument('-p', '--product',
+                        type=str,
+                        required=False,
+                        default='PSScene4Band',
+                        choices=['PSScene4Band', 'SkySatCollect'],
+                        help="""path to save merged raster""")
 
+    path_dict = {'PSScene4Band': "files/PSScene4Band/*/analytic_sr_udm2/*_SR.tif",
+                 'SkySatCollect': "files/SkySatCollect/*/pansharpened_udm2/*_pansharpened.tif"}
     args = parser.parse_args()
-    raster_list = glob("files/PSScene4Band/*/analytic_sr_udm2/*_SR.tif")
+    raster_list = glob(path_dict.get(args.product))
     merge_rasters(raster_list, args.date, args.save_path)
