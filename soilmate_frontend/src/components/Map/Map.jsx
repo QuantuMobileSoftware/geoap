@@ -206,7 +206,7 @@ export const Map = () => {
             attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
             url='/tiles/mapbox/{z}/{x}/{y}.png'
             tileSize={512}
-            maxZoom={16}
+            maxZoom={18}
             zoomOffset={-1}
           />
         )}
