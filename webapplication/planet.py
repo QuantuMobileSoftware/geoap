@@ -76,7 +76,7 @@ if __name__ == "__main__":
                         help="""path to save merged raster""")
 
     path_dict = {'PSScene4Band': "files/PSScene4Band/*/analytic_sr_udm2/*_SR.tif",
-                 'SkySatCollect': "files/SkySatCollect/*/*_visual.tif"}
+                 'SkySatCollect': "files/SkySatCollect/*/visual/*_visual.tif"}
     args = parser.parse_args()
     raster_list = glob(path_dict.get(args.product))
     merge_rasters(raster_list, args.date, args.save_path, args.product)
