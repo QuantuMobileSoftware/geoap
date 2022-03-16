@@ -3,6 +3,7 @@ import subprocess
 import argparse
 from glob import glob
 import numpy as np
+from rasterio.enums import ColorInterp
 
 
 def transform_raster(raster_path, new_raster_path, date, request_id=0):
@@ -32,7 +33,7 @@ def transform_raster_visual(raster_path, new_raster_path, date, request_id=0):
         updated_meta = src.profile.copy()
         with rasterio.open(new_raster_path, "w", **updated_meta) as dst:
             dst.update_tags(start_date=date, end_date=date, request_id=request_id)
-            for band in range(1, 4):
+            for band in range(1, 5):
                 cur_band = src.read(band)
                 dst.write(cur_band, band)
 
@@ -46,7 +47,6 @@ def merge_rasters(raster_path_list, date, save_path, product):
             transform_raster_visual(raster_path, new_raster_path_tmp, date)
         else:
             transform_raster(raster_path, new_raster_path_tmp, date)
-
     listToStr = ' '.join([str(elem) for elem in raster_new_list])
     subprocess.call(' '.join(["gdalwarp --config GDAL_CACHEMAX 3000 -wm 3000 -t_srs EPSG:3857", listToStr, save_path]),
                     shell=True)
