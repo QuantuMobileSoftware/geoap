@@ -32,7 +32,7 @@ def transform_raster_visual(raster_path, new_raster_path, date, request_id=0):
         updated_meta = src.profile.copy()
         with rasterio.open(new_raster_path, "w", **updated_meta) as dst:
             dst.update_tags(start_date=date, end_date=date, request_id=request_id)
-            for band in range(1, 4):
+            for band in range(1, 5):
                 cur_band = src.read(band)
                 dst.write(cur_band, band)
 
