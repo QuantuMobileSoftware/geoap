@@ -120,7 +120,7 @@ export const useMapRequests = (selectedArea, map) => {
       } else if (selectedLayer.layer_type === 'MVT') {
         layer = L.vectorGrid.protobuf(selectedLayer.rel_url, {
           rendererFactory: L.canvas.tile,
-          maxZoom: 18,
+          maxZoom: 17,
           vectorTileLayerStyles: {
             default: properties => {
               if (typeof properties.style === 'string') {
@@ -152,7 +152,7 @@ export const useMapRequests = (selectedArea, map) => {
       } else if (selectedLayer.layer_type === 'XYZ') {
         layer = L.tileLayer(selectedLayer.rel_url, {
           minZoom: 10,
-          maxZoom: 18
+          maxZoom: 17
         });
         addLayerInMap(layer, selectedLayer);
       }
