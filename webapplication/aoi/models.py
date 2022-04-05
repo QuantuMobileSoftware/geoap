@@ -34,6 +34,7 @@ class JupyterNotebook(models.Model):
     options = JSONField(blank=True, null=True, verbose_name='Additional container options')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
+    parameters = models.JSONField(blank=True, null=True, verbose_name='Optional parameters')
     
     def __str__(self):
         return self.name

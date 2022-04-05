@@ -15,7 +15,7 @@ class AoIAdmin(admin.OSMGeoAdmin):
 
 @admin.register(JupyterNotebook)
 class JupyterNotebookAdmin(admin.OSMGeoAdmin):
-    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', )
+    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk', 'run_validation', 'success', )
 

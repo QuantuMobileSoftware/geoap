@@ -15,7 +15,7 @@ class AoISerializer(serializers.ModelSerializer):
 class JupyterNotebookSerializer(serializers.ModelSerializer):
     class Meta:
         model = JupyterNotebook
-        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', )
+        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters',)
         
         
 class RequestSerializer(serializers.ModelSerializer):

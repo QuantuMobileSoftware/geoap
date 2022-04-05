@@ -119,7 +119,7 @@ class JupyterNotebookListCreateAPIView(ListCreateAPIView):
     """
     Get list of all JupyterNotebooks available in system, or creates new JupyterNotebook.
     Accepts GET, POST methods.
-    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options'.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters'.
     Read-only fields: None
     Returns: list of JupyterNotebookModel fields
     """
@@ -134,7 +134,7 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Reads, updates and deletes JupyterNotebook fields.
     Accepts: GET, PATCH, DELETE methods.
     Accepted field: 'id'.
-    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options'.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters'.
     Read-only fields: None.
     Returns: JupyterNotebookModel fields.
     """
