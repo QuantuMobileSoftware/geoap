@@ -60,6 +60,7 @@ class Request(models.Model):
     success = models.BooleanField(default=False, verbose_name='Execution succeeded')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
+    parameters = JSONField(blank=True, null=True, verbose_name='Optional parameters')
 
     @property
     def notebook_name(self):

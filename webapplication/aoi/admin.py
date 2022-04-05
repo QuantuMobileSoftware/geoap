@@ -29,5 +29,5 @@ class JupyterNotebookAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', )
+                    'calculated', 'success', 'error', 'parameters',)
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]

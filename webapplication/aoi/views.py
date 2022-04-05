@@ -148,9 +148,9 @@ class RequestListCreateAPIView(ListCreateAPIView):
     """
     Get list of all Requests available for User, or creates new Request for calculation.
     Accepts: GET, POST methods.
-    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to'.
+    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to', 'parameters'(optional).
     Display fields (GET): 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at',
-                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'parameters'.
     Read-only fields: 'polygon'.
     Returns: RequestModel fields.
     """
@@ -180,7 +180,7 @@ class RequestRetrieveAPIView(RetrieveAPIView):
     Accepts: GET method.
     Accepted field: 'id'.
     Display fields: 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at', 
-                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'parameters'.
     Returns: RequestModel fields.
     """
     permission_classes = (ModelPermissions, IsOwnerPermission)
