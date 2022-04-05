@@ -119,7 +119,8 @@ class JupyterNotebookListCreateAPIView(ListCreateAPIView):
     """
     Get list of all JupyterNotebooks available in system, or creates new JupyterNotebook.
     Accepts GET, POST methods.
-    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters'.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
+    'additional_parameters'.
     Read-only fields: None
     Returns: list of JupyterNotebookModel fields
     """
@@ -134,7 +135,8 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Reads, updates and deletes JupyterNotebook fields.
     Accepts: GET, PATCH, DELETE methods.
     Accepted field: 'id'.
-    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', 'parameters'.
+    Display fields: 'id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
+    'additional_parameters'.
     Read-only fields: None.
     Returns: JupyterNotebookModel fields.
     """
@@ -148,9 +150,9 @@ class RequestListCreateAPIView(ListCreateAPIView):
     """
     Get list of all Requests available for User, or creates new Request for calculation.
     Accepts: GET, POST methods.
-    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to', 'parameters'(optional).
+    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to', 'additional_parameters'(optional).
     Display fields (GET): 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at',
-                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'parameters'.
+                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameters'.
     Read-only fields: 'polygon'.
     Returns: RequestModel fields.
     """
@@ -180,7 +182,7 @@ class RequestRetrieveAPIView(RetrieveAPIView):
     Accepts: GET method.
     Accepted field: 'id'.
     Display fields: 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at', 
-                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'parameters'.
+                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameters'.
     Returns: RequestModel fields.
     """
     permission_classes = (ModelPermissions, IsOwnerPermission)
@@ -195,7 +197,7 @@ class AOIRequestListAPIView(ListAPIView):
     Accepts: GET method.
     Accepted field: None.
     Display fields: 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at', 
-                    'finished_at', 'error', 'calculated', 'success', 'polygon'.
+                    'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameters'.
     Returns: list of RequestModel fields.
     """
     permission_classes = (ModelPermissions, )

@@ -34,7 +34,7 @@ class JupyterNotebook(models.Model):
     options = JSONField(blank=True, null=True, verbose_name='Additional container options')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
-    parameters = models.JSONField(blank=True, null=True, verbose_name='Optional parameters')
+    additional_parameters = JSONField(blank=True, null=True, verbose_name='Additional parameters')
     
     def __str__(self):
         return self.name
@@ -60,7 +60,7 @@ class Request(models.Model):
     success = models.BooleanField(default=False, verbose_name='Execution succeeded')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
-    parameters = JSONField(blank=True, null=True, verbose_name='Optional parameters')
+    additional_parameters = JSONField(blank=True, null=True, verbose_name='Additional parameters')
 
     @property
     def notebook_name(self):
