@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
+import { AdditionalFields } from './AdditionalFields';
 
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
@@ -30,7 +31,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [notebook, setNotebook] = useState(null);
+  const [notebook, setNotebook] = useState({});
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
 
@@ -40,17 +41,24 @@ export const CreateRequest = ({ areas, currentArea }) => {
     [areas]
   );
   const selectOptionsLayers = useMemo(
-    () => filteredLayers.map(({ name, id }) => ({ name, value: id })),
+    () =>
+      filteredLayers.map(({ name, id, parameters }) => ({
+        name,
+        value: id,
+        parameters
+      })),
     [filteredLayers]
   );
 
   const handleSaveRequest = () => {
+    const params = notebook.parameters ? { parameters: notebook.parameters } : {};
     const request = {
       aoi: areaId,
-      notebook: notebook,
+      notebook: notebook.value,
       date_from: startDate.toLocaleDateString('en-CA'),
       date_to: endDate.toLocaleDateString('en-CA'),
-      user: currentUser.pk
+      user: currentUser.pk,
+      ...params
     };
     setCurrentArea(areaId);
     saveAreaRequest(areaId, request);
@@ -59,7 +67,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   useEffect(() => {
-    if (notebook && startDate && endDate) {
+    if (startDate && endDate && hasSelectedNotebook(notebook)) {
       setCanSaveRequest(true);
     } else {
       setCanSaveRequest(false);
@@ -78,16 +86,21 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   const handleNoteBookChange = item => {
-    setNotebook(item.value);
+    setNotebook(item);
     setDates(year, item.value);
   };
 
   const handleYearChange = item => {
     setYear(item.value);
-    setDates(item.value, notebook);
+    setDates(item.value, notebook.value);
   };
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
+  const handleInputChange = e =>
+    setNotebook({
+      ...notebook,
+      parameters: { ...notebook.parameters, [e.target.name]: e.target.value }
+    });
 
   return (
     <Wrapper>
@@ -109,14 +122,14 @@ export const CreateRequest = ({ areas, currentArea }) => {
           label='Year'
           value={year}
         />
-        {notebook !== plotBoundariesId ? (
+        {notebook.value !== plotBoundariesId ? (
           <Calendar
             startDate={startDate}
             endDate={endDate}
             setStartDate={setStartDate}
             setEndDate={setEndDate}
             title='Date range'
-            notebook={notebook}
+            notebook={notebook.value}
           />
         ) : (
           <WarningText>
@@ -124,6 +137,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
             from June to August
           </WarningText>
         )}
+        <AdditionalFields fields={notebook.parameters} onChange={handleInputChange} />
       </SelectsWrapper>
       <ButtonWrapper>
         <Button
@@ -141,3 +155,11 @@ export const CreateRequest = ({ areas, currentArea }) => {
     </Wrapper>
   );
 };
+
+function hasSelectedNotebook(notebook) {
+  if (!notebook) return false;
+  if (notebook.parameters) {
+    return !Object.values(notebook.parameters).some(v => String(v).trim() === '');
+  }
+  return true;
+}
