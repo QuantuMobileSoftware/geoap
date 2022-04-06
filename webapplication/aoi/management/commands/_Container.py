@@ -136,5 +136,5 @@ class ContainerExecutor(Container):
                       {kernel}
                       """
         if self.notebook.additional_parameters:
-            command += f"--parameters '{json.dumps(self.notebook.additional_parameters)}'"
+            command += f"--parameters '{json.dumps(self.request.additional_parameters)}'"
         self.run(command)
