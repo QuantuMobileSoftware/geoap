@@ -34,6 +34,7 @@ class JupyterNotebook(models.Model):
     options = JSONField(blank=True, null=True, verbose_name='Additional container options')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
+    run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a notebook to run')
     
     def __str__(self):
         return self.name
