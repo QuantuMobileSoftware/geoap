@@ -42,16 +42,18 @@ export const CreateRequest = ({ areas, currentArea }) => {
   );
   const selectOptionsLayers = useMemo(
     () =>
-      filteredLayers.map(({ name, id, parameters }) => ({
+      filteredLayers.map(({ name, id, additional_parameters }) => ({
         name,
         value: id,
-        parameters
+        additional_parameters
       })),
     [filteredLayers]
   );
 
   const handleSaveRequest = () => {
-    const params = notebook.parameters ? { parameters: notebook.parameters } : {};
+    const params = notebook.additional_parameters
+      ? { additional_parameters: notebook.additional_parameters }
+      : {};
     const request = {
       aoi: areaId,
       notebook: notebook.value,
@@ -99,7 +101,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const handleInputChange = e =>
     setNotebook({
       ...notebook,
-      parameters: { ...notebook.parameters, [e.target.name]: e.target.value }
+      additional_parameters: {
+        ...notebook.additional_parameters,
+        [e.target.name]: e.target.value
+      }
     });
 
   return (
@@ -137,7 +142,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
             from June to August
           </WarningText>
         )}
-        <AdditionalFields fields={notebook.parameters} onChange={handleInputChange} />
+        <AdditionalFields
+          fields={notebook.additional_parameters}
+          onChange={handleInputChange}
+        />
       </SelectsWrapper>
       <ButtonWrapper>
         <Button
@@ -158,8 +166,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
 
 function hasSelectedNotebook(notebook) {
   if (!notebook) return false;
-  if (notebook.parameters) {
-    return !Object.values(notebook.parameters).some(v => String(v).trim() === '');
+  if (notebook.additional_parameters) {
+    return !Object.values(notebook.additional_parameters).some(
+      v => String(v).trim() === ''
+    );
   }
   return true;
 }
