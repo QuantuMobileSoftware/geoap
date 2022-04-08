@@ -18,7 +18,7 @@ parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
 parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
 parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
                     required=True)
-
+parser.add_argument('--parameter', type=str, help='Additional parameter', default=None)
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +32,11 @@ class NotebookExecutor:
                            START_DATE=args.start_date if args.start_date != 'None' else None,
                            END_DATE=args.end_date if args.end_date != 'None' else None)
 
+        if args.parameter:
+            additional_parameters = json.loads(args.parameter)
+            for parameter in additional_parameters:
+                parameter_upper = parameter.upper()
+                self.PARAMS[parameter_upper] = additional_parameters[parameter]
         self.cell_timeout = args.cell_timeout
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel

@@ -135,4 +135,7 @@ class ContainerExecutor(Container):
                       --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
                       {kernel}
                       """
+        if self.notebook.additional_parameter:
+            command += f"--parameter \
+            '{json.dumps({self.notebook.additional_parameter:self.request.additional_parameter})}'"
         self.run(command)
