@@ -136,6 +136,22 @@ class ContainerExecutor(Container):
                       {kernel}
                       """
         if self.notebook.additional_parameter:
-            command += f"--parameter \
-            '{json.dumps({self.notebook.additional_parameter:self.request.additional_parameter})}'"
+            ESCAPE_DCT = {
+                # escape all forward slashes to prevent </script> attack
+                '\\': '\\\\',
+                "\'": "\\'",
+                '\"': '\\"',
+                '\b': '\\b',
+                '\f': '\\f',
+                '\n': '\\n',
+                '\r': '\\r',
+                '\t': '\\t',
+            }
+            param_name = self.notebook.additional_parameter
+            param_val = self.request.additional_parameter
+            param_name = param_name.translate(param_name.maketrans(ESCAPE_DCT))
+            param_val = param_val.translate(param_val.maketrans(ESCAPE_DCT))
+            command += f"--parameter_name {param_name}\n"
+            command += f"--parameter_val {param_val}\n"
+            print('dyman', command)
         self.run(command)
