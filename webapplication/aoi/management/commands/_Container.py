@@ -153,5 +153,4 @@ class ContainerExecutor(Container):
             param_val = param_val.translate(param_val.maketrans(ESCAPE_DCT))
             command += f"--parameter_name {param_name}\n"
             command += f"--parameter_val {param_val}\n"
-            print('dyman', command)
         self.run(command)
