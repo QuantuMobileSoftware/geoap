@@ -137,7 +137,7 @@ class ContainerExecutor(Container):
                       """
         if self.notebook.additional_parameter:
             ESCAPE_DCT = {
-                # escape all forward slashes to prevent </script> attack
+                # escape all forward slashes
                 '\\': '\\\\',
                 "\'": "\\'",
                 '\"': '\\"',
