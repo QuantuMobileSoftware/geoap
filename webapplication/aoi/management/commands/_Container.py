@@ -121,36 +121,22 @@ class ContainerExecutor(Container):
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
-
-        kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
         notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
-
-        command = f"""python {notebook_executor_path}
-                      --input_path {self.notebook_path}
-                      --request_id {self.request.pk}
-                      --aoi '{self.request.polygon.wkt}'
-                      --start_date {self.request.date_from}
-                      --end_date {self.request.date_to}
-                      --cell_timeout {settings.CELL_EXECUTION_TIMEOUT}
-                      --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
-                      {kernel}
-                      """
+        
+        command = [
+            f'python', notebook_executor_path,
+            '--input_path', self.notebook_path,
+            '--request_id', str(self.request.pk),
+            '--aoi', self.request.polygon.wkt,
+            '--start_date', str(self.request.date_from),
+            '--end_date', str(self.request.date_to),
+            '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
+            '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+        ]
+        
+        if self.notebook.kernel_name:
+            command.extend(['--kernel', str(self.notebook.kernel_name)])
         if self.notebook.additional_parameter:
-            ESCAPE_DCT = {
-                # escape all forward slashes
-                '\\': '\\\\',
-                "\'": "\\'",
-                '\"': '\\"',
-                '\b': '\\b',
-                '\f': '\\f',
-                '\n': '\\n',
-                '\r': '\\r',
-                '\t': '\\t',
-            }
-            param_name = self.notebook.additional_parameter
-            param_val = self.request.additional_parameter
-            param_name = param_name.translate(param_name.maketrans(ESCAPE_DCT))
-            param_val = param_val.translate(param_val.maketrans(ESCAPE_DCT))
-            command += f"--parameter_name {param_name}\n"
-            command += f"--parameter_val {param_val}\n"
+            command.extend(['--parameter_name', self.notebook.additional_parameter])
+            command.extend(['--parameter_val', str(self.request.additional_parameter)])
         self.run(command)
