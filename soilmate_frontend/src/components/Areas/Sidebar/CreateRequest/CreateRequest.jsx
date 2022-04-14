@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
-import { AdditionalFields } from './AdditionalFields';
+import { AdditionalField } from './AdditionalField';
 
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
@@ -42,25 +42,24 @@ export const CreateRequest = ({ areas, currentArea }) => {
   );
   const selectOptionsLayers = useMemo(
     () =>
-      filteredLayers.map(({ name, id, additional_parameters }) => ({
+      filteredLayers.map(({ name, id, additional_parameter }) => ({
         name,
         value: id,
-        additional_parameters
+        additional_parameter
       })),
     [filteredLayers]
   );
 
   const handleSaveRequest = () => {
-    const params = notebook.additional_parameters
-      ? { additional_parameters: notebook.additional_parameters }
-      : {};
+    const { additional_parameter } = notebook;
+    const additionalParameter = additional_parameter ? { additional_parameter } : {};
     const request = {
       aoi: areaId,
       notebook: notebook.value,
       date_from: startDate.toLocaleDateString('en-CA'),
       date_to: endDate.toLocaleDateString('en-CA'),
       user: currentUser.pk,
-      ...params
+      ...additionalParameter
     };
     setCurrentArea(areaId);
     saveAreaRequest(areaId, request);
@@ -98,14 +97,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
-  const handleInputChange = e =>
-    setNotebook({
-      ...notebook,
-      additional_parameters: {
-        ...notebook.additional_parameters,
-        [e.target.name]: e.target.value
-      }
-    });
+  const handleFieldChange = e =>
+    setNotebook({ ...notebook, additional_parameter: e.target.value });
 
   return (
     <Wrapper>
@@ -142,9 +135,9 @@ export const CreateRequest = ({ areas, currentArea }) => {
             from June to August
           </WarningText>
         )}
-        <AdditionalFields
-          fields={notebook.additional_parameters}
-          onChange={handleInputChange}
+        <AdditionalField
+          value={notebook.additional_parameter}
+          onChange={handleFieldChange}
         />
       </SelectsWrapper>
       <ButtonWrapper>
@@ -166,10 +159,5 @@ export const CreateRequest = ({ areas, currentArea }) => {
 
 function hasSelectedNotebook(notebook) {
   if (!notebook) return false;
-  if (notebook.additional_parameters) {
-    return !Object.values(notebook.additional_parameters).some(
-      v => String(v).trim() === ''
-    );
-  }
-  return true;
+  return notebook.additional_parameter?.trim() !== '';
 }
