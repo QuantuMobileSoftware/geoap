@@ -15,7 +15,8 @@ class AoIAdmin(admin.OSMGeoAdmin):
 
 @admin.register(JupyterNotebook)
 class JupyterNotebookAdmin(admin.OSMGeoAdmin):
-    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', )
+    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
+                    'additional_parameter',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk', 'run_validation', 'success', )
 
@@ -29,5 +30,5 @@ class JupyterNotebookAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', )
+                    'calculated', 'success', 'error', 'additional_parameter')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
