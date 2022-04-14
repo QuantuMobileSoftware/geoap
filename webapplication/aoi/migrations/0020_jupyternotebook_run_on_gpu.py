@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0018_remove_AOI_type_table'),
+        ('aoi', '0019_jupyternotebook_additional_parameter'),
     ]
 
     operations = [
