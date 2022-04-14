@@ -18,6 +18,8 @@ parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
 parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
 parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
                     required=True)
+parser.add_argument('--parameter_name', type=str, help='Additional parameter name', default=None)
+parser.add_argument('--parameter_val', type=str, help='Additional parameter value', default=None)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,8 @@ class NotebookExecutor:
                            START_DATE=args.start_date if args.start_date != 'None' else None,
                            END_DATE=args.end_date if args.end_date != 'None' else None)
 
+        if args.parameter_name and args.parameter_val:
+            self.PARAMS[args.parameter_name.upper()] = args.parameter_val
         self.cell_timeout = args.cell_timeout
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel

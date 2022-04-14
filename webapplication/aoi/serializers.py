@@ -15,7 +15,8 @@ class AoISerializer(serializers.ModelSerializer):
 class JupyterNotebookSerializer(serializers.ModelSerializer):
     class Meta:
         model = JupyterNotebook
-        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options', )
+        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
+                  'additional_parameter',)
         
         
 class RequestSerializer(serializers.ModelSerializer):
@@ -28,5 +29,6 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
-                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon', )
+                  'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
+                  'additional_parameter',)
         read_only_fields = ['polygon', ]
