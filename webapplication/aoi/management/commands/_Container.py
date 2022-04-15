@@ -20,8 +20,7 @@ class Container:
                  container_data_volume: str = "/home/jovyan/work",
                  container_executor_volume: str = "/home/jovyan/code",
                  shm_size: str = "1G",
-                 environment: Optional[dict] = None,
-                 gpus: Optional[str] = settings.NOTEBOOK_EXECUTOR_GPUS, ):
+                 environment: Optional[dict] = None,):
 
         self.notebook = notebook
         self.container_name = container_name
@@ -33,15 +32,17 @@ class Container:
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
                             "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment
 
-        if gpus:
+        if notebook.run_on_gpu and settings.NOTEBOOK_EXECUTOR_GPUS:
+            logger.info(f"will use GPU '{settings.NOTEBOOK_EXECUTOR_GPUS}' for {notebook.name} notebook")
             capabilities = [['gpu']]
-            if gpus == "all":
+            if settings.NOTEBOOK_EXECUTOR_GPUS == "all":
                 self.device_requests = [DeviceRequest(count=-1,
                                                       capabilities=capabilities), ]
             else:
-                self.device_requests = [DeviceRequest(device_ids=[str(gpus), ],
+                self.device_requests = [DeviceRequest(device_ids=[str(settings.NOTEBOOK_EXECUTOR_GPUS), ],
                                                       capabilities=capabilities), ]
         else:
+            logger.info(f"will use CPU only for {notebook.name} notebook")
             self.device_requests = None
 
     def run(self, command=None):
@@ -121,18 +122,22 @@ class ContainerExecutor(Container):
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
-
-        kernel = f"--kernel {self.notebook.kernel_name}" if self.notebook.kernel_name else ""
         notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
-
-        command = f"""python {notebook_executor_path}
-                      --input_path {self.notebook_path}
-                      --request_id {self.request.pk}
-                      --aoi '{self.request.polygon.wkt}'
-                      --start_date {self.request.date_from}
-                      --end_date {self.request.date_to}
-                      --cell_timeout {settings.CELL_EXECUTION_TIMEOUT}
-                      --notebook_timeout {settings.NOTEBOOK_EXECUTION_TIMEOUT}
-                      {kernel}
-                      """
+        
+        command = [
+            f'python', notebook_executor_path,
+            '--input_path', self.notebook_path,
+            '--request_id', str(self.request.pk),
+            '--aoi', self.request.polygon.wkt,
+            '--start_date', str(self.request.date_from),
+            '--end_date', str(self.request.date_to),
+            '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
+            '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+        ]
+        
+        if self.notebook.kernel_name:
+            command.extend(['--kernel', str(self.notebook.kernel_name)])
+        if self.notebook.additional_parameter:
+            command.extend(['--parameter_name', self.notebook.additional_parameter])
+            command.extend(['--parameter_val', str(self.request.additional_parameter)])
         self.run(command)
