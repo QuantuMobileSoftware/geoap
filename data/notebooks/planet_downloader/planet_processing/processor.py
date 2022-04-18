@@ -10,40 +10,14 @@ from subprocess import Popen, PIPE, TimeoutExpired
 from tempfile import TemporaryDirectory
 import time
 import zipfile
+from .constants import assets_in_bundles_for_visualizing, ps_bands_order_for_visualizing, \
+    skysat_bands_order_for_visualizing, planetscope_item_types, skysat_item_types, planetscope_bands
 from .utils import transform_crs
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
 
 
 class PlanetBase:
-    planetscope_bands = {
-        'PS2': {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR'},
-        'PS2.SD': {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR'},
-        'PSB.SD': {
-            1: 'Coastal_Blue', 2: 'Blue', 3: 'Green_I', 4: 'Green_II', 5: 'Yellow', 6: 'Red', 7: 'Red-Edge', 8: 'NIR',
-        }
-    }
-    skysat_bands = {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR', 5: 'Pan'}
-
-    planetscope_item_types = {
-        'PSScene': {
-            '3_band': {1: 'Red', 2: 'Green', 3: 'Blue'},
-            '4_band': planetscope_bands['PS2'],
-            '8_band': planetscope_bands['PSB.SD']
-        },
-        'PSScene3Band': {'3_band': {1: 'Red', 2: 'Green', 3: 'Blue'}},
-        'PSScene4Band': {'4_band': planetscope_bands['PS2']},
-        'PSOrthoTile': {
-            '4_band': planetscope_bands['PS2'],
-            '5_band': {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'Red-Edge', 5: 'NIR'},
-        }
-    }
-    
-    skysat_item_types = {
-        'SkySatScene': skysat_bands,
-        'SkySatCollect': skysat_bands,
-    }
-    
     def __init__(self, archive_path, temp_dir_path):
         """
         :param archive_path: str or Path: Absolut path to archive
@@ -56,6 +30,7 @@ class PlanetBase:
         self.found_products_df = None
         self.found_items_info_df = None
         self.filtered_products_df = None
+        self.img_df = None
         self.img_converted_list = None
         self.img_transformed_list = None
         self.name = None
@@ -163,7 +138,7 @@ class PlanetBase:
     
     @staticmethod
     def get_empty_img_df():
-        column_names = ['path', 'size', 'item_id', 'bands_order']
+        column_names = ['path', 'size', 'item_id', 'bands_order', ]
         return pd.DataFrame(columns=column_names)
         
     def reorder_item_bands(self, img_df, reordering_function):
@@ -272,18 +247,6 @@ class PlanetVisualizer(PlanetBase):
     """
     Class for extracting and converting files from order archive for further visualization using 'gdal2tiles.py'
     """
-    product_bundles_for_visualizing = dict(
-        analytic_8b_sr_udm2='ortho_analytic_8b_sr',
-        pansharpened_udm2='ortho_pansharpened'
-    )
-    
-    ps_bands_order_for_visualizing = {
-        'PS2': [3, 2, 1],
-        'PS2.SD': [3, 2, 1],
-        'PSB.SD': [6, 4, 2],
-    }
-    skysat_bands_order_for_visualizing = {'skysat': [3, 2, 1]}
-    
     def __init__(self, archive_path, temp_dir_path, output_dir_path, delete_temp=False):
         """
         :param archive_path: str or Path: Absolut path to archive
@@ -295,26 +258,32 @@ class PlanetVisualizer(PlanetBase):
         self.output_dir_path = output_dir_path
         self.delete_temp = delete_temp
     
-    def __check_bundle_type(self, row, product_bundle):
+    def __check_bundle_type(self, row, product_bundle, item_type):
         """
         Check if product_bundle in known bundles for visualizing,
         if it is not, then raise KeyError,
-        else check if asset_type from row equal to asset_type from product_bundles_for_visualizing dict.
+        else check if asset_type from row equal to asset_type from assets_in_bundles_for_visualizing dict.
         :param row: Pandas DatFrame row
         :param product_bundle: str: product bundle name
-        :return:
+        :param item_type: str: product item type
+        :return: Bool
         """
-        if product_bundle not in self.product_bundles_for_visualizing.keys():
+        if product_bundle not in assets_in_bundles_for_visualizing.keys():
             print('Unknown planet/bundle_type!', row['planet/bundle_type'])
             raise KeyError
-        return row['planet/asset_type'] == self.product_bundles_for_visualizing[product_bundle]
+        if item_type not in assets_in_bundles_for_visualizing[product_bundle].keys():
+            print('Unknown planet/asset_type! in assets_in_bundles_for_visualizing', row['planet/asset_type'])
+            raise KeyError
+        return row['planet/asset_type'] == assets_in_bundles_for_visualizing[product_bundle][item_type]
     
     @staticmethod
     def filter_product_by_item_id(row, item_id):
         return row['planet/item_id'] == item_id
     
-    def filter_product_by_product_bundle(self, products_df, product_bundle):
-        return products_df[products_df.annotations.apply(lambda row: self.__check_bundle_type(row, product_bundle))]
+    def filter_product_by_product_bundle(self, products_df, product_bundle, item_type):
+        return products_df[products_df.annotations.apply(lambda row: self.__check_bundle_type(
+            row, product_bundle, item_type
+        ))]
     
     @staticmethod
     def create_reordered_image(raster_path, bands_order):
@@ -339,19 +308,30 @@ class PlanetVisualizer(PlanetBase):
             with rasterio.open(raster_dst, 'w', **updated_meta) as dst:
                 for num, band_num in enumerate(bands_order, start=1):
                     band = src.read(band_num)
+                    # max_ = np.percentile(band, 98)
+                    # min_ = np.percentile(band, 2)
+                    # band[band > max_] = max_
+                    # band[band < min_] = min_
+                    # band = (band - min_) / (max_ - min_) * 255
+
+                    # arr = np.nonzero(band)
+                    # max_ = np.percentile(arr, 98)
+                    # min_ = np.nanpercentile(arr, 2)
                     max_ = np.percentile(band, 98)
+                    min_ = np.percentile(band, 2)
                     band[band > max_] = max_
-                    band = (band / max_) * 255
+                    band = np.where((band > 0) & (band < min_), min_, band)
+                    # band[band > 0] = (band - min_) / (max_ - min_) * 254 + 1
+                    
                     band = band.astype(np.uint8)
                     dst.write(band, indexes=num)
         return raster_dst
 
-    @staticmethod
-    def translate_raster(raster_path, bands_order):
+    def translate_raster(self, raster_path, bands_order):
         raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
         if raster_dst.with_suffix('.json').exists():
             return raster_dst
-        b_order = ''
+        b_order = ""
         for band in bands_order:
             b_order = b_order + f" -b {band}"
 
@@ -359,20 +339,23 @@ class PlanetVisualizer(PlanetBase):
             "gdal_translate",
             "-ot", "Byte",
             b_order,
-            "-q",
+            # '-q',
+            str(raster_path), str(raster_dst)
         ]
+        self.run_process(command, self.max_timeout_for_img_generation)
+        return raster_dst
     
     def planetscope_processor(self, product):
         """
         Process planetscope ordered images
         :param product: obj:
-        :return: list: list of Path to converted images
+        :return: pandas DataFrame: DataFrame with column names: 'path', 'size', 'item_id', 'bands_order'
         """
         img_df = self.get_empty_img_df()
         for item_id in product['item_ids']:
             item_info = self.get_item_info(item_id, product['item_type'])
             instrument = item_info['properties']['instrument']
-            if instrument not in self.planetscope_bands.keys():
+            if instrument not in planetscope_bands.keys():
                 print(f'Unknown instrument "{instrument}" in planetscope_bands! Skipping item {item_info["id"]}')
                 print(f'path to skipped file {item_info["path"]}')
                 continue
@@ -381,10 +364,10 @@ class PlanetVisualizer(PlanetBase):
             )]
             item_path_in_archive = item_to_process['path'].values[0]
             item_size = item_to_process['size'].values[0]
-            bands_order = self.ps_bands_order_for_visualizing[instrument]
+            bands_order = ps_bands_order_for_visualizing[instrument]
             
             # add new row to img_df
-            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order]
+            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order, ]
             
         self.extract_img_files_from_archiwe(img_df)
         
@@ -395,7 +378,7 @@ class PlanetVisualizer(PlanetBase):
         """
         Process Skysat ordered images
         :param product: obj:
-        :return: list: list of Path to converted images
+        :return: pandas DataFrame: DataFrame with column names: 'path', 'size', 'item_id', 'bands_order'
         """
         img_df = self.get_empty_img_df()
         for item_id in product['item_ids']:
@@ -405,27 +388,28 @@ class PlanetVisualizer(PlanetBase):
             )]
             item_path_in_archive = item_to_process['path'].values[0]
             item_size = item_to_process['size'].values[0]
-            bands_order = self.skysat_bands_order_for_visualizing[item_info['properties']['provider']]
+            bands_order = skysat_bands_order_for_visualizing[item_info['properties']['provider']]
 
             # add new row to img_df
-            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order]
-
-        self.extract_img_files_from_archiwe(img_df)
-        img_converted_list = self.reorder_item_bands(img_df, self.create_reordered_image)
-        return img_converted_list
-    
+            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order, ]
+        return img_df
+        
     def run(self):
         for product in self.products_info:
             self.img_converted_list = []
             item_type = product['item_type']
             product_bundle = product['product_bundle']
-            self.filtered_products_df = self.filter_product_by_product_bundle(self.found_products_df, product_bundle)
-            if item_type in self.planetscope_item_types.keys():
-                self.img_converted_list = self.planetscope_processor(product)
-            
-            if item_type in self.skysat_item_types.keys():
-                self.img_converted_list = self.skysat_processor(product)
-            
+            self.filtered_products_df = self.filter_product_by_product_bundle(
+                self.found_products_df, product_bundle, item_type)
+            if item_type in planetscope_item_types.keys():
+                self.img_df = self.planetscope_processor(product)
+
+            if item_type in skysat_item_types.keys():
+                self.img_df = self.skysat_processor(product)
+                
+            self.extract_img_files_from_archiwe(self.img_df)
+            # self.img_converted_list = self.reorder_item_bands(self.img_df, self.create_reordered_image)
+            self.img_converted_list = self.reorder_item_bands(self.img_df, self.create_reordered_image)
             self.img_transformed_list = self.transform_img(self.img_converted_list)
 
             merged_raster_path = self.merge_tiles(
