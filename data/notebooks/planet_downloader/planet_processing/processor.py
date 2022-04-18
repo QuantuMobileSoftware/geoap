@@ -4,19 +4,24 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import rasterio
-from rasterio.merge import merge
 import os
+import shutil
+from subprocess import Popen, PIPE, TimeoutExpired
 from tempfile import TemporaryDirectory
 import time
 import zipfile
 from .utils import transform_crs
+
+MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
 
 
 class PlanetBase:
     planetscope_bands = {
         'PS2': {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR'},
         'PS2.SD': {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR'},
-        'PSB.SD': {1: 'Coastal_Blue', 2: 'Blue', 3: 'Green_I', 4: 'Green_II', 5: 'Yellow', 6: 'Red', 7: 'Red-Edge', 8: 'NIR'}
+        'PSB.SD': {
+            1: 'Coastal_Blue', 2: 'Blue', 3: 'Green_I', 4: 'Green_II', 5: 'Yellow', 6: 'Red', 7: 'Red-Edge', 8: 'NIR',
+        }
     }
     skysat_bands = {1: 'Blue', 2: 'Green', 3: 'Red', 4: 'NIR', 5: 'Pan'}
 
@@ -51,7 +56,10 @@ class PlanetBase:
         self.found_products_df = None
         self.found_items_info_df = None
         self.filtered_products_df = None
+        self.img_converted_list = None
+        self.img_transformed_list = None
         self.name = None
+        self.max_timeout_for_img_generation = MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS
         self.get_products_info()
         self.extract_archive_manifest_data()
         self.extract_archive_item_json_files()
@@ -218,53 +226,55 @@ class PlanetBase:
     
             print(f'{time.time() - start_time} seconds for transform {len(img_transformed_list)} images')
             return img_transformed_list
-
-    @staticmethod
-    def stitch_tiles(paths, out_raster_path='test.tif'):
+    
+    def merge_tiles(self, paths, out_raster_path='test.tif'):
         print(f'Start merging to {out_raster_path}')
-        tiles = []
-        crs = None
-        meta = None
         start_time = time.time()
         json_path = Path(out_raster_path).with_suffix('.json')
         if json_path.exists():
             return out_raster_path
-    
-        for i, path in enumerate(paths):
-            file = rasterio.open(path)
-            if i == 0:
-                meta, crs = file.meta, file.crs
-            tiles.append(file)
-            print(f'{i} {path} appended to tiles')
-    
-        tile_arr, transform = merge(tiles, method='last')
-    
-        meta.update({"driver": "GTiff",
-                     "height": tile_arr.shape[1],
-                     "width": tile_arr.shape[2],
-                     "transform": transform,
-                     "crs": crs})
-    
-        with rasterio.open(out_raster_path, "w", **meta) as dst:
-            dst.write(tile_arr)
-
+        command = [
+            "gdal_merge.py",
+            "-o", out_raster_path,
+            "-ot", "Byte",
+            *paths
+        ]
+        self.run_process(command, self.max_timeout_for_img_generation)
         json_path = Path(out_raster_path).with_suffix('.json')
         with open(json_path, 'w') as f:
             data = {'merged': str(json_path)}
             f.write(json.dumps(data))
         
-        for tile in tiles:
-            tile.close()
-        print(f'{time.time() - start_time} seconds for merging {len(paths)} images')
+        print(f'{time.time() - start_time} seconds for merging {len(paths)} images in to {out_raster_path}')
         return out_raster_path
+        
+    @staticmethod
+    def run_process(command, timeout):
+        process = Popen(command, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+        try:
+            out, err = process.communicate(timeout=timeout)
+            if process.returncode != 0:
+                print(f"Failed {command} output: {out}, err: {err}")
+                raise Exception(f"Failed to run process")
+            print(f"Success {command} output: {out}, err: {err}")
+        except TimeoutExpired as te:
+            print(f"Failed {command} error: {str(te)}. Killing process...")
+            process.kill()
+            out, err = process.communicate()
+            print(f"Failed {command} output: {out}, err: {err}")
+            raise
+        
+    def set_max_timeout_for_img_generation(self, timeout):
+        self.max_timeout_for_img_generation = timeout
 
-    
+
 class PlanetVisualizer(PlanetBase):
     """
     Class for extracting and converting files from order archive for further visualization using 'gdal2tiles.py'
     """
     product_bundles_for_visualizing = dict(
         analytic_8b_sr_udm2='ortho_analytic_8b_sr',
+        pansharpened_udm2='ortho_pansharpened'
     )
     
     ps_bands_order_for_visualizing = {
@@ -274,12 +284,16 @@ class PlanetVisualizer(PlanetBase):
     }
     skysat_bands_order_for_visualizing = {'skysat': [3, 2, 1]}
     
-    def __init__(self, archive_path, temp_dir_path):
+    def __init__(self, archive_path, temp_dir_path, output_dir_path, delete_temp=False):
         """
         :param archive_path: str or Path: Absolut path to archive
         :param temp_dir_path:  str or Path: Absolut path to directory for storing temporary files
+        :param output_dir_path: str or Path: Absolut path to directory for copying output file
+        :param delete_temp: Bool: delete temp files
         """
         super().__init__(archive_path, temp_dir_path)
+        self.output_dir_path = output_dir_path
+        self.delete_temp = delete_temp
     
     def __check_bundle_type(self, row, product_bundle):
         """
@@ -295,7 +309,8 @@ class PlanetVisualizer(PlanetBase):
             raise KeyError
         return row['planet/asset_type'] == self.product_bundles_for_visualizing[product_bundle]
     
-    def filter_product_by_item_id(self, row, item_id):
+    @staticmethod
+    def filter_product_by_item_id(row, item_id):
         return row['planet/item_id'] == item_id
     
     def filter_product_by_product_bundle(self, products_df, product_bundle):
@@ -330,6 +345,22 @@ class PlanetVisualizer(PlanetBase):
                     band = band.astype(np.uint8)
                     dst.write(band, indexes=num)
         return raster_dst
+
+    @staticmethod
+    def translate_raster(raster_path, bands_order):
+        raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
+        if raster_dst.with_suffix('.json').exists():
+            return raster_dst
+        b_order = ''
+        for band in bands_order:
+            b_order = b_order + f" -b {band}"
+
+        command = [
+            "gdal_translate",
+            "-ot", "Byte",
+            b_order,
+            "-q",
+        ]
     
     def planetscope_processor(self, product):
         """
@@ -361,32 +392,46 @@ class PlanetVisualizer(PlanetBase):
         return img_converted_list
         
     def skysat_processor(self, product):
+        """
+        Process Skysat ordered images
+        :param product: obj:
+        :return: list: list of Path to converted images
+        """
+        img_df = self.get_empty_img_df()
         for item_id in product['item_ids']:
-            pass
-            item_info = self.get_item_info(item_id)
+            item_info = self.get_item_info(item_id, product['item_type'])
+            item_to_process = self.filtered_products_df[self.filtered_products_df.annotations.apply(
+                lambda row: self.filter_product_by_item_id(row, item_id)
+            )]
+            item_path_in_archive = item_to_process['path'].values[0]
+            item_size = item_to_process['size'].values[0]
+            bands_order = self.skysat_bands_order_for_visualizing[item_info['properties']['provider']]
+
+            # add new row to img_df
+            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order]
+
+        self.extract_img_files_from_archiwe(img_df)
+        img_converted_list = self.reorder_item_bands(img_df, self.create_reordered_image)
+        return img_converted_list
     
     def run(self):
         for product in self.products_info:
-            img_converted_list = []
+            self.img_converted_list = []
             item_type = product['item_type']
             product_bundle = product['product_bundle']
             self.filtered_products_df = self.filter_product_by_product_bundle(self.found_products_df, product_bundle)
             if item_type in self.planetscope_item_types.keys():
-                img_converted_list = self.planetscope_processor(product)
+                self.img_converted_list = self.planetscope_processor(product)
             
             if item_type in self.skysat_item_types.keys():
-                img_converted_list = self.skysat_processor(product)
-                pass  # todo process product
+                self.img_converted_list = self.skysat_processor(product)
             
-            img_transformed_list = self.transform_img(img_converted_list)
-            merged_raster_path = self.stitch_tiles(img_transformed_list, self.temp_dir_path / self.name)
+            self.img_transformed_list = self.transform_img(self.img_converted_list)
 
-            return merged_raster_path
-            
-            # TODO rm temp files
-            
-            for tmp_file in img_transformed_list:
-                try:
-                    os.remove(tmp_file)
-                except FileNotFoundError:
-                    print(f'Tile {tmp_file} was removed or renamed, skipping')
+            merged_raster_path = self.merge_tiles(
+                self.img_transformed_list, self.temp_dir_path / Path(self.name).with_suffix('.tif')
+            )
+            shutil.copy(str(merged_raster_path), str(self.output_dir_path))
+            if self.delete_temp:
+                shutil.rmtree(self.temp_dir_path)
+            return str(merged_raster_path)
