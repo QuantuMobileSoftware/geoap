@@ -13,6 +13,7 @@ import zipfile
 from .constants import assets_in_bundles_for_visualizing, ps_bands_order_for_visualizing, \
     skysat_bands_order_for_visualizing, planetscope_item_types, skysat_item_types, planetscope_bands
 from .utils import transform_crs
+from .utils import scale_band, min_max_scale
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
 
@@ -299,9 +300,8 @@ class PlanetVisualizer(PlanetBase):
         with rasterio.open(raster_path, "r") as src:
             updated_meta = src.profile.copy()
             updated_meta['count'] = len(bands_order)
+            updated_meta['bands'] = len(bands_order)
             updated_meta.update({
-                "count": 3,
-                "bands": 3,
                 "nodata": 0,
                 "dtype": 'uint8'
             })
@@ -317,13 +317,15 @@ class PlanetVisualizer(PlanetBase):
                     # arr = np.nonzero(band)
                     # max_ = np.percentile(arr, 98)
                     # min_ = np.nanpercentile(arr, 2)
-                    max_ = np.percentile(band, 98)
-                    min_ = np.percentile(band, 2)
-                    band[band > max_] = max_
-                    band = np.where((band > 0) & (band < min_), min_, band)
+                    # max_ = np.percentile(band, 98)
+                    # min_ = np.percentile(band, 2)
+                    # band[band > max_] = max_
+                    # band = np.where((band > 0) & (band < min_), min_, band)
                     # band[band > 0] = (band - min_) / (max_ - min_) * 254 + 1
                     
+                    # band = min_max_scale(band)
                     band = band.astype(np.uint8)
+                    
                     dst.write(band, indexes=num)
         return raster_dst
 
