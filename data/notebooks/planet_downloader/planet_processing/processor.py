@@ -17,6 +17,8 @@ from .utils import scale_band, min_max_scale
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
 
+bundles_json = 'constants/bundles.json'
+
 
 class PlanetBase:
     def __init__(self, archive_path, temp_dir_path):
@@ -37,6 +39,7 @@ class PlanetBase:
         self.name = None
         self.max_timeout_for_img_generation = MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS
         self.get_products_info()
+        self.planet_bundles = self.get_planet_bundles()
         self.extract_archive_manifest_data()
         self.extract_archive_item_json_files()
         
@@ -51,6 +54,15 @@ class PlanetBase:
             self.products_info = data['products']
             self.name = data['name']
         return
+    
+    @staticmethod
+    def get_planet_bundles():
+        """
+        Get planet bundles information from json file
+        :return: obj: planet bundles information
+        """
+        with open(Path(__file__).parent.resolve() / bundles_json, 'r') as f:
+            return json.load(f)
 
     @staticmethod
     def filter_product_by_file_type(df, media_type):
@@ -242,6 +254,16 @@ class PlanetBase:
         
     def set_max_timeout_for_img_generation(self, timeout):
         self.max_timeout_for_img_generation = timeout
+        
+    @staticmethod
+    def get_product_bands_order(product_bundle, item_type):
+        """
+        Get available bands for product based on product bundle and product item_type
+        :param product_bundle: str: product bundle
+        :param item_type: str: product item_type
+        :return: Dict: bands dict where keys can be B', 'G', 'R', 'NIR', 'Red-Edge', 'Yellow', 'G_I', 'Coastal_Blue'
+        """
+        return assets_in_bundles_for_visualizing[product_bundle][item_type]['properties']['bands']
 
 
 class PlanetVisualizer(PlanetBase):
@@ -275,7 +297,7 @@ class PlanetVisualizer(PlanetBase):
         if item_type not in assets_in_bundles_for_visualizing[product_bundle].keys():
             print('Unknown planet/asset_type! in assets_in_bundles_for_visualizing', row['planet/asset_type'])
             raise KeyError
-        return row['planet/asset_type'] == assets_in_bundles_for_visualizing[product_bundle][item_type]
+        return row['planet/asset_type'] == assets_in_bundles_for_visualizing[product_bundle][item_type]['file_name']
     
     @staticmethod
     def filter_product_by_item_id(row, item_id):
@@ -286,6 +308,17 @@ class PlanetVisualizer(PlanetBase):
             row, product_bundle, item_type
         ))]
     
+    def get_bands_order_for_visualization(self, product_bundle, item_type):
+        """
+        Extract from constants bands order for visualization based on product bundle and product item_type
+        :param product_bundle: str: product bundle
+        :param item_type: str: product item_type
+        :return: list: list of ints
+        """
+        bands_to_extract = ['R', 'G', 'B']
+        product_bands_order = self.get_product_bands_order(product_bundle, item_type)
+        return [product_bands_order[band] for band in bands_to_extract]
+        
     @staticmethod
     def create_reordered_image(raster_path, bands_order):
         """
@@ -301,10 +334,10 @@ class PlanetVisualizer(PlanetBase):
             updated_meta = src.profile.copy()
             updated_meta['count'] = len(bands_order)
             updated_meta['bands'] = len(bands_order)
-            updated_meta.update({
-                "nodata": 0,
-                "dtype": 'uint8'
-            })
+            # updated_meta.update({
+            #     "nodata": 0,
+            #     "dtype": 'uint8'
+            # })
             with rasterio.open(raster_dst, 'w', **updated_meta) as dst:
                 for num, band_num in enumerate(bands_order, start=1):
                     band = src.read(band_num)
@@ -324,7 +357,7 @@ class PlanetVisualizer(PlanetBase):
                     # band[band > 0] = (band - min_) / (max_ - min_) * 254 + 1
                     
                     # band = min_max_scale(band)
-                    band = band.astype(np.uint8)
+                    # band = band.astype(np.uint8)
                     
                     dst.write(band, indexes=num)
         return raster_dst
@@ -385,12 +418,14 @@ class PlanetVisualizer(PlanetBase):
         img_df = self.get_empty_img_df()
         for item_id in product['item_ids']:
             item_info = self.get_item_info(item_id, product['item_type'])
+            product_bundle = product['product_bundle']
+            item_type = item_info['properties']['item_type']
             item_to_process = self.filtered_products_df[self.filtered_products_df.annotations.apply(
                 lambda row: self.filter_product_by_item_id(row, item_id)
             )]
             item_path_in_archive = item_to_process['path'].values[0]
             item_size = item_to_process['size'].values[0]
-            bands_order = skysat_bands_order_for_visualizing[item_info['properties']['provider']]
+            bands_order = self.get_bands_order_for_visualization(product_bundle, item_type)
 
             # add new row to img_df
             img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order, ]
