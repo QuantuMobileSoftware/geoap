@@ -320,43 +320,6 @@ class PlanetVisualizer(PlanetBase):
         product_bands_order = self.get_product_bands_order(product_bundle, item_type)
         return [product_bands_order[band] for band in bands_to_extract]
 
-    def raster_normalize(path_raster, step=6000):
-        src = rasterio.open(path_raster)
-        w, h = src.meta['width'], src.meta['height']
-        whole_rem_w = divmod(w, step)
-        whole_rem_h = divmod(h, step)
-
-        whole_i_h_steps = [(0, i * step, 0, step) for i in range(whole_rem_h[0])]
-        all_steps_h = whole_i_h_steps + [(0, whole_i_h_steps[-1][1] + step, 0, whole_rem_h[1])]
-
-        all_steps = []
-        for h_step in all_steps_h:
-            all_steps = all_steps + [(i * step, h_step[1], step, h_step[-1]) for i in range(whole_rem_w[0])]
-            all_steps = all_steps + [(all_steps[-1][0] + step, h_step[1], whole_rem_w[1], h_step[-1])]
-
-        pixels_sum = np.sum([np.sum(src.read((1, 2, 3), window=Window(*i)), axis=(1, 2)) for i in all_steps], axis=0)
-
-        means_channels = (pixels_sum / (w * h)).reshape((3, 1, 1))
-
-        squared_deviation = np.sum(
-            [np.sum((src.read((1, 2, 3), window=Window(*i)) - means_channels) ** 2, axis=(1, 2)) for i in all_steps],
-            axis=0)
-
-        std = (squared_deviation / (w * h)) ** 0.5
-
-        max_ = (means_channels.reshape(3, -1) + 2 * std.reshape(3, -1)).reshape(3, 1, 1)
-
-        profile = src.profile
-        profile['dtype'] = 'uint8'
-        profile['count'] = 3
-
-        with rasterio.open(
-                'example.tif', 'w', **profile
-        ) as dst:
-            for i in all_steps:
-                window_normalize = src.read((1, 2, 3), window=Window(*i)) / max_
-                window_normalize = np.clip(window_normalize * 255, 0, 255).astype(rasterio.uint8)
-                dst.write(window_normalize, window=Window(*i))
         
     @staticmethod
     def create_reordered_image(raster_path,step = 6000):
