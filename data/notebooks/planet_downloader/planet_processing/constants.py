@@ -1,23 +1,59 @@
 
 # <acquisition date>_<acquisition time>_<satellite_id>_<productLevel><bandProduct>.<extension>
 
-s = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
-ps_basic_scene_product_3band = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': None}
-ps_basic_scene_product_4band = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': None}
+ps_3b_order = {'R': 1, 'G': 2, 'B': 3}
+ps_4b_order = {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}
+ps_8b_order = {'Coastal_Blue': 1, 'B': 2, 'G_I': 3, 'G': 4, 'Yellow': 5, 'R': 6, 'Red-Edge': 7, 'NIR': 8}
 
-ps_basic_analytic_scene_product_3band = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'WGS84'}
-ps_basic_analytic_scene_product_4band = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'WGS84'}
-ps_ortho_scene_product_3band = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
-ps_ortho_scene_product_4band = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
-ps_ortho_scene_product_8band = {'bands': {
-    'Coastal_Blue': 1, 'B': 2, 'G_I': 3, 'G': 4, 'Yellow': 5, 'R': 6, 'Red-Edge': 7, 'NIR': 8}, 'projection': 'UTM'
-}
+ps_rgb = {'R': 1, 'G': 2, 'B': 3}
+ps_rgb_nir = {'R': 1, 'G': 2, 'B': 3, 'NIR': 4}
+visual_all = {'R': 1, 'G': 2, 'B': 3}
 
-ps_visual_ortho_tile_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
+ps_scene3b = {'R': 1, 'G': 2, 'B': 3, 'ALPHA': 4}  # TODO check ALPHA band
+ps_scene4b = {'B': 1, 'G': 2, 'R': 3, 'NIR': 4, 'ALPHA': 5}  # TODO check ALPHA band
+
+ps_ortho_tile_4b = {'B': 1, 'G': 2, 'R': 3, 'NIR': 4, 'ALPHA': 5}  # TODO check ALPHA band
+ps_ortho_tile_5b = {'B': 1, 'G': 2, 'R': 3, 'Red-Edge': 4, 'NIR': 5, 'ALPHA': 6}  # TODO check ALPHA band
+
+
+ps_scene3b_ortho_analytic = {'bands': ps_scene3b, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene3b_basic_analytic = {'bands': ps_scene3b, 'projection': None, 'dtype': 'uint16'}
+ps_scene3b_ortho_visual = {'bands': visual_all, 'projection': 'UTM', 'dtype': 'uint8'}  # TODO check ALPHA band
+
+ps_scene4b_ortho_analytic = {'bands': ps_scene4b, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene4b_ortho_analytic_sr = {'bands': ps_scene4b, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene4b_basic_analytic = {'bands': ps_scene4b, 'projection': None, 'dtype': 'uint16'}
+
+ps_scene_ortho_visual = {'bands': visual_all, 'projection': 'UTM', 'dtype': 'uint8'}
+
+ps_scene_ortho_analytic_3b = {'bands': ps_rgb, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene_ortho_analytic_4b = {'bands': ps_rgb_nir, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene_ortho_analytic_8b = {'bands': ps_8b_order, 'projection': 'UTM', 'dtype': 'uint16'}  # TODO check bands order
+ps_scene_ortho_analytic_4b_sr = {'bands': ps_rgb_nir, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_scene_ortho_analytic_8b_sr = {'bands': ps_8b_order, 'projection': 'UTM', 'dtype': 'uint16'}  # TODO check bands order
+
+ps_scene_basic_analytic_4b = {'bands': ps_rgb_nir, 'projection': None, 'dtype': 'uint16'}
+ps_scene_basic_analytic_8b = {'bands': ps_8b_order, 'projection': None, 'dtype': 'uint16'}
+
+ps_tile_ortho_visual = {'bands': visual_all, 'projection': 'UTM', 'dtype': 'uint8'}
+ps_tile_ortho_analytic = {'bands': ps_ortho_tile_4b, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_tile_ortho_analytic_5b = {'bands': ps_ortho_tile_5b, 'projection': 'UTM', 'dtype': 'uint16'}
+ps_tile_ortho_analytic_sr = None
+ps_tile_basic_analytic = None
+
+
+ps_scene_basic_3band = {'bands': ps_3b_order, 'projection': None}
+
+
+ps_scene_basic_analytic_3band = {'bands': ps_3b_order, 'projection': None}
+ps_scene_basic_analytic_4band = {'bands': ps_4b_order, 'projection': None}
+
+
+
 ps_analytic_ortho_tile_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
 ps_analytic_sr_ortho_tile_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
-ps_visual_ortho_scene_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
-ps_analytic_ortho_scene_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
+
+ps_analytic_ortho_scene_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM', 'dtype': 'uint16'}
 ps_analytic_sr_ortho_scene_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}
 
 skysat_basic_panchromatic_scene_product = {'bands': {'PAN': 1}, 'projection': 'WGS84'}
@@ -32,31 +68,46 @@ skysat_visual_ortho_collect_product = {'bands': {'R': 1, 'G': 2, 'B': 3}, 'proje
 skysat_pansharpened_ortho_scene_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
 skysat_pansharpened_ortho_collect_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
 
-skysat_analytic_sr_ortho_scene_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
+skysat_analytic_sr_ortho_scene_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM', }
 skysat_analytic_ortho_scene_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
 skysat_analytic_ortho_collect_product = {'bands': {'B': 1, 'G': 2, 'R': 3, 'NIR': 4}, 'projection': 'UTM'}
 
 assets_in_bundles_for_visualizing = dict(
-    analytic_8b_sr_udm2={'PSScene': {'file_name': 'ortho_analytic_8b_sr', 'properties': ps_ortho_scene_product_8band}},
+    analytic_8b_sr_udm2={
+        'PSScene': {'file_name': 'ortho_analytic_8b_sr', 'properties': ps_scene_ortho_analytic_8b_sr}  # ok
+    },
     pansharpened_udm2={
         'SkySatCollect': {'file_name': 'ortho_pansharpened', 'properties': skysat_pansharpened_ortho_collect_product},
         'SkySatScene': {'file_name': 'ortho_pansharpened', 'properties': skysat_pansharpened_ortho_scene_product}
     },
     analytic_sr_udm2={
-        'PSScene4Band': {'file_name': 'analytic_sr', 'properties': ps_ortho_scene_product_4band},
-        'PSScene': {'file_name': 'ortho_analytic_4b_sr', 'properties': ps_ortho_scene_product_4band},
-        'PSOrthoTile': {'file_name': 'analytic_sr', 'properties': ps_analytic_sr_ortho_tile_product},
+        'PSScene4Band': {'file_name': 'analytic_sr', 'properties': ps_scene4b_ortho_analytic_sr},  # ok
+        'PSScene': {'file_name': 'ortho_analytic_4b_sr', 'properties': ps_scene_ortho_analytic_4b_sr},  # ok
+        'PSOrthoTile': {'file_name': 'analytic_sr', 'properties': ps_tile_ortho_analytic_sr},
         'SkySatCollect': {'file_name': 'ortho_analytic_sr', 'properties': skysat_analytic_ortho_collect_product},
         'SkySatScene': {'file_name': 'ortho_analytic_sr', 'properties': skysat_analytic_ortho_scene_product}
     }, 
     visual={
-        'PSOrthoTile': {'file_name': 'visual', 'properties': ps_visual_ortho_tile_product},
-        'PSScene3Band': {'file_name': 'visual', 'properties': ps_ortho_scene_product_3band},
-        'PSScene': {'file_name': 'ortho_visual', 'properties': ps_visual_ortho_scene_product},
-        'REOrthoTile': {'file_name': 'visual', 'properties': None},
-        'Sentinel2L1C': {'file_name': 'visual', 'properties': None},
+        'PSOrthoTile': {'file_name': 'visual', 'properties': ps_scene_ortho_visual},  # ok
+        'PSScene3Band': {'file_name': 'visual', 'properties': ps_scene_ortho_visual},  # ok
+        'PSScene': {'file_name': 'ortho_visual', 'properties': ps_scene_ortho_visual},  # ok
         'SkySatCollect': {'file_name': 'ortho_visual', 'properties': skysat_visual_ortho_collect_product},
-        'SkySatScene': {'file_name': 'ortho_visual', 'properties': skysat_visual_ortho_scene_product}}
+        'SkySatScene': {'file_name': 'ortho_visual', 'properties': skysat_visual_ortho_scene_product}
+    },
+    analytic={
+        'PSOrthoTile': {'file_name': 'analytic', 'properties': ps_tile_ortho_analytic},  # ok
+        'PSScene3Band': {'file_name': 'analytic', 'properties': ps_scene3b_ortho_analytic},  # ok
+        'PSScene4Band': {'file_name': 'analytic', 'properties': ps_scene4b_ortho_analytic},  # ok
+        'SkySatScene': {'file_name': 'ortho_analytic', 'properties': ''},
+        'SkySatCollect': {'file_name': 'ortho_analytic', 'properties': ''}
+    },
+    analytic_udm2={
+        'PSOrthoTile': {'file_name': 'analytic', 'properties': ps_tile_ortho_analytic},  # ok
+        'PSScene4Band': {'file_name': 'analytic', 'properties': ps_scene4b_ortho_analytic},  # ok
+        'PSScene': {'file_name': 'ortho_analytic_4b', 'properties': ps_scene_ortho_analytic_4b},   # ok
+        'SkySatScene': ['ortho_analytic', ],
+        'SkySatCollect': ['ortho_analytic', ]
+    },
     
 )
 

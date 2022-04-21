@@ -151,7 +151,7 @@ class PlanetBase:
     
     @staticmethod
     def get_empty_img_df():
-        column_names = ['path', 'size', 'item_id', 'bands_order', ]
+        column_names = ['path', 'size', 'item_id', 'bands_order', 'dtype']
         return pd.DataFrame(columns=column_names)
         
     def reorder_item_bands(self, img_df, reordering_function):
@@ -162,16 +162,19 @@ class PlanetBase:
         :return: list: list of Path to converted images
         """
         future_to_img_files_list = []
+        img_converted_list = []
         start_time = time.time()
         max_workers = int(os.cpu_count() / 2)
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             for index, row in img_df.iterrows():
                 raster_path = self.temp_dir_path / row['path']
                 bands_order = row['bands_order']
-                future = executor.submit(reordering_function, raster_path, bands_order)
-                future_to_img_files_list.append(future)
+                if row['dtype'] == 'uint8':
+                    img_converted_list.append(raster_path)
+                else:
+                    future = executor.submit(reordering_function, raster_path, bands_order)
+                    future_to_img_files_list.append(future)
 
-            img_converted_list = []
             for future in as_completed(future_to_img_files_list):
                 raster_dst = future.result()
                 if raster_dst:
@@ -264,6 +267,10 @@ class PlanetBase:
         :return: Dict: bands dict where keys can be B', 'G', 'R', 'NIR', 'Red-Edge', 'Yellow', 'G_I', 'Coastal_Blue'
         """
         return assets_in_bundles_for_visualizing[product_bundle][item_type]['properties']['bands']
+
+    @staticmethod
+    def get_asset_dtype(product_bundle, item_type):
+        return assets_in_bundles_for_visualizing[product_bundle][item_type]['properties']['dtype']
     
         
 class PlanetVisualizer(PlanetBase):
@@ -282,7 +289,7 @@ class PlanetVisualizer(PlanetBase):
         self.delete_temp = delete_temp
     
     @staticmethod
-    def get_file_properties(product_bundle, item_type):
+    def get_asset_properties(product_bundle, item_type):
         """
         Check if product_bundle and item_type are in known bundles for visualizing,
         if it is not, then raise KeyError,
@@ -290,7 +297,7 @@ class PlanetVisualizer(PlanetBase):
         :param product_bundle: str: product bundle name
         :param item_type: str: product item type
         :return: dict: {'file_name': 'ortho_visual', 'properties':
-        {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM'}}
+        {'bands': {'R': 1, 'G': 2, 'B': 3}, 'projection': 'UTM', 'dtype': 'uint8'}}
         """
         if product_bundle not in assets_in_bundles_for_visualizing.keys():
             print('Unknown planet/bundle_type!', product_bundle)
@@ -333,6 +340,9 @@ class PlanetVisualizer(PlanetBase):
             return raster_dst
         src = rasterio.open(raster_path)
         w, h = src.meta['width'], src.meta['height']
+        if w < 6000 or h < 6000:
+            step = np.min([w, h])
+
         whole_rem_w = divmod(w, step)
         whole_rem_h = divmod(h, step)
     
@@ -359,10 +369,9 @@ class PlanetVisualizer(PlanetBase):
         profile = src.profile
         profile['dtype'] = 'uint8'
         profile['count'] = 3
+        profile['nodata'] = 0
     
-        with rasterio.open(
-                raster_dst, 'w', **profile
-        ) as dst:
+        with rasterio.open(raster_dst, 'w', **profile) as dst:
             for i in all_steps:
                 window_normalize = src.read((1, 2, 3), window=Window(*i)) / max_
                 window_normalize = np.clip(window_normalize * 255, 0, 255).astype(rasterio.uint8)
@@ -427,9 +436,10 @@ class PlanetVisualizer(PlanetBase):
             item_path_in_archive = item_to_process['path'].values[0]
             item_size = item_to_process['size'].values[0]
             bands_order = self.get_bands_order_for_visualization(product_bundle, item_type)
+            asset_dtype = self.get_asset_dtype(product_bundle, item_type)
             
             # add new row to img_df
-            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order, ]
+            img_df.loc[img_df.shape[0]] = [item_path_in_archive, item_size, item_id, bands_order, asset_dtype]
         return img_df
         
     def run(self):
@@ -437,10 +447,10 @@ class PlanetVisualizer(PlanetBase):
             self.img_converted_list = []
             item_type = product['item_type']
             product_bundle = product['product_bundle']
-            file_properties = self.get_file_properties(product_bundle, item_type)
+            asset_properties = self.get_asset_properties(product_bundle, item_type)
 
             self.filtered_products_df = self.filter_product_by_bundle_assets_file_name(
-                self.found_products_df, file_properties['file_name']
+                self.found_products_df, asset_properties['file_name']
             )
 
             self.img_df = self.product_filter(product)

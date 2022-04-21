@@ -37,7 +37,6 @@ class PlanetOrderDownloader(PlanetAuth):
         self.order_name = None
         self.order_archive_url = None
         self.order_archive_name = None
-        # self.archive_info = None
         self.manifest_url = None
         self.order_archive_size = None
         self.order_archive_digests = None
@@ -58,6 +57,10 @@ class PlanetOrderDownloader(PlanetAuth):
         while True:
             r = requests.get(self.order_url, auth=self.auth)
             response = r.json()
+            if 'code' in response.keys():
+                if response['code'] == 601:
+                    print(response['message'])
+                    sys.exit(1)
             state = response['state']
             if state == 'success' or state == 'partial':
                 self.order_state = state
@@ -138,11 +141,10 @@ class PlanetOrderDownloader(PlanetAuth):
                 data = json.load(f)
         else:
             data = self.download_order_info()
-        print(data)
         self.order_name = data['name']
         results = data['_links']['results']
         for result in results:
-            self.check_expires_date(result['expires_at'])
+            # self.check_expires_date(result['expires_at'])
             if Path(result['name']).suffix == '.json':
                 self.manifest_url = result['location']
                 if (self.download_path / 'manifest.json').exists():
