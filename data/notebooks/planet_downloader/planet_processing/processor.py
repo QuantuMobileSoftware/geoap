@@ -227,6 +227,8 @@ class PlanetBase:
             "gdal_merge.py",
             "-o", out_raster_path,
             "-ot", "Byte",
+            "-n", "0",
+            "-a_nodata", "0",
             *paths
         ]
         self.run_process(command, self.max_timeout_for_img_generation)
@@ -324,14 +326,15 @@ class PlanetVisualizer(PlanetBase):
         bands_to_extract = ['R', 'G', 'B']
         product_bands_order = self.get_product_bands_order(product_bundle, item_type)
         return [product_bands_order[band] for band in bands_to_extract]
-    
+
     @staticmethod
-    def create_reordered_image(raster_path, bands_order, step=6000):
+    def create_reordered_image(raster_path, bands_order, step=6000, std_norm=2):
         """
-        Create new image with bands dtype='uint8' and std normalization.
+        Create new image with bands dtype='uint8' and std normalization
         :param raster_path: Path: Path to source image
-        :param step: step of window normalization
         :param bands_order: order of bands
+        :param step: step of window normalization
+        :param std_norm
         :return: Path: Path to destination image
         """
         raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
@@ -339,36 +342,36 @@ class PlanetVisualizer(PlanetBase):
             return raster_dst
         src = rasterio.open(raster_path)
         w, h = src.meta['width'], src.meta['height']
-        whole_rem_w = divmod(w, step)
-        whole_rem_h = divmod(h, step)
-
+    
         if w < step and h < step:
             step = np.min([w, h])
-
-        whole_i_h_steps = [(0, i * step, 0, step) for i in range(whole_rem_h[0])]
-
-        all_steps_h = whole_i_h_steps
+    
+        whole_rem_w = divmod(w, step)
+        whole_rem_h = divmod(h, step)
+    
+        all_steps_h = [(0, i * step, 0, step) for i in range(whole_rem_h[0])]
+    
         if whole_rem_h[1] != 0:
-            all_steps_h = all_steps_h + [(0, whole_i_h_steps[-1][1] + step, 0, whole_rem_h[1])]
-
+            all_steps_h = all_steps_h + [(0, all_steps_h[-1][1] + step, 0, whole_rem_h[1])]
+    
         all_steps = []
         for h_step in all_steps_h:
             all_steps = all_steps + [(i * step, h_step[1], step, h_step[-1]) for i in range(whole_rem_w[0])]
             if whole_rem_w[1] != 0:
                 all_steps = all_steps + [(all_steps[-1][0] + step, h_step[1], whole_rem_w[1], h_step[-1])]
-
+    
         pixels_sum = np.sum([np.sum(src.read(bands_order, window=Window(*i)), axis=(1, 2)) for i in all_steps], axis=0)
-
+    
         means_channels = (pixels_sum / (w * h)).reshape((3, 1, 1))
-
+    
         squared_deviation = np.sum(
             [np.sum((src.read(bands_order, window=Window(*i)) - means_channels) ** 2, axis=(1, 2)) for i in all_steps],
             axis=0)
-
+    
         std = (squared_deviation / (w * h)) ** 0.5
-
-        max_ = (means_channels.reshape(3, -1) + 2 * std.reshape(3, -1)).reshape(3, 1, 1)
-
+    
+        max_ = (means_channels.reshape(3, -1) + std_norm * std.reshape(3, -1)).reshape(3, 1, 1)
+    
         profile = src.profile
         profile['dtype'] = 'uint8'
         profile['count'] = 3
@@ -377,15 +380,15 @@ class PlanetVisualizer(PlanetBase):
                 raster_dst, 'w', **profile
         ) as dst:
             for i in all_steps:
-
+            
                 window_normalize = src.read(bands_order, window=Window(*i))
                 mask_none = np.where(np.sum(window_normalize, axis=0) == 0, True, False)
                 window_normalize = np.clip((window_normalize / max_) * 255, 1, 255).astype(rasterio.uint8)
                 for channel in range(3):
                     window_normalize[channel][mask_none] = 0
-
+            
                 dst.write(window_normalize, window=Window(*i))
-
+    
         return raster_dst
     
     def product_filter(self, product):
@@ -427,7 +430,9 @@ class PlanetVisualizer(PlanetBase):
             self.extract_img_files_from_archiwe(self.img_df)
             self.img_converted_list = self.reorder_item_bands(self.img_df, self.create_reordered_image)
             self.img_transformed_list = self.transform_img(self.img_converted_list)
-
+            
+            # for path in self.img_transformed_list:
+            #     shutil.copy(str(path), str(self.output_dir_path))
             merged_raster_path = self.merge_tiles(
                 self.img_transformed_list, self.temp_dir_path / Path(self.name).with_suffix('.tif')
             )

@@ -1,15 +1,14 @@
-
 from pathlib import Path
 from planet_processing import PlanetVisualizer as Pv
 
-archive_path = '/home/dyman/Projects/quantum/planet_downloader/data/satellite_imagery/fc8c2b48-7bef-45d0-87a4-53a99f102952/Black-sea-2022-03-26-PS_psscene_analytic_8b_sr_udm2.zip'
 
 REQUEST_ID = 0
-ORDER_ID = 'fc8c2b48-7bef-45d0-87a4-53a99f102952'
+ORDER_ID = ''
+archive_path = ''
 
 NAME = "Planet Downloader"
-# DATA_DIR = Path('/home/dyman/Projects/quantum/sip/data')
-DATA_DIR = Path('/home/dyman/Projects/quantum/planet_downloader/data')
+
+DATA_DIR = Path('')
 
 
 API_KEY_DIR = DATA_DIR / ".secret/planet_api_key.json"

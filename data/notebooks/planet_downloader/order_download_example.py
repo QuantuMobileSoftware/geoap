@@ -2,11 +2,11 @@ from pathlib import Path
 from planet_processing import PlanetOrderDownloader as PoD
 
 REQUEST_ID = 0
-ORDER_ID = 'db833dc0-fcc0-4710-8ce1-8da7ee772886'
+ORDER_ID = ''
 
 NAME = "Planet Downloader"
-# DATA_DIR = Path('/home/dyman/Projects/quantum/sip/data')
-DATA_DIR = Path('/home/dyman/Projects/quantum/planet_downloader/data')
+
+DATA_DIR = Path('')
 
 
 API_KEY_DIR = DATA_DIR / ".secret/planet_api_key.json"
