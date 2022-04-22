@@ -11,9 +11,8 @@ from subprocess import Popen, PIPE, TimeoutExpired
 from tempfile import TemporaryDirectory
 import time
 import zipfile
-from .constants import assets_in_bundles_for_visualizing
+from .constants.constants import assets_in_bundles_for_visualizing
 from .utils import transform_crs
-from .utils import scale_band, min_max_scale
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
 
@@ -325,14 +324,14 @@ class PlanetVisualizer(PlanetBase):
         bands_to_extract = ['R', 'G', 'B']
         product_bands_order = self.get_product_bands_order(product_bundle, item_type)
         return [product_bands_order[band] for band in bands_to_extract]
-
+    
     @staticmethod
     def create_reordered_image(raster_path, bands_order, step=6000):
         """
-        Create new image with bands dtype='uint8' and std normalization
+        Create new image with bands dtype='uint8' and std normalization.
         :param raster_path: Path: Path to source image
-        :param bands_order: list or tuple
         :param step: step of window normalization
+        :param bands_order: order of bands
         :return: Path: Path to destination image
         """
         raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
@@ -340,83 +339,53 @@ class PlanetVisualizer(PlanetBase):
             return raster_dst
         src = rasterio.open(raster_path)
         w, h = src.meta['width'], src.meta['height']
-        if w < 6000 or h < 6000:
-            step = np.min([w, h])
-
         whole_rem_w = divmod(w, step)
         whole_rem_h = divmod(h, step)
-    
+
+        if w < step and h < step:
+            step = np.min([w, h])
+
         whole_i_h_steps = [(0, i * step, 0, step) for i in range(whole_rem_h[0])]
-        all_steps_h = whole_i_h_steps + [(0, whole_i_h_steps[-1][1] + step, 0, whole_rem_h[1])]
-    
+
+        all_steps_h = whole_i_h_steps
+        if whole_rem_h[1] != 0:
+            all_steps_h = all_steps_h + [(0, whole_i_h_steps[-1][1] + step, 0, whole_rem_h[1])]
+
         all_steps = []
         for h_step in all_steps_h:
             all_steps = all_steps + [(i * step, h_step[1], step, h_step[-1]) for i in range(whole_rem_w[0])]
-            all_steps = all_steps + [(all_steps[-1][0] + step, h_step[1], whole_rem_w[1], h_step[-1])]
-    
-        pixels_sum = np.sum([np.sum(src.read((1, 2, 3), window=Window(*i)), axis=(1, 2)) for i in all_steps], axis=0)
-    
+            if whole_rem_w[1] != 0:
+                all_steps = all_steps + [(all_steps[-1][0] + step, h_step[1], whole_rem_w[1], h_step[-1])]
+
+        pixels_sum = np.sum([np.sum(src.read(bands_order, window=Window(*i)), axis=(1, 2)) for i in all_steps], axis=0)
+
         means_channels = (pixels_sum / (w * h)).reshape((3, 1, 1))
-    
+
         squared_deviation = np.sum(
-            [np.sum((src.read((1, 2, 3), window=Window(*i)) - means_channels) ** 2, axis=(1, 2)) for i in all_steps],
+            [np.sum((src.read(bands_order, window=Window(*i)) - means_channels) ** 2, axis=(1, 2)) for i in all_steps],
             axis=0)
-    
+
         std = (squared_deviation / (w * h)) ** 0.5
-    
+
         max_ = (means_channels.reshape(3, -1) + 2 * std.reshape(3, -1)).reshape(3, 1, 1)
-    
+
         profile = src.profile
         profile['dtype'] = 'uint8'
         profile['count'] = 3
         profile['nodata'] = 0
-    
-        with rasterio.open(raster_dst, 'w', **profile) as dst:
+        with rasterio.open(
+                raster_dst, 'w', **profile
+        ) as dst:
             for i in all_steps:
-                window_normalize = src.read((1, 2, 3), window=Window(*i)) / max_
-                window_normalize = np.clip(window_normalize * 255, 0, 255).astype(rasterio.uint8)
+
+                window_normalize = src.read(bands_order, window=Window(*i))
+                mask_none = np.where(np.sum(window_normalize, axis=0) == 0, True, False)
+                window_normalize = np.clip((window_normalize / max_) * 255, 1, 255).astype(rasterio.uint8)
+                for channel in range(3):
+                    window_normalize[channel][mask_none] = 0
+
                 dst.write(window_normalize, window=Window(*i))
-    
-        return raster_dst
-        
-    @staticmethod
-    def create_reordered_image_v1(raster_path, bands_order):
-        """
-        TODO rm this
-        Create new image with bands dtype='uint8' ordered according to bands_order
-        :param raster_path: Path: Path to source image
-        :param bands_order: list or tuple
-        :return: Path: Path to destination image
-        """
-        raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
-        if raster_dst.with_suffix('.json').exists():
-            return raster_dst
-        with rasterio.open(raster_path, "r") as src:
-            updated_meta = src.profile.copy()
-            updated_meta['count'] = len(bands_order)
-            updated_meta['bands'] = len(bands_order)
-            with rasterio.open(raster_dst, 'w', **updated_meta) as dst:
-                for num, band_num in enumerate(bands_order, start=1):
-                    band = src.read(band_num)
-                    dst.write(band, indexes=num)
-        return raster_dst
 
-    def translate_raster(self, raster_path, bands_order):
-        raster_dst = raster_path.parent / f'{raster_path.stem}_rgb{raster_path.suffix}'
-        if raster_dst.with_suffix('.json').exists():
-            return raster_dst
-        b_order = ""
-        for band in bands_order:
-            b_order = b_order + f" -b {band}"
-
-        command = [
-            "gdal_translate",
-            "-ot", "Byte",
-            b_order,
-            # '-q',
-            str(raster_path), str(raster_dst)
-        ]
-        self.run_process(command, self.max_timeout_for_img_generation)
         return raster_dst
     
     def product_filter(self, product):
