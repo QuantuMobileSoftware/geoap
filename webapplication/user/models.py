@@ -6,6 +6,7 @@ from aoi.models import AoI
 
 class User(AbstractUser):
     area_limit_ha = models.IntegerField(null=True, default=None, blank=True)
+    planet_api_key = models.CharField(max_length=64, verbose_name='Planet API Key', null=True, default=None, blank=True)
 
     @property
     def areas_total_ha(self):
