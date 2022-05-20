@@ -20,6 +20,16 @@ export const useUserActions = () => {
     [dispatch, handleAsync]
   );
 
+  const setApiKey = useCallback(
+    async data => {
+      await handleAsync(async () => {
+        await API.users.setApiKey(data);
+        dispatch(userActions.setApiKey(data.planet_api_key));
+      });
+    },
+    [dispatch, handleAsync]
+  );
+
   const logout = useCallback(
     isAutoLogged => {
       handleAsync(async () => {
@@ -41,5 +51,5 @@ export const useUserActions = () => {
     }
   }, [dispatch, handleAsync, logout]);
 
-  return { isLoading, error, login, logout, getCurrentUser };
+  return { isLoading, error, login, logout, getCurrentUser, setApiKey };
 };
