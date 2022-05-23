@@ -11,7 +11,8 @@ const USER_DEFAULT_STATE = {
   first_name: '',
   last_name: '',
   isAuthorized: false,
-  isAutoLogged: false
+  isAutoLogged: false,
+  planet_api_key: null
 };
 
 const USER_INITIAL_STATE = mergeObjects(USER_DEFAULT_STATE, {
@@ -31,7 +32,11 @@ const userSlice = createSlice({
         isAutoLogged: action.payload
       }),
 
-    setEntity: (state, action) => mergeObjects(state, action.payload)
+    setEntity: (state, action) => mergeObjects(state, action.payload),
+
+    setApiKey: (state, action) => {
+      state.planet_api_key = action.payload;
+    }
   }
 });
 

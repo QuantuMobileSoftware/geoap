@@ -20,6 +20,7 @@ parser.add_argument('--notebook_timeout', type=int, help='Max execution time (se
                     required=True)
 parser.add_argument('--parameter_name', type=str, help='Additional parameter name', default=None)
 parser.add_argument('--parameter_val', type=str, help='Additional parameter value', default=None)
+parser.add_argument('--planet_api_key', type=str, help='Planet API key', default=None)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,8 @@ class NotebookExecutor:
 
         if args.parameter_name and args.parameter_val:
             self.PARAMS[args.parameter_name.upper()] = args.parameter_val
+        if args.planet_api_key:
+            self.PARAMS['PLANET_API_KEY'] = args.planet_api_key
         self.cell_timeout = args.cell_timeout
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel
