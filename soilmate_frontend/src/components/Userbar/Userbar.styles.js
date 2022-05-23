@@ -1,8 +1,9 @@
 import styled, { css } from 'styled-components';
 
-import { rem } from 'styles';
+import { em, rem } from 'styles';
 
 import { Typography } from 'components/_shared/Typography';
+import { FormField } from 'components/_shared/Form';
 import { Image } from 'components/_shared/Image';
 import { Menu, MenuDropdown } from 'components/_shared/Menu';
 
@@ -17,6 +18,10 @@ export const UserbarAvatar = styled(Image)`
     border-radius: 100%;
     margin-right: ${rem(theme.spacing[2])};
   `}
+`;
+
+export const StyledFormField = styled(FormField)`
+  margin-bottom: ${em(20)};
 `;
 
 export const StyledUserbar = styled.div`

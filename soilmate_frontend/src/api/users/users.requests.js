@@ -5,4 +5,8 @@ const getCurrentUser = body => {
   return axiosInstance.get(usersEndpoints.current, body);
 };
 
-export const usersRequests = { getCurrentUser };
+const setApiKey = data => {
+  return axiosInstance.patch(usersEndpoints.current, data);
+};
+
+export const usersRequests = { getCurrentUser, setApiKey };
