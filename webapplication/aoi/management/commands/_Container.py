@@ -140,4 +140,6 @@ class ContainerExecutor(Container):
         if self.notebook.additional_parameter:
             command.extend(['--parameter_name', self.notebook.additional_parameter])
             command.extend(['--parameter_val', str(self.request.additional_parameter)])
+        if self.request.user.planet_api_key:
+            command.extend(['--planet_api_key', str(self.request.user.planet_api_key)])
         self.run(command)
