@@ -21,15 +21,15 @@ class PlanetAuth:
             return HTTPBasicAuth(json.load(f)['api_key'], '')
 
 
-class PlanetOrderDownloader(PlanetAuth):
+class PlanetOrderDownloader():
     orders_url = 'https://api.planet.com/compute/ops/orders/v2'
     
-    def __init__(self, auth_key_path, download_path):
+    def __init__(self, auth_key, download_path):
         """
-        @param auth_key_path: str or Path: absolute path to json file with api_key value
+        @param auth_key: str or Path:  api_key value
         @param download_path: str or Path: absolute path for zip archive downloading
         """
-        super().__init__(auth_key_path)
+        self.auth = HTTPBasicAuth(auth_key, '')
         self.download_path = Path(download_path)
         self.order_state = None
         self.order_id = None
@@ -55,7 +55,8 @@ class PlanetOrderDownloader(PlanetAuth):
         @return:
         """
         while True:
-            r = requests.get(self.order_url, auth=self.auth)
+            print(self.order_url)
+            r = requests.get(self.order_url, auth = self.auth)
             response = r.json()
             if 'code' in response.keys():
                 if response['code'] == 601:
