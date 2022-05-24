@@ -55,7 +55,6 @@ class PlanetOrderDownloader():
         @return:
         """
         while True:
-            print(self.order_url)
             r = requests.get(self.order_url, auth = self.auth)
             response = r.json()
             if 'code' in response.keys():
