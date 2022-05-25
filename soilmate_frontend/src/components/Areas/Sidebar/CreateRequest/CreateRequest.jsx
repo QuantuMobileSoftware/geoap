@@ -34,6 +34,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [notebook, setNotebook] = useState({});
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
+  const [additionalParameterValue, setAdditionalParameterValue] = useState('');
 
   const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
@@ -51,8 +52,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
   );
 
   const handleSaveRequest = () => {
-    const { additional_parameter } = notebook;
-    const additionalParameter = additional_parameter ? { additional_parameter } : {};
+    const additionalParameter = additionalParameterValue
+      ? { additional_parameter: additionalParameterValue }
+      : {};
+
     const request = {
       aoi: areaId,
       notebook: notebook.value,
@@ -97,8 +100,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
-  const handleFieldChange = e =>
-    setNotebook({ ...notebook, additional_parameter: e.target.value });
+  const handleFieldChange = e => setAdditionalParameterValue(e.target.value);
 
   return (
     <Wrapper>
@@ -136,7 +138,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
           </WarningText>
         )}
         <AdditionalField
-          value={notebook.additional_parameter}
+          label={notebook.additional_parameter}
+          value={additionalParameterValue}
           onChange={handleFieldChange}
         />
       </SelectsWrapper>
