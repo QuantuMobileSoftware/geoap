@@ -15,7 +15,7 @@ from .constants.constants import assets_in_bundles_for_visualizing
 from .utils import transform_crs
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
-
+STD_NORM = 3.5
 bundles_json = 'constants/bundles.json'
 
 
@@ -315,7 +315,7 @@ class PlanetVisualizer(PlanetBase):
         return [product_bands_order[band] for band in bands_to_extract]
 
     @staticmethod
-    def create_reordered_image(raster_path, bands_order, step=6000, std_norm=2):
+    def create_reordered_image(raster_path, bands_order, step=6000, std_norm=STD_NORM):
         """
         Create new image with bands dtype='uint8' and std normalization
         :param raster_path: Path: Path to source image
