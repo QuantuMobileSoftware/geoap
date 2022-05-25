@@ -7,7 +7,7 @@ import rasterio
 from rasterio.windows import Window
 import os
 import shutil
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, TimeoutExpired, call
 from tempfile import TemporaryDirectory
 import time
 import zipfile
@@ -15,7 +15,7 @@ from .constants.constants import assets_in_bundles_for_visualizing
 from .utils import transform_crs
 
 MAX_TIMEOUT_FOR_IMG_MERGE_SECONDS = 100
-
+STD_NORM = 3.5
 bundles_json = 'constants/bundles.json'
 
 
@@ -220,22 +220,9 @@ class PlanetBase:
     def merge_tiles(self, paths, out_raster_path='test.tif'):
         print(f'Start merging to {out_raster_path}')
         start_time = time.time()
-        json_path = Path(out_raster_path).with_suffix('.json')
-        if json_path.exists():
-            return out_raster_path
-        command = [
-            "gdal_merge.py",
-            "-o", out_raster_path,
-            "-ot", "Byte",
-            "-n", "0",
-            "-a_nodata", "0",
-            *paths
-        ]
-        self.run_process(command, self.max_timeout_for_img_generation)
-        json_path = Path(out_raster_path).with_suffix('.json')
-        with open(json_path, 'w') as f:
-            data = {'merged': str(json_path)}
-            f.write(json.dumps(data))
+        listToStr = ' '.join([str(elem) for elem in paths])
+        call(' '.join(["gdalwarp --config GDAL_CACHEMAX 3000 -wm 3000 -t_srs EPSG:3857", listToStr, str(out_raster_path)]),
+                    shell=True)
         
         print(f'{time.time() - start_time} seconds for merging {len(paths)} images in to {out_raster_path}')
         return out_raster_path
@@ -328,7 +315,7 @@ class PlanetVisualizer(PlanetBase):
         return [product_bands_order[band] for band in bands_to_extract]
 
     @staticmethod
-    def create_reordered_image(raster_path, bands_order, step=6000, std_norm=2):
+    def create_reordered_image(raster_path, bands_order, step=6000, std_norm=STD_NORM):
         """
         Create new image with bands dtype='uint8' and std normalization
         :param raster_path: Path: Path to source image
@@ -436,6 +423,7 @@ class PlanetVisualizer(PlanetBase):
             merged_raster_path = self.merge_tiles(
                 self.img_transformed_list, self.temp_dir_path / Path(self.name).with_suffix('.tif')
             )
+            self.output_dir_path.mkdir(parents=True, exist_ok=True)
             shutil.copy(str(merged_raster_path), str(self.output_dir_path))
             if self.delete_temp:
                 shutil.rmtree(self.temp_dir_path)
