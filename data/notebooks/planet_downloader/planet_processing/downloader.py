@@ -57,6 +57,9 @@ class PlanetOrderDownloader():
         while True:
             r = requests.get(self.order_url, auth = self.auth)
             response = r.json()
+            if r.status_code == 404:
+                print(f'Given ORDERID - {self.order_id} is not valid.')
+                sys.exit(1)
             if 'code' in response.keys():
                 if response['code'] == 601:
                     print(response['message'])
