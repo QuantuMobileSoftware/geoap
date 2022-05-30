@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import requests
+import geojson
 from requests.auth import HTTPBasicAuth
 import shutil
 import sys
@@ -24,10 +25,11 @@ class PlanetAuth:
 class PlanetOrderDownloader():
     orders_url = 'https://api.planet.com/compute/ops/orders/v2'
     
-    def __init__(self, auth_key, download_path):
+    def __init__(self, auth_key, download_path, polygon_aoi):
         """
         @param auth_key: str or Path:  api_key value
         @param download_path: str or Path: absolute path for zip archive downloading
+        @param polygon_aoi: Polygon: aoi polygon of requested tile
         """
         self.auth = HTTPBasicAuth(auth_key, '')
         self.download_path = Path(download_path)
@@ -40,13 +42,23 @@ class PlanetOrderDownloader():
         self.manifest_url = None
         self.order_archive_size = None
         self.order_archive_digests = None
-        
+        self.aoi = polygon_aoi
     def set_order_id(self, order_id):
         self.order_id = order_id
         self.order_url = self.get_order_url()
     
     def get_order_url(self):
         return f'{self.orders_url}/{self.order_id}'
+    
+    def dump_no_valid_geosjon(self, polygon, geojson_path):
+        label = 'Invalid orderid'
+        name = f'{self.order_id}\nInvalid'
+        style = dict(color='red')
+        feature = geojson.Feature(geometry=polygon, properties=dict(label=label, style=style))
+        response_folder = geojson_path / self.order_id
+        response_folder.mkdir(parents=True, exist_ok=True)
+        with open(response_folder / 'response.geojson', 'w') as f:
+            geojson.dump(feature, f)
 
     def poll_for_success(self, timeout=10):
         """
@@ -59,6 +71,7 @@ class PlanetOrderDownloader():
             response = r.json()
             if r.status_code == 404:
                 print(f'Given ORDERID - {self.order_id} is not valid.')
+                self.dump_no_valid_geosjon(self.aoi, self.download_path )
                 sys.exit(1)
             if 'code' in response.keys():
                 if response['code'] == 601:
