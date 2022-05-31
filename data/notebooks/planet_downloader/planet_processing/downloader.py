@@ -52,7 +52,6 @@ class PlanetOrderDownloader():
     
     def dump_no_valid_geosjon(self, polygon, geojson_path):
         label = 'Invalid orderid'
-        name = f'{self.order_id}\nInvalid'
         style = dict(color='red')
         feature = geojson.Feature(geometry=polygon, properties=dict(label=label, style=style))
         response_folder = geojson_path / self.order_id
