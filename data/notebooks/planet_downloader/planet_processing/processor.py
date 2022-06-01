@@ -427,4 +427,4 @@ class PlanetVisualizer(PlanetBase):
             shutil.copy(str(merged_raster_path), str(self.output_dir_path))
             if self.delete_temp:
                 shutil.rmtree(self.temp_dir_path)
-            return str(merged_raster_path)
+            return str(self.output_dir_path/ Path(self.name).with_suffix('.tif'))
