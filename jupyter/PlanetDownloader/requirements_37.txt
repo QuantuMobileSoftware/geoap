@@ -1,3 +1,4 @@
 geopandas==0.10.2
 rasterio==1.1.8
 requests==2.24.0
+geojson==2.5.0
