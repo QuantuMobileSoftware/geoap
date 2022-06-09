@@ -1,4 +1,3 @@
 #!/bin/sh
-
-docker build -f prod.Dockerfile -t pbdnn_nvidia_jupyter .
-docker run -d --shm-size=1g --gpus device=0 -p 8850:8888 -v /home/quantum/sip:/home/jovyan/work -e JUPYTER_ENABLE_LAB=yes -e NVIDIA_DRIVER_CAPABILITIES=all --restart always --name pbdnn_nvidia_jupyter_1 pbdnn_nvidia_jupyter:latest
+docker build -f Dockerfile -t landcover .
+docker run -d -p 8847:8888 -v /home/quantum/sip:/home/jovyan/work -e JUPYTER_ENABLE_LAB=yes --restart always --name landcover_1 landcover:latest start-notebook.sh --NotebookApp.password='argon2:$argon2id$v=19$m=10240,t=10,p=8$xjV2VuXfOdrjmqByCU29gA$+k3SBfXKBPni/nmkFrZvVA'
