@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='jupyternotebook',
-            name='period_requaired',
-            field=models.BooleanField(default=True, verbose_name='Whethe start and end dates are requaired for notebook to run'),
+            name='period_required',
+            field=models.BooleanField(default=True, verbose_name='Start and end dates are requaired'),
         ),
     ]
