@@ -1,0 +1,7 @@
+opencv-python>=4.5.5.62
+torch>=1.10.0
+numpy>=1.19.5
+rasterio>=1.0.24
+geopandas>=0.8.1
+tqdm>=4.63.0
+shapely>=1.6.4.post1
