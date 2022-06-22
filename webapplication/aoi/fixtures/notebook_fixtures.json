@@ -22,5 +22,18 @@
       "run_validation": true,
       "success": false
     }
+  },
+  {
+    "model": "aoi.jupyternotebook",
+    "pk": 1003,
+    "fields": {
+      "name": "JupyterNotebook_test_3",
+      "image": "some docker command",
+      "path": "work/notebooks/example/geojson_3.ipynb",
+      "kernel_name": "",
+      "run_validation": true,
+      "success": true,
+      "period_required":true
+    }
   }
 ]
