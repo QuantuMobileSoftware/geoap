@@ -37,7 +37,7 @@ class JupyterNotebook(models.Model):
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a notebook to run')
-    period_required = models.BooleanField(default=True, verbose_name='Start and end dates are requaired')
+    period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
 
     def __str__(self):
         return self.name
@@ -72,10 +72,10 @@ class Request(models.Model):
     def clean(self) -> None:
         """ 
         Additional validation of the whole model:
-        - If choosen notebook required periond then date_from and date_to are required as well      
+        - If chosen notebook required period then date_from and date_to are required as well      
         """
         if self.notebook.period_required and (not self.date_from or not self.date_to):
-            raise serializers.ValidationError(f"The start and finish dates for choosen " \
+            raise serializers.ValidationError(f"The start and finish dates for chosen " \
                 f"notebook ({self.notebook.name}) are required and can't be empty")
         return super().clean()
 
