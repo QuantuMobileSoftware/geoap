@@ -1,0 +1,4 @@
+geopandas==0.10.2
+rasterio==1.1.8
+Rtree==0.9.7
+pyproj==3.2.1
