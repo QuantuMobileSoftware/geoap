@@ -360,7 +360,7 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_get_notebook_list_as_not_staff_user(self):
-        expected_results_len = 2
+        expected_results_len = 3
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.get_notebook_list()
         content = json.loads(response.content)
@@ -368,7 +368,7 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(len(content), expected_results_len)
     
     def test_get_notebook_list_as_staff_user(self):
-        expected_results_len = 2
+        expected_results_len = 3
         self.client.force_authenticate(user=self.staff_user)
         response = self.get_notebook_list()
         content = json.loads(response.content)
@@ -418,27 +418,39 @@ class RequestTestCase(UserBase):
         self.data_patch = {
             'notebook': 1002,
         }
+        
+        # Data to test request model validation
+        self.data_no_period = {
+            'user': 1001,
+            'aoi': 1001,
+            'notebook': 1003,
+        }
 
     def test_create_request_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
-        response = self.create_request()
+        response = self.create_request(self.data_create)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
     def test_create_request_as_not_owner(self):
         self.client.force_authenticate(user=self.ex_2_user)
-        response = self.create_request()
+        response = self.create_request(self.data_create)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
     def test_create_request_as_owner(self):
         self.client.force_authenticate(user=self.staff_user)
-        response = self.create_request()
+        response = self.create_request(self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = json.loads(response.content)
         self.assertEqual(content['user'], self.staff_user.id)
-    
-    def create_request(self):
+
+    def test_create_request_without_required_period(self):
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.create_request(self.data_no_period)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def create_request(self, data):
         url = reverse('aoi:request_list_or_create')
-        return self.client.post(url, self.data_create)
+        return self.client.post(url, data)
 
     def test_get_request_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
@@ -491,7 +503,7 @@ class RequestTestCase(UserBase):
         self.assertEqual(len(content), expected_results_len)
         
     def test_get_request_list_as_staff_user(self):
-        expected_results_len = 1
+        expected_results_len = 2
         self.client.force_authenticate(user=self.staff_user)
         response = self.get_request_list()
         content = json.loads(response.content)
@@ -501,6 +513,9 @@ class RequestTestCase(UserBase):
     def get_request_list(self):
         url = reverse('aoi:request_list_or_create')
         return self.client.get(url)
+
+    def test_create_request_without_required_period(self):
+        pass
     
     
 class AOIRequestsTestCase(UserBase):
@@ -515,7 +530,7 @@ class AOIRequestsTestCase(UserBase):
         self.get_aoi_requests(1002, expected_results_len)
         
     def test_get_aoi_requests_as_staff_user(self):
-        expected_results_len = 1
+        expected_results_len = 2
         self.client.force_authenticate(user=self.staff_user)
         self.get_aoi_requests(1001, expected_results_len)
     
