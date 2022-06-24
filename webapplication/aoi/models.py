@@ -68,21 +68,3 @@ class Request(models.Model):
     @property
     def notebook_name(self):
         return self.notebook.name
-
-    def clean(self) -> None:
-        """ 
-        Additional validation of the whole model:
-        - If chosen notebook required period then date_from and date_to are required as well      
-        """
-        if self.notebook.period_required and (not self.date_from or not self.date_to):
-            raise serializers.ValidationError(f"The start and finish dates for chosen " \
-                f"notebook ({self.notebook.name}) are required and can't be empty")
-        return super().clean()
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        """
-        Redefined method to invoke self.clean() method to take 
-        additional measures for model validation
-        """
-        self.clean()
-        return super().save(force_insert, force_update, using, update_fields)
