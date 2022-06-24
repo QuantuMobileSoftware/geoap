@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from django.contrib.gis.db import models
 from django.db.models import JSONField
 from django.utils import timezone
@@ -36,6 +37,7 @@ class JupyterNotebook(models.Model):
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a notebook to run')
+    period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
 
     def __str__(self):
         return self.name
