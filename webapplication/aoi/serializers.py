@@ -26,9 +26,25 @@ class RequestSerializer(serializers.ModelSerializer):
         validated_data.update({'polygon': validated_data["aoi"].polygon})
         return Request.objects.create(**validated_data)
 
+    def validate(self, attrs):
+        """ 
+        Additional validation of the whole model:
+        - If chosen notebook that require period then date_from and date_to in request 
+        are  required as well      
+        """
+        if attrs['notebook'].period_required and (not 'date_from' in attrs or not 'date_to' in attrs):
+            exception_details = {}
+            if not 'date_from' in attrs:
+                exception_details.update({'date_from':f"The field is required for '{attrs['notebook'].name}' notebook"})
+            if not 'date_to' in attrs:
+                exception_details.update({'date_to':f"The field is required for '{attrs['notebook'].name}' notebook"})
+            raise serializers.ValidationError(exception_details)
+        return super().validate(attrs)
+    
     class Meta:
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
                   'additional_parameter',)
         read_only_fields = ['polygon', ]
+    
