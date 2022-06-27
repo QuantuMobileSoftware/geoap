@@ -43,10 +43,11 @@ export const CreateRequest = ({ areas, currentArea }) => {
   );
   const selectOptionsLayers = useMemo(
     () =>
-      filteredLayers.map(({ name, id, additional_parameter }) => ({
+      filteredLayers.map(({ name, id, additional_parameter, period_required }) => ({
         name,
         value: id,
-        additional_parameter
+        additional_parameter,
+        period_required
       })),
     [filteredLayers]
   );
@@ -116,27 +117,30 @@ export const CreateRequest = ({ areas, currentArea }) => {
           onSelect={handleNoteBookChange}
           label='Select layers'
         />
-        <StyledSelect
-          items={layerYears}
-          onSelect={handleYearChange}
-          label='Year'
-          value={year}
-        />
-        {notebook.value !== plotBoundariesId ? (
-          <Calendar
-            startDate={startDate}
-            endDate={endDate}
-            setStartDate={setStartDate}
-            setEndDate={setEndDate}
-            title='Date range'
-            notebook={notebook.value}
+        {notebook.period_required && (
+          <StyledSelect
+            items={layerYears}
+            onSelect={handleYearChange}
+            label='Year'
+            value={year}
           />
-        ) : (
-          <WarningText>
-            To have better quality and result, Plot Boundaries detection will apply dates
-            from June to August
-          </WarningText>
         )}
+        {notebook.period_required &&
+          (notebook.value !== plotBoundariesId ? (
+            <Calendar
+              startDate={startDate}
+              endDate={endDate}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
+              title='Date range'
+              notebook={notebook.value}
+            />
+          ) : (
+            <WarningText>
+              To have better quality and result, Plot Boundaries detection will apply
+              dates from June to August
+            </WarningText>
+          ))}
         <AdditionalField
           label={notebook.additional_parameter}
           value={additionalParameterValue}
