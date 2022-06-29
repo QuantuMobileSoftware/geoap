@@ -4,7 +4,13 @@ import { Button } from 'components/_shared/Button';
 import { useLocation } from 'react-router';
 
 import { areasEvents } from '_events';
-import { ROUTES, PERMISSION_ERROR, SERVER_ERROR, SIZE_ERROR } from '_constants';
+import {
+  ROUTES,
+  PERMISSION_ERROR,
+  SERVER_ERROR,
+  SIZE_ERROR,
+  DEFAULT_ERROR
+} from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
 
 export const ErrorModal = () => {
@@ -36,7 +42,7 @@ export const ErrorModal = () => {
         } else if (error.status === 500) {
           setErrorText(SERVER_ERROR);
         } else {
-          setErrorText(error.data?.name[0]);
+          setErrorText(error.data?.name?.[0] || Object.values(error.data)?.[0][0]);
         }
       }
     });
@@ -52,7 +58,7 @@ export const ErrorModal = () => {
   return (
     error && (
       <Modal close={handleCloseModal} textCenter={true}>
-        <div>{errorText}</div>
+        <div>{errorText ?? DEFAULT_ERROR}</div>
         <ButtonWrapper>
           <Button variant='secondary' onClick={handleCloseModal}>
             Close
