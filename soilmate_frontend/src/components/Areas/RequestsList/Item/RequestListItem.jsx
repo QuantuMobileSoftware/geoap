@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { Checkbox } from 'components/_shared/Checkbox';
 
-import { SIDEBAR_MODE, CROP_MAP_LABEL, REQUEST_TABS, NO_DATA } from '_constants';
+import { SIDEBAR_MODE, REQUEST_TABS, NO_DATA } from '_constants';
 import { useAreasActions, getSelectedResults, selectRequestTab } from 'state';
 
 import {
@@ -32,8 +32,8 @@ export const ListItem = ({ report = {}, ...props }) => {
       deleteSelectedResult(report.id);
     } else {
       setSelectedResult(report.id);
-      if (report.name === CROP_MAP_LABEL && report.labels) {
-        setSidebarMode(SIDEBAR_MODE.CROP_MAP);
+      if (report.labels) {
+        setSidebarMode(SIDEBAR_MODE.LEGEND);
       }
     }
     setIsChecked(!isChecked);

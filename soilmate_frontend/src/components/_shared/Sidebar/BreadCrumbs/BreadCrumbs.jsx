@@ -7,17 +7,17 @@ import {
   selectAreasList
 } from 'state';
 
-import { SIDEBAR_MODE, AOI_TYPE, CROP_MAP_LABEL } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, LEGEND_LABEL } from '_constants';
 import { StyledBreadCrumbs, StyledTitle, StyledDash } from './BreadCrumbs.styles';
 
-const { AREAS, FIELDS, REQUESTS, CREATE_REQUEST, EDIT, CROP_MAP } = SIDEBAR_MODE;
+const { AREAS, FIELDS, REQUESTS, CREATE_REQUEST, EDIT, LEGEND } = SIDEBAR_MODE;
 
 const areas = { title: 'Areas', mode: AREAS };
 const fields = { title: 'Fields', mode: FIELDS };
 const request = { title: 'Reports', mode: REQUESTS };
 const requestSettings = { title: 'New report', mode: CREATE_REQUEST };
 const editArea = { title: 'Editing', mode: EDIT };
-const cropMap = { title: CROP_MAP_LABEL, mode: CROP_MAP };
+const legend = { title: LEGEND_LABEL, mode: LEGEND };
 
 export const BreadCrumbs = () => {
   const sidebarMode = useSelector(selectSidebarMode);
@@ -32,7 +32,7 @@ export const BreadCrumbs = () => {
     [FIELDS]: [fields],
     [REQUESTS]: [root, request],
     [CREATE_REQUEST]: [root, request, requestSettings],
-    [CROP_MAP]: [root, request, cropMap],
+    [LEGEND]: [root, request, legend],
     [EDIT]: [root, editArea]
   };
 

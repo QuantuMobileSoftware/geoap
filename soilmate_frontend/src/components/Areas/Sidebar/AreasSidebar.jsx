@@ -15,12 +15,13 @@ import {
   selectAreasList,
   selectSidebarMode,
   selectCurrentArea,
-  useAreasActions
+  useAreasActions,
+  getSelectedResults
 } from 'state';
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
 
-const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, CROP_MAP } = SIDEBAR_MODE;
+const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, LEGEND } = SIDEBAR_MODE;
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
@@ -28,16 +29,23 @@ export const AreasSidebar = ({ ...props }) => {
   const areas = useSelector(selectAreasList);
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
+  const selectedResults = useSelector(getSelectedResults);
   const { getLayers, deleteSelectedResult } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
+  const legendLabel = useMemo(() => {
+    const currentResult = selectedResults[selectedResults.length - 1];
+    const label = currentArea?.results?.find(({ id }) => id === currentResult)?.name;
+    return label ?? '';
+  }, [selectedResults, currentArea]);
+
   const sidebarHeaders = {
     [AREAS]: '',
     [EDIT]: `Edit my ${currentArea?.type === AOI_TYPE.AREA ? 'area' : 'field'}`,
     [REQUESTS]: sidebarMode === REQUESTS ? currentArea.name : '',
     [CREATE_REQUEST]: 'Create new report',
     [FIELDS]: '',
-    [CROP_MAP]: 'Crop map'
+    [LEGEND]: legendLabel
   };
 
   useEffect(() => {
@@ -77,7 +85,7 @@ export const AreasSidebar = ({ ...props }) => {
         return <CreateRequest areas={areas} currentArea={currentArea} />;
       case FIELDS:
         return <Fields fields={fields} />;
-      case CROP_MAP:
+      case LEGEND:
         return <CropResults currentArea={currentArea} />;
       default:
         return null;
