@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Button } from 'components/_shared/Button';
 import { Calendar } from 'components/_shared/Calendar';
 import { AdditionalField } from './AdditionalField';
+import { isEmpty } from 'lodash-es';
 
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
@@ -56,13 +57,18 @@ export const CreateRequest = ({ areas, currentArea }) => {
     const additionalParameter = additionalParameterValue
       ? { additional_parameter: additionalParameterValue }
       : {};
+    const dateRange = notebook.period_required
+      ? {
+          date_from: startDate.toLocaleDateString('en-CA'),
+          date_to: endDate.toLocaleDateString('en-CA')
+        }
+      : {};
 
     const request = {
       aoi: areaId,
       notebook: notebook.value,
-      date_from: startDate.toLocaleDateString('en-CA'),
-      date_to: endDate.toLocaleDateString('en-CA'),
       user: currentUser.pk,
+      ...dateRange,
       ...additionalParameter
     };
     setCurrentArea(areaId);
@@ -72,7 +78,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   useEffect(() => {
-    if (startDate && endDate && hasSelectedNotebook(notebook)) {
+    const canSave = !notebook.period_required || (startDate && endDate);
+    if (hasSelectedNotebook(notebook) && canSave) {
       setCanSaveRequest(true);
     } else {
       setCanSaveRequest(false);
@@ -165,6 +172,6 @@ export const CreateRequest = ({ areas, currentArea }) => {
 };
 
 function hasSelectedNotebook(notebook) {
-  if (!notebook) return false;
+  if (!notebook || isEmpty(notebook)) return false;
   return notebook.additional_parameter?.trim() !== '';
 }

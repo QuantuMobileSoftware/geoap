@@ -17,16 +17,12 @@ export const ErrorModal = () => {
   const [error, setError] = useState(null);
   const [errorText, setErrorText] = useState('');
   const location = useLocation();
-
-  useEffect(() => {
-    if (location.pathname === ROUTES.AUTH) {
-      setError(null);
-    }
-  }, [location]);
+  const isAuthRoute = location.pathname === ROUTES.AUTH;
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
-      if (error.config?.method === 'get') {
+      if (error.config?.method === 'get' || isAuthRoute) {
+        setError(null);
         return;
       }
       setError(error);
@@ -46,7 +42,7 @@ export const ErrorModal = () => {
         }
       }
     });
-  }, [location]);
+  }, [location, isAuthRoute]);
 
   const handleCloseModal = () => setError(null);
 
