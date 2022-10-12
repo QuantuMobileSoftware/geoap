@@ -4,8 +4,9 @@ DEBUG = False
 
 ALLOWED_HOSTS.append("soilmateukraine.quantumobile.co")
 ALLOWED_HOSTS.append("demo.soilmate.ai")
+ALLOWED_HOSTS.append("portal.soilmate.ai")
 
-CSRF_TRUSTED_ORIGINS = ["soilmateukraine.quantumobile.co", "demo.soilmate.ai"]
+CSRF_TRUSTED_ORIGINS = ["soilmateukraine.quantumobile.co", "demo.soilmate.ai", "portal.soilmate.ai"]
 
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"

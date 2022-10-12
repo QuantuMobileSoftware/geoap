@@ -9,7 +9,7 @@ server {
     server_name soilmateukraine.quantumobile.co;
 
     location / {
-        return 301 https://demo.soilmate.ai$request_uri;
+        return 301 https://portal.soilmate.ai$request_uri;
     }
 }
 
@@ -18,16 +18,25 @@ server {
     server_name demo.soilmate.ai;
 
     location / {
+        return 301 https://portal.soilmate.ai$request_uri;
+    }
+}
+
+server {
+    listen 80;
+    server_name portal.soilmate.ai;
+
+    location / {
         return 301 https://$host$request_uri;
     }
 }
 
 server {
     listen 443 ssl;
-    server_name  demo.soilmate.ai;
+    server_name  portal.soilmate.ai;
 
-    ssl_certificate /etc/letsencrypt/live/demo.soilmate.ai/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/demo.soilmate.ai/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/portal.soilmate.ai/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/portal.soilmate.ai/privkey.pem;
 
     gzip on;
     gzip_types      text/plain application/xml application/javascript;
