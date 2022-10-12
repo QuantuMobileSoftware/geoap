@@ -3,8 +3,9 @@ from sip.settings import *
 DEBUG = False
 
 ALLOWED_HOSTS.append("soilmateukraine.quantumobile.co")
+ALLOWED_HOSTS.append("demo.soilmate.ai")
 
-CSRF_TRUSTED_ORIGINS = ["soilmateukraine.quantumobile.co"]
+CSRF_TRUSTED_ORIGINS = ["soilmateukraine.quantumobile.co", "demo.soilmate.ai"]
 
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"
