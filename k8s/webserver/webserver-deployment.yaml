@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver
+  namespace: prod
+  labels:
+    app: sip
+    tier: frontend
+spec:
+  selector:
+    matchLabels:
+      app: sip
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: sip
+        tier: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: <Image>
+        imagePullPolicy: "Always"
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        envFrom:
+              - configMapRef:
+                  name: app-config
+        ports:
+        - containerPort: 80
+          name: frontend
+        volumeMounts:
+          - mountPath: /data
+            name: sip-data-starage
+          - mountPath: /data/mapboxcache
+            name: mapbox-cache-storage
+      volumes:
+        - name: sip-data-starage
+          persistentVolumeClaim:
+            claimName: sip-data-volumeclaim
+        - name: mapbox-cache-storage
+          persistentVolumeClaim:
+            claimName: mapbox-cache-volumeclaim
