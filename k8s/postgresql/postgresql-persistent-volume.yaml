@@ -1,0 +1,21 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume  # Sets PV's name
+  namespace: prod
+  labels:
+    type: local  # Sets PV's type to local
+    app: postgres
+spec:
+  # storageClassName: standard
+  capacity:
+    storage: 1Gi # Sets PV Volume
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/postgres"
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: pgsql-volumeclaim
+    namespace: prod
