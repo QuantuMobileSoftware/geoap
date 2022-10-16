@@ -1,0 +1,26 @@
+resources:
+  - "namespace.yaml"
+  - "secret.yaml"
+  - "configMap.yaml"
+
+  # Volumes amc claims
+  ## Database
+  - "./postgresql/postgresql-persistent-volume.yaml"
+  - "./postgresql/postgresql-volume-claim.yaml"
+  ## SIP data
+  - "./webapplication/web-application-pv.yaml"
+  - "./webapplication/web-application-pvc.yaml"
+  ## Mapbox cache
+  - "./mapbox-cache/mapbox-cache-pv.yaml"
+  - "./mapbox-cache/mapbox-cache-pvc.yaml"
+  # Deployments
+  ## Database
+  - "./postgresql/postgresql-deployment.yaml"
+  - "./postgresql/postgresql-service.yaml"
+  ## Web application
+  - "./webapplication/web-application-deployment.yaml"
+  - "./webapplication/web-application-service.yaml"
+  ## Web server
+  - "./webserver/webserver-deployment.yaml"
+  - "./webserver/webserver-service.yaml"
+
