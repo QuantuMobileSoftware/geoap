@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-application
+  namespace: prod
+spec:
+  selector:
+    matchLabels:
+      app: web-application
+      tier: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: web-application
+        tier: backend
+    spec:
+      containers:
+        - name: web-application
+          image: <Image>
+          imagePullPolicy: "Always"
+          resources:
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          command: ['/bin/bash', '-c', 'exec invoke run-prod']
+          ports:
+          - containerPort: 9000
+            name: web-application
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+          volumeMounts:
+              - name: sip-data-volume
+                mountPath: /data
+      volumes:
+        - name: sip-data-volume
+          persistentVolumeClaim:
+            claimName: sip-data-volumeclaim   

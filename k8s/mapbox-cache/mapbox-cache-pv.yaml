@@ -1,0 +1,22 @@
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mapbox-cache-pv  # Sets PV's name
+  namespace: prod
+  labels:
+    type: local  # Sets PV's type to local
+    app: web-application
+spec:
+  # storageClassName: standard
+  capacity:
+    storage: 5Gi # Sets PV Volume
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: mapbox-cache-volumeclaim
+    namespace: prod
