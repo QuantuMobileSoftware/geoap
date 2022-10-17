@@ -37,8 +37,8 @@ spec:
                 name: sip-secret
                 key: postgrespassword
         envFrom:
-            - configMapRef:
-                name: app-config
+          - configMapRef:
+              name: app-config
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
             name: postgresdb
