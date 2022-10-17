@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-application
+  name: webapplication
   namespace: prod
 spec:
   selector:
@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
         - name: web-application
-          image: <Image>
-          imagePullPolicy: "Always"
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "IfNotPresent"
           resources:
             limits:
               memory: "500Mi"
