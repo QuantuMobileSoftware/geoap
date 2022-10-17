@@ -5,4 +5,8 @@ metadata:
   namespace: prod
 data:
   POSTGRES_DB: sip_db
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
   DJANGO_SETTINGS_MODULE: sip.settings-prod
+  MAPBOX_ACCESS_TOKEN: ""
+
