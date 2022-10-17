@@ -62,3 +62,23 @@ curl -H  "accept: application/json" http://localhost:9000/api/users/current?apik
 ## Jupyter
 Go to http://127.0.0.1:8888/
 password: God9uumi
+
+# Working with k8s
+
+## Building & Pushing images
+
+### Web application
+
+To build image for web application use command
+
+`docker build -t registry.quantumobile.co/sip-web-application:latest -f ./webapplication/prod.Dockerfile  ./webapplication`
+
+### Web server
+
+To build web server use command:
+
+`docker build -t registry.quantumobile.co/sip-web-server:latest -f ./webserver/prod.Dockerfile  ./`
+
+### Local deployment with minikube
+
+Use command `eval $(minikube docker-env)`to point your terminal to use the docker daemon inside minikube. Now you can ‘build’ against the docker inside minikube, which is instantly accessible to kubernetes cluster. Just use build command above. Evaluating the docker-env is only valid for the current terminal. By closing the terminal, you will go back to using your own system’s docker daemon.
