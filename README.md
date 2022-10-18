@@ -65,13 +65,30 @@ password: God9uumi
 
 # Working with k8s
 
+## Authorization on registry.quantumobile.co
+
+### Local authorization
+
+To auth locally visit [https://utility.quantumobile.co/2/registry/instructions/]
+You will receive bash command for authorization, something like:
+
+`docker login --username ***********@quantumobile.com --password ***************************************************** https://registry.quantumobile.co`
+
+### Authorizing k8s cluster to pull images
+
+To allow k8s pull images you need to create special secret with command
+
+`kubectl create secret docker-registry regcred --docker-server=https://registry.quantumobile.co --docker-username=***********@quantumobile.com --docker-password=***************************************************** --docker-email=***********@quantumobile.com`
+
 ## Building & Pushing images
 
 ### Web application
 
-To build image for web application use command
-
+To build image for web application use command:
 `docker build -t registry.quantumobile.co/sip-web-application:latest -f ./webapplication/prod.Dockerfile  ./webapplication`
+
+To push image into registry use command:
+`docker push registry.quantumobile.co/sip-web-application:latest`
 
 ### Web server
 
@@ -79,6 +96,26 @@ To build web server use command:
 
 `docker build -t registry.quantumobile.co/sip-web-server:latest -f ./webserver/prod.Dockerfile  ./`
 
-### Local deployment with minikube
+To push image into registry use command:
+
+`docker push registry.quantumobile.co/sip-web-server:latest`
+
+### Use locally builded images with minikube
 
 Use command `eval $(minikube docker-env)`to point your terminal to use the docker daemon inside minikube. Now you can ‘build’ against the docker inside minikube, which is instantly accessible to kubernetes cluster. Just use build command above. Evaluating the docker-env is only valid for the current terminal. By closing the terminal, you will go back to using your own system’s docker daemon.
+
+###  Use locally builded images with kind
+
+To make local images available for using in deployments and creating pods processes may be used command:
+
+`kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
+This command will copy locally builded images into kind cluster.
+
+[Check kind documentation for details](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
+
+## Local NFS server for development
+
+For development purpure could be used simple NFS server.
+Command below mount ./data folder into NFS server in docker container.
+
+`docker run -d --name nfs --privileged -v /home/dlukash/Projects/sip/data:/nfsshare -e SHARED_DIRECTORY=/nfsshare -p 2049:2049 itsthenetwork/nfs-server-alpine:latest`
