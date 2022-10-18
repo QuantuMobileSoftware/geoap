@@ -36,6 +36,8 @@ spec:
             name: sip-data-starage
           - mountPath: /data/mapboxcache
             name: mapbox-cache-storage
+      imagePullSecrets:
+        - name: regcred
       volumes:
         - name: sip-data-starage
           persistentVolumeClaim:

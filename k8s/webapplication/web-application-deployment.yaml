@@ -45,6 +45,8 @@ spec:
           volumeMounts:
               - name: sip-data-volume
                 mountPath: /data
+      imagePullSecrets:
+        - name: regcred
       volumes:
         - name: sip-data-volume
           persistentVolumeClaim:
