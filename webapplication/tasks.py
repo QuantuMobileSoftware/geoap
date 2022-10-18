@@ -66,8 +66,8 @@ def run_prod(ctx):
     thread_cron = threading.Thread(target=devcron, args=(ctx,))
     thread_cron.start()
 
-    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
-    thread_nb_executor.start()
+    # thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
+    # thread_nb_executor.start()
 
     ctx.run('uwsgi --ini uwsgi.ini')
 
