@@ -1,11 +1,9 @@
-
 kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: mapbox-cache-pv  # Sets PV's name
   namespace: prod
   labels:
-    type: local  # Sets PV's type to local
     app: web-application
 spec:
   # storageClassName: standard

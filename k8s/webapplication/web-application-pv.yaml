@@ -4,16 +4,18 @@ metadata:
   name: sip-data-pv  # Sets PV's name
   namespace: prod
   labels:
-    type: local  # Sets PV's type to local
     app: web-application
 spec:
-  storageClassName: standard
+  # storageClassName: standard
   capacity:
     storage: 10Gi # Sets PV Volume
   accessModes:
     - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 172.18.0.1
+    path: "/"
+    readOnly: false
   claimRef:
     apiVersion: v1
     kind: PersistentVolumeClaim
