@@ -65,12 +65,24 @@ password: God9uumi
 
 # Working with k8s
 
+## Installing kind for local development 
+
+Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) for details.
+
+## Running local cluster with kind
+
+To create cluster with kind use command:
+
+`kind create cluster --config=./helpers/kind-config.yaml`
+
+then use `kubectl` to interact with cluster
+
 ## Authorization on registry.quantumobile.co
 
 ### Local authorization
 
-To auth locally visit [https://utility.quantumobile.co/2/registry/instructions/]
-You will receive bash command for authorization, something like:
+To auth locally visit [utility special endpoint](https://utility.quantumobile.co/2/registry/instructions/)
+to receive bash command for authorization with login and password included, like:
 
 `docker login --username ***********@quantumobile.com --password ***************************************************** https://registry.quantumobile.co`
 
