@@ -14,7 +14,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: 172.18.0.1
-    path: "/"
+    path: "/data"
     readOnly: false
   claimRef:
     apiVersion: v1

@@ -2,6 +2,7 @@ from sip.settings import *
 
 DEBUG = False
 
+ALLOWED_HOSTS.append("192.168.39.72")
 ALLOWED_HOSTS.append("192.168.1.61")
 ALLOWED_HOSTS.append("soilmate.xyz")
 ALLOWED_HOSTS.append("soilmate.ai")

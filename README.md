@@ -116,6 +116,9 @@ This command will copy locally builded images into kind cluster.
 ## Local NFS server for development
 
 For development purpure could be used simple NFS server.
-Command below mount ./data folder into NFS server in docker container.
+Command below created local NFS server with exports:
+ - `./data` : for mounting PV with data 
+ - `./mapbox` : for mounting PV with mapbox cache
+ - `./db` : for mounting PV with Postgresql database files
 
-`docker run -d --name nfs --privileged -v /home/dlukash/Projects/sip/data:/nfsshare -e SHARED_DIRECTORY=/nfsshare -p 2049:2049 itsthenetwork/nfs-server-alpine:latest`
+`docker run -d --name nfs --privileged -e NFS_EXPORT_0='/nfs *(fsid=0,ro,insecure,no_subtree_check)' -e NFS_EXPORT_1='/nfs/data *(fsid=1,rw,insecure,no_subtree_check,no_root_squash)' -e NFS_EXPORT_2='/nfs/mapbox *(fsid=2,rw,insecure,no_subtree_check,no_root_squash)' -e NFS_EXPORT_3='/nfs/db *(fsid=3,rw,insecure,no_subtree_check,no_root_squash)' -v nfs:/nfs -v /home/dlukash/Projects/sip/data:/nfs/data -v mapbox:/nfs/mapbox -v db:/nfs/db -p 2049:2049 erichough/nfs-server:latest`

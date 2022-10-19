@@ -11,8 +11,13 @@ spec:
     storage: 5Gi # Sets PV Volume
   accessModes:
     - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
+  # hostPath:
+  #   path: "/mnt/data"
+  nfs:
+    server: 172.18.0.1
+    path: "/mapbox"
+    readOnly: false
+  persistentVolumeReclaimPolicy: Retain
   claimRef:
     apiVersion: v1
     kind: PersistentVolumeClaim
