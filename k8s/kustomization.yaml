@@ -13,15 +13,5 @@ resources:
   ## Mapbox cache
   - "./mapbox-cache/mapbox-cache-pv.yaml"
   - "./mapbox-cache/mapbox-cache-pvc.yaml"
-  # # Deployments
-  # ## Database
-  # - "./postgresql/postgresql-deployment.yaml"
-  # - "./postgresql/postgresql-service.yaml"
-  # ## Web application
-  # - "./webapplication/web-application-deployment.yaml"
-  # - "./webapplication/web-application-service.yaml"
-  # - "./webapplication/web-application-nodeport.yaml"
-  # ## Web server
-  # - "./webserver/webserver-deployment.yaml"
-  # - "./webserver/webserver-service.yaml"
+
 
