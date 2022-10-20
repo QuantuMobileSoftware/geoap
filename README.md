@@ -75,7 +75,10 @@ To create cluster with kind use command:
 
 `kind create cluster --config=./helpers/kind-config.yaml`
 
-then use `kubectl` to interact with cluster
+then use `kubectl` to interact with cluster.
+
+Also you could use bash script `./k8s/helpers/start_cluster.sh` to deploy all components into local kind k8s cluster.
+
 
 ## Authorization on registry.quantumobile.co
 
@@ -125,10 +128,10 @@ This command will copy locally builded images into kind cluster.
 
 [Check kind documentation for details](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
 
-## Local NFS server for development
+## NFS server in docker container for local development
 
 For development purpure could be used simple NFS server.
-Command below created local NFS server with exports:
+Command below created local NFS server with 3 exports:
  - `./data` : for mounting PV with data 
  - `./mapbox` : for mounting PV with mapbox cache
  - `./db` : for mounting PV with Postgresql database files
