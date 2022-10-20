@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sip-ingress
+  namespace: prod
+  labels:
+    name: sip-ingress
+spec:
+  rules:
+    - http:
+        paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            service:
+              name: webserver-service
+              port: 
+                number: 80
+    
