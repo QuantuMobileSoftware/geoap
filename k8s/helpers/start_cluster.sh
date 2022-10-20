@@ -1,18 +1,19 @@
 #!/bin/bash 
 
-kubectl apply -k ./
+kind create cluster --config=./k8s/helpers/kind-config.yaml
+kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest
 
-kubectl apply -f ./postgresql/postgresql-deployment.yaml
-kubectl apply -f ./postgresql/postgresql-service.yaml
+kubectl apply -k ./k8s/
 
-echo Wait 10s postgresql POD to start up
-sleep 10s
+kubectl apply -f ./k8s/postgresql/postgresql-deployment.yaml
+kubectl apply -f ./k8s/postgresql/postgresql-service.yaml
 
-kubectl apply -f ./webapplication/web-application-deployment.yaml
-kubectl apply -f ./webapplication/web-application-service.yaml
+kubectl wait deployment -n prod postgres --for condition=Available=True
 
-echo Wait 10s web application POD to start up
-sleep 10s
+kubectl apply -f ./k8s/webapplication/web-application-deployment.yaml
+kubectl apply -f ./k8s/webapplication/web-application-service.yaml
 
-kubectl apply -f ./webserver/webserver-deployment.yaml
-kubectl apply -f ./webserver/webserver-service.yaml
+kubectl wait deployment -n prod webapplication --for condition=Available=True
+
+kubectl apply -f ./k8s/webserver/webserver-deployment.yaml
+kubectl apply -f ./k8s/webserver/webserver-service-nodeport.yaml
