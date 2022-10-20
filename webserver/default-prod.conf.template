@@ -46,7 +46,9 @@ server {
 
     location ~^/file_download/tiles/mapbox/(.*)/(.*)/(.*).png$ {
         internal;
-        resolver 127.0.0.11 ipv6=off;
+        # resolver 127.0.0.11 ipv6=off;
+        resolver 8.8.8.8;
+    
 
         proxy_set_header Cookie '';
 
