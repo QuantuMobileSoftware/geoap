@@ -8,5 +8,5 @@ data:
   POSTGRES_HOST: postgres
   POSTGRES_PORT: "5432"
   DJANGO_SETTINGS_MODULE: sip.settings-prod
-  MAPBOX_ACCESS_TOKEN: ""
-
+  MAPBOX_ACCESS_TOKEN: "pk.eyJ1IjoiZG1pdHJpMTcxMCIsImEiOiJjbDg5cjh2ZGIwOXBmM3BuMzc5eTZvYjVqIn0.2C9wKShhjjcNckf3mxR7OQ"
+  SIP_PROD_ENV: "k8s"
