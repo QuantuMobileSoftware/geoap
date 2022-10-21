@@ -39,13 +39,13 @@ spec:
           name: frontend
         volumeMounts:
           - mountPath: /data
-            name: sip-data-starage
+            name: sip-data-storage
           - mountPath: /data/mapboxcache
             name: mapbox-cache-storage
       imagePullSecrets:
         - name: regcred
       volumes:
-        - name: sip-data-starage
+        - name: sip-data-storage
           persistentVolumeClaim:
             claimName: sip-data-volumeclaim
         - name: mapbox-cache-storage
