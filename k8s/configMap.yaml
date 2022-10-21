@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: prod
+  namespace: sip
 data:
   POSTGRES_DB: sip_db
   POSTGRES_HOST: postgres

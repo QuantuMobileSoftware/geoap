@@ -2,7 +2,7 @@ kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: sip-data-pv  # Sets PV's name
-  namespace: prod
+  namespace: sip
   labels:
     app: web-application
 spec:
@@ -20,4 +20,4 @@ spec:
     apiVersion: v1
     kind: PersistentVolumeClaim
     name: sip-data-volumeclaim
-    namespace: prod
+    namespace: sip

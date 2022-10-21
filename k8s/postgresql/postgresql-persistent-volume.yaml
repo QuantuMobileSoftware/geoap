@@ -2,7 +2,7 @@ kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: postgres-pv-volume  # Sets PV's name
-  namespace: prod
+  namespace: sip
   labels:
     type: local  # Sets PV's type to local
     app: postgres
@@ -23,4 +23,4 @@ spec:
     apiVersion: v1
     kind: PersistentVolumeClaim
     name: pgsql-volumeclaim
-    namespace: prod
+    namespace: sip

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: webserver
-  namespace: prod
+  namespace: sip
   labels:
     app: sip
     tier: frontend
