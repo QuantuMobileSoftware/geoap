@@ -25,6 +25,12 @@ spec:
           limits:
             memory: "1024Mi"
             cpu: "2048m"
+        env:
+          - name: MAPBOX_ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: sip-secret
+                key: MAPBOX_ACCESS_TOKEN
         envFrom:
               - configMapRef:
                   name: app-config
