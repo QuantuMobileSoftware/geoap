@@ -1,3 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapplication
+  namespace: sip
+  labels:
+    app: web-application
+spec:
+  ports:
+    - port: 9000
+      targetPort: 9000
+      name: webapplication
+  selector:
+    app: web-application
+    tier: backend
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,4 +66,4 @@ spec:
       volumes:
         - name: sip-data-volume
           persistentVolumeClaim:
-            claimName: sip-data-volumeclaim   
+            claimName: sip-data-pvc  

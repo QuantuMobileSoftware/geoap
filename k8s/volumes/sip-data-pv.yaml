@@ -1,14 +1,11 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: sip-data-pv  # Sets PV's name
+  name: sip-data-pv
   namespace: sip
-  labels:
-    app: web-application
 spec:
-  # storageClassName: standard
   capacity:
-    storage: 10Gi # Sets PV Volume
+    storage: 10Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
@@ -19,5 +16,5 @@ spec:
   claimRef:
     apiVersion: v1
     kind: PersistentVolumeClaim
-    name: sip-data-volumeclaim
+    name: sip-data-pvc
     namespace: sip

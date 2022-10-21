@@ -1,8 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: sip
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv
+  namespace: sip
+  labels:
+    app: postgres
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 172.18.0.1
+    path: "/db"
+    readOnly: false
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: postgres-pvc
+    namespace: sip
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: sip
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
   namespace: sip
+  labels:
+    app: postgres
 spec:
   selector:
     matchLabels:
@@ -45,4 +96,6 @@ spec:
       volumes:
         - name: postgresdb
           persistentVolumeClaim:
-            claimName: pgsql-volumeclaim
+            claimName: postgres-pvc
+---
+
