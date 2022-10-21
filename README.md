@@ -115,16 +115,12 @@ To push image into registry use command:
 
 `docker push registry.quantumobile.co/sip-web-server:latest`
 
-### Use locally builded images with minikube
-
-Use command `eval $(minikube docker-env)`to point your terminal to use the docker daemon inside minikube. Now you can ‘build’ against the docker inside minikube, which is instantly accessible to kubernetes cluster. Just use build command above. Evaluating the docker-env is only valid for the current terminal. By closing the terminal, you will go back to using your own system’s docker daemon.
-
-###  Use locally builded images with kind
+###  Use locally built images with kind
 
 To make local images available for using in deployments and creating pods processes may be used command:
 
 `kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
-This command will copy locally builded images into kind cluster.
+This command will copy locally built images into kind cluster.
 
 [Check kind documentation for details](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
 
