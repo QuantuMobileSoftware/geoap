@@ -126,10 +126,24 @@ This command will copy locally built images into kind cluster.
 
 ## NFS server in docker container for local development
 
-For development purpure could be used simple NFS server.
+For development purpose could be used simple NFS server.
 Command below created local NFS server with 3 exports:
  - `./data` : for mounting PV with data 
- - `./mapbox` : for mounting PV with mapbox cache
  - `./db` : for mounting PV with Postgresql database files
-
-`docker run -d --name nfs --privileged -e NFS_EXPORT_0='/nfs *(fsid=0,ro,insecure,no_subtree_check)' -e NFS_EXPORT_1='/nfs/data *(fsid=1,rw,insecure,no_subtree_check,no_root_squash)' -e NFS_EXPORT_2='/nfs/mapbox *(fsid=2,rw,insecure,no_subtree_check,no_root_squash)' -e NFS_EXPORT_3='/nfs/db *(fsid=3,rw,insecure,no_subtree_check,no_root_squash)' -v nfs:/nfs -v /home/dlukash/Projects/sip/data:/nfs/data -v mapbox:/nfs/mapbox -v db:/nfs/db -p 2049:2049 erichough/nfs-server:latest`
+ 
+```
+docker run -d --name nfs \
+ --privileged \
+ --cap-add=SYS_ADMIN \
+ --cap-add=SYS_MODULE \
+ -e NFS_EXPORT_0='/nfs *(fsid=0,ro,insecure,no_subtree_check)' \
+ -e NFS_EXPORT_1='/nfs/data *(fsid=1,rw,insecure,no_subtree_check,no_root_squash)' \
+ -e NFS_EXPORT_3='/nfs/db *(fsid=3,rw,insecure,no_subtree_check,no_root_squash)' \
+ -v nfs:/nfs \
+ -v /home/dlukash/Projects/sip/data:/nfs/data \
+ -v mapbox:/nfs/mapbox \
+ -v db:/nfs/db \
+ -v /lib/modules:/lib/modules:ro \
+ -p 2049:2049 \
+ erichough/nfs-server:2.2.1
+ ```
