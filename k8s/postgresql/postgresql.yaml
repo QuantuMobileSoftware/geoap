@@ -65,13 +65,13 @@ spec:
       - name: postgres
         image: postgis/postgis:13-3.0
         imagePullPolicy: "IfNotPresent"
-        resources:
-          requests:
-            memory: "1024Mi"
-            cpu: "2048m"
-          limits:
-            memory: "1024Mi"
-            cpu: "2048m"
+        # resources:
+        #   requests:
+        #     memory: "1024Mi"
+        #     cpu: "2048m"
+        #   limits:
+        #     memory: "1024Mi"
+        #     cpu: "2048m"
         ports:
         - containerPort: 5432
         env:

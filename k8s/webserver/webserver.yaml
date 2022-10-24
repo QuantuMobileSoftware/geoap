@@ -34,10 +34,10 @@ spec:
       - name: frontend
         image: registry.quantumobile.co/sip-web-server:latest
         imagePullPolicy: "IfNotPresent"
-        resources:
-          limits:
-            memory: "1024Mi"
-            cpu: "2048m"
+        # resources:
+        #   limits:
+        #     memory: "2048Mi"
+        #     cpu: "2048m"
         env:
           - name: MAPBOX_ACCESS_TOKEN
             valueFrom:
@@ -53,14 +53,9 @@ spec:
         volumeMounts:
           - mountPath: /data
             name: sip-data-storage
-          # - mountPath: /data/mapboxcache
-          #   name: mapbox-cache-storage
       imagePullSecrets:
         - name: regcred
       volumes:
         - name: sip-data-storage
           persistentVolumeClaim:
             claimName: sip-data-pvc
-        # - name: mapbox-cache-storage
-        #   persistentVolumeClaim:
-        #     claimName: mapbox-cache-pvc

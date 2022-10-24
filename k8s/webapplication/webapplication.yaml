@@ -36,10 +36,10 @@ spec:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
           imagePullPolicy: "IfNotPresent"
-          resources:
-            limits:
-              memory: "500Mi"
-              cpu: "500m"
+          # resources:
+            # limits:
+            #   memory: "500Mi"
+            #   cpu: "500m"
           command: ['/bin/bash', '-c', 'exec invoke run-prod']
           ports:
           - containerPort: 9000
