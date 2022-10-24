@@ -29,4 +29,4 @@ kubectl wait --namespace ingress-nginx \
   --selector=app.kubernetes.io/component=controller \
   --timeout=120s
 
-kubectl apply -f ./k8s/sip-ingres.yaml
+kubectl apply -f ./k8s/sip-ingress.yaml
