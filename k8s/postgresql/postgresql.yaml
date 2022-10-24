@@ -22,10 +22,8 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  nfs:
-    server: 172.18.0.1
-    path: "/db"
-    readOnly: false
+  hostPath:
+    path: /db
   persistentVolumeReclaimPolicy: Retain
   claimRef:
     apiVersion: v1
@@ -97,5 +95,4 @@ spec:
         - name: postgresdb
           persistentVolumeClaim:
             claimName: postgres-pvc
----
 

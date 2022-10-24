@@ -9,10 +9,8 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  nfs:
-    server: 172.18.0.1
-    path: "/data"
-    readOnly: false
+  hostPath:
+    path: /data
   claimRef:
     apiVersion: v1
     kind: PersistentVolumeClaim
