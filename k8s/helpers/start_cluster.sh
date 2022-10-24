@@ -22,7 +22,7 @@ kubectl wait deployment -n sip webapplication --for condition=Available=True
 kubectl apply -f ./k8s/webserver/webserver.yaml
 
 # Ingres and controller
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.4.0/deploy/static/provider/cloud/deploy.yaml
+kubectl apply -f ./k8s/NGINX-kind-ingres-controller.yaml
 
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
