@@ -33,7 +33,7 @@ spec:
       containers:
       - name: frontend
         image: registry.quantumobile.co/sip-web-server:latest
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         # resources:
         #   limits:
         #     memory: "2048Mi"

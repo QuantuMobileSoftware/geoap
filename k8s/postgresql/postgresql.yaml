@@ -64,7 +64,7 @@ spec:
       containers:
       - name: postgres
         image: postgis/postgis:13-3.0
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         # resources:
         #   requests:
         #     memory: "1024Mi"
