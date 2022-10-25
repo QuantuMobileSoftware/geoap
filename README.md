@@ -95,6 +95,16 @@ To build image for web application use command:
 To push image into registry use command:
 `docker push registry.quantumobile.co/sip-web-application:latest`
 
+### Webserver
+
+To build image for webserver use command:
+
+`docker build -t registry.quantumobile.co/sip-web-server:latest -f ./webserver/prod.Dockerfile  ./`
+
+To push image into registry use command:
+
+`docker push registry.quantumobile.co/sip-web-server:latest`
+
 
 # Working with k8s
 
