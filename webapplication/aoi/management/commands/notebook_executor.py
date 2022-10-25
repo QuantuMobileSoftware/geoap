@@ -26,7 +26,7 @@ class Command(BaseCommand):
     def run(self):
         
         threads = []
-        if settings.RUNNING_ENVIRONMENT == 'docker':
+        if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
             threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]       
         threads.append(PublisherThread(daemon=True))
 
