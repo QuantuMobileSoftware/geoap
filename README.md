@@ -76,10 +76,15 @@ to receive bash command for authorization with login and password included, like
 
 ### Authorizing k8s cluster to pull images from local registry
 
-To allow k8s pull images you need to create special secret with command
-
-`kubectl create secret docker-registry regcred --docker-server=https://registry.quantumobile.co --docker-username=***********@quantumobile.com --docker-password=***************************************************** --docker-email=***********@quantumobile.com`
-
+To allow k8s pull images you need to create special secret. Keep in mind that Secret is namespace bound object so you need to create namespace first:
+```
+kubectl create namespace sip && \
+kubectl create secret docker-registry regcred \
+  --docker-server=https://registry.quantumobile.co \
+  --docker-username=***********@quantumobile.com \
+  --docker-password=*****************************************************
+```
+ 
 ## Building & Pushing images
 
 ### Web application
@@ -117,10 +122,11 @@ To run sip in kind use command:
 
 `kubectl apply -f ./k8s/sip-deploy.yaml`
 
+After this UI will be available on `http://localohs:31080`
+
 ### Database initiation
 
 During the first run and after volume erasing you need to populate data with initial and test values 
 The next command will fill database with data:
 
 `kubectl exec -it deploy/webapplication -- bash -c "python -m manage dbshell < clear.sql&&python -m manage dbshell < ./db.dump"`
-
