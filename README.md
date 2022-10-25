@@ -63,22 +63,7 @@ curl -H  "accept: application/json" http://localhost:9000/api/users/current?apik
 Go to http://127.0.0.1:8888/
 password: God9uumi
 
-# Working with k8s
-
-## Installing kind for local development 
-
-Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) for details.
-
-## Running local cluster with kind
-
-To create cluster with kind use command:
-
-`kind create cluster --config=./helpers/kind-config.yaml`
-
-then use `kubectl` to interact with cluster.
-
-Also you could use bash script `./k8s/helpers/start_cluster.sh` to deploy all components into local kind k8s cluster.
-
+# Work with registry.quantumobile.co
 
 ## Authorization on registry.quantumobile.co
 
@@ -89,7 +74,7 @@ to receive bash command for authorization with login and password included, like
 
 `docker login --username ***********@quantumobile.com --password ***************************************************** https://registry.quantumobile.co`
 
-### Authorizing k8s cluster to pull images
+### Authorizing k8s cluster to pull images from local registry
 
 To allow k8s pull images you need to create special secret with command
 
@@ -105,45 +90,37 @@ To build image for web application use command:
 To push image into registry use command:
 `docker push registry.quantumobile.co/sip-web-application:latest`
 
-### Web server
 
-To build web server use command:
+# Working with k8s
 
-`docker build -t registry.quantumobile.co/sip-web-server:latest -f ./webserver/prod.Dockerfile  ./`
+## Installing kind for local development 
 
-To push image into registry use command:
+Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) for installation details.
 
-`docker push registry.quantumobile.co/sip-web-server:latest`
+## Running local cluster with kind
 
-###  Use locally built images with kind
+To create cluster with kind use command:
 
-To make local images available for using in deployments and creating pods processes may be used command:
+`kind create cluster --config=./k8s/kind-config.yaml`
+
+then use `kubectl` to interact with cluster.
+
+## Copying images into kind cluster
+
+To copy images from host to kind cluster use command:
 
 `kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
-This command will copy locally built images into kind cluster.
 
-[Check kind documentation for details](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
+## Running sip in k8s cluster
 
-## NFS server in docker container for local development
+To run sip in kind use command:
 
-For development purpose could be used simple NFS server.
-Command below created local NFS server with 3 exports:
- - `./data` : for mounting PV with data 
- - `./db` : for mounting PV with Postgresql database files
- 
-```
-docker run -d --name nfs \
- --privileged \
- --cap-add=SYS_ADMIN \
- --cap-add=SYS_MODULE \
- -e NFS_EXPORT_0='/nfs *(fsid=0,ro,insecure,no_subtree_check)' \
- -e NFS_EXPORT_1='/nfs/data *(fsid=1,rw,insecure,no_subtree_check,no_root_squash)' \
- -e NFS_EXPORT_3='/nfs/db *(fsid=3,rw,insecure,no_subtree_check,no_root_squash)' \
- -v nfs:/nfs \
- -v /home/dlukash/Projects/sip/data:/nfs/data \
- -v mapbox:/nfs/mapbox \
- -v db:/nfs/db \
- -v /lib/modules:/lib/modules:ro \
- -p 2049:2049 \
- erichough/nfs-server:2.2.1
- ```
+`kubectl apply -f ./k8s/sip-deploy.yaml`
+
+### Database initiation
+
+During the first run and after volume erasing you need to populate data with initial and test values 
+The next command will fill database with data:
+
+`kubectl exec -it deploy/webapplication -- bash -c "python -m manage dbshell < clear.sql&&python -m manage dbshell < ./db.dump"`
+
