@@ -78,13 +78,14 @@ to receive bash command for authorization with login and password included, like
 
 To allow k8s pull images you need to create special secret. Keep in mind that Secret is namespace bound object so you need to create namespace first:
 ```
-kubectl create namespace sip && \
+kubectl create namespace sip --save-config && \
 kubectl create secret docker-registry regcred \
   --docker-server=https://registry.quantumobile.co \
   --docker-username=***********@quantumobile.com \
-  --docker-password=*****************************************************
+  --docker-password=***************************************************** \
+  --namespace=sip
 ```
- 
+
 ## Building & Pushing images
 
 ### Web application
@@ -105,6 +106,11 @@ To push image into registry use command:
 
 `docker push registry.quantumobile.co/sip-web-server:latest`
 
+### Copying images into kind cluster
+
+To copy images from host to kind cluster use command:
+
+`kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
 
 # Working with k8s
 
@@ -116,15 +122,9 @@ Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#insta
 
 To create cluster with kind use command:
 
-`kind create cluster --config=./k8s/kind-config.yaml`
+`kind create cluster --image=kindest/node:v1.25.0@sha256:428aaa17ec82ccde0131cb2d1ca6547d13cf5fdabcc0bbecf749baa935387cbf --config=./k8s/kind-config.yaml`
 
 then use `kubectl` to interact with cluster.
-
-## Copying images into kind cluster
-
-To copy images from host to kind cluster use command:
-
-`kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
 
 ## Running sip in k8s cluster
 
@@ -132,7 +132,7 @@ To run sip in kind use command:
 
 `kubectl apply -f ./k8s/sip-deploy.yaml`
 
-After this UI will be available on `http://localohs:31080`
+After this UI will be available on `http://localhost:31080/`
 
 ### Database initiation
 
