@@ -1,4 +1,3 @@
-import os
 from sip.settings import *
 
 DEBUG = False
