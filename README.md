@@ -122,7 +122,7 @@ Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#insta
 
 To create cluster with kind use command:
 
-`kind create cluster --image=kindest/node:v1.25.0@sha256:428aaa17ec82ccde0131cb2d1ca6547d13cf5fdabcc0bbecf749baa935387cbf --config=./k8s/kind-config.yaml`
+`kind create cluster  --config=./k8s/kind-config.yaml`
 
 then use `kubectl` to interact with cluster.
 
