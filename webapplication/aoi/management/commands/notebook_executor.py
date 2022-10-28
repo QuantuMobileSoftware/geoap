@@ -24,8 +24,10 @@ class Command(BaseCommand):
             exitcode = child_process.exitcode
 
     def run(self):
-
-        threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
+        
+        threads = []
+        if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
+            threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]       
         threads.append(PublisherThread(daemon=True))
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
