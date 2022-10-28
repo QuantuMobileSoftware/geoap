@@ -4,6 +4,39 @@ metadata:
   name: sip
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: notebook-executer
+  namespace: sip
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: notebook-executer
+  namespace: sip
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notebook-executer
+  namespace: sip
+subjects:
+  - kind: ServiceAccount
+    name: notebook-executer
+    namespace: sip
+roleRef:
+  kind: Role
+  name: notebook-executer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: sip-secret
@@ -175,11 +208,13 @@ spec:
       labels:
         app: web-application
     spec:
+      serviceAccountName: notebook-executer
       containers:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
-          imagePullPolicy: "Always"
-          command: ['/bin/bash', '-c', 'exec invoke run-prod']
+          # TODO switch back to always 
+          imagePullPolicy: "IfNotPresent"
+          command: ['/bin/bash', '-c', 'exec invoke run-k8s']
           ports:
           - containerPort: 9000
             name: web-application
@@ -240,7 +275,8 @@ spec:
       containers:
       - name: frontend
         image: registry.quantumobile.co/sip-web-server:latest
-        imagePullPolicy: "Always"
+        # TODO switch back to always 
+        imagePullPolicy: "IfNotPresent"
         env:
           - name: MAPBOX_ACCESS_TOKEN
             valueFrom:
