@@ -1,7 +1,11 @@
 import logging
 import sys
 import time
-from aoi.management.commands._notebook import NotebookThread, PublisherThread
+from aoi.management.commands._notebook import (
+    NotebookDockerThread, 
+    PublisherThread, 
+    NotebookK8sThread
+)
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -25,10 +29,11 @@ class Command(BaseCommand):
 
     def run(self):
         
-        threads = []
+        threads = [PublisherThread(daemon=True),]
         if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
-            threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]       
-        threads.append(PublisherThread(daemon=True))
+            threads.append(NotebookDockerThread(daemon=True))
+        else:
+            threads.append(NotebookK8sThread(daemon=True))
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
