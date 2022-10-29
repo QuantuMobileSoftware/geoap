@@ -214,7 +214,7 @@ spec:
           image: registry.quantumobile.co/sip-web-application:latest
           # TODO switch back to always 
           imagePullPolicy: "IfNotPresent"
-          command: ['/bin/bash', '-c', 'exec invoke run-k8s']
+          command: ['/bin/bash', '-c', 'exec invoke run-prod']
           ports:
           - containerPort: 9000
             name: web-application
