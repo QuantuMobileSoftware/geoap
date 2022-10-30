@@ -34,7 +34,7 @@ class K8sNotebookHandler():
         """
 
         shutil.copy(NotebookExecutor.__file__, settings.PERSISTENT_STORAGE_PATH)
-        notebook_execution_file = os.path.join(settings.NOTEBOOK_VOLUME_MOUNT_PATH, os.path.basename(NotebookExecutor.__file__))
+        notebook_execution_file = os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, os.path.basename(NotebookExecutor.__file__))
         logger.info(f'File "{NotebookExecutor.__file__}" with notebook execution script is delivered to "{notebook_execution_file}" ')
         return notebook_execution_file
 
@@ -61,7 +61,8 @@ class K8sNotebookHandler():
         labels:Dict[str, str],
         command:List[str],
         backofflimit:int=6,
-        active_deadline_seconds:int=36_000 
+        active_deadline_seconds:int=36_000,
+        require_gpu=False
     
     ) -> client.V1Job:
         """StaticMethod. Creates job description.
@@ -75,11 +76,17 @@ class K8sNotebookHandler():
             active_deadline_seconds (int, optional): Active deadline, once a Job reaches it, 
                 all of its running Pods are terminated and the Job status will become type: 
                 Failed with reason: DeadlineExceeded. Defaults to 36_000s (10 hours).
+            require_gpu (bool, optional): Whether or not job require GPU cores. Defaults to False
 
         Returns:
             client.V1Job
         """
 
+        gpu_resouces = client.V1ResourceRequirements(
+            limits={
+                "nvidia.com/gpu":str(settings.GPU_CORES_PER_NOTEBOOK)
+            }
+        )
         notebook_volume = client.V1Volume(
             name='notebook-volume',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
@@ -88,7 +95,7 @@ class K8sNotebookHandler():
         )
         notebook_volume_mount = client.V1VolumeMount(
             name='notebook-volume',
-            mount_path=settings.NOTEBOOK_VOLUME_MOUNT_PATH,
+            mount_path=settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH,
             read_only=False
         )
         container = client.V1Container(
@@ -98,7 +105,8 @@ class K8sNotebookHandler():
             volume_mounts=[
                 notebook_volume_mount,
             ],
-            image_pull_policy='IfNotPresent'
+            image_pull_policy='IfNotPresent',
+            resources = gpu_resouces if require_gpu else None 
         )
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(
@@ -158,7 +166,7 @@ class K8sNotebookHandler():
         Returns:
             client.V1Job:
         """
-        job_obj = self.create_job_object(
+        return self.create_job_object(
             image=notebook.image,
             name=f'notebook-validation-{notebook.id}',
             command=['python3', '--version', ],
@@ -167,9 +175,10 @@ class K8sNotebookHandler():
                 'job_type':self.notebook_validation_job_label
             },
             backofflimit=settings.NOTEBOOK_VALIDATION_JOB_BACKOFF_LIMIT,
-            active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE
+            active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
+            require_gpu=notebook.run_on_gpu
+            
         )
-        return job_obj
        
     def supervise_notebook_validation_job(self, job:client.V1Job):
         """Method to check if job completed or failed, change notebook validation status accordingly and delete the job from cluster
@@ -267,7 +276,7 @@ class K8sNotebookHandler():
             request = Request.objects.get(id=job_labels['request_id'])
             request.started_at = pod_result['started_at']
             request.finished_at = pod_result['finished_at']
-            if pod_result['reason'] == 'Error' and not pod_result['message']:
+            if pod_result['reason'] == 'Error':
                 request.error = pod_result['pod_log']
                 logger.error(f"Job Error: {pod_result['pod_log']}")
             request.save()
@@ -280,11 +289,18 @@ class K8sNotebookHandler():
             pod_label_selector (str): Label to determinate pod on which job is running
 
         Returns:
-            Dict[str, str]: 
+            Dict[str, str]: Example:
+                        {
+                            'pod_log': '', 
+                            'exit_code': 0, 
+                            'started_at': datetime.datetime(2022, 10, 30, 9, 59, 5, tzinfo=tzlocal()), 
+                            'finished_at': datetime.datetime(2022, 10, 30, 9, 59, 8, tzinfo=tzlocal()), 
+                            'reason':  'Completed'
+                        }
         """
+
         exit_code = None
         finished_at = None
-        message = None
         reason = None
         started_at = None
         
@@ -309,8 +325,7 @@ class K8sNotebookHandler():
                           exit_code=exit_code,
                           started_at=started_at,
                           finished_at=finished_at,
-                          reason=reason,
-                          message=message
+                          reason=reason
                           )
         return pod_result
 
@@ -331,5 +346,6 @@ class K8sNotebookHandler():
                 '--kernel', request.notebook.kernel_name if request.notebook.kernel_name else ""
             ],
             backofflimit=settings.NOTEBOOK_VALIDATION_JOB_BACKOFF_LIMIT,
-            active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE
+            active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
+            require_gpu=request.notebook.run_on_gpu
         )
