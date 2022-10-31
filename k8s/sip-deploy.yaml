@@ -219,8 +219,7 @@ spec:
       containers:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
-          # TODO switch back to always 
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: "Always"
           command: ['/bin/bash', '-c', 'exec invoke run-prod']
           ports:
           - containerPort: 9000
@@ -282,8 +281,7 @@ spec:
       containers:
       - name: frontend
         image: registry.quantumobile.co/sip-web-server:latest
-        # TODO switch back to always 
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         env:
           - name: MAPBOX_ACCESS_TOKEN
             valueFrom:
