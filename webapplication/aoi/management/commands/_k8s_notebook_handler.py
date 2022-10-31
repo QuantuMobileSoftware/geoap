@@ -23,7 +23,7 @@ class K8sNotebookHandler():
         self.namespace = namespace
         self.notebook_validation_job_label = "notebook-validation"
         self.notebook_execution_job_label = "notebook-execution"
-        self.notebook_execution_script = self.notebook_executor_script_deliverer()
+        self.notebook_executor_script_deliverer()
 
     @staticmethod
     def notebook_executor_script_deliverer() -> str:
