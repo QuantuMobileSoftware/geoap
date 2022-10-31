@@ -152,6 +152,7 @@ class K8sNotebookHandler():
             self.start_job(job_manifest)
     
     def start_notebook_validation_jobs_supervision(self) -> None:
+        """Retrieve notebook validation jobs and check them """
         label_selector = f'job_type={self.notebook_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(namespace=self.namespace, label_selector=label_selector)
         for job in jobs.items:
@@ -174,7 +175,7 @@ class K8sNotebookHandler():
                 'notebook':str(notebook.id),
                 'job_type':self.notebook_validation_job_label
             },
-            backofflimit=settings.NOTEBOOK_VALIDATION_JOB_BACKOFF_LIMIT,
+            backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
             require_gpu=notebook.run_on_gpu
             
@@ -238,6 +239,7 @@ class K8sNotebookHandler():
             self.start_job(job)
 
     def start_notebook_execution_jobs_supervision(self) -> None:
+        """Retrieve notebook execution jobs and check them"""
         label_selector = f'job_type={self.notebook_execution_job_label}'
         jobs = self.batch_v1.list_namespaced_job(namespace=self.namespace, label_selector=label_selector)
         for job in jobs.items:
@@ -329,7 +331,15 @@ class K8sNotebookHandler():
                           )
         return pod_result
 
-    def create_notebook_execution_job_desc(self, request:Request):
+    def create_notebook_execution_job_desc(self, request:Request) -> client.V1Job:
+        """Create execution job description object from request
+
+        Args:
+            request (Request): Request to make job description from
+
+        Returns:
+            client.V1Job:
+        """
         return self.create_job_object(
             image=request.notebook.image,
             name=f'execute-notebook-{str(request.id)}',
@@ -345,7 +355,7 @@ class K8sNotebookHandler():
                 '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
                 '--kernel', request.notebook.kernel_name if request.notebook.kernel_name else ""
             ],
-            backofflimit=settings.NOTEBOOK_VALIDATION_JOB_BACKOFF_LIMIT,
-            active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
+            backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
+            active_deadline_seconds=settings.NOTEBOOK_EXECUTION_TIMEOUT,
             require_gpu=request.notebook.run_on_gpu
         )
