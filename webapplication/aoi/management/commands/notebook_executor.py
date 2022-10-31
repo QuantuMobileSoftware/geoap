@@ -13,8 +13,6 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
-NOTEBOOK_EXECUTOR_THREADS = 1
-
 
 class Command(BaseCommand):
     help = "Manage running of Jupyter Notebooks and Publisher command"
