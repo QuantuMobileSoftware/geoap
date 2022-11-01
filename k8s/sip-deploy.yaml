@@ -215,7 +215,6 @@ spec:
       labels:
         app: web-application
     spec:
-      serviceAccountName: notebook-executor
       containers:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
@@ -301,5 +300,96 @@ spec:
         - name: regcred
       volumes:
         - name: sip-data-storage
+          persistentVolumeClaim:
+            claimName: sip-data-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notebook-handler
+  namespace: sip
+spec:
+  selector:
+    matchLabels:
+      app: notebook-handler
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: notebook-handler
+    spec:
+      serviceAccountName: notebook-executor
+      containers:
+        - name: notebook-handler
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "Always"
+          command: ['/bin/bash', '-c', 'exec invoke run-notebook-executor-k8s']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+          volumeMounts:
+              - name: sip-data-volume
+                mountPath: /data
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: sip-data-volume
+          persistentVolumeClaim:
+            claimName: sip-data-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher
+  namespace: sip
+spec:
+  selector:
+    matchLabels:
+      app: publisher
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: publisher
+    spec:
+      containers:
+        - name: publisher
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "Always"
+          command: ['/bin/bash', '-c', 'exec invoke run-publisher-k8s']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+          volumeMounts:
+              - name: sip-data-volume
+                mountPath: /data
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: sip-data-volume
           persistentVolumeClaim:
             claimName: sip-data-pvc

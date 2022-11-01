@@ -26,12 +26,13 @@ class Command(BaseCommand):
             exitcode = child_process.exitcode
 
     def run(self):
-        
-        threads = [PublisherThread(daemon=True),]
         if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
-            threads.append(NotebookDockerThread(daemon=True))
+            threads = [
+                PublisherThread(daemon=True),
+                NotebookDockerThread(daemon=True)
+            ]
         else:
-            threads.append(NotebookK8sThread(daemon=True))
+            return
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
@@ -42,31 +43,34 @@ class Command(BaseCommand):
             thread.start()
 
         # main thread looks at the status of all threads
-        try:
-            while True:
-                for thread in threads:
-                    if thread.exception or not thread.is_alive():
-                        # an error in a thread - raise it in main thread too
-                        logger.error(f"Thread: {thread} exited: {thread.exception}. Terminate all threads and restart")
-                        raise thread.exception
-                working_time = time.time() - started_at
-                if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
-                    raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
-                time.sleep(THREAD_SLEEP)
-        except Exception as ex:
-            logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
+        self.thread_watch(threads, started_at)
 
+def thread_watch(threads, started_at):
+    try:
+        while True:
             for thread in threads:
-                thread.stop()
+                if thread.exception or not thread.is_alive():
+                    # an error in a thread - raise it in main thread too
+                    logger.error(f"Thread: {thread} exited: {thread.exception}. Terminate all threads and restart")
+                    raise thread.exception
+            working_time = time.time() - started_at
+            if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
+                raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
+            time.sleep(THREAD_SLEEP)
+    except Exception as ex:
+        logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
 
-            while threads:
-                logger.info(f"Left threads: {threads}")
-                for thread in threads:
-                    if not thread.is_alive():
-                        logger.info(f"For thread {thread} task is finished. Removing it")
-                        threads.remove(thread)
-                time.sleep(THREAD_SLEEP)
+        for thread in threads:
+            thread.stop()
 
-        logger.info(f"All threads are stopped. Restart notebook_executor command")
-        sys.exit(2)
+        while threads:
+            logger.info(f"Left threads: {threads}")
+            for thread in threads:
+                if not thread.is_alive():
+                    logger.info(f"For thread {thread} task is finished. Removing it")
+                    threads.remove(thread)
+            time.sleep(THREAD_SLEEP)
+
+    logger.info(f"All threads are stopped. Restart notebook_executor command")
+    sys.exit(2)
 
