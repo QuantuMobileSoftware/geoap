@@ -139,7 +139,7 @@ class K8sNotebookHandler():
             volume_mounts=[
                 notebook_volume_mount,
             ],
-            image_pull_policy='IfNotPresent',
+            image_pull_policy='Always',
             resources = gpu_resouces if require_gpu else None 
         )
         template = client.V1PodTemplateSpec(
