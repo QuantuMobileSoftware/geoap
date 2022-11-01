@@ -10,6 +10,9 @@ from django.conf import settings
 
 from aoi.management.commands.executor import NotebookExecutor
 import shutil
+import hashlib
+
+from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +26,50 @@ class K8sNotebookHandler():
         self.namespace = namespace
         self.notebook_validation_job_label = "notebook-validation"
         self.notebook_execution_job_label = "notebook-execution"
-        self.notebook_executor_script_deliverer()
+        self.notebook_execution_script = self.notebook_executor_script_deliverer()
+
+    @staticmethod
+    def get_file_md5(filepath:str) -> str:
+        """Create md5 hash of byte-read file
+
+        Args:
+            filepath (str): Path to file
+
+        Returns:
+            str: Result of md5 hash function
+        """
+        
+        with open(filepath, 'rb') as file:
+            hashed_file = hashlib.md5(file.read())
+        return hashed_file.hexdigest()
+
 
     @staticmethod
     def notebook_executor_script_deliverer() -> str:
-        """Deliver NotebookExecutor.py script into volume that will be shared with notebook execution job pods
+        """ Check if NotebookExecutor.py changed with md5 hash and last modified date.
+        Deliver NotebookExecutor.py script into volume that will be shared with notebook execution job pods.
 
         Returns:
             str: path to file with notebook execution script
         """
-
-        shutil.copy(NotebookExecutor.__file__, settings.PERSISTENT_STORAGE_PATH)
+        current_hash = ''
+        current_mod_data = 0
+        
         notebook_execution_file = os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, os.path.basename(NotebookExecutor.__file__))
-        logger.info(f'File "{NotebookExecutor.__file__}" with notebook execution script is delivered to "{notebook_execution_file}" ')
+        
+        if os.path.exists(notebook_execution_file):
+            current_hash = K8sNotebookHandler.get_file_md5(notebook_execution_file)
+            current_mod_data = os.path.getmtime(notebook_execution_file)
+
+        challenger_hash = K8sNotebookHandler.get_file_md5(NotebookExecutor.__file__)
+        challenger_mod_date = os.path.getmtime(NotebookExecutor.__file__)
+        
+
+        if not (challenger_hash == current_hash and challenger_mod_date == current_mod_data):
+            shutil.copy2(NotebookExecutor.__file__, settings.PERSISTENT_STORAGE_PATH)
+            logger.info('File with notebook execution script have changed. File replaced')
+           
+        logger.info(f'File with notebook execution script is up to date to "{notebook_execution_file}" ')
         return notebook_execution_file
 
     def start_job(self, job:client.V1Job):
@@ -143,7 +177,7 @@ class K8sNotebookHandler():
 
         label_selector = f'job_type={self.notebook_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(namespace=self.namespace, label_selector=label_selector)
-        notebook_ids_list = [int(x.metadata.labels['notebook']) for x in jobs.items]
+        notebook_ids_list = [int(x.metadata.labels['notebook_id']) for x in jobs.items]
         not_validated_notebooks = JupyterNotebook.objects.filter(run_validation=False).exclude(id__in=notebook_ids_list)
         logger.info(f'Number of notebooks to validate: {len(not_validated_notebooks)}\n')
 
@@ -172,7 +206,7 @@ class K8sNotebookHandler():
             name=f'notebook-validation-{notebook.id}',
             command=['python3', '--version', ],
             labels={
-                'notebook':str(notebook.id),
+                'notebook_id':str(notebook.id),
                 'job_type':self.notebook_validation_job_label
             },
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
@@ -188,11 +222,11 @@ class K8sNotebookHandler():
             job (client.V1Job): The job to supervise
         """
         if job.status.succeeded == 1 or job.status.failed == 1:
-            notebook = JupyterNotebook.objects.get(id=job.metadata.labels['notebook'])
+            notebook = JupyterNotebook.objects.get(id=job.metadata.labels['notebook_id'])
             notebook.run_validation = True
             notebook.success = True if job.status.succeeded == 1 else False
             notebook.save()
-            logging.info(f'Validation of notebook with id "{job.metadata.labels["notebook"]}" is finished')
+            logging.info(f'Validation of notebook with id "{job.metadata.labels["notebook_id"]}" is finished')
             self.delete_job(job)
 
     def delete_job(self, job:client.V1Job):
@@ -237,6 +271,8 @@ class K8sNotebookHandler():
         for request in not_executed_request:
             job = self.create_notebook_execution_job_desc(request)
             self.start_job(job)
+            request.started_at = localtime()
+            request.save()
 
     def start_notebook_execution_jobs_supervision(self) -> None:
         """Retrieve notebook execution jobs and check them"""
@@ -258,16 +294,12 @@ class K8sNotebookHandler():
         if job.status.succeeded == 1:
             pod_result = self.get_results_from_pods(pod_label_selector)
             request = Request.objects.get(id=job_labels['request_id'])
-            request.started_at = pod_result['started_at']
-            request.finished_at = pod_result['finished_at']
             request.calculated = True
-            request.success = True
             request.save()
             self.delete_job(job)
 
         if job.status.conditions is not None and job.status.conditions[0].type == 'Failed':
             request = Request.objects.get(id=job_labels['request_id'])
-            request.started_at = job.status.start_time
             if job.status.conditions[0].message:
                 request.error = job.status.conditions[0].message
             request.save()
@@ -276,7 +308,6 @@ class K8sNotebookHandler():
         if job.status.failed in (1, 2):
             pod_result = self.get_results_from_pods(pod_label_selector)
             request = Request.objects.get(id=job_labels['request_id'])
-            request.started_at = pod_result['started_at']
             request.finished_at = pod_result['finished_at']
             if pod_result['reason'] == 'Error':
                 request.error = pod_result['pod_log']
@@ -295,7 +326,6 @@ class K8sNotebookHandler():
                         {
                             'pod_log': '', 
                             'exit_code': 0, 
-                            'started_at': datetime.datetime(2022, 10, 30, 9, 59, 5, tzinfo=tzlocal()), 
                             'finished_at': datetime.datetime(2022, 10, 30, 9, 59, 8, tzinfo=tzlocal()), 
                             'reason':  'Completed'
                         }
@@ -304,7 +334,6 @@ class K8sNotebookHandler():
         exit_code = None
         finished_at = None
         reason = None
-        started_at = None
         
         pods_list = self.core_v1.list_namespaced_pod(namespace=self.namespace,
                                                      label_selector=pod_label_selector,
@@ -319,13 +348,10 @@ class K8sNotebookHandler():
         pod_log = pod_log_response.data.decode("utf-8")
         if pod_state.terminated is not None:
             exit_code = pod_state.terminated.exit_code
-            started_at = pod_state.terminated.started_at
-            finished_at = pod_state.terminated.finished_at
             reason = pod_state.terminated.reason
         
         pod_result = dict(pod_log=pod_log,
                           exit_code=exit_code,
-                          started_at=started_at,
                           finished_at=finished_at,
                           reason=reason
                           )
