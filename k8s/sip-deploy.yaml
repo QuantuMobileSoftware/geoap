@@ -6,13 +6,13 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: notebook-executer
+  name: notebook-executor
   namespace: sip
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: notebook-executer
+  name: notebook-executor
   namespace: sip
 rules:
   - apiGroups: [""]
@@ -25,15 +25,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: notebook-executer
+  name: notebook-executor
   namespace: sip
 subjects:
   - kind: ServiceAccount
-    name: notebook-executer
+    name: notebook-executor
     namespace: sip
 roleRef:
   kind: Role
-  name: notebook-executer
+  name: notebook-executor
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
@@ -215,7 +215,7 @@ spec:
       labels:
         app: web-application
     spec:
-      serviceAccountName: notebook-executer
+      serviceAccountName: notebook-executor
       containers:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
