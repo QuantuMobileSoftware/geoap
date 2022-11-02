@@ -4,6 +4,39 @@ metadata:
   name: sip
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: notebook-executor
+  namespace: sip
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: notebook-executor
+  namespace: sip
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notebook-executor
+  namespace: sip
+subjects:
+  - kind: ServiceAccount
+    name: notebook-executor
+    namespace: sip
+roleRef:
+  kind: Role
+  name: notebook-executor
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: sip-secret
@@ -25,6 +58,13 @@ data:
   POSTGRES_PORT: "5432"
   DJANGO_SETTINGS_MODULE: sip.settings-prod
   NOTEBOOK_EXECUTION_ENVIRONMENT: "k8s"
+  NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE: "3000"
+  NOTEBOOK_JOB_BACKOFF_LIMIT: "1"
+  K8S_NAME_SPACE: "sip"
+  IMAGE_PULL_SECRETS: "regcred"
+  NOTEBOOK_EXECUTOR_MAX_JOBS: "2"
+  NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH: "/home/jovyan/work"
+  GPU_CORES_PER_NOTEBOOK: "1"
 ---
 apiVersion: v1
 kind: Service
@@ -260,5 +300,98 @@ spec:
         - name: regcred
       volumes:
         - name: sip-data-storage
+          persistentVolumeClaim:
+            claimName: sip-data-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notebook-handler
+  namespace: sip
+spec:
+  selector:
+    matchLabels:
+      app: notebook-handler
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: notebook-handler
+    spec:
+      serviceAccountName: notebook-executor
+      restartPolicy: "Always"
+      containers:
+        - name: notebook-handler
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "Always"
+          command: ['/bin/bash', '-c', 'exec invoke run-notebook-executor-k8s']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+          volumeMounts:
+              - name: sip-data-volume
+                mountPath: /data
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: sip-data-volume
+          persistentVolumeClaim:
+            claimName: sip-data-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher
+  namespace: sip
+spec:
+  selector:
+    matchLabels:
+      app: publisher
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: publisher
+    spec:
+      restartPolicy: "Always"
+      containers:
+        - name: publisher
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "Always"
+          command: ['/bin/bash', '-c', 'exec invoke run-publisher-k8s']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+          volumeMounts:
+              - name: sip-data-volume
+                mountPath: /data
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: sip-data-volume
           persistentVolumeClaim:
             claimName: sip-data-pvc

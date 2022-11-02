@@ -7,6 +7,8 @@ from aoi.models import JupyterNotebook, Request
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
+from aoi.management.commands._k8s_notebook_handler import K8sNotebookHandler
+
 from django.utils.timezone import localtime
 from django.core import management
 from django.conf import settings
@@ -46,7 +48,7 @@ class StoppableThread(ABC, Thread):
         pass
 
 
-class NotebookThread(StoppableThread):
+class NotebookDockerThread(StoppableThread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lock = Lock()
@@ -161,3 +163,18 @@ class PublisherThread(StoppableThread):
         success_requests = Request.objects.filter(calculated=True, success=False)
         logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
         success_requests.update(finished_at=localtime(), success=True)
+
+
+class NotebookK8sThread(StoppableThread):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.notebook_handler = K8sNotebookHandler(settings.K8S_NAME_SPACE)
+
+    def do_stuff(self):
+        # Validation
+        self.notebook_handler.start_notebook_validation()
+        self.notebook_handler.start_notebook_validation_jobs_supervision()
+        # Execution
+        self.notebook_handler.start_notebook_execution()
+        self.notebook_handler.start_notebook_execution_jobs_supervision()
+    
