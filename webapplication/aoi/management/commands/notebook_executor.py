@@ -43,34 +43,30 @@ class Command(BaseCommand):
             thread.start()
 
         # main thread looks at the status of all threads
-        self.thread_watch(threads, started_at)
+        try:
+            while True:
+                for thread in threads:
+                    if thread.exception or not thread.is_alive():
+                        # an error in a thread - raise it in main thread too
+                        logger.error(f"Thread: {thread} exited: {thread.exception}. Terminate all threads and restart")
+                        raise thread.exception
+                working_time = time.time() - started_at
+                if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
+                    raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
+                time.sleep(THREAD_SLEEP)
+        except Exception as ex:
+            logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
 
-def thread_watch(threads, started_at):
-    try:
-        while True:
             for thread in threads:
-                if thread.exception or not thread.is_alive():
-                    # an error in a thread - raise it in main thread too
-                    logger.error(f"Thread: {thread} exited: {thread.exception}. Terminate all threads and restart")
-                    raise thread.exception
-            working_time = time.time() - started_at
-            if working_time >= settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT:
-                raise RuntimeError(f"Timeout {settings.NOTEBOOK_EXECUTOR_THREADS_RESTART_TIMEOUT} for threads was achieved")
-            time.sleep(THREAD_SLEEP)
-    except Exception as ex:
-        logger.error(f"Main thread got exception: {str(ex)}. Stopping all threads...")
+                thread.stop()
 
-        for thread in threads:
-            thread.stop()
+            while threads:
+                logger.info(f"Left threads: {threads}")
+                for thread in threads:
+                    if not thread.is_alive():
+                        logger.info(f"For thread {thread} task is finished. Removing it")
+                        threads.remove(thread)
+                time.sleep(THREAD_SLEEP)
 
-        while threads:
-            logger.info(f"Left threads: {threads}")
-            for thread in threads:
-                if not thread.is_alive():
-                    logger.info(f"For thread {thread} task is finished. Removing it")
-                    threads.remove(thread)
-            time.sleep(THREAD_SLEEP)
-
-    logger.info(f"All threads are stopped. Restart notebook_executor command")
-    sys.exit(2)
-
+        logger.info(f"All threads are stopped. Restart notebook_executor command")
+        sys.exit(2)
