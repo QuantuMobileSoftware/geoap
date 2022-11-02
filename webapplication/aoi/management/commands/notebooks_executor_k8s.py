@@ -27,5 +27,3 @@ class Command(BaseCommand):
         thread = NotebookK8sThread(daemon=True)
         thread.start()
         
-        started_at = time.time()
-        thread_watch([thread,], started_at)

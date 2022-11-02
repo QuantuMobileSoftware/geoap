@@ -320,6 +320,7 @@ spec:
         app: notebook-handler
     spec:
       serviceAccountName: notebook-executor
+      restartPolicy: "Always"
       containers:
         - name: notebook-handler
           image: registry.quantumobile.co/sip-web-application:latest
@@ -365,6 +366,7 @@ spec:
       labels:
         app: publisher
     spec:
+      restartPolicy: "Always"
       containers:
         - name: publisher
           image: registry.quantumobile.co/sip-web-application:latest

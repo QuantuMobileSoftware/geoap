@@ -27,5 +27,3 @@ class Command(BaseCommand):
         thread = PublisherThread(daemon=True)
         thread.start()
         
-        started_at = time.time()
-        thread_watch([thread,], started_at)
