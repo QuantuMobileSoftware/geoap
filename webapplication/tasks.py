@@ -71,6 +71,16 @@ def run_prod(ctx):
 
     ctx.run('uwsgi --ini uwsgi.ini')
 
+@task
+def run_notebook_executor_k8s(ctx):
+    wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
+    ctx.run('python -m manage notebooks_executor_k8s')
+
+@task
+def run_publisher_k8s(ctx):
+    wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
+    ctx.run('python -m manage publisher_k8s')
+
 
 @task
 def test(ctx):
