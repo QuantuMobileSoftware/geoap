@@ -1,6 +1,5 @@
 import logging
 from multiprocessing import Process
-import time
 from aoi.management.commands._notebook import (
     PublisherThread
 )
@@ -8,7 +7,6 @@ from aoi.management.commands._notebook import (
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 
-from aoi.management.commands.notebook_executor import thread_watch
 
 logger = logging.getLogger(__name__)
 
@@ -26,4 +24,5 @@ class Command(BaseCommand):
     def run(self):
         thread = PublisherThread(daemon=True)
         thread.start()
+        thread.join()
         
