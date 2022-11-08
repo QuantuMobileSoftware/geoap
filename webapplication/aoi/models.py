@@ -46,8 +46,66 @@ class JupyterNotebook(models.Model):
         verbose_name = 'Jupyter Notebook'
         verbose_name_plural = 'Jupyter Notebooks'
         ordering = ['name']
-        
-        
+       
+
+class Input(models.Model):
+
+    class InputDataType(models.TextChoices):
+        INT = 'INT','Integer'
+        STR = 'STR','String'
+        FLOAT = 'FLOAT','Float'
+        BOOL = 'BOOL','Boolean'
+        LIST = 'LIST','List'
+        DATE = 'DATE','Date'
+
+    class AssigningMethod(models.TextChoices):
+        GLOBAL_SETTINGS = "settings",'Global settings'
+        USER_ATTRIBUTES = "user",'User attributes'
+        REQUEST_ATTRIBUTES = "request",'Request attributes'
+        ANOTHER_COMPONENT = "component",'Another component'
+
+    name = models.CharField(max_length=50, verbose_name='Name')
+    type = models.CharField(
+        max_length=10, 
+        verbose_name='Type',
+        choices=InputDataType.choices,
+        default=InputDataType.STR
+    )
+    assigned_from = models.CharField(max_length=20,
+        choices=AssigningMethod.choices,
+        default=AssigningMethod.USER_ATTRIBUTES,
+        verbose_name="Attribute's origin"
+    )
+    is_file = models.BooleanField(default=False, verbose_name='Is it a file?')
+
+    def __str__(self) -> str:
+        return f'{self.name} | {self.type} | From: "{self.assigned_from}"'
+
+
+class Output(models.Model):
+    name = models.CharField(max_length=50, verbose_name='Name')
+    special_output = models.BooleanField(default=False)
+    
+
+class Component(models.Model):
+    name = models.CharField(max_length=50, verbose_name='Name')
+    image = models.CharField(max_length=255, verbose_name='Image tag')
+    command = models.CharField(
+        max_length=1000,
+        null=True, 
+        blank=True,
+        verbose_name='Command'
+    )
+    inputs = models.ManyToManyField(Input)
+    outputs = models.ManyToManyField(Output)
+    require_GPU = models.BooleanField(default=False, verbose_name='Whether GPU is needed for a component to run')
+    run_validation = models.BooleanField(default=False, verbose_name='Run validation')
+    success = models.BooleanField(default=False, verbose_name='Validation succeeded')
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Request(models.Model):
     user = models.ForeignKey('user.User', on_delete=models.PROTECT, verbose_name='User id')
     aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
