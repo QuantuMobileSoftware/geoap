@@ -1,5 +1,13 @@
 from django.contrib.gis import admin
-from .models import AoI, JupyterNotebook, Request
+from .forms import ComponentAdminForm
+from .models import (
+    AoI,
+    JupyterNotebook,
+    Request,
+    Component,
+    Input,
+    Output
+)  
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
 
@@ -32,3 +40,28 @@ class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'notebook', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'calculated', 'success', 'error', 'additional_parameter')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
+
+
+@admin.register(Component)
+class ComponentAdmin(admin.OSMGeoAdmin):
+    form = ComponentAdminForm
+    list_display = ('pk', 'name', 'image', 'command', 'require_GPU', 'run_validation', 'success')
+    search_fields = ('name', 'image', )
+    readonly_fields = ('pk', 'run_validation', 'success', )
+    list_filter = ('require_GPU', 'run_validation', 'success', 'inputs__name', )
+
+
+@admin.register(Input)
+class InputAdmin(admin.OSMGeoAdmin):
+    list_display = ('pk', 'name', 'type', 'assigned_from', 'is_file',)
+    search_fields = ('name', )
+    readonly_fields = ('pk',)
+    list_filter = ('type', 'assigned_from','is_file', )
+
+@admin.register(Output)
+class OutputAdmin(admin.OSMGeoAdmin):
+    list_display=('pk', 'name', 'special_output')
+    search_fields = ('name', )
+    readonly_fields = ('pk',)
+    list_filter = ('special_output', )
+
