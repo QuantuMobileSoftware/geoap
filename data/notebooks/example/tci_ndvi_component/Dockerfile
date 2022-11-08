@@ -40,13 +40,10 @@ ENV CONDA_DEFAULT_ENV ${conda_env}
 #Copy notebook and executor
 RUN mkdir ${HOME}/code
 WORKDIR ${HOME}/code
-COPY ./NotebookExecutor.py .
-COPY ./TCI_NDVI_component.ipynb .
-COPY ./sentinel2grid.geojson .
-COPY ./ndvi_colormap.npy .
+COPY ./ .
 
 RUN mkdir ${HOME}/mounted
 RUN mkdir ${HOME}/output
 RUN mkdir ${HOME}/temp
 
-ENTRYPOINT [ "python3", "./NotebookExecutor.py", "--input_path", "/home/jovyan/code/TCI_NDVI_component.ipynb", "--cell_timeout", "30000"]
+ENTRYPOINT ["jupyter", "nbconvert", "--inplace", "--to=notebook", "--execute", "./TCI_NDVI_component.ipynb", "--ExecutePreprocessor.kernel_name", "python38"]
