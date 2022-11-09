@@ -73,7 +73,7 @@ class Input(models.Model):
     )
     assigned_from = models.CharField(max_length=20,
         choices=AssigningMethod.choices,
-        default=AssigningMethod.USER_ATTRIBUTES,
+        default=AssigningMethod.REQUEST_ATTRIBUTES,
         verbose_name="Attribute's origin"
     )
     is_file = models.BooleanField(default=False, verbose_name='Is it a file?')
@@ -84,7 +84,7 @@ class Input(models.Model):
 
 class Output(models.Model):
     name = models.CharField(max_length=50, verbose_name='Name')
-    special_output = models.BooleanField(default=False)
+    is_error = models.BooleanField(default=False, verbose_name='Is error output?')
     
 
 class Component(models.Model):
