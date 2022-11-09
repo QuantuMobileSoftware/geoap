@@ -60,8 +60,8 @@ class InputAdmin(admin.OSMGeoAdmin):
 
 @admin.register(Output)
 class OutputAdmin(admin.OSMGeoAdmin):
-    list_display=('pk', 'name', 'special_output')
+    list_display=('pk', 'name', 'is_error')
     search_fields = ('name', )
     readonly_fields = ('pk',)
-    list_filter = ('special_output', )
+    list_filter = ('is_error', )
 
