@@ -5,6 +5,8 @@ To build image run:
 
 `docker build -t registry.quantumobile.co/sip_tci_ndvi:0.0.1-dev ./data/notebooks/example/tci_ndvi_component/`
 
+### Push to registry
+
 ### Inputs and outputs
 
 All inputs should be assigned as environment variables.
