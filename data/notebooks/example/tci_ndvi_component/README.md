@@ -17,6 +17,7 @@ Inputs of type "FILE" this be mounted to `/mounted` directory, the name of a fil
 * `SIP_START_DATE` - date format. Example: "2020-07-01"
 * `SIP_END_DATE` - date format. Example: "2020-08-01"
 * `SENTINEL2_GOOGLE_API_KEY` - filename of JSON file. File should be mounted to `/input` directory in container.
+* `SIP_SATELLITE_CACHE` - folder to store downloaded satellite images.
 
 #### This components require outputs:
 * `SIP_TCI` - filename of TCI results *.tif raster file. Will be stored in `/output` directory in container
