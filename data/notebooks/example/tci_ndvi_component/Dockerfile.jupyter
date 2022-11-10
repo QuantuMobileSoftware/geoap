@@ -1,0 +1,20 @@
+FROM python:3.8.15-slim
+
+# Needed for geopanda&shapely to work
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    libspatialindex-dev
+
+RUN mkdir /code
+RUN mkdir /input
+RUN mkdir /output
+RUN mkdir /temp
+
+WORKDIR /code
+COPY ./ .
+
+RUN pip install jupyter
+RUN pip install -r requirements_37.txt
+
+ENTRYPOINT ["jupyter", "nbconvert", "--inplace", "--to=notebook", "--execute", "./TCI_NDVI.ipynb"]
