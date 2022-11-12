@@ -101,12 +101,15 @@ class Input(models.Model):
     is_file = models.BooleanField(default=False, verbose_name="Is it a file?")
 
     def __str__(self) -> str:
-        return f'{self.name} | {self.type} | From: "{self.assigned_from}"'
+        return f'{self.name} | {self.get_type_display()} | From: "{self.assigned_from}"'
 
 
 class Output(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name")
     is_error = models.BooleanField(default=False, verbose_name="Is error output?")
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Component(models.Model):
