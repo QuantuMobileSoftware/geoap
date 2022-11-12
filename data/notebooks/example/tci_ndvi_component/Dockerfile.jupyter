@@ -1,6 +1,6 @@
 FROM python:3.8.15-slim
 
-# Needed for geopanda&shapely to work
+# Needed for geopandas&shapely to work
 RUN apt-get update && \
     apt-get install -y \
     git \
@@ -15,6 +15,6 @@ WORKDIR /code
 COPY ./ .
 
 RUN pip install jupyter
-RUN pip install -r requirements_37.txt
+RUN pip install -r requirements.txt
 
 ENTRYPOINT ["jupyter", "nbconvert", "--inplace", "--to=notebook", "--execute", "./TCI_NDVI.ipynb"]

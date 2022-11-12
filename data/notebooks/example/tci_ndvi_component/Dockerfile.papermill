@@ -1,6 +1,6 @@
 FROM python:3.8.15-slim
 
-# Needed for geopanda&shapely to work
+# Needed for geopandas&shapely to work
 RUN apt-get update && \
     apt-get install -y \
     git \
@@ -16,6 +16,6 @@ COPY ./ .
 
 RUN pip install --upgrade pip ipython ipykernel papermill
 RUN ipython kernel install --name "python3" --user
-RUN pip install -r requirements_37.txt
+RUN pip install -r requirements.txt
 
 ENTRYPOINT ["papermill", "./TCI_NDVI.ipynb", "./TCI_NDVI.ipynb"]
