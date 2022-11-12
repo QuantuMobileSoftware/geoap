@@ -7,9 +7,6 @@ RUN apt-get update && \
     libspatialindex-dev
 
 RUN mkdir /code
-RUN mkdir /input
-RUN mkdir /output
-RUN mkdir /temp
 
 WORKDIR /code
 COPY ./ .

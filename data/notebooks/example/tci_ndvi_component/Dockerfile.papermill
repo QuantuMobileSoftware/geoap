@@ -7,14 +7,11 @@ RUN apt-get update && \
     libspatialindex-dev
 
 RUN mkdir /code
-RUN mkdir /input
-RUN mkdir /output
-RUN mkdir /temp
 
 WORKDIR /code
 COPY ./ .
 
-RUN pip install --upgrade pip ipython ipykernel papermill
+RUN pip install --upgrade pip ipython==8.6.0 ipykernel==6.17.1 papermill==2.4.0
 RUN ipython kernel install --name "python3" --user
 RUN pip install -r requirements.txt
 
