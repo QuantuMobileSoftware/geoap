@@ -18,4 +18,4 @@ RUN pip install --upgrade pip ipython ipykernel papermill
 RUN ipython kernel install --name "python3" --user
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["papermill", "./TCI_NDVI.ipynb", "./TCI_NDVI.ipynb"]
+CMD ["papermill", "./TCI_NDVI.ipynb", "./TCI_NDVI.ipynb"]
