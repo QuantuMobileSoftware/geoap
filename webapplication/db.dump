@@ -5,7 +5,7 @@
 -- Dumped from database version 13.1 (Debian 13.1-1.pgdg100+1)
 -- Dumped by pg_dump version 14.5 (Ubuntu 14.5-0ubuntu0.22.04.1)
 
--- Started on 2022-11-12 20:15:50 EET
+-- Started on 2022-11-14 20:36:33 EET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1247,9 +1247,9 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, ru
 --
 
 COPY public.aoi_output (id, name, is_error) FROM stdin;
-1	TCI	f
-2	NDVI	f
 3	NODATA	t
+2	NDVI.tif	f
+1	TCI.tif	f
 \.
 
 
@@ -1436,6 +1436,8 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 19	2022-11-12 18:14:12.954294+00	2	Output object (2)	1	[{"added": {}}]	17	1
 20	2022-11-12 18:14:27.00702+00	3	Output object (3)	1	[{"added": {}}]	17	1
 21	2022-11-12 18:15:21.895221+00	1	TCI&NDVI	1	[{"added": {}}]	18	1
+22	2022-11-14 18:35:50.341298+00	2	NDVI.tif	2	[{"changed": {"fields": ["Name"]}}]	17	1
+23	2022-11-14 18:35:57.560107+00	1	TCI.tif	2	[{"changed": {"fields": ["Name"]}}]	17	1
 \.
 
 
@@ -1570,6 +1572,7 @@ f0n2qtfj93b6un4mbl6f1d4r76p1h436	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0o
 53v3jubywtmx9bqid5nprmy2bsu13lag	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1lKmth:3lDgfMZqbMMyQpb2d1__a_aMBSqME9XRl62vWV3CeaM	2021-03-13 02:52:29.935898+00
 cd5y6duf0kppd75tl64jxd0hfbernaw1	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1o42zH:5cZN24icjiERFw-OQdl8uIVtfmIeMV7QYPqv93laBlw	2022-06-23 00:13:51.989355+00
 mm76jo426nmttjmfcvfjzkcck9qr4cz0	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1otuxe:DSyULBpR-uaMROFZhugPEVENE8uN4Phy4qGGp_wbLxo	2022-11-13 02:10:34.054663+00
+vwbp6lyxbwy3nip1nc5q5a14jtgs4dgr	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1oueIm:dEsFhgf9kcf-OM-FAylCLJd6rVkBKi0EZgR2YyfhRIU	2022-11-15 02:35:24.750454+00
 \.
 
 
@@ -1636,7 +1639,7 @@ COPY public.spatial_ref_sys (srid, auth_name, auth_srid, srtext, proj4text) FROM
 
 COPY public.user_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, area_limit_ha, planet_api_key) FROM stdin;
 2	pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=	2020-10-25 13:48:59.815632+00	f	test				f	t	2020-10-25 13:47:22.734006+00	\N	\N
-1	pbkdf2_sha256$216000$5lxslJOZ99ef$j1TFWeW904OT0VDlEeYhfIRfXWothXtZHHnuwAb+hOg=	2022-11-12 18:10:34.050853+00	t	admin			admin@localhost	t	t	2020-10-25 11:54:51.550807+00	\N	\N
+1	pbkdf2_sha256$216000$5lxslJOZ99ef$j1TFWeW904OT0VDlEeYhfIRfXWothXtZHHnuwAb+hOg=	2022-11-14 18:35:24.746409+00	t	admin			admin@localhost	t	t	2020-10-25 11:54:51.550807+00	\N	\N
 \.
 
 
@@ -1827,7 +1830,7 @@ SELECT pg_catalog.setval('public.auth_permission_id_seq', 75, true);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 21, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 23, true);
 
 
 --
@@ -2672,7 +2675,7 @@ ALTER TABLE ONLY public.user_user_user_permissions
     ADD CONSTRAINT user_user_user_permissions_user_id_31782f58_fk_user_user_id FOREIGN KEY (user_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
--- Completed on 2022-11-12 20:15:51 EET
+-- Completed on 2022-11-14 20:36:34 EET
 
 --
 -- PostgreSQL database dump complete
