@@ -5,7 +5,7 @@
 -- Dumped from database version 13.1 (Debian 13.1-1.pgdg100+1)
 -- Dumped by pg_dump version 14.5 (Ubuntu 14.5-0ubuntu0.22.04.1)
 
--- Started on 2022-11-14 20:36:33 EET
+-- Started on 2022-11-15 17:43:19 EET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -388,7 +388,8 @@ ALTER SEQUENCE public.aoi_jupyternotebook_id_seq OWNED BY public.aoi_jupyternote
 CREATE TABLE public.aoi_output (
     id integer NOT NULL,
     name character varying(50) NOT NULL,
-    is_error boolean NOT NULL
+    is_error boolean NOT NULL,
+    value character varying(255)
 );
 
 
@@ -1246,10 +1247,10 @@ COPY public.aoi_jupyternotebook (id, name, image, path, kernel_name, options, ru
 -- Data for Name: aoi_output; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.aoi_output (id, name, is_error) FROM stdin;
-3	NODATA	t
-2	NDVI.tif	f
-1	TCI.tif	f
+COPY public.aoi_output (id, name, is_error, value) FROM stdin;
+1	TCI	f	TCI.tif
+2	NDVI	f	NDVI.tif
+3	NODATA	t	NODATA
 \.
 
 
@@ -1554,6 +1555,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 77	user	0013_user_area_limit_ha_can_be_blank	2022-06-22 16:09:53.356537+00
 78	user	0014_user_planet_api_key	2022-06-22 16:09:53.473287+00
 79	aoi	0022_auto_20221112_1742	2022-11-12 18:03:16.727566+00
+80	aoi	0023_output_value	2022-11-15 15:41:21.407634+00
 \.
 
 
@@ -1848,7 +1850,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 18, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 79, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 80, true);
 
 
 --
@@ -2675,7 +2677,7 @@ ALTER TABLE ONLY public.user_user_user_permissions
     ADD CONSTRAINT user_user_user_permissions_user_id_31782f58_fk_user_user_id FOREIGN KEY (user_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
--- Completed on 2022-11-14 20:36:34 EET
+-- Completed on 2022-11-15 17:43:21 EET
 
 --
 -- PostgreSQL database dump complete

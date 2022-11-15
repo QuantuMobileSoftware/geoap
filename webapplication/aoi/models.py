@@ -106,6 +106,7 @@ class Input(models.Model):
 
 class Output(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name")
+    value = models.CharField(max_length=255, null=True)
     is_error = models.BooleanField(default=False, verbose_name="Is error output?")
 
     def __str__(self) -> str:
