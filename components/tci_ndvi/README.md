@@ -3,7 +3,7 @@ This is a test component
 ### Build image
 To build image run:
 
-`docker build -t registry.quantumobile.co/sip_tci_ndvi:0.0.3-dev ./data/notebooks/example/tci_ndvi_component/`
+`docker build -t registry.quantumobile.co/sip_tci_ndvi:0.0.3-dev ./components/tci_ndvi/`
 
 ### Push to registry
 
