@@ -32,7 +32,7 @@ class Component(models.Model):
     image = models.CharField(max_length=400, verbose_name='Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
     path = models.CharField(max_length=200, unique=True, blank=True, null=True, verbose_name='Path to a notebook')
-    kernel_name = models.CharField(max_length=200, null=False, blank=False, verbose_name='Kernel name')
+    kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')

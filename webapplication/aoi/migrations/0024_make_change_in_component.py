@@ -34,4 +34,9 @@ class Migration(migrations.Migration):
             name='path',
             field=models.CharField(blank=True, max_length=200, null=True, unique=True, verbose_name='Path to a notebook'),
         ),
+        migrations.AlterField(
+            model_name='component',
+            name='kernel_name',
+            field=models.CharField(blank=True, max_length=200, null=True, verbose_name='Kernel name'),
+        ),
     ]

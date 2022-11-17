@@ -2,6 +2,7 @@ from django.contrib.gis import admin
 from .models import AoI, Component, Request
 from django.db.models import JSONField
 from flat_json_widget.widgets import FlatJsonWidget
+from .forms import ComponentAdminForm
 
 
 @admin.register(AoI)
@@ -20,11 +21,7 @@ class ComponentAdmin(admin.OSMGeoAdmin):
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk', 'run_validation', 'success', )
 
-    formfield_overrides = {
-        JSONField: {
-            'widget': FlatJsonWidget,
-        },
-    }
+    form = ComponentAdminForm
 
 
 @admin.register(Request)
