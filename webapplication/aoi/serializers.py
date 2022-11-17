@@ -2,7 +2,7 @@
 Aoi serializer module.
 """
 from rest_framework import serializers
-from .models import AoI, JupyterNotebook, Request
+from .models import AoI, Component, Request
 
 
 class AoISerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class AoISerializer(serializers.ModelSerializer):
 
 class JupyterNotebookSerializer(serializers.ModelSerializer):
     class Meta:
-        model = JupyterNotebook
+        model = Component
         fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
                   'additional_parameter', 'period_required',)
         
