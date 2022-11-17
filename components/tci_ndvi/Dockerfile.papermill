@@ -1,0 +1,18 @@
+FROM python:3.8.15-slim
+
+# Needed for geopandas&shapely to work
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    libspatialindex-dev
+
+RUN mkdir /code
+
+WORKDIR /code
+COPY ./ .
+
+RUN pip install --upgrade pip ipython==8.6.0 ipykernel==6.17.1 papermill==2.4.0
+RUN ipython kernel install --name "python3" --user
+RUN pip install -r requirements.txt
+
+CMD ["papermill", "./TCI_NDVI.ipynb", "./TCI_NDVI.ipynb"]
