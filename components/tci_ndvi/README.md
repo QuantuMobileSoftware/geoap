@@ -38,7 +38,7 @@ docker run \
     -e "SATELLITE_CACHE=/input/satellite_cache" \
     -v /home/dlukash/Projects/sip/data/satellite_imagery:/input/satellite_cache \
     -v /home/dlukash/Projects/sip/data/notebooks/example/tci_ndvi_component/TCI_NDVI.ipynb:/code/TCI_NDVI.ipynb \
-    -v /home/dlukash/Projects/sip/data/notebooks/example/tci_ndvi_component/api-key-retriever.json:/input/api-key-retriever.json \
+    -v /home/dlukash/Projects/sip/components/tci_ndvi/api-key-retriever.json:/input/api-key-retriever.json \
     -v /home/dlukash/Projects/sip/data/results/request_id:/output \
     registry.quantumobile.co/sip_tci_ndvi:0.0.3-dev
 ```
