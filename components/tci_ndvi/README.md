@@ -16,10 +16,10 @@ docker run \
     -e "START_DATE=2020-07-01" \
     -e "END_DATE=2020-08-01" \
     -e "SENTINEL2_GOOGLE_API_KEY=/input/api-key-retriever.json" \
-    -e "SENTINEL2_CACHE=/input/satellite_cache" \
+    -e "SENTINEL2_CACHE=/input/SENTINEL2_CACHE" \
     -e "OUTPUT_FOLDER=/output" \
-    -v /home/dlukash/Projects/sip/data/satellite_imagery:/input/satellite_cache \
-    -v /home/dlukash/Projects/sip/components/tci_ndvi/api-key-retriever.json:/input/api-key-retriever.json \
-    -v /home/dlukash/Projects/sip/data/results/request_id:/output \
+    -v `pwd`/data/SENTINEL2_CACHE:/input/SENTINEL2_CACHE \
+    -v `pwd`/data/api-key-retriever.json:/input/api-key-retriever.json \
+    -v `pwd`/data/results/${REQUEST_ID}:/output \
     registry.quantumobile.co/sip_tci_ndvi:0.0.3-dev
 ```
