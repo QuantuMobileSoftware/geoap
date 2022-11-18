@@ -212,7 +212,7 @@ BASE_CONTAINER_NAME = "sip_webapplication_1"
 
 PERSISTENT_STORAGE_PATH = '/data'
 CODE_PATH = '/code'
-SENTINEL2_GOOGLE_API_KEY = '.secret/google_api_key.JSON'
+SENTINEL2_GOOGLE_API_KEY = '.secret/api-key-retriever.json'
 
 AREA_IS_OVER_LIMITED_CODE = 603
 

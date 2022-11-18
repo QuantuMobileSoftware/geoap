@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
+from shutil import copytree
 
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -11,13 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class NotebookExecutor:
-    def __init__(self, args):
+    def __init__(self):
         self.input_path = os.getenv('NOTEBOOK_PATH')
         self.request_id = os.getenv('REQUEST_ID')
         self.output_folder = os.getenv('OUTPUT_FOLDER')
 
-        self.PARAMS = dict(REQUEST_ID=os.getenv('REQUEST_ID'),
-                           AOI=os.getenv('AOI'),
+        self.PARAMS = dict(REQUEST_ID=self.request_id,
                            START_DATE=os.getenv('START_DATE'),
                            END_DATE=os.getenv('END_DATE'),
                            AOI=os.getenv('AOI'),
@@ -40,7 +41,7 @@ class NotebookExecutor:
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        self.save_path = f"{os.path.splitext(self.output_folder)[0]}_{self.request_id}_{timestamp}.ipynb"
+        self.save_path =os.path.join(self.output_folder, 'notebook', f"{Path(self.input_path).stem}_{timestamp}.ipynb")
 
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
@@ -61,6 +62,7 @@ class NotebookExecutor:
         return notebook
 
     def write(self):
+        copytree(os.path.dirname(self.input_path), os.path.dirname(self.save_path))
         with open(self.save_path, "w") as file:
             json.dump(self.notebook, file)
 

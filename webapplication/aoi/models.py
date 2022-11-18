@@ -47,7 +47,7 @@ class Component(models.Model):
 
     @property
     def is_notebook(self):
-        return bool(self.command) and (not bool(self.path) and not bool(self.kernel_name)) 
+        return not (bool(self.command) and (not bool(self.path) and not bool(self.kernel_name)))
 
     class Meta:
         verbose_name = 'Component'
@@ -84,7 +84,7 @@ class Request(models.Model):
         """
         env_variables = {
             'REQUEST_ID':str(self.pk),
-            'AOI':self.aoi,
+            'AOI':self.aoi.polygon.wkt,
             'START_DATE':self.date_from.strftime("%Y-%m-%d"),
             'END_DATE':self.date_to.strftime("%Y-%m-%d"),
             'SENTINEL2_CACHE':self.user.planet_api_key,
@@ -95,7 +95,7 @@ class Request(models.Model):
         }
         if self.component.is_notebook:
             env_update = {
-                'OUTPUT_FOLDER':os.path.join('/home/jovyan/work/results',self.pk),
+                'OUTPUT_FOLDER':os.path.join('/home/jovyan/work/results', str(self.pk)),
                 'SENTINEL2_GOOGLE_API_KEY':os.path.join('/home/jovyan/work/',settings.SENTINEL2_GOOGLE_API_KEY)
             }
         else:
