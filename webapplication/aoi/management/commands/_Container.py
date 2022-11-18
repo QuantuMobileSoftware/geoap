@@ -9,12 +9,14 @@ from docker.types import DeviceRequest
 from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
 
+from aoi.models import Request
+
 logger = logging.getLogger(__name__)
 
 
 class Container:
     def __init__(self,
-                 notebook,
+                 component,
                  container_name: Optional[str] = None,
                  labels: Optional[str] = None,
                  container_data_volume: str = "/home/jovyan/work",
@@ -22,7 +24,7 @@ class Container:
                  shm_size: str = "1G",
                  environment: Optional[dict] = None,):
 
-        self.notebook = notebook
+        self.notebook = component
         self.container_name = container_name
         self.labels = labels
         self.container_data_volume = container_data_volume
@@ -32,8 +34,8 @@ class Container:
         self.environment = {"JUPYTER_ENABLE_LAB": "yes",
                             "NVIDIA_DRIVER_CAPABILITIES": "all"} if not environment else environment
 
-        if notebook.run_on_gpu and settings.NOTEBOOK_EXECUTOR_GPUS:
-            logger.info(f"will use GPU '{settings.NOTEBOOK_EXECUTOR_GPUS}' for {notebook.name} notebook")
+        if component.run_on_gpu and settings.NOTEBOOK_EXECUTOR_GPUS:
+            logger.info(f"will use GPU '{settings.NOTEBOOK_EXECUTOR_GPUS}' for {component.name} notebook")
             capabilities = [['gpu']]
             if settings.NOTEBOOK_EXECUTOR_GPUS == "all":
                 self.device_requests = [DeviceRequest(count=-1,
@@ -42,7 +44,7 @@ class Container:
                 self.device_requests = [DeviceRequest(device_ids=[str(settings.NOTEBOOK_EXECUTOR_GPUS), ],
                                                       capabilities=capabilities), ]
         else:
-            logger.info(f"will use CPU only for {notebook.name} notebook")
+            logger.info(f"will use CPU only for {component.name} notebook")
             self.device_requests = None
 
     def run(self, command=None):
@@ -113,33 +115,18 @@ class ContainerValidator(Container):
 
 
 class ContainerExecutor(Container):
-    def __init__(self, request):
-        super().__init__(request.notebook)
+    def __init__(self, request:Request):
+        super().__init__(request.component, environment=request.get_environment)
         self.request = request
         self.container_name = f"executor_{self.request.pk}"
         self.labels = dict(webapplication="executor", pk=str(self.request.pk))
-        self.notebook_path = self.notebook.path
+        self.notebook_path = self.component.path
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")
         notebook_executor_path = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
         
         command = [
-            f'python', notebook_executor_path,
-            '--input_path', self.notebook_path,
-            '--request_id', str(self.request.pk),
-            '--aoi', self.request.polygon.wkt,
-            '--start_date', str(self.request.date_from),
-            '--end_date', str(self.request.date_to),
-            '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
-            '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+            'python', notebook_executor_path
         ]
-        
-        if self.notebook.kernel_name:
-            command.extend(['--kernel', str(self.notebook.kernel_name)])
-        if self.notebook.additional_parameter:
-            command.extend(['--parameter_name', self.notebook.additional_parameter])
-            command.extend(['--parameter_val', str(self.request.additional_parameter)])
-        if self.request.user.planet_api_key:
-            command.extend(['--planet_api_key', str(self.request.user.planet_api_key)])
         self.run(command)
