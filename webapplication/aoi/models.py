@@ -1,7 +1,8 @@
-from rest_framework import serializers
+import os
+from typing import Dict
 from django.contrib.gis.db import models
-from django.db.models import JSONField
 from django.utils import timezone
+from django.conf import settings
 
 
 class AoI(models.Model):
@@ -44,6 +45,10 @@ class Component(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def is_notebook(self):
+        return bool(self.command) and (not bool(self.path) and not bool(self.kernel_name)) 
+
     class Meta:
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
@@ -70,3 +75,40 @@ class Request(models.Model):
     @property
     def component_name(self):
         return self.component.name
+    
+    def get_environment(self) -> Dict[str, str]:
+        """Return dict of environment variables names (as keys) and values
+
+        Returns:
+            Dict[str, str]: _description_
+        """
+        env_variables = {
+            'REQUEST_ID':str(self.pk),
+            'AOI':self.aoi,
+            'START_DATE':self.date_from.strftime("%Y-%m-%d"),
+            'END_DATE':self.date_to.strftime("%Y-%m-%d"),
+            'SENTINEL2_CACHE':self.user.planet_api_key,
+            'CELL_TIMEOUT':str(settings.CELL_EXECUTION_TIMEOUT),
+            'NOTEBOOK_TIMEOUT':str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+            'KERNEL_NAME':self.component.kernel_name,
+            'NOTEBOOK_PATH':self.component.path,
+        }
+        if self.component.is_notebook:
+            env_update = {
+                'OUTPUT_FOLDER':os.path.join('/home/jovyan/work/results',self.pk),
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/home/jovyan/work/',settings.SENTINEL2_GOOGLE_API_KEY)
+            }
+        else:
+            env_update = {
+                'OUTPUT_FOLDER':'/output',
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/input',os.path.split(settings.SENTINEL2_GOOGLE_API_KEY)[1])
+            }
+        if self.component.additional_parameter:
+            env_update.update(
+                {
+                    'ADDITIONAL_PARAMETER_NAME': self.component.additional_parameter,
+                    self.component.additional_parameter:self.additional_parameter
+                }
+            )
+        env_variables.update(env_update)
+        return env_variables
