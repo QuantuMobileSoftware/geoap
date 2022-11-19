@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from shutil import copytree
+from shutil import copytree, ignore_patterns
 
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
@@ -46,6 +46,7 @@ class NotebookExecutor:
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
                                              "\n" + self._build_params()
+        self.copy_aux_files()
         self.write()
 
     def _first_code_cell(self):
@@ -62,9 +63,21 @@ class NotebookExecutor:
         return notebook
 
     def write(self):
-        copytree(os.path.dirname(self.input_path), os.path.dirname(self.save_path))
         with open(self.save_path, "w") as file:
             json.dump(self.notebook, file)
+
+    def copy_aux_files(self) -> None:
+        """Copy everything from initial notebook folder to result folder
+            in order to serve all auxillary files&folder notebook requires.
+            Does not copy:
+            - notebook itself
+            - .ipynb_checkpoints folder
+        """
+        copytree(
+            os.path.dirname(self.input_path), 
+            os.path.dirname(self.save_path),
+            ignore=ignore_patterns('.ipynb_checkpoints', os.path.basename(self.input_path))
+        )
 
     def execute(self):
         command = ["jupyter",
