@@ -96,7 +96,8 @@ class K8sNotebookHandler():
         command:List[str],
         backofflimit:int=6,
         active_deadline_seconds:int=36_000,
-        require_gpu=False
+        require_gpu=False,
+        environment:List[client.V1EnvVar]=None
     
     ) -> client.V1Job:
         """StaticMethod. Creates job description.
@@ -136,10 +137,15 @@ class K8sNotebookHandler():
             name=name,
             image=image,
             command=command,
+            env=environment,
+            security_context=client.V1SecurityContext(
+                run_as_user=0
+            ),
             volume_mounts=[
                 notebook_volume_mount,
             ],
-            image_pull_policy='Always',
+            # image_pull_policy='Always',
+            image_pull_policy='IfNotPresent',
             resources = gpu_resouces if require_gpu else None 
         )
         template = client.V1PodTemplateSpec(
@@ -260,7 +266,7 @@ class K8sNotebookHandler():
 
         request_ids_list = [x.metadata.labels['request_id'] for x in jobs.items]
         not_executed_request = Request.objects.filter(
-            started_at__isnull=True, notebook__run_validation=True, notebook__success=True
+            started_at__isnull=True, component__run_validation=True, component__success=True
         ).exclude(id__in=request_ids_list).all()[:number_requests_to_run]
         logger.info(f'Number of requests to execute: {len(not_executed_request)}')
 
@@ -372,16 +378,9 @@ class K8sNotebookHandler():
             labels={'request_id': str(request.id), 'job_type': self.notebook_execution_job_label},
             command=[
                 'python3', self.notebook_execution_script,
-                '--input_path', request.component.path,
-                '--request_id', str(request.id),
-                '--aoi', f'{request.polygon.wkt}',
-                '--start_date', request.date_from,
-                '--end_date', request.date_to,
-                '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
-                '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
-                '--kernel', request.component.kernel_name if request.component.kernel_name else ""
             ],
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_EXECUTION_TIMEOUT,
-            require_gpu=request.component.run_on_gpu
+            require_gpu=request.component.run_on_gpu,
+            environment=[client.V1EnvVar(key, value) for key, value in request.get_environment().items()]
         )
