@@ -26,7 +26,7 @@ class K8sNotebookHandler():
         self.namespace = namespace
         self.notebook_validation_job_label = "notebook-validation"
         self.notebook_execution_job_label = "notebook-execution"
-        self.notebook_execution_script = self.notebook_executor_script_deliverer()
+        self.notebook_execution_script = self.deliver_notebook_executor()
 
     @staticmethod
     def get_file_md5(filepath:str) -> str:
@@ -45,7 +45,7 @@ class K8sNotebookHandler():
 
 
     @staticmethod
-    def notebook_executor_script_deliverer() -> str:
+    def deliver_notebook_executor() -> str:
         """ Check if NotebookExecutor.py changed with md5 hash and last modified date.
         Deliver NotebookExecutor.py script into volume that will be shared with notebook execution job pods.
 
@@ -117,7 +117,7 @@ class K8sNotebookHandler():
             client.V1Job
         """
 
-        gpu_resouces = client.V1ResourceRequirements(
+        gpu_resources = client.V1ResourceRequirements(
             limits={
                 "nvidia.com/gpu":str(settings.GPU_CORES_PER_NOTEBOOK)
             }
@@ -146,7 +146,7 @@ class K8sNotebookHandler():
             ],
             # image_pull_policy='Always',
             image_pull_policy='IfNotPresent',
-            resources = gpu_resouces if require_gpu else None 
+            resources = gpu_resources if require_gpu else None 
         )
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(
