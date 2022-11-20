@@ -1,17 +1,16 @@
 import logging
 import os
+import shutil
+import hashlib
 from typing import Dict, List
 
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
 from aoi.models import Component, Request
-from django.conf import settings
-
 from aoi.management.commands.executor import NotebookExecutor
-import shutil
-import hashlib
 
+from django.conf import settings
 from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
@@ -47,7 +46,8 @@ class K8sNotebookHandler():
     @staticmethod
     def deliver_notebook_executor() -> str:
         """ Check if NotebookExecutor.py changed with md5 hash and last modified date.
-        Deliver NotebookExecutor.py script into volume that will be shared with notebook execution job pods.
+        Deliver NotebookExecutor.py script into volume that will be
+        shared with notebook execution job pods.
 
         Returns:
             str: path to file with notebook execution script
@@ -56,7 +56,9 @@ class K8sNotebookHandler():
         current_mod_data = 0
 
         notebook_execution_file = os.path.join(
-            settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, os.path.basename(NotebookExecutor.__file__))
+            settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH,
+            os.path.basename(NotebookExecutor.__file__)
+            )
 
         if os.path.exists(notebook_execution_file):
             current_hash = K8sNotebookHandler.get_file_md5(
@@ -114,9 +116,10 @@ class K8sNotebookHandler():
             name (str): Name of the future job
             labels (Dict[str, str]): Labels for k8s objects
             command (List[str]): Command to run in POD on startup
-            backofflimit (int, optional): The number of retries before considering a Job as failed. Defaults to 6.
-            active_deadline_seconds (int, optional): Active deadline, once a Job reaches it, 
-                all of its running Pods are terminated and the Job status will become type: 
+            backofflimit (int, optional): The number of retries before considering 
+                a Job as failed. Defaults to 6.
+            active_deadline_seconds (int, optional): Active deadline, once a Job reaches it,
+                all of its running Pods are terminated and the Job status will become type:
                 Failed with reason: DeadlineExceeded. Defaults to 36_000s (10 hours).
             require_gpu (bool, optional): Whether or not job require GPU cores. Defaults to False
 
@@ -186,7 +189,9 @@ class K8sNotebookHandler():
         return job
 
     def start_notebook_validation(self) -> None:
-        """Method to retrieve not validated notebooks, create jobs to validate them and supervise results"""
+        """Method to retrieve not validated notebooks, 
+        create jobs to validate them and supervise results
+        """
 
         label_selector = f'job_type={self.notebook_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(
@@ -231,7 +236,6 @@ class K8sNotebookHandler():
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
             require_gpu=notebook.run_on_gpu
-
         )
 
     def supervise_notebook_validation_job(self, job: client.V1Job):
@@ -244,7 +248,7 @@ class K8sNotebookHandler():
             notebook = Component.objects.get(
                 id=job.metadata.labels['notebook_id'])
             notebook.run_validation = True
-            notebook.success = True if job.status.succeeded == 1 else False
+            notebook.success = bool(job.status.succeeded)
             notebook.save()
             logging.info(
                 f'Validation of notebook with id "{job.metadata.labels["notebook_id"]}" is finished')
@@ -312,7 +316,7 @@ class K8sNotebookHandler():
         """Method to supervise execution job, store results and delete job afterwards.
 
         Args:
-            job (client.V1Job): Job to supervise 
+            job (client.V1Job): Job to supervise
         """
 
         job_labels = job.metadata.labels
@@ -351,9 +355,9 @@ class K8sNotebookHandler():
         Returns:
             Dict[str, str]: Example:
                         {
-                            'pod_log': '', 
-                            'exit_code': 0, 
-                            'finished_at': datetime.datetime(2022, 10, 30, 9, 59, 8, tzinfo=tzlocal()), 
+                            'pod_log': '',
+                            'exit_code': 0,
+                            'finished_at': datetime.datetime(2022, 10, 30, 9, 59, 8, tzinfo=tzlocal()),
                             'reason':  'Completed'
                         }
         """
