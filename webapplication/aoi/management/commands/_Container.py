@@ -83,13 +83,6 @@ class Container:
         return volumes
     
     @staticmethod
-    def create_results_folder(request_id:int):
-        os.makedirs(
-            os.path.join(settings.PERSISTENT_STORAGE_PATH,'results',str(request_id)),
-            exist_ok=True
-        )
-
-    @staticmethod
     def container_attrs(container):
         attrs = container.attrs
         return dict(
@@ -124,7 +117,6 @@ class ContainerExecutor(Container):
         self.container_name = f"executor_{self.request.pk}"
         self.labels = dict(webapplication="executor", pk=str(self.request.pk))
         self.notebook_path = self.component.path
-        self.create_results_folder(request.pk)
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.component.name} notebook")

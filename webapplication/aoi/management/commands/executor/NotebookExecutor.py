@@ -38,6 +38,7 @@ class NotebookExecutor:
         self.cell_timeout = int(os.getenv('CELL_TIMEOUT'))
         self.notebook_timeout = int(os.getenv('NOTEBOOK_TIMEOUT'))
         self.kernel_name = os.getenv('KERNEL_NAME')
+        self.create_output_folder()
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
@@ -65,6 +66,9 @@ class NotebookExecutor:
     def write(self):
         with open(self.save_path, "w") as file:
             json.dump(self.notebook, file)
+
+    def create_output_folder(self):
+        os.makedirs(self.output_folder, exist_ok=True)
 
     def copy_aux_files(self) -> None:
         """Copy everything from initial notebook folder to result folder
