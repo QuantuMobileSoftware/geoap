@@ -87,7 +87,7 @@ class Request(models.Model):
             'AOI':self.aoi.polygon.wkt,
             'START_DATE':self.date_from.strftime("%Y-%m-%d"),
             'END_DATE':self.date_to.strftime("%Y-%m-%d"),
-            'SENTINEL2_CACHE':self.user.planet_api_key,
+            'PLANET_API_KEY':self.user.planet_api_key,
             'CELL_TIMEOUT':str(settings.CELL_EXECUTION_TIMEOUT),
             'NOTEBOOK_TIMEOUT':str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
             'KERNEL_NAME':self.component.kernel_name,
@@ -95,13 +95,24 @@ class Request(models.Model):
         }
         if self.component.is_notebook:
             env_update = {
-                'OUTPUT_FOLDER':os.path.join('/home/jovyan/work/results', str(self.pk)),
-                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/home/jovyan/work/',settings.SENTINEL2_GOOGLE_API_KEY)
+                'OUTPUT_FOLDER':os.path.join(
+                    settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                    str(settings.RESULTS_FOLDER). \
+                        replace(os.path.commonpath([settings.RESULTS_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
+                    str(self.pk)
+                ),
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL2_GOOGLE_API_KEY),
+                'SENTINEL2_CACHE':os.path.join(
+                    settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                    str(settings.SATELLITE_IMAGES_FOLDER). \
+                        replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', '')
+                )
             }
         else:
             env_update = {
                 'OUTPUT_FOLDER':'/output',
-                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/input',os.path.split(settings.SENTINEL2_GOOGLE_API_KEY)[1])
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/input',os.path.split(settings.SENTINEL2_GOOGLE_API_KEY)[1]),
+                'SENTINEL2_CACHE':os.path.join('/input','satellite_imagery')
             }
         if self.component.additional_parameter:
             env_update.update(
