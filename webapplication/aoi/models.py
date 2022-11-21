@@ -101,7 +101,6 @@ class Request(models.Model):
                         replace(os.path.commonpath([settings.RESULTS_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
                     str(self.pk)
                 ),
-                'SENTINEL2_GOOGLE_API_KEY':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL2_GOOGLE_API_KEY),
                 'SENTINEL2_CACHE':os.path.join(
                     settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
                     str(settings.SATELLITE_IMAGES_FOLDER). \
@@ -111,9 +110,16 @@ class Request(models.Model):
         else:
             env_update = {
                 'OUTPUT_FOLDER':'/output',
-                'SENTINEL2_GOOGLE_API_KEY':os.path.join('/input',os.path.split(settings.SENTINEL2_GOOGLE_API_KEY)[1]),
                 'SENTINEL2_CACHE':os.path.join('/input','satellite_imagery')
             }
+        if self.component.google_api_key_required:
+            env_update.update({
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL2_GOOGLE_API_KEY)
+            })
+        if self.component.planet_api_key_required:
+            env_update.update({
+                'PLANET_API_KEY':self.user.planet_api_key
+            })
         if self.component.additional_parameter:
             env_update.update(
                 {
