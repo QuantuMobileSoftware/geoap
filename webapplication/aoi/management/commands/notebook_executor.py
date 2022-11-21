@@ -1,7 +1,11 @@
 import logging
 import sys
 import time
-from aoi.management.commands._notebook import NotebookThread, PublisherThread
+from aoi.management.commands._notebook import (
+    NotebookDockerThread, 
+    PublisherThread, 
+    NotebookK8sThread
+)
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -9,8 +13,6 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
-NOTEBOOK_EXECUTOR_THREADS = 1
-
 
 class Command(BaseCommand):
     help = "Manage running of Jupyter Notebooks and Publisher command"
@@ -24,9 +26,13 @@ class Command(BaseCommand):
             exitcode = child_process.exitcode
 
     def run(self):
-
-        threads = [NotebookThread(daemon=True) for _ in range(NOTEBOOK_EXECUTOR_THREADS)]
-        threads.append(PublisherThread(daemon=True))
+        if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
+            threads = [
+                PublisherThread(daemon=True),
+                NotebookDockerThread(daemon=True)
+            ]
+        else:
+            return
 
         logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
@@ -64,4 +70,3 @@ class Command(BaseCommand):
 
         logger.info(f"All threads are stopped. Restart notebook_executor command")
         sys.exit(2)
-
