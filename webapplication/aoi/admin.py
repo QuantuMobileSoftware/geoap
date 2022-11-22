@@ -16,7 +16,7 @@ class AoIAdmin(admin.OSMGeoAdmin):
 
 @admin.register(Component)
 class ComponentAdmin(admin.OSMGeoAdmin):
-    list_display = ('pk', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success',
+    list_display = ('pk', 'name', 'image', 'notebook_path', 'kernel_name', 'run_validation', 'success',
                     'additional_parameter', 'period_required',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk', 'run_validation', 'success', )

@@ -39,4 +39,9 @@ class Migration(migrations.Migration):
             name='kernel_name',
             field=models.CharField(blank=True, max_length=200, null=True, verbose_name='Kernel name'),
         ),
+        migrations.RenameField(
+            model_name='component',
+            old_name='path',
+            new_name='notebook_path'
+        ),
     ]
