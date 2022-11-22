@@ -29,7 +29,7 @@ class RequestSerializer(serializers.ModelSerializer):
         validated_data.update({'polygon': validated_data["aoi"].polygon})
         return Request.objects.create(**validated_data)
 
-    def validate(c, attrs):
+    def validate(self, attrs):
         """ 
         Additional validation of the whole model:
         - If chosen notebook that require period then date_from and date_to in request 

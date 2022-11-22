@@ -114,11 +114,11 @@ class ContainerValidator(Container):
 
 class ContainerExecutor(Container):
     def __init__(self, request):
-        super().__init__(request.notebook)
+        super().__init__(request.component)
         self.request = request
         self.container_name = f"executor_{self.request.pk}"
         self.labels = dict(webapplication="executor", pk=str(self.request.pk))
-        self.notebook_path = self.notebook.path
+        self.notebook_path = self.notebook.notebook_path
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.notebook.name} notebook")

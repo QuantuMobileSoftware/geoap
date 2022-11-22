@@ -38,8 +38,8 @@ class Component(models.Model):
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a notebook to run')
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
-    planet_api_key_required = models.BooleanField(default=False, verbose_name='Plane API key is required')
-    google_api_key_required = models.BooleanField(default=False, verbose_name='Google API key is required')
+    planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
+    sentinel_google_api_key_required = models.BooleanField(default=False, verbose_name='Sentinel Google API key is required')
 
     def __str__(self):
         return self.name

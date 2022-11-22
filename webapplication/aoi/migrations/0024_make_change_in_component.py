@@ -21,13 +21,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='component',
-            name='google_api_key_required',
-            field=models.BooleanField(default=False, verbose_name='Google API key is required'),
+            name='sentinel_google_api_key_required',
+            field=models.BooleanField(default=False, verbose_name='Sentinel Google API key is required'),
         ),
         migrations.AddField(
             model_name='component',
             name='planet_api_key_required',
-            field=models.BooleanField(default=False, verbose_name='Plane API key is required'),
+            field=models.BooleanField(default=False, verbose_name='Planet API key is required'),
         ),
         migrations.AlterField(
             model_name='component',

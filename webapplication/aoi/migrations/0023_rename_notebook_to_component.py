@@ -76,7 +76,7 @@ def update_client_group_permissions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0022_auto_20221117_1755'),
+        ('aoi', '0022_auto_20221121_1713'),
     ]
 
     operations = [
