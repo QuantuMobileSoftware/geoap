@@ -17,30 +17,30 @@ class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Component
-        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
+        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success',
                   'additional_parameter', 'period_required',)
         
         
 class RequestSerializer(serializers.ModelSerializer):
-    notebook_name = serializers.ReadOnlyField(source='component_name')
-    notebook = ComponentSerializer(source='component')
+    notebook_name = serializers.ReadOnlyField(source='component_name', label="Component name")
+    notebook = serializers.PrimaryKeyRelatedField(source='component', many=False, queryset=Component.objects, label="Component id")
 
     def create(self, validated_data):
         validated_data.update({'polygon': validated_data["aoi"].polygon})
         return Request.objects.create(**validated_data)
 
-    def validate(self, attrs):
+    def validate(c, attrs):
         """ 
         Additional validation of the whole model:
         - If chosen notebook that require period then date_from and date_to in request 
         are  required as well      
         """
-        if attrs['notebook'].period_required and (not 'date_from' in attrs or not 'date_to' in attrs):
+        if attrs['component'].period_required and (not 'date_from' in attrs or not 'date_to' in attrs):
             exception_details = {}
             if not 'date_from' in attrs:
-                exception_details.update({'date_from':f"The field is required for '{attrs['notebook'].name}' notebook"})
+                exception_details.update({'date_from':f"The field is required for '{attrs['component'].name}' component"})
             if not 'date_to' in attrs:
-                exception_details.update({'date_to':f"The field is required for '{attrs['notebook'].name}' notebook"})
+                exception_details.update({'date_to':f"The field is required for '{attrs['component'].name}' component"})
             raise serializers.ValidationError(exception_details)
         return super().validate(attrs)
     

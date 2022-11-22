@@ -3,6 +3,75 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+def delete_jupyternotebook_permissions(apps, schema_editor):
+    """Delete permissions connected with Component model"""
+    permission = apps.get_model("auth", "Permission")
+    ContentType = apps.get_model("contenttypes", "ContentType")
+    component_def = apps.get_model("aoi", "Component")
+    content_type = ContentType.objects.get_for_model(component_def)
+    permission.objects.filter(
+        content_type=content_type).delete()
+
+def add_permissions(apps, schema_editor):
+    """
+    Add permissions for JupyterNotebook model.
+    :param apps:
+    :param schema_editor:
+    :return:
+    """
+    permission = apps.get_model("auth", "Permission")
+    content_type = apps.get_model("contenttypes", "ContentType")
+    
+    component_def = apps.get_model("aoi", "Component")
+    
+    # Content type objects
+    component_def_content_type = content_type.objects.get_for_model(component_def)
+    
+    db_alias = schema_editor.connection.alias
+    
+    permissions_data = [
+        {"codename": "add_component", "name": "Can add Component", "content_type": component_def_content_type},
+        {"codename": "change_component", "name": "Can change Component", "content_type": component_def_content_type},
+        {"codename": "delete_component", "name": "Can delete Component", "content_type": component_def_content_type},
+        {"codename": "view_component", "name": "Can view Component", "content_type": component_def_content_type},
+    ]
+    
+    permission_list = []
+    for permission_data in permissions_data:
+        if not permission.objects.filter(codename=permission_data["codename"]).exists():
+            permission_list.append(permission(codename=permission_data["codename"], name=permission_data["name"],
+                                              content_type=permission_data["content_type"]))
+    permission.objects.using(db_alias).bulk_create(permission_list)
+
+
+def update_ds_engineer_group_permissions(apps, schema_editor):
+    """
+    Add 'view_component', 'delete_component', 'add_component', 'change_component'
+    permission for 'Data_science_engineer' group
+    """
+    permission_model = apps.get_model('auth', 'Permission')
+    group_model = apps.get_model("auth", "Group")
+    
+    db_alias = schema_editor.connection.alias
+    
+    group, _ = group_model.objects.using(db_alias).get_or_create(name="Data_science_engineer")
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename="view_component"))
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename="delete_component"))
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename="add_component"))
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename="change_component"))
+
+def update_client_group_permissions(apps, schema_editor):
+    """
+    Add 'Can view Component'  permission for 'Client' group
+    """
+    permission_model = apps.get_model('auth', 'Permission')
+    group_model = apps.get_model("auth", "Group")
+    
+    db_alias = schema_editor.connection.alias
+    
+    group, _ = group_model.objects.using(db_alias).get_or_create(name="Client")
+    group.permissions.add(permission_model.objects.using(db_alias).get(codename='view_component'))
+
 
 class Migration(migrations.Migration):
 
@@ -20,6 +89,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='request',
             name='component',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='aoi.component', verbose_name='Request id'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='aoi.component', verbose_name='Component id'),
         ),
+        migrations.RunPython(delete_jupyternotebook_permissions),
+        migrations.RunPython(add_permissions),
+        migrations.RunPython(update_ds_engineer_group_permissions),
+        migrations.RunPython(update_client_group_permissions)
     ]

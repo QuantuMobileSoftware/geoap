@@ -55,7 +55,7 @@ class Request(models.Model):
     aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
     component = models.ForeignKey(
         Component, on_delete=models.PROTECT,
-        verbose_name='Request id',
+        verbose_name='Component id',
     )
     date_from = models.DateField(blank=True, null=True, verbose_name='Date from')
     date_to = models.DateField(blank=True, null=True, verbose_name='Date to')
