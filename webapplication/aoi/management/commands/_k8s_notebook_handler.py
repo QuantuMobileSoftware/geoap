@@ -372,7 +372,7 @@ class K8sNotebookHandler():
             labels={'request_id': str(request.id), 'job_type': self.notebook_execution_job_label},
             command=[
                 'python3', self.notebook_execution_script,
-                '--input_path', request.component.path,
+                '--input_path', request.component.notebook_path,
                 '--request_id', str(request.id),
                 '--aoi', f'{request.polygon.wkt}',
                 '--start_date', request.date_from,

@@ -12,7 +12,9 @@ class AoISerializer(serializers.ModelSerializer):
         read_only_fields = ['createdat', ]
 
 
-class JupyterNotebookSerializer(serializers.ModelSerializer):
+class ComponentSerializer(serializers.ModelSerializer):
+    path = serializers.CharField(source="notebook_path")
+
     class Meta:
         model = Component
         fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success', 'options',
@@ -20,7 +22,8 @@ class JupyterNotebookSerializer(serializers.ModelSerializer):
         
         
 class RequestSerializer(serializers.ModelSerializer):
-    notebook_name = serializers.ReadOnlyField()
+    notebook_name = serializers.ReadOnlyField(source='component_name')
+    notebook = ComponentSerializer(source='component')
 
     def create(self, validated_data):
         validated_data.update({'polygon': validated_data["aoi"].polygon})
