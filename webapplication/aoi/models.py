@@ -1,7 +1,9 @@
-from rest_framework import serializers
+import os
+import json
+from typing import Dict, List, Optional
 from django.contrib.gis.db import models
-from django.db.models import JSONField
 from django.utils import timezone
+from django.conf import settings
 
 
 class AoI(models.Model):
@@ -44,6 +46,22 @@ class Component(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def is_notebook(self):
+        return  not bool(self.command) and (bool(self.notebook_path) and bool(self.kernel_name))
+
+    def get_command(self, path_to_executor: Optional[str]=None) -> List[str]:
+        """Return command for Docker or K8s Container """
+        
+        command = None
+        if self.is_notebook:
+            command = [
+                'python', path_to_executor
+            ]
+        elif self.command:
+            command = json.loads(self.command)
+        return command
+
     class Meta:
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
@@ -70,3 +88,61 @@ class Request(models.Model):
     @property
     def component_name(self):
         return self.component.name
+    
+    def get_environment(self) -> Dict[str, str]:
+        """Return dict of environment variables names (as keys) and values
+
+        Returns:
+            Dict[str, str]:
+        """
+
+        env_variables = {
+            'REQUEST_ID':str(self.pk),
+            'AOI':self.aoi.polygon.wkt,
+            'START_DATE':self.date_from.strftime("%Y-%m-%d"),
+            'END_DATE':self.date_to.strftime("%Y-%m-%d"),
+            'CELL_TIMEOUT':str(settings.CELL_EXECUTION_TIMEOUT),
+            'NOTEBOOK_TIMEOUT':str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+            'KERNEL_NAME':self.component.kernel_name,
+            'NOTEBOOK_PATH':self.component.notebook_path,
+        }
+        env_update = {
+            'OUTPUT_FOLDER':os.path.join(
+                settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                str(settings.RESULTS_FOLDER). \
+                    replace(os.path.commonpath([settings.RESULTS_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
+                str(self.pk)
+            ),
+            'SENTINEL2_CACHE':os.path.join(
+                settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                str(settings.SATELLITE_IMAGES_FOLDER). \
+                    replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', '')
+            )
+        }
+        if self.component.sentinel_google_api_key_required:
+            env_update.update({
+                'SENTINEL2_GOOGLE_API_KEY':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL2_GOOGLE_API_KEY)
+            })
+        if self.component.planet_api_key_required:
+            env_update.update({
+                'PLANET_API_KEY':self.user.planet_api_key
+            })
+        if self.component.additional_parameter:
+            env_update.update(
+                {
+                    'ADDITIONAL_PARAMETER_NAME': self.component.additional_parameter,
+                    self.component.additional_parameter:self.additional_parameter
+                }
+            )
+        env_variables.update(env_update)
+        return env_variables
+
+    def create_result_folder(self) -> None:
+        """Create special folder to store results of request"""
+        os.makedirs(
+            os.path.join(
+                settings.RESULTS_FOLDER,
+                str(self.pk)
+            ),
+            exist_ok=True
+        )

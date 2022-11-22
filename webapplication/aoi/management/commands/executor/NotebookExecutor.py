@@ -1,55 +1,52 @@
 # python 3.6
-import argparse
 import json
 import logging
 import os
 import sys
+from pathlib import Path
+from shutil import copytree, ignore_patterns
 
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
-
-parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
-parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
-parser.add_argument('--request_id', type=int, help='Request id', required=True)
-parser.add_argument('--aoi', type=str, help='AOI polygon as WKT string', required=True)
-parser.add_argument('--start_date', type=str, help='Start date of calculations', required=True)
-parser.add_argument('--end_date', type=str, help='End date of calculations', required=True)
-parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
-parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
-parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
-                    required=True)
-parser.add_argument('--parameter_name', type=str, help='Additional parameter name', default=None)
-parser.add_argument('--parameter_val', type=str, help='Additional parameter value', default=None)
-parser.add_argument('--planet_api_key', type=str, help='Planet API key', default=None)
 
 logger = logging.getLogger(__name__)
 
 
 class NotebookExecutor:
-    def __init__(self, args):
-        self.input_path = args.input_path
-        self.request_id = args.request_id
+    def __init__(self):
+        self.input_path = os.getenv('NOTEBOOK_PATH')
+        self.request_id = os.getenv('REQUEST_ID')
+        self.output_folder = os.getenv('OUTPUT_FOLDER')
 
-        self.PARAMS = dict(REQUEST_ID=args.request_id,
-                           AOI=args.aoi,
-                           START_DATE=args.start_date if args.start_date != 'None' else None,
-                           END_DATE=args.end_date if args.end_date != 'None' else None)
+        self.PARAMS = dict(REQUEST_ID=self.request_id,
+                           START_DATE=os.getenv('START_DATE'),
+                           END_DATE=os.getenv('END_DATE'),
+                           AOI=os.getenv('AOI'),
+                           SENTINEL2_GOOGLE_API_KEY=os.getenv('SENTINEL2_GOOGLE_API_KEY'),
+                           SENTINEL2_CACHE=os.getenv('SENTINEL2_CACHE'),
+                           OUTPUT_FOLDER=self.output_folder                          
+                           )
+        
+        additional_parameter_name = os.getenv('ADDITIONAL_PARAMETER_NAME')
+        if additional_parameter_name:
+            self.PARAMS.update(
+                {
+                    additional_parameter_name:os.getenv(additional_parameter_name)
+                }
+            )
 
-        if args.parameter_name and args.parameter_val:
-            self.PARAMS[args.parameter_name.upper()] = args.parameter_val
-        if args.planet_api_key:
-            self.PARAMS['PLANET_API_KEY'] = args.planet_api_key
-        self.cell_timeout = args.cell_timeout
-        self.notebook_timeout = args.notebook_timeout
-        self.kernel_name = args.kernel
+        self.cell_timeout = int(os.getenv('CELL_TIMEOUT'))
+        self.notebook_timeout = int(os.getenv('NOTEBOOK_TIMEOUT'))
+        self.kernel_name = os.getenv('KERNEL_NAME')
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        self.save_path = f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+        self.save_path =os.path.join(self.output_folder, 'notebook', f"{Path(self.input_path).stem}_{timestamp}.ipynb")
 
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
                                              "\n" + self._build_params()
+        self.copy_aux_files()
         self.write()
 
     def _first_code_cell(self):
@@ -68,6 +65,19 @@ class NotebookExecutor:
     def write(self):
         with open(self.save_path, "w") as file:
             json.dump(self.notebook, file)
+
+    def copy_aux_files(self) -> None:
+        """Copy everything from initial notebook folder to result folder
+            in order to serve all auxillary files&folder notebook requires.
+            Does not copy:
+            - notebook itself
+            - .ipynb_checkpoints folder
+        """
+        copytree(
+            os.path.dirname(self.input_path), 
+            os.path.dirname(self.save_path),
+            ignore=ignore_patterns('.ipynb_checkpoints', os.path.basename(self.input_path))
+        )
 
     def execute(self):
         command = ["jupyter",
@@ -98,8 +108,7 @@ class NotebookExecutor:
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    notebook_executor = NotebookExecutor(args)
+    notebook_executor = NotebookExecutor()
     notebook_executor.edit()
     try:
         notebook_executor.execute()
