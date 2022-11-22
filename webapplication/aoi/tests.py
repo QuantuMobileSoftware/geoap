@@ -4,7 +4,7 @@ from rest_framework import status
 from django.urls import reverse
 from django.conf import settings
 from user.models import User
-from .models import AoI, JupyterNotebook
+from .models import AoI, Component
 from .serializers import AoISerializer
 from user.tests import UserBase
 
@@ -324,7 +324,7 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     def get_notebook(self):
-        notebook = JupyterNotebook.objects.get(id=1001)
+        notebook = Component.objects.get(id=1001)
         url = reverse('aoi:notebook', kwargs={'pk': notebook.id})
         response = self.client.get(url)
         return response

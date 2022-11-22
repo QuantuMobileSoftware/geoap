@@ -5,7 +5,7 @@ from typing import Dict, List
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-from aoi.models import JupyterNotebook, Request
+from aoi.models import Component, Request
 from django.conf import settings
 
 from aoi.management.commands.executor import NotebookExecutor
@@ -178,7 +178,7 @@ class K8sNotebookHandler():
         label_selector = f'job_type={self.notebook_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(namespace=self.namespace, label_selector=label_selector)
         notebook_ids_list = [int(x.metadata.labels['notebook_id']) for x in jobs.items]
-        not_validated_notebooks = JupyterNotebook.objects.filter(run_validation=False).exclude(id__in=notebook_ids_list)
+        not_validated_notebooks = Component.objects.filter(run_validation=False).exclude(id__in=notebook_ids_list)
         logger.info(f'Number of notebooks to validate: {len(not_validated_notebooks)}\n')
 
         for notebook in not_validated_notebooks:
@@ -192,7 +192,7 @@ class K8sNotebookHandler():
         for job in jobs.items:
             self.supervise_notebook_validation_job(job)
         
-    def create_notebook_validation_job_manifest(self, notebook:JupyterNotebook) -> client.V1Job:
+    def create_notebook_validation_job_manifest(self, notebook:Component) -> client.V1Job:
         """Method to create notebook validation job in k8s cluster
 
         Args:
@@ -222,7 +222,7 @@ class K8sNotebookHandler():
             job (client.V1Job): The job to supervise
         """
         if job.status.succeeded == 1 or job.status.failed == 1:
-            notebook = JupyterNotebook.objects.get(id=job.metadata.labels['notebook_id'])
+            notebook = Component.objects.get(id=job.metadata.labels['notebook_id'])
             notebook.run_validation = True
             notebook.success = True if job.status.succeeded == 1 else False
             notebook.save()
@@ -367,21 +367,21 @@ class K8sNotebookHandler():
             client.V1Job:
         """
         return self.create_job_object(
-            image=request.notebook.image,
+            image=request.component.image,
             name=f'execute-notebook-{str(request.id)}',
             labels={'request_id': str(request.id), 'job_type': self.notebook_execution_job_label},
             command=[
                 'python3', self.notebook_execution_script,
-                '--input_path', request.notebook.path,
+                '--input_path', request.component.notebook_path,
                 '--request_id', str(request.id),
                 '--aoi', f'{request.polygon.wkt}',
                 '--start_date', request.date_from,
                 '--end_date', request.date_to,
                 '--cell_timeout', str(settings.CELL_EXECUTION_TIMEOUT),
                 '--notebook_timeout', str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
-                '--kernel', request.notebook.kernel_name if request.notebook.kernel_name else ""
+                '--kernel', request.component.kernel_name if request.component.kernel_name else ""
             ],
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_EXECUTION_TIMEOUT,
-            require_gpu=request.notebook.run_on_gpu
+            require_gpu=request.component.run_on_gpu
         )

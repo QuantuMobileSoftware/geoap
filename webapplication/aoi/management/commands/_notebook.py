@@ -3,7 +3,7 @@ import logging
 
 from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
-from aoi.models import JupyterNotebook, Request
+from aoi.models import Component, Request
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
@@ -71,7 +71,7 @@ class NotebookDockerThread(StoppableThread):
 
         for container in exited_containers:
             attrs = Container.container_attrs(container)
-            notebook = JupyterNotebook.objects.get(pk=attrs['pk'])
+            notebook = Component.objects.get(pk=attrs['pk'])
             if attrs['exit_code'] == 0:
                 logger.info(f"Notebook {notebook.name} in container {container.name} validated successfully")
                 notebook.success = True
@@ -91,7 +91,7 @@ class NotebookDockerThread(StoppableThread):
         if max_items < 0:
             return
 
-        not_validated = JupyterNotebook.objects.filter(run_validation=False)[:max_items]
+        not_validated = Component.objects.filter(run_validation=False)[:max_items]
         for notebook in not_validated:
             try:
                 notebook.run_validation = True
@@ -138,7 +138,7 @@ class NotebookDockerThread(StoppableThread):
                 ce = ContainerExecutor(request)
                 ce.execute()
             except:
-                logger.exception(f"Request {request.pk}, notebook {request.notebook.name}:")
+                logger.exception(f"Request {request.pk}, notebook {request.component.name}:")
                 try:
                     request.finished_at = localtime()
                     request.save(update_fields=['finished_at'])

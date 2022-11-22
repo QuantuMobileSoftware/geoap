@@ -6,8 +6,8 @@ from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
-from .models import AoI, JupyterNotebook, Request
-from .serializers import AoISerializer, JupyterNotebookSerializer, RequestSerializer
+from .models import AoI, Component, Request
+from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 from user.models import User
@@ -115,7 +115,7 @@ class AOIResultsListAPIView(ListAPIView):
         return qs
 
 
-class JupyterNotebookListCreateAPIView(ListCreateAPIView):
+class ComponentListCreateAPIView(ListCreateAPIView):
     """
     Get list of all JupyterNotebooks available in system, or creates new JupyterNotebook.
     Accepts GET, POST methods.
@@ -125,12 +125,12 @@ class JupyterNotebookListCreateAPIView(ListCreateAPIView):
     Returns: list of JupyterNotebookModel fields
     """
     permission_classes = (ModelPermissions, )
-    queryset = JupyterNotebook.objects.all()
-    serializer_class = JupyterNotebookSerializer
+    queryset = Component.objects.all()
+    serializer_class = ComponentSerializer
     pagination_class = None
 
 
-class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     """
     Reads, updates and deletes JupyterNotebook fields.
     Accepts: GET, PATCH, DELETE methods.
@@ -141,8 +141,8 @@ class JupyterNotebookRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Returns: JupyterNotebookModel fields.
     """
     permission_classes = (ModelPermissions, )
-    queryset = JupyterNotebook.objects.all()
-    serializer_class = JupyterNotebookSerializer
+    queryset = Component.objects.all()
+    serializer_class = ComponentSerializer
     http_method_names = ("get", "patch", 'delete')
     
     
