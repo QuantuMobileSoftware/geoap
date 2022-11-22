@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def run(self):
         if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
             threads = [
-                PublisherThread(daemon=True),
+                # PublisherThread(daemon=True),
                 NotebookDockerThread(daemon=True)
             ]
         else:
