@@ -159,10 +159,13 @@ class PublisherThread(StoppableThread):
     @staticmethod
     def publish_results():
         logger.info(f"Starting publish command")
-        management.call_command("publish")
-        success_requests = Request.objects.filter(calculated=True, success=False)
-        logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
-        success_requests.update(finished_at=localtime(), success=True)
+        calculated_requests = Request.objects.filter(calculated=True, success=False)
+        for request in calculated_requests:
+            management.call_command(f"publish", request.pk)
+            logger.info(f"Marking request {request.pk} as succeeded")
+            request.success=True
+            request.finished_at=localtime()
+            request.save()
 
 
 class NotebookK8sThread(StoppableThread):

@@ -4,11 +4,14 @@ import os
 import os.path
 import tempfile
 from pathlib import Path
+from typing import List
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from publisher.management.commands._File import FileFactory, File
 from publisher.models import Result
+
+from aoi.models import Request
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +47,20 @@ def rm_empty_dirs(folder):
 class Command(BaseCommand):
     help = 'Publisher polls results folder every 60 sec and updates results table'
 
+    def add_arguments(self, parser):
+        parser.add_argument('request', nargs=1, type=int)
+
     def handle(self, *args, **options):
-        if instance_already_running('publish'):
+        if instance_already_running(f"publish_{options['request'][0]}"):
             return
-        self.file_factory = FileFactory(settings.RESULTS_FOLDER)
-        self.tiles_folder = settings.TILES_FOLDER
-        self.results_folder = settings.RESULTS_FOLDER
+        
+        logger.info(f"Starting publish sequence for request #{options['request'][0]}")
+        self.request = Request.objects.get(pk=options['request'][0])
+        self.results_folder = os.path.join(settings.RESULTS_FOLDER, str(self.request.pk))
+        self.file_factory = FileFactory(self.results_folder)
+        self.tiles_folder = os.path.join(settings.TILES_FOLDER, str(self.request.pk))
+        os.makedirs(self.tiles_folder, exist_ok=True)
+        
         self.scan()
 
     def scan(self):
@@ -57,12 +68,12 @@ class Command(BaseCommand):
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        rm_empty_dirs(settings.TILES_FOLDER)
-        rm_empty_dirs(settings.RESULTS_FOLDER)
+        rm_empty_dirs(self.tiles_folder)
+        rm_empty_dirs(self.results_folder)
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
-        exclude = ['.ipynb_checkpoints', ]
+        exclude = ['.ipynb_checkpoints', 'notebook']
         files = list()
         for dirpath, dirs, filenames in os.walk(self.results_folder):
             dirs[:] = [d for d in dirs if d not in exclude]
@@ -77,7 +88,7 @@ class Command(BaseCommand):
         logger.info(f"Read {len(files)} files")
         return files
 
-    def _update_or_create(self, files):
+    def _update_or_create(self, files:List[File]):
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
@@ -109,20 +120,16 @@ class Command(BaseCommand):
     def _clean(self, files):
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
-
         logger.info(f"Deleting {to_delete.count()} objects. Paths: "
                     f"{[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
-
             for result in to_delete:
                 filepath = os.path.join(self.results_folder, result.filepath)
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
             logger.info("Deleting tiles finished")
-
             to_delete.delete()
-            
         except Exception as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting finished")
@@ -135,11 +142,8 @@ class Command(BaseCommand):
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
                 Path.unlink(Path(filepath))
-
             logger.info("Deleting tiles finished")
-
             to_delete.delete()
-
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
