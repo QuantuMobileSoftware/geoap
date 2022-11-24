@@ -400,7 +400,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         Returns:
             List[client.V1EnvVar]: 
         """
-        env_dict = super().get_environment(request)
+        env_dict = super(K8sNotebookHandler, K8sNotebookHandler).get_environment(request)
         return [client.V1EnvVar(key, value) for key, value in env_dict.items()]
 
     def create_component_execution_job_desc(self, request: Request) -> client.V1Job:
@@ -424,5 +424,5 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_EXECUTION_TIMEOUT,
             require_gpu=request.component.run_on_gpu,
-            environment=self.get_environment()
+            environment=self.get_environment(request)
         )
