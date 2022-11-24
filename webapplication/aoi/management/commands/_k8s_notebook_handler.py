@@ -9,6 +9,7 @@ from kubernetes.client.rest import ApiException
 
 from aoi.models import Component, Request
 from aoi.management.commands.executor import NotebookExecutor
+from aoi.management.commands._ComponentHelper import ComponentHelper
 
 from django.conf import settings
 from django.utils.timezone import localtime
@@ -16,7 +17,7 @@ from django.utils.timezone import localtime
 logger = logging.getLogger(__name__)
 
 
-class K8sNotebookHandler():
+class K8sNotebookHandler(ComponentHelper):
 
     def __init__(self, namespace: str) -> None:
         config.load_incluster_config()
@@ -300,7 +301,7 @@ class K8sNotebookHandler():
 
         for request in not_executed_request:
             job = self.create_notebook_execution_job_desc(request)
-            request.create_result_folder()
+            self.create_result_folder(request)
             self.start_job(job)
             request.started_at = localtime()
             request.save()
@@ -389,6 +390,19 @@ class K8sNotebookHandler():
                           )
         return pod_result
 
+    @staticmethod
+    def get_environment(request:Request) -> List[client.V1EnvVar]:
+        """Return environment variables for k8s pod as list
+
+        Args:
+            request (Request):
+
+        Returns:
+            List[client.V1EnvVar]: 
+        """
+        env_dict = super().get_environment(request)
+        return [client.V1EnvVar(key, value) for key, value in env_dict.items()]
+
     def create_notebook_execution_job_desc(self, request: Request) -> client.V1Job:
         """Create execution job description object from request
 
@@ -403,10 +417,12 @@ class K8sNotebookHandler():
             name=f'execute-notebook-{str(request.id)}',
             labels={'request_id': str(
                 request.id), 'job_type': self.component_execution_job_label},
-            command=request.component.get_command(self.notebook_execution_script),
+            command=self.get_command(
+                request.component,
+                self.notebook_execution_script
+            ),
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_EXECUTION_TIMEOUT,
             require_gpu=request.component.run_on_gpu,
-            environment=[client.V1EnvVar(
-                key, value) for key, value in request.get_environment().items()]
+            environment=self.get_environment()
         )

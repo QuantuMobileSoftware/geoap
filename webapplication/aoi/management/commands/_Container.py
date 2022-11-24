@@ -10,6 +10,7 @@ from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
 
 from aoi.models import Request, Component
+from aoi.management.commands._ComponentHelper import ComponentHelper
 
 logger = logging.getLogger(__name__)
 
@@ -109,9 +110,9 @@ class ContainerValidator(Container):
         self.run("python --version")
 
 
-class ContainerExecutor(Container):
+class ContainerExecutor(Container, ComponentHelper):
     def __init__(self, request:Request):
-        super().__init__(request.component, environment=request.get_environment())
+        super().__init__(request.component, environment=self.get_environment(request))
         self.request = request
         self.container_name = f"executor_{self.request.pk}"
         self.labels = dict(webapplication="executor", pk=str(self.request.pk))
@@ -119,6 +120,6 @@ class ContainerExecutor(Container):
 
     def execute(self):
         logger.info(f"Request: {self.request.pk}: Start executing {self.component.name} notebook")
-        self.request.create_result_folder()
+        self.create_result_folder(self.request)
         path_to_executor = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
-        self.run(self.component.get_command(path_to_executor))
+        self.run(self.get_command(self.request.component, path_to_executor))
