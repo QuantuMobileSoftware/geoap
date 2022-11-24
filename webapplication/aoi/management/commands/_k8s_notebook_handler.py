@@ -25,8 +25,8 @@ class K8sNotebookHandler(ComponentHelper):
         self.batch_v1 = client.BatchV1Api()
         self.delete_options = client.V1DeleteOptions()
         self.namespace = namespace
-        self.component_validation_job_label = "notebook-validation"
-        self.component_execution_job_label = "notebook-execution"
+        self.component_validation_job_label = "component-validation"
+        self.component_execution_job_label = "component-execution"
         self.notebook_execution_script = self.deliver_notebook_executor()
 
     @staticmethod
@@ -133,14 +133,14 @@ class K8sNotebookHandler(ComponentHelper):
                 "nvidia.com/gpu": str(settings.GPU_CORES_PER_NOTEBOOK)
             }
         )
-        notebook_volume = client.V1Volume(
-            name='notebook-volume',
+        component_volume = client.V1Volume(
+            name='component-volume',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
                 claim_name='sip-data-pvc'
             )
         )
-        notebook_volume_mount = client.V1VolumeMount(
-            name='notebook-volume',
+        component_volume_mount = client.V1VolumeMount(
+            name='component-volume',
             mount_path=settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH,
             read_only=False
         )
@@ -153,7 +153,7 @@ class K8sNotebookHandler(ComponentHelper):
                 run_as_user=0
             ),
             volume_mounts=[
-                notebook_volume_mount,
+                component_volume_mount,
             ],
             # image_pull_policy='Always',
             image_pull_policy='IfNotPresent',
@@ -166,7 +166,7 @@ class K8sNotebookHandler(ComponentHelper):
             ),
             spec=client.V1PodSpec(
                 containers=[container, ],
-                volumes=[notebook_volume, ],
+                volumes=[component_volume, ],
                 restart_policy="Never",
                 image_pull_secrets=[
                     {
@@ -189,35 +189,35 @@ class K8sNotebookHandler(ComponentHelper):
         logger.info("Job description created. Name: '%s'" % str(name))
         return job
 
-    def start_notebook_validation(self) -> None:
-        """Method to retrieve not validated notebooks, 
+    def start_component_validation(self) -> None:
+        """Method to retrieve not validated components, 
         create jobs to validate them and supervise results
         """
 
         label_selector = f'job_type={self.component_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(
             namespace=self.namespace, label_selector=label_selector)
-        notebook_ids_list = [int(x.metadata.labels['notebook_id'])
+        component_ids_list = [int(x.metadata.labels['component_id'])
                              for x in jobs.items]
-        not_validated_notebooks = Component.objects.filter(
-            run_validation=False).exclude(id__in=notebook_ids_list)
+        not_validated_components = Component.objects.filter(
+            run_validation=False).exclude(id__in=component_ids_list)
         logger.info(
-            f'Number of notebooks to validate: {len(not_validated_notebooks)}\n')
+            f'Number of components to validate: {len(not_validated_components)}\n')
 
-        for notebook in not_validated_notebooks:
-            job_manifest = self.create_notebook_validation_job_manifest(
-                notebook)
+        for component in not_validated_components:
+            job_manifest = self.create_component_validation_job_manifest(
+                component)
             self.start_job(job_manifest)
 
-    def start_notebook_validation_jobs_supervision(self) -> None:
+    def start_component_validation_jobs_supervision(self) -> None:
         """Retrieve notebook validation jobs and check them """
         label_selector = f'job_type={self.component_validation_job_label}'
         jobs = self.batch_v1.list_namespaced_job(
             namespace=self.namespace, label_selector=label_selector)
         for job in jobs.items:
-            self.supervise_notebook_validation_job(job)
+            self.supervise_component_validation_job(job)
 
-    def create_notebook_validation_job_manifest(self, notebook: Component) -> client.V1Job:
+    def create_component_validation_job_manifest(self, component: Component) -> client.V1Job:
         """Method to create notebook validation job in k8s cluster
 
         Args:
@@ -227,32 +227,32 @@ class K8sNotebookHandler(ComponentHelper):
             client.V1Job:
         """
         return self.create_job_object(
-            image=notebook.image,
-            name=f'notebook-validation-{notebook.id}',
+            image=component.image,
+            name=f'component-validation-{component.id}',
             command=['python3', '--version', ],
             labels={
-                'notebook_id': str(notebook.id),
+                'component_id': str(component.id),
                 'job_type': self.component_validation_job_label
             },
             backofflimit=settings.NOTEBOOK_JOB_BACKOFF_LIMIT,
             active_deadline_seconds=settings.NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE,
-            require_gpu=notebook.run_on_gpu
+            require_gpu=component.run_on_gpu
         )
 
-    def supervise_notebook_validation_job(self, job: client.V1Job):
+    def supervise_component_validation_job(self, job: client.V1Job):
         """Method to check if job completed or failed, change notebook validation status accordingly and delete the job from cluster
 
         Args:
             job (client.V1Job): The job to supervise
         """
         if job.status.succeeded == 1 or job.status.failed == 1:
-            notebook = Component.objects.get(
-                id=job.metadata.labels['notebook_id'])
-            notebook.run_validation = True
-            notebook.success = bool(job.status.succeeded)
-            notebook.save()
+            component = Component.objects.get(
+                id=job.metadata.labels['component_id'])
+            component.run_validation = True
+            component.success = bool(job.status.succeeded)
+            component.save()
             logging.info(
-                f'Validation of notebook with id "{job.metadata.labels["notebook_id"]}" is finished')
+                f'Validation of component with id "{job.metadata.labels["component_id"]}" is finished')
             self.delete_job(job)
 
     def delete_job(self, job: client.V1Job):
@@ -300,21 +300,21 @@ class K8sNotebookHandler(ComponentHelper):
             return
 
         for request in not_executed_request:
-            job = self.create_notebook_execution_job_desc(request)
+            job = self.create_component_execution_job_desc(request)
             self.create_result_folder(request)
             self.start_job(job)
             request.started_at = localtime()
             request.save()
 
-    def start_notebook_execution_jobs_supervision(self) -> None:
+    def start_component_execution_jobs_supervision(self) -> None:
         """Retrieve notebook execution jobs and check them"""
         label_selector = f'job_type={self.component_execution_job_label}'
         jobs = self.batch_v1.list_namespaced_job(
             namespace=self.namespace, label_selector=label_selector)
         for job in jobs.items:
-            self.supervise_notebook_execution_job(job)
+            self.supervise_component_execution_job(job)
 
-    def supervise_notebook_execution_job(self, job: client.V1Job):
+    def supervise_component_execution_job(self, job: client.V1Job):
         """Method to supervise execution job, store results and delete job afterwards.
 
         Args:
@@ -403,7 +403,7 @@ class K8sNotebookHandler(ComponentHelper):
         env_dict = super().get_environment(request)
         return [client.V1EnvVar(key, value) for key, value in env_dict.items()]
 
-    def create_notebook_execution_job_desc(self, request: Request) -> client.V1Job:
+    def create_component_execution_job_desc(self, request: Request) -> client.V1Job:
         """Create execution job description object from request
 
         Args:

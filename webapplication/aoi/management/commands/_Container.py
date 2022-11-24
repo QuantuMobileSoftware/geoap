@@ -41,17 +41,17 @@ class Container:
             self.environment=environment
             self.environment.update(standard_environment)
 
-        if component.run_on_gpu and settings.NOTEBOOK_EXECUTOR_GPUS:
-            logger.info(f"will use GPU '{settings.NOTEBOOK_EXECUTOR_GPUS}' for {component.name} notebook")
+        if component.run_on_gpu and settings.COMPONENT_EXECUTOR_GPUS:
+            logger.info(f"will use GPU '{settings.COMPONENT_EXECUTOR_GPUS}' for {component.name} component")
             capabilities = [['gpu']]
-            if settings.NOTEBOOK_EXECUTOR_GPUS == "all":
+            if settings.COMPONENT_EXECUTOR_GPUS == "all":
                 self.device_requests = [DeviceRequest(count=-1,
                                                       capabilities=capabilities), ]
             else:
-                self.device_requests = [DeviceRequest(device_ids=[str(settings.NOTEBOOK_EXECUTOR_GPUS), ],
+                self.device_requests = [DeviceRequest(device_ids=[str(settings.COMPONENT_EXECUTOR_GPUS), ],
                                                       capabilities=capabilities), ]
         else:
-            logger.info(f"will use CPU only for {component.name} notebook")
+            logger.info(f"will use CPU only for {component.name} component")
             self.device_requests = None
 
     def run(self, command=None):
@@ -100,8 +100,8 @@ class Container:
 
 
 class ContainerValidator(Container):
-    def __init__(self, notebook):
-        super().__init__(notebook)
+    def __init__(self, component: Component):
+        super().__init__(component)
         self.container_name = f"validator_{self.component.pk}"
         self.labels = dict(webapplication="validator", pk=str(self.component.pk))
 
@@ -119,7 +119,7 @@ class ContainerExecutor(Container, ComponentHelper):
         self.notebook_path = self.component.notebook_path
 
     def execute(self):
-        logger.info(f"Request: {self.request.pk}: Start executing {self.component.name} notebook")
+        logger.info(f"Request: {self.request.pk}: Start executing {self.component.name} component")
         self.create_result_folder(self.request)
         path_to_executor = os.path.join(self.container_executor_volume, "NotebookExecutor.py")
         self.run(self.get_command(self.request.component, path_to_executor))
