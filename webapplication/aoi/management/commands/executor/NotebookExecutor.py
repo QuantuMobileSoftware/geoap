@@ -45,12 +45,12 @@ class NotebookExecutor:
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        self.save_path =os.path.join(self.output_folder, 'notebook', f"{Path(self.input_path).stem}_{timestamp}.ipynb")
+        self.parametrized_notebook = os.path.join(os.path.dirname(self.input_path), f"{Path(self.input_path).stem}_{timestamp}.ipynb")
+        self.save_path =os.path.join(self.output_folder, f"{Path(self.input_path).stem}_{timestamp}.ipynb")
 
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
                                              "\n" + self._build_params()
-        self.copy_aux_files()
         self.write()
 
     def _first_code_cell(self):
@@ -67,21 +67,8 @@ class NotebookExecutor:
         return notebook
 
     def write(self):
-        with open(self.save_path, "w") as file:
+        with open(self.parametrized_notebook, "w") as file:
             json.dump(self.notebook, file)
-
-    def copy_aux_files(self) -> None:
-        """Copy everything from initial notebook folder to result folder
-            in order to serve all auxillary files&folder notebook requires.
-            Does not copy:
-            - notebook itself
-            - .ipynb_checkpoints folder
-        """
-        copytree(
-            os.path.dirname(self.input_path), 
-            os.path.dirname(self.save_path),
-            ignore=ignore_patterns('.ipynb_checkpoints', os.path.basename(self.input_path))
-        )
 
     def execute(self):
         command = ["jupyter",
@@ -89,10 +76,12 @@ class NotebookExecutor:
                    "--inplace",
                    "--to=notebook",
                    "--execute",
+                   self.parametrized_notebook,
+                   "--output",
                    self.save_path,
                    "--allow-errors",
                    "--ExecutePreprocessor.timeout",
-                   str(self.cell_timeout), ]
+                   str(self.cell_timeout),]
 
         if self.kernel_name:
             command.append(f"--ExecutePreprocessor.kernel_name={self.kernel_name}")
