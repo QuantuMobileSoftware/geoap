@@ -44,4 +44,14 @@ class Migration(migrations.Migration):
             old_name='path',
             new_name='notebook_path'
         ),
+        migrations.AlterField(
+            model_name='component',
+            name='name',
+            field=models.CharField(max_length=200, unique=True, verbose_name='Component name'),
+        ),
+        migrations.AlterField(
+            model_name='component',
+            name='run_on_gpu',
+            field=models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run'),
+        ),
     ]

@@ -28,7 +28,7 @@ class AoI(models.Model):
         
         
 class Component(models.Model):
-    name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Notebook name')
+    name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
     image = models.CharField(max_length=400, verbose_name='Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
     notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True, verbose_name='Path to a notebook')
@@ -36,7 +36,7 @@ class Component(models.Model):
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
-    run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a notebook to run')
+    run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run')
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
     planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
     sentinel_google_api_key_required = models.BooleanField(default=False, verbose_name='Sentinel Google API key is required')
