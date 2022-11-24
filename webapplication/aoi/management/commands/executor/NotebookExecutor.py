@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+import argparse
 from shutil import copytree, ignore_patterns
 
 from datetime import datetime
@@ -11,10 +12,13 @@ from subprocess import Popen, PIPE, TimeoutExpired
 
 logger = logging.getLogger(__name__)
 
+parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
+parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
+
 
 class NotebookExecutor:
-    def __init__(self):
-        self.input_path = os.getenv('NOTEBOOK_PATH')
+    def __init__(self, args):
+        self.input_path = args.input_path
         self.request_id = os.getenv('REQUEST_ID')
         self.output_folder = os.getenv('OUTPUT_FOLDER')
 
@@ -108,7 +112,8 @@ class NotebookExecutor:
 
 
 if __name__ == "__main__":
-    notebook_executor = NotebookExecutor()
+    args = parser.parse_args()
+    notebook_executor = NotebookExecutor(args)
     notebook_executor.edit()
     try:
         notebook_executor.execute()

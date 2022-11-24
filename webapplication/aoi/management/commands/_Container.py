@@ -10,7 +10,7 @@ from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
 
 from aoi.models import Request, Component
-from aoi.management.commands._ComponentHelper import ComponentHelper
+from aoi.management.commands._ComponentHelper import ComponentExecutionHelper
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class ContainerValidator(Container):
         self.run("python --version")
 
 
-class ContainerExecutor(Container, ComponentHelper):
+class ContainerExecutor(Container, ComponentExecutionHelper):
     def __init__(self, request:Request):
         super().__init__(request.component, environment=self.get_environment(request))
         self.request = request

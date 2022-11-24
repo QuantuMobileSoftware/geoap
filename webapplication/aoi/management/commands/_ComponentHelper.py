@@ -4,7 +4,7 @@ from typing import Dict, Optional, List
 from aoi.models import Component, Request
 from django.conf import settings
 
-class ComponentHelper():
+class ComponentExecutionHelper():
     """This is a class to posses common functionality
     for k8s and docker component executors
     """
@@ -26,7 +26,6 @@ class ComponentHelper():
             'CELL_TIMEOUT':str(settings.CELL_EXECUTION_TIMEOUT),
             'NOTEBOOK_TIMEOUT':str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
             'KERNEL_NAME':request.component.kernel_name,
-            'NOTEBOOK_PATH':request.component.notebook_path,
         }
         env_update = {
             'OUTPUT_FOLDER':os.path.join(
@@ -62,11 +61,13 @@ class ComponentHelper():
     @staticmethod
     def get_command(component:Component, path_to_executor: Optional[str]=None) -> List[str]:
         """Return command for Docker or K8s Container """
-        
         command = None
         if component.is_notebook:
             command = [
-                'python', path_to_executor
+                "python", 
+                path_to_executor,
+                "--input_path",
+                component.notebook_path
             ]
         elif component.command:
             command = json.loads(component.command)

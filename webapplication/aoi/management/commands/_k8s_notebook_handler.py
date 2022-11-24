@@ -9,7 +9,7 @@ from kubernetes.client.rest import ApiException
 
 from aoi.models import Component, Request
 from aoi.management.commands.executor import NotebookExecutor
-from aoi.management.commands._ComponentHelper import ComponentHelper
+from aoi.management.commands._ComponentHelper import ComponentExecutionHelper
 
 from django.conf import settings
 from django.utils.timezone import localtime
@@ -17,7 +17,7 @@ from django.utils.timezone import localtime
 logger = logging.getLogger(__name__)
 
 
-class K8sNotebookHandler(ComponentHelper):
+class K8sNotebookHandler(ComponentExecutionHelper):
 
     def __init__(self, namespace: str) -> None:
         config.load_incluster_config()
