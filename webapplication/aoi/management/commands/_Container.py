@@ -72,7 +72,7 @@ class Container:
                 user="root" )
 
     def get_volumes(self, client):
-        base_container = client.containers.get(os.uname()[1])
+        base_container = client.containers.get(settings.BASE_CONTAINER_NAME)
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(settings.PERSISTENT_STORAGE_PATH)
