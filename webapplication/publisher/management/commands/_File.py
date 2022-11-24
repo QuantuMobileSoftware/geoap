@@ -40,17 +40,17 @@ class FileFactory(object):
 
 
 class File(metaclass=ABCMeta):
-    def __init__(self, path, basedir):
+    def __init__(self, path, basedir, request:Request):
         self.path = path
         self.basedir = basedir
+        self.request = request
 
         self.bound_box = None
         self.crs = "epsg:4326"
 
         self.name = None
-        self.start_date = None
-        self.end_date = None
-        self.request = None
+        self.start_date = request.date_from
+        self.end_date = request.date_to
         self.style_url = None
         self.labels = ""
         self.colormap = ""
@@ -113,31 +113,15 @@ class File(metaclass=ABCMeta):
                      request=None,
                      released=False,
                      labels=self.labels,
-                     colormap=self.colormap)
+                     colormap=self.colormap,
+                     request=self.request)
 
         if self.name:
             dict_['name'] = self.name
         if self.start_date:
-            try:
                 dict_['start_date'] = timestamp_parser.parse(self.start_date)
-            except Exception as ex:
-                dict_['start_date'] = None
-                logger.error(f"Error when getting  start_date from file {dict_['filepath']}")
-                logger.error(str(ex))
-        if self.end_date:
-            try:
                 dict_['end_date'] = timestamp_parser.parse(self.end_date)
-            except Exception as ex:
-                dict_['end_date'] = None
-                logger.error(f"Error when getting  end_date from file {dict_['filepath']}")
-                logger.error(str(ex))
-        if self.request:
-            try:
-                request = Request.objects.get(pk=self.request)
-                dict_['request'] = request
-                dict_['released'] = True
-            except Request.DoesNotExist:
-                logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
+
         if self.style_url:
             dict_['styles_url'] = self.style_url
 
@@ -166,11 +150,20 @@ class Geojson(File):
         try:
             with open(self.path) as file:
                 geojson = json.load(file)
-
                 self.name = geojson.get('name')
-                self.start_date = geojson.get('start_date')
-                self.end_date = geojson.get('end_date')
-                self.request = geojson.get('request_id')
+
+                try:
+                    date_from_file = timestamp_parser.parse(geojson.get('start_date'))
+                    self.start_date = max(list(self.start_date, date_from_file))
+                except Exception as ex:
+                    logger.error(f"Not able to get start_date from file {self.name}")
+                    logger.error(str(ex))
+                try:
+                    date_from_file = timestamp_parser.parse(geojson.get('end_date'))
+                    self.end_date = min(list(self.end_date, date_from_file))
+                except Exception as ex:
+                    logger.error(f"Not able to get start_date from file {self.name}")
+                    logger.error(str(ex))
 
             self.df = geopandas.read_file(self.path)
             if str(self.df.crs) != self.crs:
@@ -283,11 +276,22 @@ class Geotif(File):
 
                 tags = dataset.tags()
                 self.name = tags.get('name')
-                self.start_date = tags.get('start_date')
-                self.end_date = tags.get('end_date')
-                self.request = tags.get('request_id')
                 self.labels = tags.get('labels')
                 self.colormap = tags.get('colormap')
+                
+                try:
+                    date_from_file = timestamp_parser.parse(tags.get('start_date'))
+                    self.start_date = max(list(self.start_date, date_from_file))
+                except Exception as ex:
+                    logger.error(f"Not able to get start_date from file {self.name}")
+                    logger.error(str(ex))
+                try:
+                    date_from_file = timestamp_parser.parse(tags.get('end_date'))
+                    self.end_date = min(list(self.end_date, date_from_file))
+                except Exception as ex:
+                    logger.error(f"Not able to get start_date from file {self.name}")
+                    logger.error(str(ex))
+                    
         except Exception as ex:
             logger.error(f"Cannot read file {self.path}: {str(ex)}")
 
