@@ -110,7 +110,6 @@ class File(metaclass=ABCMeta):
                      name='',
                      start_date=None,
                      end_date=None,
-                     request=None,
                      released=False,
                      labels=self.labels,
                      colormap=self.colormap,
