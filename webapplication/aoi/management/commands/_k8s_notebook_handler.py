@@ -9,7 +9,7 @@ from kubernetes.client.rest import ApiException
 
 from aoi.models import Component, Request
 from aoi.management.commands.executor import NotebookExecutor
-from aoi.management.commands._ComponentHelper import ComponentExecutionHelper
+from aoi.management.commands._ComponentExecutionHelper import ComponentExecutionHelper
 
 from django.conf import settings
 from django.utils.timezone import localtime

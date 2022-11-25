@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
 parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
-
+parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
+parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
+parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
+                    required=True)
 
 class NotebookExecutor:
     def __init__(self, args):
@@ -39,9 +42,9 @@ class NotebookExecutor:
                 }
             )
 
-        self.cell_timeout = int(os.getenv('CELL_TIMEOUT'))
-        self.notebook_timeout = int(os.getenv('NOTEBOOK_TIMEOUT'))
-        self.kernel_name = os.getenv('KERNEL_NAME')
+        self.cell_timeout = args.cell_timeout
+        self.notebook_timeout = args.notebook_timeout
+        self.kernel_name = args.kernel
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")

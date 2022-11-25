@@ -22,10 +22,7 @@ class ComponentExecutionHelper():
             'REQUEST_ID':str(request.pk),
             'AOI':request.aoi.polygon.wkt,
             'START_DATE':request.date_from.strftime("%Y-%m-%d"),
-            'END_DATE':request.date_to.strftime("%Y-%m-%d"),
-            'CELL_TIMEOUT':str(settings.CELL_EXECUTION_TIMEOUT),
-            'NOTEBOOK_TIMEOUT':str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
-            'KERNEL_NAME':request.component.kernel_name,
+            'END_DATE':request.date_to.strftime("%Y-%m-%d")
         }
         env_update = {
             'OUTPUT_FOLDER':os.path.join(
@@ -67,10 +64,16 @@ class ComponentExecutionHelper():
                 "python", 
                 path_to_executor,
                 "--input_path",
-                component.notebook_path
+                component.notebook_path,
+                "--cell_timeout",
+                str(settings.CELL_EXECUTION_TIMEOUT),
+                "--notebook_timeout",
+                str(settings.NOTEBOOK_EXECUTION_TIMEOUT),
+                "--kernel",
+                component.kernel_name,
             ]
         elif component.command:
-            command = json.loads(component.command)
+            command = json.loads(component.command)    
         return command
 
     @staticmethod

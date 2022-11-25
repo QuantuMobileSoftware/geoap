@@ -10,7 +10,7 @@ from aoi.management.commands._host_volume_paths import HostVolumePaths
 from django.conf import settings
 
 from aoi.models import Request, Component
-from aoi.management.commands._ComponentHelper import ComponentExecutionHelper
+from aoi.management.commands._ComponentExecutionHelper import ComponentExecutionHelper
 
 logger = logging.getLogger(__name__)
 
