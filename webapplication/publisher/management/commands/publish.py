@@ -10,9 +10,10 @@ from typing import List
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from publisher.management.commands._File import FileFactory, File
-from publisher.models import Result
 
+from publisher.management.commands._File import FileFactory, File
+
+from publisher.models import Result
 from aoi.models import Request
 
 logger = logging.getLogger(__name__)
@@ -66,18 +67,25 @@ class Command(BaseCommand):
         self.exclude_dirs = ['.ipynb_checkpoints']
         self.exclude_file_extensions = ['.ipynb']
         os.makedirs(self.tiles_folder, exist_ok=True)
-        
-        self.scan()
+        self.do_stuff()
 
-    def scan(self):
+    def do_stuff(self):
+        """Main logic"""
+
         files = self._read()
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        rm_empty_dirs(self.tiles_folder)
-        rm_empty_dirs(self.results_folder)
+        self._rm_empty_dirs(self.tiles_folder)
+        self._rm_empty_dirs(self.results_folder)
 
-    def _read(self):
+    def _read(self) -> List[File]:
+        """Scan result folder of given request and read files
+
+        Returns:
+            List[File]:
+        """
+
         logger.info(f"Reading files in {self.results_folder} folder...")
         files= list() 
         filepaths = self._scan_folder(self.results_folder)
@@ -93,6 +101,12 @@ class Command(BaseCommand):
         return files
 
     def _update_or_create(self, files:List[File]):
+        """Check if result file was updated or does not exist in db as Result,
+        generate/regenerate tiles and create Result instance if needed
+
+        Args:
+            files (List[File]): List of files to check
+        """
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
@@ -121,13 +135,30 @@ class Command(BaseCommand):
                     logger.error(f'Error when creating Result from file_dict = {file_dict}\n {str(ex)}')
                     continue
 
-    def _scan_folder(self, folder:str):
+    def _scan_folder(self, folder:str) -> List[str]:
+        """Scan given folder and return filepaths of all files in it.
+        Exclude files with extensions self.exclude_file_extensions
+        Exclude files from folders self.exclude_dirs
+
+        Args:
+            folder (str): Folder to scan
+
+        Returns:
+            List[str]: List of full filenames in given dirs
+        """
+
         nested_file_list = [[os.path.join(folder, file) 
             for file in files if not Path(file).suffix in self.exclude_file_extensions] 
                 for folder, _, files in os.walk(folder) if files and folder not in self.exclude_dirs]
         return [f for f in itertools.chain(*nested_file_list)]
     
     def _clean(self, files: List[File]):
+        """"Delete tiles from folder and Results from DB
+        if result was deleted from its folder
+        Args:
+            files (List[File]): list of files - results of current request iteration
+        """
+    
         all_filepaths = [f[len(self.base_folder)+1:] for f in self._scan_folder(self.base_folder)]
         all_filepaths.extend([file.filepath() for file in files])
         filepaths = list(set(all_filepaths))
@@ -147,6 +178,7 @@ class Command(BaseCommand):
         logger.info(f"Deleting finished")
 
     def _delete(self):
+        """Delete results&titles of all results, marked as to_be_deleted"""
         to_delete = Result.objects.filter(to_be_deleted=True)
         try:
             for result in to_delete:
@@ -160,3 +192,22 @@ class Command(BaseCommand):
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
+
+    def _rm_empty_dirs(self, folder:str):
+        """Remove empty folders inside given folder that
+         not belong to currently executing requests
+
+        Args:
+            folder (str)
+        """
+        active_requests_id = Request.objects.filter(started_at__isnull=False) \
+                                            .exclude(finished_at__isnull=True) \
+                                            .values_list('id', flat=True)
+        active_request_affiliated_folders = [os.path.join(folder, str(r)) for r in active_requests_id]
+        empty_folders = [(dr, subdirs, files) 
+                    for dr, subdirs, files in os.walk(folder) 
+                    if not bool(subdirs) and not bool(files) and dr != folder]
+        for check_folder in empty_folders:
+            if [f for f in active_request_affiliated_folders if check_folder.startswith(f)]:continue
+            shutil.rmtree(check_folder, ignore_errors=True)
+    
