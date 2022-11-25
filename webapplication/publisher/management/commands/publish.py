@@ -71,12 +71,12 @@ class Command(BaseCommand):
 
     def do_stuff(self):
         """Main logic"""
-
+        
         files = self._read()
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        self._rm_empty_dirs(self.tiles_folder)
+        self._rm_empty_dirs(self.base_folder)
         self._rm_empty_dirs(self.results_folder)
 
     def _read(self) -> List[File]:
@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
     def _update_or_create(self, files:List[File]):
         """Check if result file was updated or does not exist in db as Result,
-        generate/regenerate tiles and create Result instance if needed
+        (re)generate tiles and create Result instance if needed
 
         Args:
             files (List[File]): List of files to check
@@ -204,9 +204,8 @@ class Command(BaseCommand):
                                             .exclude(finished_at__isnull=True) \
                                             .values_list('id', flat=True)
         active_request_affiliated_folders = [os.path.join(folder, str(r)) for r in active_requests_id]
-        empty_folders = [(dr, subdirs, files) 
-                    for dr, subdirs, files in os.walk(folder) 
-                    if not bool(subdirs) and not bool(files) and dr != folder]
+        empty_folders = [dir for dir, subdirs, files in os.walk(folder) 
+                    if not bool(subdirs) and not bool(files) and dir != folder]
         for check_folder in empty_folders:
             if [f for f in active_request_affiliated_folders if check_folder.startswith(f)]:continue
             shutil.rmtree(check_folder, ignore_errors=True)
