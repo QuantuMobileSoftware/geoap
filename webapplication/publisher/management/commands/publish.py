@@ -2,6 +2,7 @@ import logging
 import fcntl
 import os
 import os.path
+import shutil
 import itertools
 import tempfile
 from pathlib import Path
@@ -63,7 +64,7 @@ class Command(BaseCommand):
         self.base_folder = settings.RESULTS_FOLDER
 
         self.exclude_dirs = ['.ipynb_checkpoints']
-        self.exclude_file_extentions = ['.ipynb']
+        self.exclude_file_extensions = ['.ipynb']
         os.makedirs(self.tiles_folder, exist_ok=True)
         
         self.scan()
@@ -122,7 +123,7 @@ class Command(BaseCommand):
 
     def _scan_folder(self, folder:str):
         nested_file_list = [[os.path.join(folder, file) 
-            for file in files if not Path(file).suffix in self.exclude_file_extentions] 
+            for file in files if not Path(file).suffix in self.exclude_file_extensions] 
                 for folder, _, files in os.walk(folder) if files and folder not in self.exclude_dirs]
         return [f for f in itertools.chain(*nested_file_list)]
     
@@ -149,10 +150,11 @@ class Command(BaseCommand):
         to_delete = Result.objects.filter(to_be_deleted=True)
         try:
             for result in to_delete:
-                filepath = os.path.join(self.results_folder, result.filepath)
+                filepath = os.path.join(self.base_folder, result.filepath)
+                result_dir = os.path.join(self.base_folder, str(result.request.pk))
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
-                Path.unlink(Path(filepath))
+                shutil.rmtree(result_dir, ignore_errors=True)
             logger.info("Deleting tiles finished")
             to_delete.delete()
         except OSError as ex:
