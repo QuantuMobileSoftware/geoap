@@ -2,6 +2,7 @@ import logging
 import fcntl
 import os
 import os.path
+import itertools
 import tempfile
 from pathlib import Path
 from typing import List
@@ -57,8 +58,12 @@ class Command(BaseCommand):
         logger.info(f"Starting publish sequence for request #{options['request'][0]}")
         self.request = Request.objects.get(pk=options['request'][0])
         self.results_folder = os.path.join(settings.RESULTS_FOLDER, str(self.request.pk))
-        self.file_factory = FileFactory(self.results_folder)
-        self.tiles_folder = os.path.join(settings.TILES_FOLDER, str(self.request.pk))
+        self.file_factory = FileFactory(settings.RESULTS_FOLDER, self.request)
+        self.tiles_folder = settings.TILES_FOLDER
+        self.base_folder = settings.RESULTS_FOLDER
+
+        self.exclude_dirs = ['.ipynb_checkpoints']
+        self.exclude_file_extentions = ['.ipynb']
         os.makedirs(self.tiles_folder, exist_ok=True)
         
         self.scan()
@@ -73,17 +78,15 @@ class Command(BaseCommand):
 
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
-        exclude = ['.ipynb_checkpoints', 'notebook']
-        files = list()
-        for dirpath, dirs, filenames in os.walk(self.results_folder):
-            dirs[:] = [d for d in dirs if d not in exclude]
-            for file in filenames:
-                path = os.path.abspath(os.path.join(dirpath, file))
-                try:
-                    f = self.file_factory.get_file_obj(path)
-                    if f:
-                        files.append(f)
-                except Exception as ex:
+        files= list() 
+        filepaths = self._scan_folder(self.results_folder)
+        for file in filepaths:
+            path = os.path.abspath(file)
+            try:
+                f = self.file_factory.get_file_obj(path)
+                if f:
+                    files.append(f)
+            except Exception as ex:
                     logger.error(f"Error read {path}: {str(ex)}")
         logger.info(f"Read {len(files)} files")
         return files
@@ -117,15 +120,23 @@ class Command(BaseCommand):
                     logger.error(f'Error when creating Result from file_dict = {file_dict}\n {str(ex)}')
                     continue
 
-    def _clean(self, files):
-        filepaths = [file.filepath() for file in files]
+    def _scan_folder(self, folder:str):
+        nested_file_list = [[os.path.join(folder, file) 
+            for file in files if not Path(file).suffix in self.exclude_file_extentions] 
+                for folder, _, files in os.walk(folder) if files and folder not in self.exclude_dirs]
+        return [f for f in itertools.chain(*nested_file_list)]
+    
+    def _clean(self, files: List[File]):
+        all_filepaths = [f[len(self.base_folder)+1:] for f in self._scan_folder(self.base_folder)]
+        all_filepaths.extend([file.filepath() for file in files])
+        filepaths = list(set(all_filepaths))
         to_delete = Result.objects.exclude(filepath__in=filepaths)
         logger.info(f"Deleting {to_delete.count()} objects. Paths: "
                     f"{[file.filepath for file in to_delete]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
             for result in to_delete:
-                filepath = os.path.join(self.results_folder, result.filepath)
+                filepath = os.path.join(self.base_folder, result.filepath)
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
             logger.info("Deleting tiles finished")

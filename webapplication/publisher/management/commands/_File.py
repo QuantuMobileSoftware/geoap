@@ -26,15 +26,16 @@ logger = logging.getLogger(__name__)
 
 
 class FileFactory(object):
-    def __init__(self, basedir):
+    def __init__(self, basedir, request: Request):
         self.basedir = basedir
+        self.request = request
 
     def get_file_obj(self, path):
         path_lower = path.lower()
         if path_lower.endswith('.geojson'):
-            return Geojson(path, self.basedir)
+            return Geojson(path, self.basedir, self.request)
         elif path_lower.endswith(('.tif', '.tiff')):
-            return Geotif(path, self.basedir)
+            return Geotif(path, self.basedir, self.request)
         else:
             return
 
@@ -44,6 +45,7 @@ class File(metaclass=ABCMeta):
         self.path = path
         self.basedir = basedir
         self.request = request
+        self.result_folder = os.path.join(basedir, str(request.pk))
 
         self.bound_box = None
         self.crs = "epsg:4326"
@@ -118,8 +120,8 @@ class File(metaclass=ABCMeta):
         if self.name:
             dict_['name'] = self.name
         if self.start_date:
-                dict_['start_date'] = timestamp_parser.parse(self.start_date)
-                dict_['end_date'] = timestamp_parser.parse(self.end_date)
+                dict_['start_date'] = self.start_date
+                dict_['end_date'] = self.end_date
 
         if self.style_url:
             dict_['styles_url'] = self.style_url
@@ -152,14 +154,12 @@ class Geojson(File):
                 self.name = geojson.get('name')
 
                 try:
-                    date_from_file = timestamp_parser.parse(geojson.get('start_date'))
-                    self.start_date = max(list(self.start_date, date_from_file))
+                    self.start_date = timestamp_parser.parse(geojson.get('start_date'))
                 except Exception as ex:
                     logger.error(f"Not able to get start_date from file {self.name}")
                     logger.error(str(ex))
                 try:
-                    date_from_file = timestamp_parser.parse(geojson.get('end_date'))
-                    self.end_date = min(list(self.end_date, date_from_file))
+                    self.end_date = timestamp_parser.parse(geojson.get('end_date'))
                 except Exception as ex:
                     logger.error(f"Not able to get start_date from file {self.name}")
                     logger.error(str(ex))
@@ -279,14 +279,12 @@ class Geotif(File):
                 self.colormap = tags.get('colormap')
                 
                 try:
-                    date_from_file = timestamp_parser.parse(tags.get('start_date'))
-                    self.start_date = max(list(self.start_date, date_from_file))
+                    self.start_date = timestamp_parser.parse(tags.get('start_date'))
                 except Exception as ex:
                     logger.error(f"Not able to get start_date from file {self.name}")
                     logger.error(str(ex))
                 try:
-                    date_from_file = timestamp_parser.parse(tags.get('end_date'))
-                    self.end_date = min(list(self.end_date, date_from_file))
+                    self.end_date = timestamp_parser.parse(tags.get('end_date'))
                 except Exception as ex:
                     logger.error(f"Not able to get start_date from file {self.name}")
                     logger.error(str(ex))
