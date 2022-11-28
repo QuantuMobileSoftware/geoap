@@ -1,4 +1,5 @@
 import uuid
+import os
 import geojson
 import shutil
 import logging
@@ -12,14 +13,17 @@ from rasterio import Affine
 from rasterio.crs import CRS
 from geojson import Feature, FeatureCollection, Polygon
 from django.contrib.gis.geos import Polygon as DjPolygon
+from django.core.management import call_command
 from datetime import datetime
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.conf import settings
 from django.urls import reverse
 from user.tests import UserBase
+from aoi.models import Request
 from .management.commands.publish import Command
 from .models import Result
+
 
 logger = logging.getLogger('root')
 
@@ -300,8 +304,10 @@ class PublisherBase(APITestCase):
     """
     Base class for creating publisher test cases.
     """
+
     def setUp(self):
-        self.test_results_folder = Path(settings.RESULTS_FOLDER)
+        self.test_request = Request.objects.get(pk=1001)
+        self.test_results_folder = Path(settings.RESULTS_FOLDER) / str(self.test_request.pk)
         self.test_results_folder.mkdir(parents=True, exist_ok=True)
         logger.info(f'test_results_folder: {self.test_results_folder}')
 
@@ -340,7 +346,7 @@ class PublisherBase(APITestCase):
         "labels": ["low", "high"]}'
         self.tiff_name = Path('black_image.tif')
         self.test_tif_path = self.test_results_folder / self.tiff_name
-        self.test_tile_result_path = Path('/tiles') / self.tiff_name.stem
+        self.test_tile_result_path = Path('/tiles') / str(self.test_request.pk) / self.tiff_name.stem
         self.test_tile_png_path = self.test_tile_result_path / '{z}/{x}/{y}.png'
         logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
         logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
@@ -386,8 +392,8 @@ class PublisherBase(APITestCase):
     def create_big_geojson(self):
         self.big_geojson_name = Path('big.geojson')
         self.geojson_path = self.test_results_folder / self.big_geojson_name
-        self.mvt_path = self.test_tile_folder / self.big_geojson_name.stem
-        self.mvt_rel_url = Path('/tiles') / self.big_geojson_name.stem / '{z}/{x}/{y}.pbf'
+        self.mvt_path = self.test_tile_folder / str(self.test_request.pk) /self.big_geojson_name.stem
+        self.mvt_rel_url = Path('/tiles')/ str(self.test_request.pk) / self.big_geojson_name.stem / '{z}/{x}/{y}.pbf'
         logger.info(f'mvt_path: {self.mvt_path}')
         logger.info(f'mvt_rel_url: {self.mvt_rel_url}')
 
@@ -400,9 +406,9 @@ class PublisherBase(APITestCase):
             
     def create_big_geojson_with_style(self):
         self.big_geojson_name = Path('big_style.geojson')
-        self.geojson_path = self.test_results_folder / self.big_geojson_name
-        self.mvt_styles_path = self.test_tile_folder / self.big_geojson_name.stem / 'style.json'
-        self.mvt_styles_url = Path('/tiles') / self.big_geojson_name.stem / 'style.json'
+        self.geojson_path = self.test_results_folder /self.big_geojson_name
+        self.mvt_styles_path = self.test_tile_folder / str(self.test_request.pk) /self.big_geojson_name.stem / 'style.json'
+        self.mvt_styles_url = Path('/tiles') / str(self.test_request.pk) /self.big_geojson_name.stem / 'style.json'
         feature_list = [feature_obj[1] for feature_obj in self.generate_features()]
         for cnt in range(10):
             feature_list += feature_list
@@ -415,11 +421,20 @@ class PublisherBase(APITestCase):
         df.to_file(self.geojson_path, driver='GeoJSON')
 
 
-class BigGeojsonPublisherTestCase(PublisherBase):
+class BigGeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+        'aoi/fixtures/aoi_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+        'aoi/fixtures/request_fixtures.json',
+        ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)   
+    
     def test_publish_big_geojson(self):
         self.create_big_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         results = Result.objects.all().order_by('filepath')
         for result in results:
             self.assertEqual(str(self.mvt_rel_url), result.rel_url)
@@ -430,11 +445,20 @@ class BigGeojsonPublisherTestCase(PublisherBase):
             self.assertEqual(result.styles_url, None)
 
 
-class BigGeojsonWithStylePublisherTestCase(PublisherBase):
+class BigGeojsonWithStylePublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+        'aoi/fixtures/aoi_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+        'aoi/fixtures/request_fixtures.json',
+        ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)   
+
     def test_publish_big_geojson_with_style(self):
         self.create_big_geojson_with_style()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         results = Result.objects.all().order_by('filepath')
         for result in results:
             self.assertEqual(str(self.mvt_styles_url), result.styles_url)
@@ -443,43 +467,69 @@ class BigGeojsonWithStylePublisherTestCase(PublisherBase):
                 self.assertEqual(len(data['layers']), 2)
         
         
-class CleanBigGeojsonPublisherTestCase(PublisherBase):
+class CleanBigGeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+        'aoi/fixtures/aoi_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+        'aoi/fixtures/request_fixtures.json',
+        ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+        
     def test_clean_geojson_files_result(self):
         self.create_big_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
         logger.info(f'Result.filepath: {Result.objects.all()[0].filepath}')
-        command.handle()
+        call_command('publish', self.test_request.pk)
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         self.assertEqual(self.mvt_path.exists(), False)
 
 
-class DeleteBigGeojsonPublisherTestCase(PublisherBase):
+class DeleteBigGeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
     def test_delete_geojson_files_result(self):
         self.create_big_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
 
         results = Result.objects.filter(to_be_deleted=False)
         for result in results:
             result.to_be_deleted = True
             result.save()
 
-        command._delete()
+        call_command('publish', self.test_request.pk)
         self.assertEqual(self.geojson_path.exists(), False)
         self.assertEqual(self.mvt_path.exists(), False)
         self.assertEqual(Result.objects.filter(to_be_deleted=True).count(), 0)
 
 
-class GeojsonPublisherTestCase(PublisherBase):
+class GeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
 
     def test_publish_geojson(self):
         self.create_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         results = Result.objects.all().order_by('filepath')
         for result in results:
             result_file = Path(result.filepath)
@@ -492,12 +542,20 @@ class GeojsonPublisherTestCase(PublisherBase):
             self.assertEqual(str(result.bounding_polygon), geometries_bbox[result_filename].ewkt)
 
 
-class GeotifPublisherTestCase(PublisherBase):
+class GeotifPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
 
     def test_publish_tiff(self):
         self.create_tiff()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         results = Result.objects.all()
         for result in results:
             self.assertEqual(str(self.test_tile_png_path), result.rel_url)
@@ -506,31 +564,49 @@ class GeotifPublisherTestCase(PublisherBase):
             self.assertEqual(result.colormap, self.colormap)
 
 
-class DeleteGeotifPublisherTestCase(PublisherBase):
+class DeleteGeotifPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
     def test_delete_geotif_files_result(self):
         self.create_tiff()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         result = Result.objects.get(layer_type='XYZ')
         logger.info(f'result.rel_url: {result.rel_url}')
         result.to_be_deleted = True
         result.save()
-        command._delete()
+        call_command('publish', self.test_request.pk)
         self.assertEqual(self.test_tile_result_path.exists(), False)
 
 
-class DeleteGeojsonPublisherTestCase(PublisherBase):
+class DeleteGeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
     def test_delete_geojson_files_result(self):
         self.create_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
 
         results = Result.objects.filter(to_be_deleted=False)
         for result in results:
             result.to_be_deleted = True
             result.save()
 
-        command._delete()
+        call_command('publish', self.test_request.pk)
         for result in results:
             test_geojson_result_file = self.test_geojson_result_path / result.filepath
             logger.info(f'test_geojson_result_file: {test_geojson_result_file}')
@@ -538,27 +614,45 @@ class DeleteGeojsonPublisherTestCase(PublisherBase):
             self.assertEqual(test_geojson_result_file.exists(), False)
 
 
-class CleanGeotifPublisherTestCase(PublisherBase):
+class CleanGeotifPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
     def test_clean_geotif_files_result(self):
         self.create_tiff()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
-        command.handle()
+        call_command('publish', self.test_request.pk)
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         self.assertEqual(self.test_tile_result_path.exists(), False)
 
 
-class CleanGeojsonPublisherTestCase(PublisherBase):
+class CleanGeojsonPublisherTestCase(PublisherBase, UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+    'aoi/fixtures/aoi_fixtures.json',
+    'aoi/fixtures/notebook_fixtures.json',
+    'aoi/fixtures/request_fixtures.json',
+    ]
+
+    def setUp(self):
+        UserBase.setUp(self)
+        PublisherBase.setUp(self)
+
     def test_clean_geojson_files_result(self):
         self.create_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
-        command.handle()
+        call_command('publish', self.test_request.pk)
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         
@@ -580,19 +674,18 @@ class PbdnnGeojsonPublisherTestCase(UserBase, PublisherBase):
         self.input_geojson_path = fixture_path / self.geojson_name
         shutil.copy(self.input_geojson_path, self.test_results_folder / self.geojson_name)
     
-    def test_get_field_from_result(self):
+    def test_get_field_from_result_as_stuff_user(self):
         lat = 6.77629528
         lng = 49.8461371
         polygon_orig_wkt = 'Polygon ((6.77515386 49.8471128, 6.77515386 49.8471128, 6.77515386 49.8471128, \
                 6.77515386 49.8471128, 6.77736484 49.84708319, 6.77738458 49.8452078, 6.77532166 49.84509923, \
                 6.77532166 49.84509923, 6.77533153 49.84509923, 6.77515386 49.8471128))'
         self.create_pbdnn_geojson()
-        command = Command()
-        command.handle()
+        call_command('publish', self.test_request.pk)
         result = Result.objects.all().get(name="Fields' boundaries")
         id = result.id
         url = reverse('field_from_result', kwargs={'pk': id})
-        self.client.force_authenticate(user=self.ex_2_user)
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(url, {'lat': lat, 'lng': lng})
         content = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -600,6 +693,18 @@ class PbdnnGeojsonPublisherTestCase(UserBase, PublisherBase):
         polygon_response = shapely.wkt.loads(polygon_response_wkt)
         polygon_orig = shapely.wkt.loads(polygon_orig_wkt)
         self.assertEqual(polygon_orig.almost_equals(polygon_response), True)
+    
+    def test_get_field_from_result_as_non_stuff_user(self):
+        lat = 6.77629528
+        lng = 49.8461371
+        self.create_pbdnn_geojson()
+        call_command('publish', self.test_request.pk)
+        result = Result.objects.all().get(name="Fields' boundaries")
+        id = result.id
+        url = reverse('field_from_result', kwargs={'pk': id})
+        self.client.force_authenticate(user=self.ex_2_user)
+        response = self.client.get(url, {'lat': lat, 'lng': lng})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class ResultTestCase(UserBase):
