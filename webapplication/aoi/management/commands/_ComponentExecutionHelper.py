@@ -48,7 +48,6 @@ class ComponentExecutionHelper():
         if request.component.additional_parameter:
             env_update.update(
                 {
-                    'ADDITIONAL_PARAMETER_NAME': request.component.additional_parameter,
                     request.component.additional_parameter:request.additional_parameter
                 }
             )
@@ -72,6 +71,11 @@ class ComponentExecutionHelper():
                 "--kernel",
                 component.kernel_name,
             ]
+            if component.additional_parameter:
+                command.extend(
+                    "--parameter_name",
+                    component.additional_parameter
+                )
         elif component.command:
             command = json.loads(component.command)    
         return command

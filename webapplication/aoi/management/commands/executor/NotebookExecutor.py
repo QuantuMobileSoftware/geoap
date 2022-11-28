@@ -18,6 +18,7 @@ parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
 parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
 parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
                     required=True)
+parser.add_argument('--parameter_name', type=str, help='Additional parameter name', default=None)
 
 class NotebookExecutor:
     def __init__(self, args):
@@ -33,12 +34,11 @@ class NotebookExecutor:
                            SENTINEL2_CACHE=os.getenv('SENTINEL2_CACHE'),
                            OUTPUT_FOLDER=self.output_folder                          
                            )
-        
-        additional_parameter_name = os.getenv('ADDITIONAL_PARAMETER_NAME')
-        if additional_parameter_name:
+
+        if args.parameter_name:
             self.PARAMS.update(
                 {
-                    additional_parameter_name:os.getenv(additional_parameter_name)
+                    args.parameter_name:os.getenv(args.parameter_name)
                 }
             )
 
