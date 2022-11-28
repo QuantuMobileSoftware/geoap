@@ -172,9 +172,9 @@ class NotebookK8sThread(StoppableThread):
 
     def do_stuff(self):
         # Validation
-        self.notebook_handler.start_notebook_validation()
-        self.notebook_handler.start_notebook_validation_jobs_supervision()
+        self.notebook_handler.start_component_validation()
+        self.notebook_handler.start_component_validation_jobs_supervision()
         # Execution
         self.notebook_handler.start_notebook_execution()
-        self.notebook_handler.start_notebook_execution_jobs_supervision()
+        self.notebook_handler.start_component_execution_jobs_supervision()
     

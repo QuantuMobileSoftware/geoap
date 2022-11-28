@@ -1,7 +1,9 @@
-from rest_framework import serializers
+import os
+import json
+from typing import Dict, List, Optional
 from django.contrib.gis.db import models
-from django.db.models import JSONField
 from django.utils import timezone
+from django.conf import settings
 
 
 class AoI(models.Model):
@@ -44,6 +46,10 @@ class Component(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def is_notebook(self):
+        return  not bool(self.command) and (bool(self.notebook_path) and bool(self.kernel_name))
+
     class Meta:
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
@@ -70,3 +76,4 @@ class Request(models.Model):
     @property
     def component_name(self):
         return self.component.name
+    
