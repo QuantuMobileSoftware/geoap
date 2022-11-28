@@ -56,8 +56,6 @@ class NotebookDockerThread(StoppableThread):
 
     def do_stuff(self):
         with self.lock:
-            self.validate_notebook()
-        with self.lock:
             self.execute_notebook()
 
     def get_running_containers(self):
@@ -171,9 +169,6 @@ class NotebookK8sThread(StoppableThread):
         self.notebook_handler = K8sNotebookHandler(settings.K8S_NAME_SPACE)
 
     def do_stuff(self):
-        # Validation
-        self.notebook_handler.start_component_validation()
-        self.notebook_handler.start_component_validation_jobs_supervision()
         # Execution
         self.notebook_handler.start_notebook_execution()
         self.notebook_handler.start_component_execution_jobs_supervision()
