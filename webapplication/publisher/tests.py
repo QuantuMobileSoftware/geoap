@@ -484,7 +484,7 @@ class CleanBigGeojsonPublisherTestCase(PublisherBase, UserBase):
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
         logger.info(f'Result.filepath: {Result.objects.all()[0].filepath}')
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         self.assertEqual(self.mvt_path.exists(), False)
@@ -510,7 +510,7 @@ class DeleteBigGeojsonPublisherTestCase(PublisherBase, UserBase):
             result.to_be_deleted = True
             result.save()
 
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         self.assertEqual(self.geojson_path.exists(), False)
         self.assertEqual(self.mvt_path.exists(), False)
         self.assertEqual(Result.objects.filter(to_be_deleted=True).count(), 0)
@@ -582,7 +582,7 @@ class DeleteGeotifPublisherTestCase(PublisherBase, UserBase):
         logger.info(f'result.rel_url: {result.rel_url}')
         result.to_be_deleted = True
         result.save()
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         self.assertEqual(self.test_tile_result_path.exists(), False)
 
 
@@ -606,7 +606,7 @@ class DeleteGeojsonPublisherTestCase(PublisherBase, UserBase):
             result.to_be_deleted = True
             result.save()
 
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         for result in results:
             test_geojson_result_file = self.test_geojson_result_path / result.filepath
             logger.info(f'test_geojson_result_file: {test_geojson_result_file}')
@@ -630,7 +630,7 @@ class CleanGeotifPublisherTestCase(PublisherBase, UserBase):
         call_command('publish', self.test_request.pk)
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         self.assertEqual(self.test_tile_result_path.exists(), False)
@@ -652,7 +652,7 @@ class CleanGeojsonPublisherTestCase(PublisherBase, UserBase):
         call_command('publish', self.test_request.pk)
         logger.info(f'Result.objects.count before deleting: {Result.objects.count()}')
         self.delete_all_files_in_folder(self.test_results_folder)
-        call_command('publish', self.test_request.pk)
+        call_command('clean_up')
         num_results = Result.objects.count()
         self.assertEqual(num_results, 0)
         

@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import shutil
+from typing import Optional
 import geopandas
 import pyproj
 import rasterio
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class FileFactory(object):
-    def __init__(self, basedir, request: Request):
+    def __init__(self, basedir, request: Optional[Request]=None):
         self.basedir = basedir
         self.request = request
 
@@ -41,18 +42,18 @@ class FileFactory(object):
 
 
 class File(metaclass=ABCMeta):
-    def __init__(self, path, basedir, request:Request):
+    def __init__(self, path, basedir, request:Optional[Request] = None):
         self.path = path
         self.basedir = basedir
         self.request = request
-        self.result_folder = os.path.join(basedir, str(request.pk))
+        # self.result_folder = os.path.join(basedir, str(request.pk)) if request else None
 
         self.bound_box = None
         self.crs = "epsg:4326"
 
         self.name = None
-        self.start_date = request.date_from
-        self.end_date = request.date_to
+        self.start_date = request.date_from if request else None
+        self.end_date = request.date_to if request else None
         self.style_url = None
         self.labels = ""
         self.colormap = ""
@@ -122,9 +123,9 @@ class File(metaclass=ABCMeta):
         if self.start_date:
                 dict_['start_date'] = self.start_date
                 dict_['end_date'] = self.end_date
-
         if self.style_url:
             dict_['styles_url'] = self.style_url
+        
 
         return dict_
 
