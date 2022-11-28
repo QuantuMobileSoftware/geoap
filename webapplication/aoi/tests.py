@@ -360,7 +360,7 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_get_notebook_list_as_not_staff_user(self):
-        expected_results_len = 3
+        expected_results_len = 2
         self.client.force_authenticate(user=self.not_staff_user)
         response = self.get_notebook_list()
         content = json.loads(response.content)
