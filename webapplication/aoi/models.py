@@ -50,6 +50,10 @@ class Component(models.Model):
     def is_notebook(self):
         return  not bool(self.command) and (bool(self.notebook_path) and bool(self.kernel_name))
 
+    @property
+    def validated(self):
+        return (self.run_validation and self.success)
+
     class Meta:
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
