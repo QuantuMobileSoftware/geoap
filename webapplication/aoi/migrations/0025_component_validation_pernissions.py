@@ -20,7 +20,6 @@ def add_permissions(apps, schema_editor):
     db_alias = schema_editor.connection.alias
     
     permissions_data = [
-        {"codename": "can_see_not_validated", "name": "Can retrieve not validated components in a common list", "content_type": component_def_content_type},
         {"codename": "can_run_not_validated", "name": "Can run requests with not validated components", "content_type": component_def_content_type},
     ]
     
@@ -42,7 +41,6 @@ def update_ds_engineer_group_permissions(apps, schema_editor):
     db_alias = schema_editor.connection.alias
     
     group, _ = group_model.objects.using(db_alias).get_or_create(name="Data_science_engineer")
-    group.permissions.add(permission_model.objects.using(db_alias).get(codename="can_see_not_validated"))
     group.permissions.add(permission_model.objects.using(db_alias).get(codename="can_run_not_validated"))
 
 class Migration(migrations.Migration):

@@ -129,12 +129,6 @@ class ComponentListCreateAPIView(ListCreateAPIView):
     serializer_class = ComponentSerializer
     pagination_class = None
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        if not self.request.user.has_perm('aoi.can_see_not_validated'):
-            queryset = queryset.filter(run_validation=True, success=True)
-        return queryset
-
 
 class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     """
@@ -150,14 +144,7 @@ class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     http_method_names = ("get", "patch", 'delete')
-
-    def get(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if not instance.validated and not self.request.user.has_perm('aoi.can_see_not_validated'):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-     
+   
     
 class RequestListCreateAPIView(ListCreateAPIView):
     """
