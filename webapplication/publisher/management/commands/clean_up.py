@@ -1,7 +1,9 @@
+import fcntl
 import logging
 import os
 import os.path
 import shutil
+import tempfile
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -10,19 +12,21 @@ from publisher.management.commands._File import FileFactory
 
 from publisher.models import Result
 from aoi.models import Request
-from publisher.management.commands._PublisherHelper import PublisherHelper
+from publisher.management.commands._PublisherUtils import CommandOnyOneInstanceViaFileLock, scan_folder
 
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand, PublisherHelper):
+class Command(BaseCommand, CommandOnyOneInstanceViaFileLock):
     help = 'Cleaning up folders and results'
 
     def handle(self, *args, **options):
         
-        if self.instance_already_running("cleanup"):
+        if self.instance_already_running():
             return
-        
+
+        self.tiles_folder = settings.TILES_FOLDER
+        self.base_folder = settings.RESULTS_FOLDER
         self.file_factory = FileFactory(settings.RESULTS_FOLDER)
         self.do_stuff()
 
@@ -42,7 +46,7 @@ class Command(BaseCommand, PublisherHelper):
             files (List[File]): list of files - results of current request iteration
         """
 
-        filepaths = [f[len(self.base_folder)+1:] for f in self._scan_folder(self.base_folder)]
+        filepaths = [f[len(self.base_folder)+1:] for f in scan_folder(self.base_folder)]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
         logger.info(f"Deleting {to_delete.count()} objects. Paths: "
                     f"{[file.filepath for file in to_delete]}")
@@ -90,5 +94,3 @@ class Command(BaseCommand, PublisherHelper):
         for check_folder in empty_folders:
             if [f for f in active_request_affiliated_folders if check_folder.startswith(f)]:continue
             shutil.rmtree(check_folder, ignore_errors=True)
-    
-
