@@ -144,7 +144,7 @@ class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     http_method_names = ("get", "patch", 'delete')
-    
+   
     
 class RequestListCreateAPIView(ListCreateAPIView):
     """
@@ -169,6 +169,10 @@ class RequestListCreateAPIView(ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        component = Component.objects.get(pk=serializer.initial_data['notebook'])
+        if not component.validated and \
+                not self.request.user.has_perm('aoi.can_run_not_validated'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

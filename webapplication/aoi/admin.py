@@ -1,7 +1,5 @@
 from django.contrib.gis import admin
 from .models import AoI, Component, Request
-from django.db.models import JSONField
-from flat_json_widget.widgets import FlatJsonWidget
 from .forms import ComponentAdminForm
 
 
@@ -19,7 +17,7 @@ class ComponentAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'name', 'image', 'notebook_path', 'kernel_name', 'run_validation', 'success',
                     'additional_parameter', 'period_required',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
-    readonly_fields = ('pk', 'run_validation', 'success', )
+    readonly_fields = ('pk',)
 
     form = ComponentAdminForm
 
