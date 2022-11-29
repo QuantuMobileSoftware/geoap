@@ -161,7 +161,7 @@ class PublisherThread(StoppableThread):
         logger.info(f"Starting publish command")
         calculated_requests = Request.objects.filter(calculated=True, success=False)
         for request in calculated_requests:
-            management.call_command(f"publish", request.pk)
+            management.call_command("publish", request.pk)
             logger.info(f"Marking request {request.pk} as succeeded")
             request.success=True
             request.finished_at=localtime()
