@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import shutil
+from typing import Optional
 import geopandas
 import pyproj
 import rasterio
@@ -29,28 +30,28 @@ class FileFactory(object):
     def __init__(self, basedir):
         self.basedir = basedir
 
-    def get_file_obj(self, path):
+    def get_file_obj(self, path, request: Optional[Request] = None):
         path_lower = path.lower()
         if path_lower.endswith('.geojson'):
-            return Geojson(path, self.basedir)
+            return Geojson(path, self.basedir, request)
         elif path_lower.endswith(('.tif', '.tiff')):
-            return Geotif(path, self.basedir)
+            return Geotif(path, self.basedir, request)
         else:
             return
 
 
 class File(metaclass=ABCMeta):
-    def __init__(self, path, basedir):
+    def __init__(self, path, basedir, request: Optional[Request]=None):
         self.path = path
         self.basedir = basedir
-
+        
         self.bound_box = None
         self.crs = "epsg:4326"
 
         self.name = None
-        self.start_date = None
-        self.end_date = None
-        self.request = None
+        self.start_date = request.date_from if request else None
+        self.end_date = request.date_to if request else None
+        self.request = request
         self.style_url = None
         self.labels = ""
         self.colormap = ""
@@ -110,7 +111,7 @@ class File(metaclass=ABCMeta):
                      name='',
                      start_date=None,
                      end_date=None,
-                     request=None,
+                     request=self.request,
                      released=False,
                      labels=self.labels,
                      colormap=self.colormap)
@@ -131,13 +132,6 @@ class File(metaclass=ABCMeta):
                 dict_['end_date'] = None
                 logger.error(f"Error when getting  end_date from file {dict_['filepath']}")
                 logger.error(str(ex))
-        if self.request:
-            try:
-                request = Request.objects.get(pk=self.request)
-                dict_['request'] = request
-                dict_['released'] = True
-            except Request.DoesNotExist:
-                logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
         if self.style_url:
             dict_['styles_url'] = self.style_url
 
@@ -168,9 +162,17 @@ class Geojson(File):
                 geojson = json.load(file)
 
                 self.name = geojson.get('name')
-                self.start_date = geojson.get('start_date')
-                self.end_date = geojson.get('end_date')
-                self.request = geojson.get('request_id')
+                try:
+                    file_start_date = timestamp_parser.parse(geojson.get('start_date'))
+                    self.start_date = max(self.start_date, file_start_date) if self.start_date else file_start_date
+                except TypeError or ValueError:
+                    pass
+
+                try:
+                    file_end_date = timestamp_parser.parse(geojson.get('end_date'))
+                    self.end_date = min(self.end_date, file_start_date) if self.end_date else file_end_date
+                except TypeError or ValueError:
+                    pass
 
             self.df = geopandas.read_file(self.path)
             if str(self.df.crs) != self.crs:
@@ -283,9 +285,18 @@ class Geotif(File):
 
                 tags = dataset.tags()
                 self.name = tags.get('name')
-                self.start_date = tags.get('start_date')
-                self.end_date = tags.get('end_date')
-                self.request = tags.get('request_id')
+                try:
+                    file_start_date = timestamp_parser.parse(tags.get('start_date'))
+                    self.start_date = max(self.start_date, file_start_date) if self.start_date else file_start_date
+                except TypeError or ValueError:
+                    pass
+
+                try:
+                    file_end_date = timestamp_parser.parse(tags.get('end_date'))
+                    self.end_date = min(self.end_date, file_start_date) if self.end_date else file_end_date
+                except TypeError or ValueError:
+                    pass
+
                 self.labels = tags.get('labels')
                 self.colormap = tags.get('colormap')
         except Exception as ex:
