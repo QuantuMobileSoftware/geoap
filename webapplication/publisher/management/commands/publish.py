@@ -69,15 +69,17 @@ class Command(BaseCommand):
     
     def _read(self):
         logger.info(f"Reading files in {self.results_folder} folder...")
-        exclude = ['.ipynb_checkpoints', ]
+        exclude_dirs = ['.ipynb_checkpoints', ]
+        exclude_file_endings = ['.ipynb',]
         files = list()
         active_requests_ids = self._get_active_requests_ids()
         for dirpath, dirs, filenames in os.walk(self.results_folder):
-            dirs[:] = [d for d in dirs if d not in exclude]
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
             request_id = self._get_request_id_from_path(dirpath)
             if not request_id or request_id in active_requests_ids : continue
             request = Request.objects.get(pk=request_id)
             for file in filenames:
+                if any([file.endswith(f) for f in exclude_file_endings]): continue
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
                     f = self.file_factory.get_file_obj(path, request)
