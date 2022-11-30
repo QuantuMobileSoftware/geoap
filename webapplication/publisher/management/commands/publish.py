@@ -68,6 +68,10 @@ class Command(BaseCommand):
         return request_id
     
     def _read(self):
+        """Scan result folder of given request and read files
+        Returns:
+            List[File]:
+        """
         logger.info(f"Reading files in {self.results_folder} folder...")
         exclude_dirs = ['.ipynb_checkpoints', ]
         exclude_file_endings = ['.ipynb',]
@@ -91,6 +95,12 @@ class Command(BaseCommand):
         return files
 
     def _update_or_create(self, files):
+        """Check if result file was updated or does not exist in db as Result,
+        (re)generate tiles and create Result instance if needed
+        Args:
+            files (List[File]): List of files to check
+        """
+
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
@@ -120,6 +130,12 @@ class Command(BaseCommand):
                     continue
 
     def _clean(self, files):
+        """"Delete tiles from tiles folder and Results from DB
+        for result deleted from its result folder
+        Args:
+            files (List[File]): list of files - results of current request iteration
+        """
+
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
@@ -141,6 +157,8 @@ class Command(BaseCommand):
         logger.info(f"Deleting finished")
 
     def _delete(self):
+        """Delete results&titles of all results, marked as to_be_deleted"""
+
         to_delete = Result.objects.filter(to_be_deleted=True)
         try:
             for result in to_delete:
@@ -163,6 +181,7 @@ class Command(BaseCommand):
         Args:
             folder (str)
         """
+        
         active_requests_id = self._get_active_requests_ids()
         empty_folders = [dir for dir, subdirs, files in os.walk(folder) 
                     if not bool(subdirs) and not bool(files) and dir != folder]
