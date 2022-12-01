@@ -938,7 +938,7 @@ COPY public.aoi_aoi (id, name, polygon, createdat, user_id, type) FROM stdin;
 
 COPY public.aoi_component (id, name, image, notebook_path, kernel_name, run_validation, success, additional_parameter, run_on_gpu, period_required, command, sentinel_google_api_key_required, planet_api_key_required) FROM stdin;
 1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	python37	t	t	\N	t	t	\N	f	f
-7	TCI_NDVI	sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	t	t	\N	f	t	\N	t	f
+7	TCI_NDVI	registry.quantumobile.co/sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	t	t	\N	f	t	\N	t	f
 5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb	python37	t	t	\N	t	t	\N	f	f
 3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	python37	t	t	\N	t	t	\N	f	f
 2	example_geotiff	sip_jupyter:latest	work/notebooks/example/geotiff.ipynb	python37	t	t	\N	t	f	\N	f	f

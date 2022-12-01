@@ -118,7 +118,7 @@ class File(metaclass=ABCMeta):
                      start_date=None,
                      end_date=None,
                      request=self.request,
-                     released=False,
+                     released=True if self.request else False,
                      labels=self.labels,
                      colormap=self.colormap)
 

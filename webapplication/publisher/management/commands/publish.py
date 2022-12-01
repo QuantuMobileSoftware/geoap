@@ -52,7 +52,8 @@ class Command(BaseCommand):
     def _get_active_requests_ids(self) -> List[int]:
         """Return a list of folders, affiliated with active requests"""
         active_requests_ids = Request.objects.filter(started_at__isnull=False) \
-                                            .exclude(finished_at__isnull=True) \
+                                            .filter(finished_at__isnull=True) \
+                                            .filter(calculated=False) \
                                             .values_list('id', flat=True)
         return active_requests_ids
     
@@ -135,7 +136,8 @@ class Command(BaseCommand):
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
         logger.info(f"Deleting {to_delete.count()} objects. Paths: "
-                    f"{[file.filepath for file in to_delete]}")
+                    f"{[file.filepath for file in to_delete]} excluding "
+                    f"{[file.filepath() for file in files]}")
         try:
             logger.info(f"Deleting {to_delete.count()} tiles.")
 
