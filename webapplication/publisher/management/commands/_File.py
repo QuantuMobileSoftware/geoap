@@ -163,14 +163,12 @@ class Geojson(File):
 
                 self.name = geojson.get('name')
                 try:
-                    file_start_date = timestamp_parser.parse(geojson.get('start_date'))
-                    self.start_date = max(self.start_date, file_start_date) if self.start_date else file_start_date
+                    self.start_date = timestamp_parser.parse(geojson.get('start_date'))
                 except TypeError or ValueError:
                     pass
 
                 try:
-                    file_end_date = timestamp_parser.parse(geojson.get('end_date'))
-                    self.end_date = min(self.end_date, file_start_date) if self.end_date else file_end_date
+                    self.end_date = timestamp_parser.parse(geojson.get('end_date'))
                 except TypeError or ValueError:
                     pass
 
@@ -286,14 +284,12 @@ class Geotif(File):
                 tags = dataset.tags()
                 self.name = tags.get('name')
                 try:
-                    file_start_date = timestamp_parser.parse(tags.get('start_date'))
-                    self.start_date = max(self.start_date, file_start_date) if self.start_date else file_start_date
+                    self.start_date = timestamp_parser.parse(tags.get('start_date'))
                 except TypeError or ValueError:
                     pass
 
                 try:
-                    file_end_date = timestamp_parser.parse(tags.get('end_date'))
-                    self.end_date = min(self.end_date, file_start_date) if self.end_date else file_end_date
+                    self.end_date = timestamp_parser.parse(tags.get('end_date'))
                 except TypeError or ValueError:
                     pass
 
