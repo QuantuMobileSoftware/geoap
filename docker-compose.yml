@@ -52,17 +52,3 @@ services:
       - "9000:9000"
     depends_on:
       - webapplication
-
-  jupyter:
-    build:
-      context: ./jupyter/example
-      dockerfile: Dockerfile
-    ports:
-      - "8888:8888"
-    command: "start-notebook.sh \
-    --NotebookApp.password='argon2:$$argon2id$$v=19$$m=10240,t=10,p=8$$Cfx8QuGthz224RKGPWA4uw$$J0e17gE3zzRZGpLa/z6a+g' \
-    "
-    volumes:
-      - ./data:/home/jovyan/work
-    environment:
-      - JUPYTER_ENABLE_LAB=yes

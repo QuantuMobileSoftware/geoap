@@ -1,51 +1,55 @@
 # python 3.6
-import argparse
 import json
 import logging
 import os
 import sys
+from pathlib import Path
+import argparse
+from shutil import copytree, ignore_patterns
 
 from datetime import datetime
 from subprocess import Popen, PIPE, TimeoutExpired
 
+logger = logging.getLogger(__name__)
+
 parser = argparse.ArgumentParser(description='Script for edit and execute notebook')
 parser.add_argument('--input_path', type=str, help='Path to an original notebook', required=True)
-parser.add_argument('--request_id', type=int, help='Request id', required=True)
-parser.add_argument('--aoi', type=str, help='AOI polygon as WKT string', required=True)
-parser.add_argument('--start_date', type=str, help='Start date of calculations', required=True)
-parser.add_argument('--end_date', type=str, help='End date of calculations', required=True)
 parser.add_argument('--kernel', type=str, help='Kernel name', default=None)
 parser.add_argument('--cell_timeout', type=int, help='Max execution time (sec) for cell', required=True)
 parser.add_argument('--notebook_timeout', type=int, help='Max execution time (sec) for full notebook process',
                     required=True)
 parser.add_argument('--parameter_name', type=str, help='Additional parameter name', default=None)
-parser.add_argument('--parameter_val', type=str, help='Additional parameter value', default=None)
-parser.add_argument('--planet_api_key', type=str, help='Planet API key', default=None)
-
-logger = logging.getLogger(__name__)
-
 
 class NotebookExecutor:
     def __init__(self, args):
         self.input_path = args.input_path
-        self.request_id = args.request_id
+        self.request_id = os.getenv('REQUEST_ID')
+        self.output_folder = os.getenv('OUTPUT_FOLDER')
 
-        self.PARAMS = dict(REQUEST_ID=args.request_id,
-                           AOI=args.aoi,
-                           START_DATE=args.start_date if args.start_date != 'None' else None,
-                           END_DATE=args.end_date if args.end_date != 'None' else None)
+        self.PARAMS = dict(REQUEST_ID=self.request_id,
+                           START_DATE=os.getenv('START_DATE'),
+                           END_DATE=os.getenv('END_DATE'),
+                           AOI=os.getenv('AOI'),
+                           SENTINEL2_GOOGLE_API_KEY=os.getenv('SENTINEL2_GOOGLE_API_KEY'),
+                           SENTINEL2_CACHE=os.getenv('SENTINEL2_CACHE'),
+                           OUTPUT_FOLDER=self.output_folder                          
+                           )
 
-        if args.parameter_name and args.parameter_val:
-            self.PARAMS[args.parameter_name.upper()] = args.parameter_val
-        if args.planet_api_key:
-            self.PARAMS['PLANET_API_KEY'] = args.planet_api_key
+        if args.parameter_name:
+            self.PARAMS.update(
+                {
+                    args.parameter_name:os.getenv(args.parameter_name)
+                }
+            )
+
         self.cell_timeout = args.cell_timeout
         self.notebook_timeout = args.notebook_timeout
         self.kernel_name = args.kernel
         self.notebook = self.read()
 
         timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-        self.save_path = f"{os.path.splitext(self.input_path)[0]}_{self.request_id}_{timestamp}.ipynb"
+        self.parametrized_notebook = os.path.join(os.path.dirname(self.input_path), f"{Path(self.input_path).stem}_{timestamp}.ipynb")
+        self.save_path =os.path.join(self.output_folder, f"{Path(self.input_path).stem}_{timestamp}.ipynb")
 
     def edit(self):
         self._first_code_cell()['source'] += "\n\n# added by backend notebook_executor.py script:" \
@@ -66,7 +70,7 @@ class NotebookExecutor:
         return notebook
 
     def write(self):
-        with open(self.save_path, "w") as file:
+        with open(self.parametrized_notebook, "w") as file:
             json.dump(self.notebook, file)
 
     def execute(self):
@@ -75,10 +79,12 @@ class NotebookExecutor:
                    "--inplace",
                    "--to=notebook",
                    "--execute",
+                   self.parametrized_notebook,
+                   "--output",
                    self.save_path,
                    "--allow-errors",
                    "--ExecutePreprocessor.timeout",
-                   str(self.cell_timeout), ]
+                   str(self.cell_timeout),]
 
         if self.kernel_name:
             command.append(f"--ExecutePreprocessor.kernel_name={self.kernel_name}")
