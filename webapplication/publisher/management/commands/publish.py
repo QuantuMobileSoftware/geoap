@@ -3,7 +3,6 @@ import fcntl
 import os
 import os.path
 import re
-import shutil
 import tempfile
 from pathlib import Path
 from typing import List, Optional
@@ -49,8 +48,6 @@ class Command(BaseCommand):
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        self._rm_empty_dirs(settings.TILES_FOLDER)
-        self._rm_empty_dirs(settings.RESULTS_FOLDER)
     
     def _get_active_requests_ids(self) -> List[int]:
         """Return a list of folders, affiliated with active requests"""
@@ -80,7 +77,7 @@ class Command(BaseCommand):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
             request_id = self._get_request_id_from_path(dirpath)
             if request_id in active_requests_ids : continue
-            request = Request.objects.get(pk=request_id)
+            request = Request.objects.filter(pk=request_id).first()
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
@@ -164,7 +161,10 @@ class Command(BaseCommand):
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
                 Path.unlink(Path(filepath))
-
+                try:
+                    os.rmdir(Path(filepath).parent)
+                except OSError:
+                    pass
             logger.info("Deleting tiles finished")
 
             to_delete.delete()
@@ -172,17 +172,3 @@ class Command(BaseCommand):
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
         logger.info(f"Deleting results files finished")
-
-    def _rm_empty_dirs(self, folder:str):
-        """Remove empty folders inside given folder that
-         not belong to currently executing requests.
-        Args:
-            folder (str)
-        """
-        
-        active_requests_id = self._get_active_requests_ids()
-        empty_folders = [dir for dir, subdirs, files in os.walk(folder) 
-                    if not bool(subdirs) and not bool(files) and dir != folder]
-        for check_folder in empty_folders:
-            if self._get_request_id_from_path(check_folder) in active_requests_id : continue
-            shutil.rmtree(check_folder, ignore_errors=True)

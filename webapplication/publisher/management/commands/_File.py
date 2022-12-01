@@ -8,6 +8,7 @@ import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
+from pathlib import Path
 
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
@@ -22,6 +23,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
 from aoi.models import Request
 from publisher.models import Result
+
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +101,10 @@ class File(metaclass=ABCMeta):
             try:
                 logger.info(f'Deleting {delete_path} tiles')
                 shutil.rmtree(delete_path)
+                try:
+                    os.rmdir(Path(delete_path).parent)
+                except OSError:
+                    pass
             except OSError as e:
                 logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
@@ -342,5 +348,9 @@ class Geotif(File):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         try:
             shutil.rmtree(delete_path)
+            try:
+                os.rmdir(Path(delete_path).parent)
+            except OSError:
+                pass
         except OSError as e:
             logger.error(f"Error delete {delete_path} tile: {e.strerror}")

@@ -383,10 +383,10 @@ class PublisherBase(APITestCase):
         return features
 
     def create_geojson(self):
-        self.test_geojson_result_path = Path('/results') / str(self.test_request_id)
+        self.test_geojson_result_path = Path('/results')
         features = self.generate_features()
         for cnt in range(len(features)):
-            with open(f"{self.test_results_folder}/{features[cnt][0]}.geojson", 'w') as file:
+            with open(f"{self.test_results_folder}/{str(self.test_request_id)}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
 
     def create_big_geojson(self):
