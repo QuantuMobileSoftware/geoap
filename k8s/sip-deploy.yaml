@@ -218,8 +218,7 @@ spec:
       containers:
         - name: web-application
           image: registry.quantumobile.co/sip-web-application:latest
-          # imagePullPolicy: "Always"
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: "Always"
           command: ['/bin/bash', '-c', 'exec invoke run-prod']
           ports:
           - containerPort: 9000
@@ -281,8 +280,7 @@ spec:
       containers:
       - name: frontend
         image: registry.quantumobile.co/sip-web-server:latest
-        # imagePullPolicy: "Always"
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         env:
           - name: MAPBOX_ACCESS_TOKEN
             valueFrom:
@@ -326,8 +324,7 @@ spec:
       containers:
         - name: notebook-handler
           image: registry.quantumobile.co/sip-web-application:latest
-          # imagePullPolicy: "Always"
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: "Always"
           command: ['/bin/bash', '-c', 'exec invoke run-notebook-executor-k8s']
           env:
             - name: POSTGRES_USER
