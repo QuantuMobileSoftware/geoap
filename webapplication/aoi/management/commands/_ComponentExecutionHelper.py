@@ -29,7 +29,7 @@ class ComponentExecutionHelper():
                 settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
                 str(settings.RESULTS_FOLDER). \
                     replace(os.path.commonpath([settings.RESULTS_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
-                str(request.pk)
+                f"request_{request.pk}"
             ),
             'SENTINEL2_CACHE':os.path.join(
                 settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
@@ -86,7 +86,7 @@ class ComponentExecutionHelper():
         os.makedirs(
             os.path.join(
                 settings.RESULTS_FOLDER,
-                str(request.pk)
+                f"request_{request.pk}"
             ),
             exist_ok=True
         )

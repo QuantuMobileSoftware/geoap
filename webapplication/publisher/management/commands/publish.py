@@ -2,16 +2,19 @@ import logging
 import fcntl
 import os
 import os.path
+import re
 import tempfile
 from pathlib import Path
+from typing import List, Optional
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from publisher.management.commands._File import FileFactory, File
+from publisher.management.commands._File import FileFactory
 from publisher.models import Result
+from aoi.models import Request
+
 
 logger = logging.getLogger(__name__)
-
 
 def instance_already_running(label='default'):
     """
@@ -29,18 +32,6 @@ def instance_already_running(label='default'):
 
     return already_running
 
-
-def rm_empty_dirs(folder):
-    """
-       Remove empty dirs and sub dirs
-    """
-    logger.info(f'Removing of empty directories in {folder} started ')
-    command = ["find", folder, "-mindepth", "1", "-empty", "-type", "d", "-delete"]
-    File.run_process(command, settings.MAX_TIMEOUT_FOR_FOLDER_CLEANING)
-    logger.info(f'Removing of empty directories in {folder} finished ')
-    return
-
-
 class Command(BaseCommand):
     help = 'Publisher polls results folder every 60 sec and updates results table'
 
@@ -57,19 +48,40 @@ class Command(BaseCommand):
         self._update_or_create(files)
         self._clean(files)
         self._delete()
-        rm_empty_dirs(settings.TILES_FOLDER)
-        rm_empty_dirs(settings.RESULTS_FOLDER)
-
+    
+    def _get_active_requests_ids(self) -> List[int]:
+        """Return a list of folders, affiliated with active requests"""
+        active_requests_ids = Request.objects.filter(started_at__isnull=False) \
+                                            .exclude(finished_at__isnull=True) \
+                                            .values_list('id', flat=True)
+        return active_requests_ids
+    
+    def _get_request_id_from_path(self, path:str) -> Optional[int]:
+        id_regex = re.compile("(?<=request_)\d+")
+        try:
+            request_id = int(id_regex.search(path).group())
+        except AttributeError:
+            request_id = None
+        return request_id
+    
     def _read(self):
+        """Scan result folder of given request and read files
+        Returns:
+            List[File]:
+        """
         logger.info(f"Reading files in {self.results_folder} folder...")
-        exclude = ['.ipynb_checkpoints', ]
+        exclude_dirs = ['.ipynb_checkpoints', ]
         files = list()
+        active_requests_ids = self._get_active_requests_ids()
         for dirpath, dirs, filenames in os.walk(self.results_folder):
-            dirs[:] = [d for d in dirs if d not in exclude]
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            request_id = self._get_request_id_from_path(dirpath)
+            if request_id in active_requests_ids : continue
+            request = Request.objects.filter(pk=request_id).first()
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
                 try:
-                    f = self.file_factory.get_file_obj(path)
+                    f = self.file_factory.get_file_obj(path, request)
                     if f:
                         files.append(f)
                 except Exception as ex:
@@ -78,6 +90,12 @@ class Command(BaseCommand):
         return files
 
     def _update_or_create(self, files):
+        """Check if result file was updated or does not exist in db as Result,
+        (re)generate tiles and create Result instance if needed
+        Args:
+            files (List[File]): List of files to check
+        """
+
         logger.info(f"Updating or creating files...")
         for file in files:
             file_dict = file.as_dict()
@@ -107,6 +125,12 @@ class Command(BaseCommand):
                     continue
 
     def _clean(self, files):
+        """"Delete tiles from tiles folder and Results from DB
+        for result deleted from its result folder
+        Args:
+            files (List[File]): list of files - results of current request iteration
+        """
+
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
@@ -117,7 +141,7 @@ class Command(BaseCommand):
 
             for result in to_delete:
                 filepath = os.path.join(self.results_folder, result.filepath)
-                f = self.file_factory.get_file_obj(filepath)
+                f = self.file_factory.get_file_obj(filepath, result.request)
                 f.delete_tiles(self.tiles_folder)
             logger.info("Deleting tiles finished")
 
@@ -128,6 +152,8 @@ class Command(BaseCommand):
         logger.info(f"Deleting finished")
 
     def _delete(self):
+        """Delete results&titles of all results, marked as to_be_deleted"""
+
         to_delete = Result.objects.filter(to_be_deleted=True)
         try:
             for result in to_delete:
@@ -135,7 +161,10 @@ class Command(BaseCommand):
                 f = self.file_factory.get_file_obj(filepath)
                 f.delete_tiles(self.tiles_folder)
                 Path.unlink(Path(filepath))
-
+                try:
+                    os.rmdir(Path(filepath).parent)
+                except OSError:
+                    pass
             logger.info("Deleting tiles finished")
 
             to_delete.delete()

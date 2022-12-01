@@ -2,11 +2,13 @@ import logging
 import os
 import json
 import shutil
+from typing import Optional
 import geopandas
 import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
+from pathlib import Path
 
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
@@ -22,6 +24,7 @@ from django.utils import timezone
 from aoi.models import Request
 from publisher.models import Result
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,28 +32,28 @@ class FileFactory(object):
     def __init__(self, basedir):
         self.basedir = basedir
 
-    def get_file_obj(self, path):
+    def get_file_obj(self, path, request: Optional[Request] = None):
         path_lower = path.lower()
         if path_lower.endswith('.geojson'):
-            return Geojson(path, self.basedir)
+            return Geojson(path, self.basedir, request)
         elif path_lower.endswith(('.tif', '.tiff')):
-            return Geotif(path, self.basedir)
+            return Geotif(path, self.basedir, request)
         else:
             return
 
 
 class File(metaclass=ABCMeta):
-    def __init__(self, path, basedir):
+    def __init__(self, path, basedir, request: Optional[Request]=None):
         self.path = path
         self.basedir = basedir
-
+        
         self.bound_box = None
         self.crs = "epsg:4326"
 
         self.name = None
-        self.start_date = None
-        self.end_date = None
-        self.request = None
+        self.start_date = request.date_from if request else None
+        self.end_date = request.date_to if request else None
+        self.request = request
         self.style_url = None
         self.labels = ""
         self.colormap = ""
@@ -98,6 +101,10 @@ class File(metaclass=ABCMeta):
             try:
                 logger.info(f'Deleting {delete_path} tiles')
                 shutil.rmtree(delete_path)
+                try:
+                    os.rmdir(Path(delete_path).parent)
+                except OSError:
+                    pass
             except OSError as e:
                 logger.error(f"Error delete {delete_path} tile: {e.strerror}")
 
@@ -110,7 +117,7 @@ class File(metaclass=ABCMeta):
                      name='',
                      start_date=None,
                      end_date=None,
-                     request=None,
+                     request=self.request,
                      released=False,
                      labels=self.labels,
                      colormap=self.colormap)
@@ -118,29 +125,11 @@ class File(metaclass=ABCMeta):
         if self.name:
             dict_['name'] = self.name
         if self.start_date:
-            try:
-                dict_['start_date'] = timestamp_parser.parse(self.start_date)
-            except Exception as ex:
-                dict_['start_date'] = None
-                logger.error(f"Error when getting  start_date from file {dict_['filepath']}")
-                logger.error(str(ex))
+            dict_['start_date'] = self.start_date
         if self.end_date:
-            try:
-                dict_['end_date'] = timestamp_parser.parse(self.end_date)
-            except Exception as ex:
-                dict_['end_date'] = None
-                logger.error(f"Error when getting  end_date from file {dict_['filepath']}")
-                logger.error(str(ex))
-        if self.request:
-            try:
-                request = Request.objects.get(pk=self.request)
-                dict_['request'] = request
-                dict_['released'] = True
-            except Request.DoesNotExist:
-                logger.warning(f"Request id {self.request} not exists in aoi_request table! Check {self.path}!")
+            dict_['end_date'] = self.end_date
         if self.style_url:
             dict_['styles_url'] = self.style_url
-
         return dict_
 
     @staticmethod
@@ -168,9 +157,15 @@ class Geojson(File):
                 geojson = json.load(file)
 
                 self.name = geojson.get('name')
-                self.start_date = geojson.get('start_date')
-                self.end_date = geojson.get('end_date')
-                self.request = geojson.get('request_id')
+                try:
+                    self.start_date = timestamp_parser.parse(geojson.get('start_date'))
+                except TypeError or ValueError:
+                    pass
+
+                try:
+                    self.end_date = timestamp_parser.parse(geojson.get('end_date'))
+                except TypeError or ValueError:
+                    pass
 
             self.df = geopandas.read_file(self.path)
             if str(self.df.crs) != self.crs:
@@ -283,9 +278,16 @@ class Geotif(File):
 
                 tags = dataset.tags()
                 self.name = tags.get('name')
-                self.start_date = tags.get('start_date')
-                self.end_date = tags.get('end_date')
-                self.request = tags.get('request_id')
+                try:
+                    self.start_date = timestamp_parser.parse(tags.get('start_date'))
+                except TypeError or ValueError:
+                    pass
+
+                try:
+                    self.end_date = timestamp_parser.parse(tags.get('end_date'))
+                except TypeError or ValueError:
+                    pass
+
                 self.labels = tags.get('labels')
                 self.colormap = tags.get('colormap')
         except Exception as ex:
@@ -335,5 +337,9 @@ class Geotif(File):
         delete_path = os.path.join(tiles_folder, os.path.splitext(self.filepath())[0])
         try:
             shutil.rmtree(delete_path)
+            try:
+                os.rmdir(Path(delete_path).parent)
+            except OSError:
+                pass
         except OSError as e:
             logger.error(f"Error delete {delete_path} tile: {e.strerror}")
