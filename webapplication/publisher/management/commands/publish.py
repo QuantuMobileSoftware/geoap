@@ -57,7 +57,7 @@ class Command(BaseCommand):
         return active_requests_ids
     
     def _get_request_id_from_path(self, path:str) -> Optional[int]:
-        id_regex = re.compile("((?<=^%s/)|(?<=^%s/))\d+((?=\/|$)){1}" % (self.results_folder, self.tiles_folder))
+        id_regex = re.compile("(?<=request_)\d+")
         try:
             request_id = int(id_regex.search(path).group())
         except AttributeError:

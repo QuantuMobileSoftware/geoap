@@ -304,9 +304,8 @@ class PublisherBase(APITestCase):
 
     def setUp(self):
         self.test_results_folder = Path(settings.RESULTS_FOLDER)
-        self.test_request_id = "1001"
-        os.makedirs(self.test_results_folder / self.test_request_id, exist_ok=True)
-        # self.test_results_folder.mkdir(parents=True, exist_ok=True)
+        self.test_request_folder = "request_1001"
+        os.makedirs(self.test_results_folder / self.test_request_folder, exist_ok=True)
         logger.info(f'test_results_folder: {self.test_results_folder}')
 
         self.test_tile_folder = Path(settings.TILES_FOLDER)
@@ -345,8 +344,8 @@ class PublisherBase(APITestCase):
         self.colormap = '{"name": "Vegetation index", "colors": ["0,0,0", "3,1,1", "5,1,1", "8,1,1", "10,1,1"], \
         "labels": ["low", "high"]}'
         self.tiff_name = Path('black_image.tif')
-        self.test_tif_path = self.test_results_folder / self.test_request_id / self.tiff_name
-        self.test_tile_result_path = Path('/tiles')/ self.test_request_id / self.tiff_name.stem
+        self.test_tif_path = self.test_results_folder / self.test_request_folder / self.tiff_name
+        self.test_tile_result_path = Path('/tiles')/ self.test_request_folder / self.tiff_name.stem
         self.test_tile_png_path = self.test_tile_result_path/ '{z}/{x}/{y}.png'
         logger.info(f'test_tile_result_path: {self.test_tile_result_path}')
         logger.info(f'test_tile_png_path: {self.test_tile_png_path}')
@@ -386,14 +385,14 @@ class PublisherBase(APITestCase):
         self.test_geojson_result_path = Path('/results')
         features = self.generate_features()
         for cnt in range(len(features)):
-            with open(f"{self.test_results_folder}/{str(self.test_request_id)}/{features[cnt][0]}.geojson", 'w') as file:
+            with open(f"{self.test_results_folder}/{str(self.test_request_folder)}/{features[cnt][0]}.geojson", 'w') as file:
                 geojson.dump(features[cnt][1], file)
 
     def create_big_geojson(self):
         self.big_geojson_name = Path('big.geojson')
-        self.geojson_path = self.test_results_folder/ str(self.test_request_id) / self.big_geojson_name
-        self.mvt_path = self.test_tile_folder/ str(self.test_request_id) / self.big_geojson_name.stem
-        self.mvt_rel_url = Path('/tiles')/ str(self.test_request_id) / self.big_geojson_name.stem / '{z}/{x}/{y}.pbf'
+        self.geojson_path = self.test_results_folder/ str(self.test_request_folder) / self.big_geojson_name
+        self.mvt_path = self.test_tile_folder/ str(self.test_request_folder) / self.big_geojson_name.stem
+        self.mvt_rel_url = Path('/tiles')/ str(self.test_request_folder) / self.big_geojson_name.stem / '{z}/{x}/{y}.pbf'
         logger.info(f'mvt_path: {self.mvt_path}')
         logger.info(f'mvt_rel_url: {self.mvt_rel_url}')
 
@@ -406,9 +405,9 @@ class PublisherBase(APITestCase):
             
     def create_big_geojson_with_style(self):
         self.big_geojson_name = Path('big_style.geojson')
-        self.geojson_path = self.test_results_folder/ str(self.test_request_id) / self.big_geojson_name
-        self.mvt_styles_path = self.test_tile_folder/ str(self.test_request_id) / self.big_geojson_name.stem / 'style.json'
-        self.mvt_styles_url = Path('/tiles')/ str(self.test_request_id) / self.big_geojson_name.stem / 'style.json'
+        self.geojson_path = self.test_results_folder/ str(self.test_request_folder) / self.big_geojson_name
+        self.mvt_styles_path = self.test_tile_folder/ str(self.test_request_folder) / self.big_geojson_name.stem / 'style.json'
+        self.mvt_styles_url = Path('/tiles')/ str(self.test_request_folder) / self.big_geojson_name.stem / 'style.json'
         feature_list = [feature_obj[1] for feature_obj in self.generate_features()]
         for cnt in range(10):
             feature_list += feature_list
@@ -650,7 +649,7 @@ class PbdnnGeojsonPublisherTestCase(UserBase, PublisherBase):
         fixture_path = Path('publisher/fixtures/')
         self.geojson_name = Path('pbdnn.geojson')
         self.input_geojson_path = fixture_path / self.geojson_name
-        result_folder = self.test_results_folder/ self.test_request_id / self.geojson_name
+        result_folder = self.test_results_folder/ self.test_request_folder / self.geojson_name
         shutil.copy(self.input_geojson_path, result_folder)
     
     def test_get_field_from_result(self):
