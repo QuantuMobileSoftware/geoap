@@ -86,7 +86,7 @@ class ComponentExecutionHelper():
         os.makedirs(
             os.path.join(
                 settings.RESULTS_FOLDER,
-                str(request.pk)
+                f"request_{request.pk}"
             ),
             exist_ok=True
         )
