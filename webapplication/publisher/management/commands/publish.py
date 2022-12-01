@@ -79,7 +79,7 @@ class Command(BaseCommand):
         for dirpath, dirs, filenames in os.walk(self.results_folder):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
             request_id = self._get_request_id_from_path(dirpath)
-            if not request_id or request_id in active_requests_ids : continue
+            if request_id in active_requests_ids : continue
             request = Request.objects.get(pk=request_id)
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
