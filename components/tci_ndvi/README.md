@@ -8,6 +8,7 @@ For given aoi, prepare TCI and NDVI sentinel latest images
 ### Pull image
 
 `docker pull quantumobile/sip_tci_ndvi`
+
 ### Push to registry
 
 `docker push quantumobile/sip_tci_ndvi`
