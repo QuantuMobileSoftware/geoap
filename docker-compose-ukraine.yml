@@ -11,6 +11,7 @@ services:
       - POSTGRES_PASSWORD=Foo0roo0
     networks:
       - sip
+    restart: on-failure
 
   webapplication:
     build:
@@ -30,6 +31,7 @@ services:
       - db
     networks:
       - sip
+    restart: on-failure
 
   webserver:
     build:
@@ -58,6 +60,7 @@ services:
       - sip
     env_file:
       - .env
+    restart: on-failure
 
 networks:
   sip:
