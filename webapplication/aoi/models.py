@@ -42,6 +42,8 @@ class Component(models.Model):
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
     planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
     sentinel_google_api_key_required = models.BooleanField(default=False, verbose_name='Sentinel Google API key is required')
+    sentinel1_aws_creds_required = models.BooleanField(default=False, verbose_name='Sentinel 1 AWS credentials are required')
+    scihub_creds_required = models.BooleanField(default=False, verbose_name='Copernicus Open Access Hub credentials are required')
 
     def __str__(self):
         return self.name
