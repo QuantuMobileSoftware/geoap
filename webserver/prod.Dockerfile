@@ -16,7 +16,7 @@ ARG REACT_APP_AUTOPASSWORD
 ENV REACT_APP_AUTOPASSWORD $REACT_APP_AUTOPASSWORD
 
 WORKDIR /code
-COPY ./soilmate_frontend /code
+COPY ./webviewer /code
 RUN npm install && npm run build
 
 FROM nginx:1.19.3
