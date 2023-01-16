@@ -6,24 +6,6 @@ upstream webapplication {
 
 server {
     listen 80;
-    server_name soilmateukraine.quantumobile.co;
-
-    location / {
-        return 301 https://portal.soilmate.ai$request_uri;
-    }
-}
-
-server {
-    listen 80;
-    server_name demo.soilmate.ai;
-
-    location / {
-        return 301 https://portal.soilmate.ai$request_uri;
-    }
-}
-
-server {
-    listen 80;
     server_name portal.soilmate.ai;
 
     location / {

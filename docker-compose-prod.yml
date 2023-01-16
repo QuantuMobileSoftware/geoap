@@ -11,6 +11,7 @@ services:
       - POSTGRES_PASSWORD=Foo0roo0
     networks:
       - sip
+    restart: on-failure
 
   webapplication:
     build:
@@ -18,7 +19,7 @@ services:
       dockerfile: prod.Dockerfile
     volumes:
       - ./webapplication:/code
-      - /home/quantum/sip:/data
+      - ../data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-prod
@@ -30,23 +31,36 @@ services:
       - db
     networks:
       - sip
+    restart: on-failure
 
   webserver:
     build:
       context: ./
       dockerfile: ./webserver/prod.Dockerfile
+      args:
+        REACT_APP_HOTJAR_ID:
+        REACT_APP_HOTJAR_SV:
+        REACT_APP_EMAILJS_SERVICE_ID:
+        REACT_APP_EMAILJS_TEMPLATE_ID:
+        REACT_APP_EMAILJS_USER_ID:
+        REACT_APP_AUTOLOGIN:
+        REACT_APP_AUTOPASSWORD:
     volumes:
-      - /home/quantum/sip:/data
+      - ../data:/data
+      - /etc/letsencrypt:/etc/letsencrypt
     expose:
       - 80
+      - 443
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - webapplication
     networks:
       - sip
     env_file:
-      - /home/quantum/webserver.env
+      - .env
+    restart: on-failure
 
 networks:
   sip:
