@@ -1,5 +1,7 @@
 # GEOAP
 
+## About GEOAP Platform
+GeoAnalytics Platform (GeoAP) provides ready-to-use components to process satellite and drone imagery with AI-powered methods. The GeoAP platform meets the needs and requirements of almost all AI or CV-based application lifecycle participants: from developers to end-users, from development to operations. For additional information please visit https://quantumobile.com/geo-analytics/geo-analytics-platform
 
 ## Prerequisites and run with docker
 * `Docker` and `docker-compose` are needed for running the app. Here are the instructions:
