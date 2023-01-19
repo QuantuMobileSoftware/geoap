@@ -150,7 +150,7 @@ ___
 JSON file. Google Cloud Console Service account key. Required to retrieve Sentinel2 data from [Sentinel-2 data](https://cloud.google.com/storage/docs/public-datasets/sentinel-2) storage.
 
 #### **SENTINEL1_AWS_CREDS**
-JSON file. AWS service account key. Required to retrieve Sentinel2 data from [Sentinel-1](https://registry.opendata.aws/sentinel-1/) storage.
+JSON file. AWS service account key. Required to retrieve Sentinel1 data from [Sentinel-1](https://registry.opendata.aws/sentinel-1/) storage.
 
 #### **SCIHUB_CREDS**
 JSON file. [Copernicus Open Access Hub](https://scihub.copernicus.eu/) credentials: username&password. Like:
