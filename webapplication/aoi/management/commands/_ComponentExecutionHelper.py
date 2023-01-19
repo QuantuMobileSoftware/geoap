@@ -45,6 +45,14 @@ class ComponentExecutionHelper():
             env_update.update({
                 'PLANET_API_KEY':request.user.planet_api_key
             })
+        if request.component.sentinel1_aws_creds_required:
+            env_update.update({
+                'SENTINEL1_AWS_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL1_AWS_CREDS)
+            })
+        if request.component.scihub_creds_required:
+            env_update.update({
+                'SCIHUB_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SCIHUB_CREDS)
+            })
         if request.component.additional_parameter:
             env_update.update(
                 {
