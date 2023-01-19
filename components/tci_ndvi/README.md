@@ -23,7 +23,7 @@ docker run \
     -e "SENTINEL2_GOOGLE_API_KEY=/input/sentinel2_google_api_key.json" \
     -e "SENTINEL2_CACHE=/input/SENTINEL2_CACHE" \
     -e "OUTPUT_FOLDER=/output" \
-    -v `pwd`/data/SENTINEL2_CACHE:/input/SENTINEL2_CACHE \
+    -v `pwd`/data/satellite_imagery:/input/SENTINEL2_CACHE \
     -v `pwd`/data/.secret/sentinel2_google_api_key.json:/input/sentinel2_google_api_key.json \
     -v `pwd`/data/results/${REQUEST_ID}:/output \
     quantumobile/sip_tci_ndvi
