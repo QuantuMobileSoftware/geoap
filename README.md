@@ -140,3 +140,23 @@ During the first run and after volume erasing you need to populate data with ini
 The next command will fill database with data:
 
 `kubectl exec -it deploy/webapplication -- bash -c "python -m manage dbshell < clear.sql&&python -m manage dbshell < ./db.dump"`
+
+## Settings&Environment
+
+### Django settings
+___
+#### **SENTINEL2_GOOGLE_API_KEY**
+
+JSON file. Google Cloud Console Service account key. Required to retrieve Sentinel2 data from [Sentinel-2 data](https://cloud.google.com/storage/docs/public-datasets/sentinel-2) storage.
+
+#### **SENTINEL1_AWS_CREDS**
+JSON file. AWS service account key. Required to retrieve Sentinel2 data from [Sentinel-1](https://registry.opendata.aws/sentinel-1/) storage.
+
+#### **SCIHUB_CREDS**
+JSON file. [Copernicus Open Access Hub](https://scihub.copernicus.eu/) credentials: username&password. Like:
+```
+{   
+    "user": "username",
+    "password": "password"
+}
+```
