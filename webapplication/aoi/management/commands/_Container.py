@@ -72,7 +72,7 @@ class Container:
                 user="root" )
 
     def get_volumes(self, client: docker.DockerClient):
-        base_container = client.containers.get(os.uname()[1])
+        base_container = client.containers.get(self.get_base_containet_name())
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(settings.PERSISTENT_STORAGE_PATH)
@@ -97,6 +97,10 @@ class Container:
         containers = docker_client.containers.list(filters=dict(status=status,
                                                                 label=label))
         return containers
+
+    @staticmethod
+    def get_base_containet_name():
+        return os.uname()[1]
 
 
 class ContainerValidator(Container):
