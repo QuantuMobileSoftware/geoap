@@ -72,7 +72,7 @@ class Container:
                 user="root" )
 
     def get_volumes(self, client: docker.DockerClient):
-        base_container = client.containers.get(self.get_base_containet_name())
+        base_container = client.containers.get(self.get_base_container_name())
         host_paths = HostVolumePaths(base_container.attrs)
 
         host_data_volume = host_paths.data_volume(settings.PERSISTENT_STORAGE_PATH)
@@ -99,7 +99,7 @@ class Container:
         return containers
 
     @staticmethod
-    def get_base_containet_name():
+    def get_base_container_name():
         return os.uname()[1]
 
 
