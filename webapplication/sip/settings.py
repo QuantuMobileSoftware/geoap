@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     # Local Apps
     'user',
     'publisher',
-    'aoi'
+    'aoi',
+    'notificator'
 ]
 
 REST_FRAMEWORK = {
@@ -191,6 +192,10 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Email backend
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 # Publisher app
 TILES_FOLDER = "/data/tiles"
