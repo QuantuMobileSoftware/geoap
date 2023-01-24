@@ -25,5 +25,5 @@ class ComponentAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'component', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', 'additional_parameter')
+                    'calculated', 'success', 'error', 'additional_parameter', 'notify_user')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
