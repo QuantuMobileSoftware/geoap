@@ -81,6 +81,11 @@ def run_publisher_k8s(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
     ctx.run('python -m manage publisher_k8s')
 
+@task
+def run_notificator_k8s(ctx):
+    wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
+    ctx.run('python -m manage notificator_k8s')
+
 
 @task
 def test(ctx):
