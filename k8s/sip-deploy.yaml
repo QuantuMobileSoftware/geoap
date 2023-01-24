@@ -395,3 +395,42 @@ spec:
         - name: sip-data-volume
           persistentVolumeClaim:
             claimName: sip-data-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificator
+  namespace: sip
+spec:
+  selector:
+    matchLabels:
+      app: notificator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: notificator
+    spec:
+      restartPolicy: "Always"
+      containers:
+        - name: notificator
+          image: registry.quantumobile.co/sip-web-application:latest
+          imagePullPolicy: "Always"
+          command: ['/bin/bash', '-c', 'exec invoke run-notificator-k8s']
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgresname
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sip-secret
+                  key: postgrespassword
+          envFrom:
+              - configMapRef:
+                  name: app-config
+      imagePullSecrets:
+        - name: regcred
