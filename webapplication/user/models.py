@@ -3,10 +3,11 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
 from aoi.models import AoI
 
-
 class User(AbstractUser):
     area_limit_ha = models.IntegerField(null=True, default=None, blank=True)
     planet_api_key = models.CharField(max_length=64, verbose_name='Planet API Key', null=True, default=None, blank=True)
+    email_verified = models.BooleanField(default=False, verbose_name="Is email verified?")
+    notify_always  = models.BooleanField(default=False, verbose_name="Always notify of a request's result")
 
     @property
     def areas_total_ha(self):
