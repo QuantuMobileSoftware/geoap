@@ -8,7 +8,7 @@ from .models import User
 class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha')
     fieldsets = (
-        ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key')}),
+        ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'email_verified', 'notify_always', 'area_limit_ha', 'planet_api_key')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', )}),
         ('User permissions', {'fields': ('user_permissions', )}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
