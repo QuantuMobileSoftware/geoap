@@ -12,7 +12,7 @@ from publisher.management.commands.publish import instance_already_running
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'Send user notification about published results'
+    help = 'Creates notification to inform user about available results'
 
     def handle(self, *args, **options):
         if instance_already_running('notify'):
