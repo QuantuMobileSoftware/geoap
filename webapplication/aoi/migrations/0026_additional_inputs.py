@@ -20,9 +20,5 @@ class Migration(migrations.Migration):
             name='sentinel1_aws_creds_required',
             field=models.BooleanField(default=False, verbose_name='Sentinel 1 AWS credentials are required'),
         ),
-        migrations.AddField(
-            model_name='request',
-            name='notify_user',
-            field=models.BooleanField(default=False, verbose_name='Notify of the result'),
-        ),
+        
     ]
