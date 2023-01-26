@@ -7,8 +7,9 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from rest_auth.views import UserDetailsView
 from rest_framework.response import Response
-from notificator.models import Email
-from notificator.utils import send_email_from_template_async
+from django.conf import settings
+
+from aoi.utils import default_template_mail_sender
 
 # Create your views here.
 
@@ -28,7 +29,7 @@ class CustomUserDetailsView(UserDetailsView):
                     "token":token
                 }
             )
-            send_email_from_template_async(
+            default_template_mail_sender(
                 template="email_confirmation.html",
                 subject="Please, verify email",
                 recipient_email=serializer.validated_data['email'],

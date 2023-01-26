@@ -51,7 +51,7 @@ class StoppableThread(ABC, Thread):
     @staticmethod
     def load_aux_threads() -> list:
         thread_class_list = []
-        for thread_class in settings.AUXILIARY_THREADS:
+        for thread_class in getattr(settings, "AUXILIARY_THREADS", list()):
             try:
                 thread_class_list.append(import_string(thread_class))
             except (ImportError, ModuleNotFoundError) as m:
