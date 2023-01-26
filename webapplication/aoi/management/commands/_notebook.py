@@ -12,6 +12,7 @@ from aoi.management.commands._k8s_notebook_handler import K8sNotebookHandler
 from django.utils.timezone import localtime
 from django.core import management
 from django.conf import settings
+from django.utils.module_loading import import_string
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,16 @@ class StoppableThread(ABC, Thread):
     @abstractmethod
     def do_stuff(self):
         pass
-
+    
+    @staticmethod
+    def load_aux_threads() -> list:
+        thread_class_list = []
+        for thread_class in settings.AUXILIARY_THREADS:
+            try:
+                thread_class_list.append(import_string(thread_class))
+            except (ImportError, ModuleNotFoundError) as m:
+                logger.warning(m)
+        return thread_class_list
 
 class NotebookDockerThread(StoppableThread):
     def __init__(self, *args, **kwargs):

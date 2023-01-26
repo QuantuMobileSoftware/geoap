@@ -230,3 +230,8 @@ IMAGE_PULL_SECRETS = os.getenv('IMAGE_PULL_SECRETS', 'regcred')
 NOTEBOOK_EXECUTOR_MAX_JOBS = int(os.getenv('NOTEBOOK_EXECUTOR_MAX_JOBS', 2))
 NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH = os.getenv('NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH', '/home/jovyan/work')
 GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
+
+#Auxiliary threads to run
+AUXILIARY_THREADS = [
+    "notificator.management.commands.notification_thread.NotificationThread"
+]

@@ -3,9 +3,9 @@ import sys
 import time
 from aoi.management.commands._notebook import (
     NotebookDockerThread, 
-    PublisherThread, 
+    PublisherThread,
+    StoppableThread
 )
-from notificator.management.commands.notification_thread import NotificationThread
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -29,9 +29,9 @@ class Command(BaseCommand):
         if settings.NOTEBOOK_EXECUTION_ENVIRONMENT == 'docker':
             threads = [
                 PublisherThread(daemon=True),
-                NotebookDockerThread(daemon=True),
-                NotificationThread(daemon=True)
+                NotebookDockerThread(daemon=True)
             ]
+            threads.extend([thr(daemon=True) for thr in  StoppableThread.load_aux_threads()])
         else:
             return
 
