@@ -25,7 +25,7 @@ class Command(BaseCommand):
             self._push_notification_email_to_quoue(result)
 
     def _get_results_to_send_notification(self) -> models.QuerySet:
-        results = Result.objects.filter(released=True, request__notify_user=True, notification__isnull=True)
+        results = Result.objects.filter(released=True, request__user__notify=True, notification__isnull=True)
         logger.info(f"Was found {results.count()} results for user notification")
         return results
     
