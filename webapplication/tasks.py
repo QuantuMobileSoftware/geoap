@@ -44,15 +44,11 @@ def run_notebook_executor(ctx):
     ctx.run('python -m manage notebook_executor')
 
 @task
-
-
-@task
 def run(ctx):
     init_db(ctx, recreate_db=True)
     collect_static_element(ctx)
     run_aux_threads(ctx)
     ctx.run('uwsgi --ini uwsgi.ini')
-
 
 @task
 def run_prod(ctx):
@@ -74,7 +70,7 @@ def run_publisher_k8s(ctx):
 @task
 def run_notificator(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
-    ctx.run('python -m manage notificator_k8s')
+    ctx.run('python -m manage notify')
 
 @task
 def test(ctx):
