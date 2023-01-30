@@ -12,12 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='user',
-            name='email_verified',
-            field=models.BooleanField(default=False, verbose_name='Is email verified?'),
+            name='notification_email',
+            field=models.EmailField(null=True, blank=True, verbose_name="Email to receive notifications about available results"),
         ),
         migrations.AddField(
             model_name='user',
-            name='notify_always',
+            name='notify',
             field=models.BooleanField(default=False, verbose_name="Always notify of a request's result"),
         ),
     ]
