@@ -12,7 +12,7 @@ from publisher.management.commands.publish import instance_already_running
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'Send all emails from the quoue'
+    help = 'Send all emails from the queue'
 
     def handle(self, *args, **options):
         if instance_already_running('send_emails'):

@@ -417,7 +417,7 @@ spec:
         - name: notificator
           image: registry.quantumobile.co/sip-web-application:latest
           imagePullPolicy: "Always"
-          command: ['/bin/bash', '-c', 'exec invoke run-notificator-k8s']
+          command: ['/bin/bash', '-c', 'exec invoke run-notificator']
           env:
             - name: POSTGRES_USER
               valueFrom:

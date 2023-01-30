@@ -43,18 +43,14 @@ def collect_static_element(ctx):
 def run_notebook_executor(ctx):
     ctx.run('python -m manage notebook_executor')
 
+@task
+
 
 @task
 def run(ctx):
     init_db(ctx, recreate_db=True)
     collect_static_element(ctx)
-
-    thread_cron = threading.Thread(target=devcron, args=(ctx,))
-    thread_cron.start()
-
-    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
-    thread_nb_executor.start()
-
+    run_aux_threads(ctx)
     ctx.run('uwsgi --ini uwsgi.ini')
 
 
@@ -62,13 +58,7 @@ def run(ctx):
 def run_prod(ctx):
     init_db(ctx)
     collect_static_element(ctx)
-
-    thread_cron = threading.Thread(target=devcron, args=(ctx,))
-    thread_cron.start()
-
-    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
-    thread_nb_executor.start()
-
+    run_aux_threads(ctx)
     ctx.run('uwsgi --ini uwsgi.ini')
 
 @task
@@ -82,12 +72,22 @@ def run_publisher_k8s(ctx):
     ctx.run('python -m manage publisher_k8s')
 
 @task
-def run_notificator_k8s(ctx):
+def run_notificator(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
     ctx.run('python -m manage notificator_k8s')
-
 
 @task
 def test(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
     ctx.run('python -m manage test')
+
+def run_aux_threads(ctx):
+    
+    thread_cron = threading.Thread(target=devcron, args=(ctx,))
+    thread_cron.start()
+
+    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
+    thread_nb_executor.start()
+
+    thread_notificator = threading.Thread(target=run_notificator, args=(ctx,))
+    thread_notificator.start()
