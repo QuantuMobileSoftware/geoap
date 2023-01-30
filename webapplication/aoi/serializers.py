@@ -48,6 +48,6 @@ class RequestSerializer(serializers.ModelSerializer):
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
-                  'additional_parameter', 'notify_user')
+                  'additional_parameter')
         read_only_fields = ['polygon', ]
     
