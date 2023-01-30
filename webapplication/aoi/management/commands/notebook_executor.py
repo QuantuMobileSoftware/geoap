@@ -3,8 +3,8 @@ import sys
 import time
 from aoi.management.commands._notebook import (
     NotebookDockerThread, 
-    PublisherThread,
-    StoppableThread
+    PublisherThread, 
+    NotebookK8sThread
 )
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
@@ -31,11 +31,10 @@ class Command(BaseCommand):
                 PublisherThread(daemon=True),
                 NotebookDockerThread(daemon=True)
             ]
-            threads.extend([thr(daemon=True) for thr in  StoppableThread.load_aux_threads()])
         else:
             return
 
-        logger.info(f"Created {len(threads) - 2} executor threads, 1 publish and 1 notification threads")
+        logger.info(f"Created {len(threads) - 1} executor threads and 1 publish thread")
 
         # starting threads
         started_at = time.time()
