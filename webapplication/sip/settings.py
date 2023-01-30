@@ -195,7 +195,6 @@ LOGGING = {
 
 # Email backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_TEMPLAITE_EMAIL_SENN_FUNCTION = "notificator.utils.send_email_from_template_async"
 
 # Publisher app
 TILES_FOLDER = "/data/tiles"
