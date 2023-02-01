@@ -162,3 +162,30 @@ JSON file. [Copernicus Open Access Hub](https://scihub.copernicus.eu/) credentia
     "password": "password"
 }
 ```
+
+#### **NOTEBOOK_EXECUTION_ENVIRONMENT**
+Defines how geoap's services run: 
+* `docker` - Standard. Single machine environment with notebook execution and results publishing as separate threads. Component execution performs as docker containers.
+* alternative one - k8s variant with executor and publisher as a separate deployments. Component execution performs as k8s jobs entities.
+
+#### **NOTEBOOK_JOB_BACKOFF_LIMIT**
+Number of component execution job creation retries.
+
+#### **NOTEBOOK_VALIDATION_JOB_ACTIVE_DEADLINE**
+*DEPRECATED* 
+Time in seconds before validation job fail
+
+#### **K8S_NAME_SPACE**
+K8s namespace to run execution jobs in k8s cluster
+
+#### **IMAGE_PULL_SECRETS**
+Name of k8s secret with docker credentials to pull images with components into execution job's pods
+
+#### **NOTEBOOK_EXECUTOR_MAX_JOBS**
+Max number of simultaneous execution jobs
+
+#### **NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH**
+Path to mount volumes with inputs and outputs inside execution job's pods
+
+#### **GPU_CORES_PER_NOTEBOOK**
+Max number of GPU cores as a `nvidia.com/gpu` resource for execution job's pods
