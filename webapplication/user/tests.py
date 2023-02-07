@@ -1,9 +1,15 @@
 from rest_framework.test import APITestCase
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from .models import User
 
 
 class UserBase(APITestCase):
+
+    @staticmethod
+    def add_users_special_permissions():
+        permission = Permission.objects.get(codename='delete_result_admin')
+        staff_user = User.objects.get(id=1001)
+        staff_user.user_permissions.add(permission)
     
     @staticmethod
     def add_users_to_groups():
@@ -23,6 +29,7 @@ class UserBase(APITestCase):
         
     def setUp(self):
         self.add_users_to_groups()
+        self.add_users_special_permissions()
         self.staff_user = User.objects.get(id=1001)
         self.ex_2_user = User.objects.get(id=1002)
         self.ex_3_user = User.objects.get(id=1003)

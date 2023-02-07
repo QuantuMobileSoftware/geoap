@@ -848,7 +848,7 @@ class ResultTestCase(UserBase):
         url = reverse('result', kwargs={'pk': 1001})
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
     def test_delete_result_by_request_no_acl_owner(self):
         url = reverse('result', kwargs={'pk': 1008})
