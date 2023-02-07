@@ -9,7 +9,8 @@
       "kernel_name": "",
       "run_validation": true,
       "success": true,
-      "period_required":false
+      "period_required":false,
+      "date_type": 1
     }
   },
   {
@@ -21,7 +22,8 @@
       "notebook_path": "work/notebooks/example/geotiff_2.ipynb",
       "kernel_name": "3.5",
       "run_validation": true,
-      "success": false
+      "success": false,
+      "date_type": 2
     }
   },
   {
@@ -34,7 +36,8 @@
       "kernel_name": "",
       "run_validation": true,
       "success": true,
-      "period_required":true
+      "period_required":true,
+      "date_type": 3
     }
   }
 ]
