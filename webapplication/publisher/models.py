@@ -48,7 +48,7 @@ class Result(models.Model):
         verbose_name_plural = 'Results'
         ordering = ['-modifiedat']
         permissions = (
-            ("delete_result_admin", "Can delete result as admin"),
+            ("delete_any_result", "Can delete any result"),
         )
 
 

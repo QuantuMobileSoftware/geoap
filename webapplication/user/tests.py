@@ -7,7 +7,7 @@ class UserBase(APITestCase):
 
     @staticmethod
     def add_users_special_permissions():
-        permission = Permission.objects.get(codename='delete_result_admin')
+        permission = Permission.objects.get(codename='delete_any_result')
         staff_user = User.objects.get(id=1001)
         staff_user.user_permissions.add(permission)
     
