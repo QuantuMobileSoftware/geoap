@@ -3,13 +3,13 @@
     "model": "user.user",
     "pk": 1001,
     "fields": {
-      "password": "pbkdf2_sha256$150000$WDlRMPwuQDWY$+oggAn0fe4p3ctPi33BaBjZwC+VpRxUPHOcYhoFw6G0=",
+      "password": "pbkdf2_sha256$216000$SrnTzE6xdEmA$S6k0fqxSLehQWYWTLpJAw8XCZraIek06Qxtv+bO9m5M=",
       "last_login": "2020-11-16T11:14:31.380000Z",
       "is_superuser": false,
       "username": "test_staff",
       "first_name": "",
       "last_name": "",
-      "email": "",
+      "email": "test_staff@geoap.com",
       "is_staff": true,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -19,13 +19,13 @@
     "model": "user.user",
     "pk": 1002,
     "fields": {
-      "password": "pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=",
+      "password": "pbkdf2_sha256$216000$i40ZUKv6GSWz$zMG7/pOLnJ6bxPj+uDd8MsQjoPnsBFZzpmUMIxu6lKs=",
       "last_login": "2020-11-16T11:14:31.380000Z",
       "is_superuser": false,
       "username": "test_not_staff",
       "first_name": "",
       "last_name": "",
-      "email": "",
+      "email": "test_not_staff@geoap.com",
       "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -35,13 +35,13 @@
     "model": "user.user",
     "pk": 1003,
     "fields": {
-      "password": "pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=",
+      "password": "pbkdf2_sha256$216000$i40ZUKv6GSWz$zMG7/pOLnJ6bxPj+uDd8MsQjoPnsBFZzpmUMIxu6lKs=",
       "last_login": "2020-11-16T11:14:31.380000Z",
       "is_superuser": false,
       "username": "test_not_staff_2",
       "first_name": "",
       "last_name": "",
-      "email": "",
+      "email": "test_not_staff_2@geoap.com",
       "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -51,13 +51,13 @@
     "model": "user.user",
     "pk": 1004,
     "fields": {
-      "password": "pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=",
+      "password": "pbkdf2_sha256$216000$i40ZUKv6GSWz$zMG7/pOLnJ6bxPj+uDd8MsQjoPnsBFZzpmUMIxu6lKs=",
       "last_login": "2020-11-16T11:14:31.380000Z",
       "is_superuser": false,
       "username": "test_not_staff_3",
       "first_name": "",
       "last_name": "",
-      "email": "",
+      "email": "test_not_staff_3@geoap.com",
       "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -67,16 +67,66 @@
     "model": "user.user",
     "pk": 1005,
     "fields": {
-      "password": "pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=",
+      "password": "pbkdf2_sha256$216000$i40ZUKv6GSWz$zMG7/pOLnJ6bxPj+uDd8MsQjoPnsBFZzpmUMIxu6lKs=",
       "last_login": "2020-11-16T11:14:31.380000Z",
       "is_superuser": false,
       "username": "test_not_staff_4",
       "first_name": "",
       "last_name": "",
-      "email": "",
+      "email": "test_not_staff_4@geoap.com",
       "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
+    }
+  },
+  {
+    "model": "account.emailaddress",
+    "pk": 1001,
+    "fields": {
+      "user": 1001,
+      "email": "test_staff@geoap.com",
+      "verified": true,
+      "primary": true
+    }
+  },
+  {
+    "model": "account.emailaddress",
+    "pk": 1002,
+    "fields": {
+      "user": 1002,
+      "email": "test_not_staff@geoap.com",
+      "verified": true,
+      "primary": true
+    }
+  },
+  {
+    "model": "account.emailaddress",
+    "pk": 1003,
+    "fields": {
+      "user": 1003,
+      "email": "test_not_staff_2@geoap.com",
+      "verified": true,
+      "primary": true
+    }
+  },
+  {
+    "model": "account.emailaddress",
+    "pk": 1004,
+    "fields": {
+      "user": 1004,
+      "email": "test_not_staff_3@geoap.com",
+      "verified": true,
+      "primary": true
+    }
+  },
+  {
+    "model": "account.emailaddress",
+    "pk": 1005,
+    "fields": {
+      "user": 1005,
+      "email": "test_not_staff_4@geoap.com",
+      "verified": true,
+      "primary": true
     }
   }
 ]
