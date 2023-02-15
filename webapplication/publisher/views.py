@@ -95,7 +95,7 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         result = self.get_object()
-        if result.request and result.request.user == self.request.user\
+        if (result.request and result.request.user == request.user)\
                 or request.user.has_perm("publisher.delete_any_result"):
             result.to_be_deleted = True
             result.save()
