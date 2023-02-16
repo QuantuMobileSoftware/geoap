@@ -14,6 +14,7 @@ api_patterns = [
     path('users/current', UserDetailsView.as_view(), name='rest_user_details'),
     path('', include("publisher.urls")),
     path('', include("aoi.urls")),
+    path('', include("transaction.urls"))
 ]
 api_patterns.extend(doc_urls)
 
