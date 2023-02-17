@@ -25,8 +25,8 @@ export const AreasList = React.memo(({ areas }) => {
   useEffect(() => setListItems(areas), [areas]);
 
   useEffect(() => {
-    return areasEvents.onCreateShape(() => {
-      setIsDrawing(true);
+    return areasEvents.onCreateShape(({ json }) => {
+      if (!json) setIsDrawing(true);
     });
   }, []);
 
