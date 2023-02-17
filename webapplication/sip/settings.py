@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     # Local Apps
     'user',
     'publisher',
-    'transaction',
     'aoi'
 ]
 

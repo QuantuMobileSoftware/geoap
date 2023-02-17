@@ -1,6 +1,6 @@
 [
   {
-    "model": "transaction.transaction",
+    "model": "user.transaction",
     "pk": 1001,
     "fields": {
       "user": 1001,
@@ -13,7 +13,7 @@
     }
   },
   {
-    "model": "transaction.transaction",
+    "model": "user.transaction",
     "pk": 1002,
     "fields": {
       "user": 1002,
@@ -26,7 +26,7 @@
     }
   },
   {
-    "model": "transaction.transaction",
+    "model": "user.transaction",
     "pk": 1003,
     "fields": {
       "user": 1003,
