@@ -9,7 +9,7 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha')
     fieldsets = (
         ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key')}),
-        ('Balance', {'fields': ('balance', 'on_hold', 'discount')}),
+        ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', )}),
         ('User permissions', {'fields': ('user_permissions', )}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
