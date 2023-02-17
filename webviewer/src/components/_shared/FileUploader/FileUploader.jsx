@@ -3,7 +3,7 @@ import { ProgressBar, FileInfo, StyledUploader } from './FileUploader.styles';
 import { kml } from '@tmcw/togeojson';
 
 import { areasEvents } from '_events';
-import { FILE_ERROR } from '_constants';
+import { FILE_ERROR, NOT_POLYGON } from '_constants';
 
 export const FileUploader = ({ isOpen, createShape }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -51,7 +51,8 @@ export const FileUploader = ({ isOpen, createShape }) => {
           createShape(result);
         }
       } catch (err) {
-        areasEvents.toggleErrorModal(FILE_ERROR);
+        const errorText = err.message === NOT_POLYGON ? NOT_POLYGON : FILE_ERROR;
+        areasEvents.toggleErrorModal(errorText);
       }
     };
 
