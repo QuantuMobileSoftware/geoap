@@ -1,9 +1,6 @@
-import os
-import json
-from typing import Dict, List, Optional
 from django.contrib.gis.db import models
 from django.utils import timezone
-from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class AoI(models.Model):
@@ -13,7 +10,7 @@ class AoI(models.Model):
         (USER_DEFINED_TYPE, 'AREA'),
         (FIELD_TYPE, 'FIELD')
     )
-    
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE, verbose_name='User id', related_name='aoi')
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='AOI name')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
@@ -27,13 +24,15 @@ class AoI(models.Model):
         verbose_name = 'Area of interest'
         verbose_name_plural = 'Areas of interest'
         ordering = ['name']
-        
-        
+
+
 class Component(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
+    basic_price = models.DecimalField(_("Basic Price (USD per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
     image = models.CharField(max_length=400, verbose_name='Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
-    notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True, verbose_name='Path to a notebook')
+    notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True,
+                                     verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
@@ -41,16 +40,19 @@ class Component(models.Model):
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run')
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
     planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
-    sentinel_google_api_key_required = models.BooleanField(default=False, verbose_name='Sentinel Google API key is required')
-    sentinel1_aws_creds_required = models.BooleanField(default=False, verbose_name='Sentinel 1 AWS credentials are required')
-    scihub_creds_required = models.BooleanField(default=False, verbose_name='Copernicus Open Access Hub credentials are required')
+    sentinel_google_api_key_required = models.BooleanField(default=False,
+                                                           verbose_name='Sentinel Google API key is required')
+    sentinel1_aws_creds_required = models.BooleanField(default=False,
+                                                       verbose_name='Sentinel 1 AWS credentials are required')
+    scihub_creds_required = models.BooleanField(default=False,
+                                                verbose_name='Copernicus Open Access Hub credentials are required')
 
     def __str__(self):
         return self.name
 
     @property
     def is_notebook(self):
-        return  not bool(self.command) and (bool(self.notebook_path) and bool(self.kernel_name))
+        return not bool(self.command) and (bool(self.notebook_path) and bool(self.kernel_name))
 
     @property
     def validated(self):
@@ -60,8 +62,8 @@ class Component(models.Model):
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
         ordering = ['name']
-        
-        
+
+
 class Request(models.Model):
     user = models.ForeignKey('user.User', on_delete=models.PROTECT, verbose_name='User id')
     aoi = models.ForeignKey(AoI, null=True, on_delete=models.SET_NULL, verbose_name='AOI id')
@@ -82,4 +84,3 @@ class Request(models.Model):
     @property
     def component_name(self):
         return self.component.name
-    

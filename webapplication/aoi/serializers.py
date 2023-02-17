@@ -17,7 +17,7 @@ class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Component
-        fields = ('id', 'name', 'image', 'path', 'kernel_name', 'run_validation', 'success',
+        fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
                   'additional_parameter', 'period_required',)
         
         
