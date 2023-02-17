@@ -1,3 +1,24 @@
-from django.shortcuts import render
+from allauth.account.views import ConfirmEmailView
+from django.http import Http404
+from django.utils.translation import gettext_lazy as _
+from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
 
-# Create your views here.
+
+class VerifyEmailView(APIView, ConfirmEmailView):
+    permission_classes = (AllowAny,)
+    allowed_methods = ('GET', 'OPTIONS', 'HEAD')
+
+    def verify_email(self):
+        confirmation = self.get_object()
+        confirmation.confirm(self.request)
+
+    def get(self, *args, **kwargs):
+        try:
+            self.verify_email()
+        except Http404:
+            raise NotFound(_("Email verification failed"))
+        return Response(data=_("Email has been successfully confirmed!"), status=HTTP_200_OK)
