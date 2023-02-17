@@ -2,7 +2,7 @@ import re
 
 from rest_framework.status import HTTP_200_OK, HTTP_403_FORBIDDEN, HTTP_201_CREATED
 from rest_framework.test import APITestCase
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
 from django.core import mail
 
@@ -10,6 +10,12 @@ from user.models import User
 
 
 class UserBase(APITestCase):
+
+    @staticmethod
+    def add_users_special_permissions():
+        permission = Permission.objects.get(codename='delete_any_result')
+        staff_user = User.objects.get(id=1001)
+        staff_user.user_permissions.add(permission)
     
     @staticmethod
     def add_users_to_groups():
@@ -29,6 +35,7 @@ class UserBase(APITestCase):
         
     def setUp(self):
         self.add_users_to_groups()
+        self.add_users_special_permissions()
         self.staff_user = User.objects.get(id=1001)
         self.ex_2_user = User.objects.get(id=1002)
         self.ex_3_user = User.objects.get(id=1003)

@@ -11,7 +11,8 @@ import {
   SIDEBAR_MODE,
   AOI_TYPE,
   SHAPE_NAMES,
-  REQUEST_TABS
+  REQUEST_TABS,
+  NOT_POLYGON
 } from '_constants';
 import { areasEvents } from '_events';
 import { MapColorBar, MapControls, MapRange, MapPolygon } from './components';
@@ -120,10 +121,9 @@ export const Map = () => {
   useEffect(() => {
     return areasEvents.onCreateShape(({ json, isShowPopup, shapeType }) => {
       if (json) {
-        if (json.features[0].geometry.type !== SHAPE_NAMES.POLYGON) {
-          console.warn('Please add file with polygon coordinates'); // show error for user
-          return;
-        }
+        const shapeType = json.features?.[0].geometry.type ?? json.geometry.type;
+        if (shapeType !== SHAPE_NAMES.POLYGON) throw Error(NOT_POLYGON);
+
         const shape = L.geoJSON(json, { style: SHAPE_OPTIONS });
         const createShape = () => {
           if (isShowPopup) {
