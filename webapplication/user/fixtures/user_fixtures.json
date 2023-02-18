@@ -10,6 +10,9 @@
       "first_name": "",
       "last_name": "",
       "email": "test_staff@geoap.com",
+      "balance": 0,
+      "on_hold": 0,
+      "discount": 0,
       "is_staff": true,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -26,7 +29,9 @@
       "first_name": "",
       "last_name": "",
       "email": "test_not_staff@geoap.com",
-      "is_staff": false,
+      "balance": 1220.2,
+      "on_hold": 20.24,
+      "discount": 5,      "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
     }
@@ -42,6 +47,9 @@
       "first_name": "",
       "last_name": "",
       "email": "test_not_staff_2@geoap.com",
+      "balance": -10,
+      "on_hold": 20.24,
+      "discount": 50,
       "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
@@ -58,7 +66,9 @@
       "first_name": "",
       "last_name": "",
       "email": "test_not_staff_3@geoap.com",
-      "is_staff": false,
+      "balance": 30.33,
+      "on_hold": 0,
+      "discount": 0,      "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
     }
@@ -74,7 +84,9 @@
       "first_name": "",
       "last_name": "",
       "email": "test_not_staff_4@geoap.com",
-      "is_staff": false,
+      "balance": 0,
+      "on_hold": 0,
+      "discount": 0,      "is_staff": false,
       "is_active": true,
       "date_joined": "2020-11-15T11:14:31.380000Z"
     }
