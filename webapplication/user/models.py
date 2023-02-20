@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import MaxValueValidator
 
 from aoi.models import AoI, Request
 
@@ -9,6 +10,10 @@ from aoi.models import AoI, Request
 class User(AbstractUser):
     area_limit_ha = models.IntegerField(null=True, default=None, blank=True)
     planet_api_key = models.CharField(max_length=64, verbose_name='Planet API Key', null=True, default=None, blank=True)
+    balance = models.DecimalField(_('Balance'), max_digits=9, decimal_places=2, default=0, null=True, blank=True)
+    on_hold = models.DecimalField(_("On hold"), max_digits=9, decimal_places=2, default=0, null=True, blank=True)
+    discount = models.PositiveIntegerField(_("Discount"), null=True, blank=True, default=0,
+                                           validators=(MaxValueValidator(100),))
 
     @property
     def areas_total_ha(self):

@@ -42,7 +42,6 @@ class UserBase(APITestCase):
         self.all_results_user = User.objects.get(id=1004)
         self.all_results_no_acl_user = User.objects.get(id=1005)
 
-
 class AuthTestCase(UserBase):
     fixtures = ("user/fixtures/user_fixtures.json", )
 
@@ -126,7 +125,10 @@ class AuthTestCase(UserBase):
             'first_name': '',
             'last_name': '',
             'area_limit_ha': None,
-            'planet_api_key': None
+            'planet_api_key': None,
+            "balance": 0,
+            "on_hold": 0,
+            "discount": 0
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
@@ -140,7 +142,7 @@ class AuthTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
         self.assertEqual(response.data, response_data)
 
-    def test_patch_current_user_details(self):
+    def test_current_user_partial_update(self):
         self.client.force_login(self.staff_user)
         input_data = {
             'username': 'admin',
@@ -148,7 +150,10 @@ class AuthTestCase(UserBase):
             'first_name': 'admin',
             'last_name': 'admin',
             'area_limit_ha': 100,
-            'planet_api_key': "secret-api-key"
+            'planet_api_key': "secret-api-key",
+            'balance': 100000,
+            'on_hold': 5,
+            'discount': 100
         }
         response_data = {
             'pk': 1001,
@@ -157,14 +162,17 @@ class AuthTestCase(UserBase):
             'first_name': 'admin',
             'last_name': 'admin',
             'area_limit_ha': None,
-            'planet_api_key': "secret-api-key"
+            'planet_api_key': "secret-api-key",
+            'balance': 0,
+            'on_hold': 0,
+            'discount': 0
         }
         url = reverse("rest_user_details")
         response = self.client.patch(url, input_data)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data, response_data)
 
-    def test_put_current_user_details(self):
+    def test_current_user_update(self):
         self.client.force_login(self.staff_user)
         input_data = {
             'username': 'admin',
@@ -172,7 +180,10 @@ class AuthTestCase(UserBase):
             'first_name': 'admin',
             'last_name': 'admin',
             'area_limit_ha': 100,
-            'planet_api_key': "secret-api-key"
+            'planet_api_key': "secret-api-key",
+            'balance': 100000,
+            'on_hold': 5,
+            'discount': 100
         }
         response_data = {
             'pk': 1001,
@@ -181,7 +192,10 @@ class AuthTestCase(UserBase):
             'first_name': 'admin',
             'last_name': 'admin',
             'area_limit_ha': None,
-            'planet_api_key': "secret-api-key"
+            'planet_api_key': "secret-api-key",
+            'balance': 0,
+            'on_hold': 0,
+            'discount': 0
         }
         url = reverse("rest_user_details")
         response = self.client.put(url, input_data)
