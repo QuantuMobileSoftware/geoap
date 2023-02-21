@@ -269,6 +269,26 @@ class TransactionTestCase(UserBase):
     def test_get_transactions_list_authorized(self):
         response_data = [
             {
+                "id": 1002,
+                "user": 1002,
+                "amount": 30,
+                "created_at": "2023-02-15T11:15:11.230000Z",
+                "updated_at": "2023-02-15T11:15:11.230000Z",
+                "request": None,
+                "comment": "",
+                "completed": False
+            }
+        ]
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.ex_2_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data), len(response_data))
+        self.assertEqual(response.json(), response_data)
+
+    def test_get_transactions_list_authorized_as_admin(self):
+        response_data = [
+            {
                 "id": 1003,
                 "user": 1003,
                 "amount": -8.14,
@@ -300,7 +320,7 @@ class TransactionTestCase(UserBase):
             }
         ]
         url = reverse("get_transactions_list")
-        self.client.force_login(self.ex_2_user)
+        self.client.force_login(self.staff_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(len(response.data), len(response_data))
