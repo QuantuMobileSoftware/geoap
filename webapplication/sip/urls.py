@@ -15,18 +15,18 @@ from .docs_drf_yasg import urlpatterns as doc_urls
 auth_patterns = [
     path('login', LoginView.as_view(), name='rest_login'),
     path('logout', LogoutView.as_view(), name='rest_logout'),
-    path('password/change/', PasswordChangeView.as_view(), name='rest_password_change'),
-    path('password/reset/', PasswordResetView.as_view(), name='rest_password_reset'),
+    path('password/change', PasswordChangeView.as_view(), name='rest_password_change'),
+    path('password/reset', PasswordResetView.as_view(), name='rest_password_reset'),
     path('password/reset/confirm/<str:uidb64>/<str:token>', PasswordResetConfirmView.as_view(),
          name='password_reset_confirm'),
     path('users/current', UserDetailsView.as_view(), name='rest_user_details'),
-    path('signup/', RegisterView.as_view(), name='rest_register'),
+    path('signup', RegisterView.as_view(), name='rest_register'),
     re_path(
         r'^signup/account-confirm-email/(?P<key>[-:\w]+)/$', VerifyEmailView.as_view(),
         name='account_confirm_email',
     ),
-    path('signup/resend-email/', ResendEmailVerificationView.as_view(), name="rest_resend_email"),
-    path('signup/confirm-email/', EmailVerificationSentView.as_view(), name="account_email_verification_sent")
+    path('signup/resend-email', ResendEmailVerificationView.as_view(), name="rest_resend_email"),
+    path('signup/confirm-email', EmailVerificationSentView.as_view(), name="account_email_verification_sent")
 ]
 
 api_patterns = [
