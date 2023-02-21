@@ -28,7 +28,7 @@ class AoI(models.Model):
 
 class Component(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
-    basic_price = models.DecimalField(_("Basic Price (USD per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
+    basic_price = models.DecimalField(_("Basic Price (per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
     image = models.CharField(max_length=400, verbose_name='Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
     notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True,

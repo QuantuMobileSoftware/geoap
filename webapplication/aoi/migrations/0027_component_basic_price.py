@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='component',
             name='basic_price',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=9, verbose_name='Basic Price (USD per 1.sq.km)'),
+            field=models.DecimalField(decimal_places=2, default=0, max_digits=9, verbose_name='Basic Price (per 1.sq.km)'),
         ),
     ]
