@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='component',
             name='date_type',
-            field=models.IntegerField(choices=[(1, 'YEAR'), (2, 'DATE RANGE'), (3, 'SEASON')], default=1),
+            field=models.IntegerField(choices=[(1, 'YEAR'), (2, 'DATE RANGE'), (3, 'SEASON')], default=2),
         ),
     ]
