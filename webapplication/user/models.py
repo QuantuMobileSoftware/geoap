@@ -58,7 +58,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)
     created_at = models.DateTimeField(_("Created at"), auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(_("Updated at"), auto_now=True)
-    request = models.ForeignKey(Request, on_delete=models.SET_NULL, default=None, blank=True, null=True,
+    request = models.ForeignKey(Request, on_delete=models.PROTECT, default=None, blank=True, null=True,
                                 related_name="transactions")
     comment = models.TextField(_("Comment"), blank=True, default="")
     completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)

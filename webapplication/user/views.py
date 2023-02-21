@@ -28,8 +28,14 @@ class VerifyEmailView(APIView, ConfirmEmailView):
         return Response(data=_("Email has been successfully confirmed!"), status=HTTP_200_OK)
 
 
-class TransactionsListAPIView(ListAPIView):
+class TransactionListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated, )
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(user=self.request.user)
