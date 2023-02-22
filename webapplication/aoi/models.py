@@ -27,6 +27,15 @@ class AoI(models.Model):
 
 
 class Component(models.Model):
+    DATE_YEAR_TYPE = 1
+    DATE_RANGE_TYPE = 2
+    DATE_SEASON_TYPE = 3
+    DATE_TYPE_CHOICES = (
+        (DATE_YEAR_TYPE, "YEAR"),
+        (DATE_RANGE_TYPE, "DATE RANGE"),
+        (DATE_SEASON_TYPE, "SEASON")
+    )
+
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
     basic_price = models.DecimalField(_("Basic Price (per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
     image = models.CharField(max_length=400, verbose_name='Image')
@@ -46,6 +55,7 @@ class Component(models.Model):
                                                        verbose_name='Sentinel 1 AWS credentials are required')
     scihub_creds_required = models.BooleanField(default=False,
                                                 verbose_name='Copernicus Open Access Hub credentials are required')
+    date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
 
     def __str__(self):
         return self.name
