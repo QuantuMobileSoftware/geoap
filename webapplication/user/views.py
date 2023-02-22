@@ -36,6 +36,6 @@ class TransactionListAPIView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user.is_staff:
+        if self.request.user.has_perm("user.view_all_transactions"):
             return queryset
         return queryset.filter(user=self.request.user)

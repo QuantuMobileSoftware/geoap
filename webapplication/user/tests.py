@@ -13,9 +13,12 @@ class UserBase(APITestCase):
 
     @staticmethod
     def add_users_special_permissions():
-        permission = Permission.objects.get(codename='delete_any_result')
+        delete_any_result_permission = Permission.objects.get(codename='delete_any_result')
+        view_all_transactions_permission = Permission.objects.get(codename='view_all_transactions')
+
         staff_user = User.objects.get(id=1001)
-        staff_user.user_permissions.add(permission)
+        staff_user.user_permissions.add(delete_any_result_permission)
+        staff_user.user_permissions.add(view_all_transactions_permission)
     
     @staticmethod
     def add_users_to_groups():
