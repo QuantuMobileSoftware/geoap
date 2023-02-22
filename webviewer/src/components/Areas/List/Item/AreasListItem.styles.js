@@ -17,10 +17,6 @@ export const AreasListItemMenu = styled(Menu)`
       padding: ${rem(theme.spacing[2])} ${rem(theme.spacing[7])};
     `}
   }
-
-  &:not(.isOpen) {
-    display: none;
-  }
 `;
 
 export const AreasListItemButton = styled(Button)`

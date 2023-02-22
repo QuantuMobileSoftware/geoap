@@ -4,6 +4,7 @@
     "pk": 1001,
     "fields": {
       "name": "JupyterNotebook_test",
+      "basic_price": 1.2,
       "image": "some docker command",
       "notebook_path": "work/notebooks/example/geojson.ipynb",
       "kernel_name": "",
@@ -18,6 +19,7 @@
     "pk": 1002,
     "fields": {
       "name": "JupyterNotebook_test_2",
+      "basic_price": 0.4,
       "image": "some docker command",
       "notebook_path": "work/notebooks/example/geotiff_2.ipynb",
       "kernel_name": "3.5",
@@ -31,6 +33,7 @@
     "pk": 1003,
     "fields": {
       "name": "JupyterNotebook_test_3",
+      "basic_price": 1,
       "image": "some docker command",
       "notebook_path": "work/notebooks/example/geojson_3.ipynb",
       "kernel_name": "",

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aoi', '0026_additional_inputs'),
+        ('aoi', '0027_component_basic_price'),
     ]
 
     operations = [

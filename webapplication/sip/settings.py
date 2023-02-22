@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_auth',
+    'allauth',
+    'allauth.account',
+    'dj_rest_auth.registration',
     'flat_json_widget',
     'drf_yasg',
     'rangefilter',
@@ -67,12 +69,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'COERCE_DECIMAL_TO_STRING': False,
 }
 
-REST_AUTH_SERIALIZERS = {
+REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'user.serializers.UserSerializer',
 }
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGOUT_ON_GET = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -225,3 +232,6 @@ IMAGE_PULL_SECRETS = os.getenv('IMAGE_PULL_SECRETS', 'regcred')
 NOTEBOOK_EXECUTOR_MAX_JOBS = int(os.getenv('NOTEBOOK_EXECUTOR_MAX_JOBS', 2))
 NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH = os.getenv('NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH', '/home/jovyan/work')
 GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
