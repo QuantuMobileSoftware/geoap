@@ -4,7 +4,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 
-from aoi.models import AoI
+from aoi.models import AoI, Request
 
 
 class User(AbstractUser):
@@ -51,3 +51,22 @@ class User(AbstractUser):
         if self.areas_total_ha - old_area_ha + new_area_ha > self.area_limit_ha:
             return False
         return True
+
+
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
+    amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)
+    created_at = models.DateTimeField(_("Created at"), auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(_("Updated at"), auto_now=True)
+    request = models.ForeignKey(Request, on_delete=models.PROTECT, default=None, blank=True, null=True,
+                                related_name="transactions")
+    comment = models.TextField(_("Comment"), blank=True, default="")
+    completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("Transaction")
+        verbose_name_plural = _("Transactions")
+        permissions = (
+            ("view_all_transactions", "Can view all transactions"),
+        )

@@ -32,6 +32,7 @@ auth_patterns = [
 api_patterns = [
     path('', include("publisher.urls")),
     path('', include("aoi.urls")),
+    path('', include("user.urls")),
     path('', include(auth_patterns))
 ]
 api_patterns.extend(doc_urls)
