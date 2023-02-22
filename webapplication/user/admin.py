@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.translation import gettext_lazy as _
 
-
-from .models import User
+from user.models import User, Transaction
 
 
 class UserAdmin(BaseUserAdmin):
@@ -24,3 +24,27 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(Transaction)
+class TransactionModel(admin.ModelAdmin):
+    list_display = ('amount', 'user', 'request', 'created_at', 'completed')
+    list_filter = ('created_at', 'completed')
+    search_fields = ('user', 'request')
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        (_('Transaction info'), {
+            'fields': ('amount', 'user', 'request', 'comment', 'completed')
+        }),
+        (_('Important dates'), {
+            'classes': ('collapse',),
+            'fields': (('created_at', 'updated_at',),)
+        })
+    )
+    raw_id_fields = ("user", "request")
+    add_fieldsets = (
+        (_('Transaction info'), {
+            'fields': ('amount', 'user', 'request', 'comment', 'completed')
+        }),
+    )
