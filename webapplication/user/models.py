@@ -67,3 +67,6 @@ class Transaction(models.Model):
         ordering = ["-created_at"]
         verbose_name = _("Transaction")
         verbose_name_plural = _("Transactions")
+        permissions = (
+            ("view_all_transactions", "Can view all transactions"),
+        )

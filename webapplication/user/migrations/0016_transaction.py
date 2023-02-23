@@ -29,6 +29,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Transaction',
                 'verbose_name_plural': 'Transactions',
                 'ordering': ['-created_at'],
+                'permissions': (('view_all_transactions', 'Can view all transactions'),),
             },
         ),
     ]

@@ -280,7 +280,8 @@ class JupyterNotebookTestCase(UserBase):
             "path": "work/notebooks/example/geojson_created.ipynb",
             "kernel_name": "3.8",
             "run_validation": True,
-            "success": False
+            "success": False,
+            "date_type": 2
         }
         
         self.data_patch = {
@@ -290,6 +291,7 @@ class JupyterNotebookTestCase(UserBase):
             "kernel_name": "3.3",
             "run_validation": True,
             "success": True,
+            "date_type": 2
         }
     
     def test_create_notebook_as_not_auth_user(self):
@@ -356,6 +358,7 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
         self.assertEqual(content['run_validation'], self.data_patch['run_validation'])
         self.assertEqual(content['success'], self.data_patch['success'])
+        self.assertEqual(content['date_type'], self.data_patch['date_type'])
     
     def test_get_notebook_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
