@@ -129,7 +129,7 @@ class AuthTestCase(UserBase):
             'last_name': '',
             'area_limit_ha': None,
             'planet_api_key': None,
-            "balance": 0,
+            "balance": 100000,
             "on_hold": 0,
             "discount": 0
         }
@@ -154,7 +154,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': 100,
             'planet_api_key': "secret-api-key",
-            'balance': 100000,
+            'balance': 12345,
             'on_hold': 5,
             'discount': 100
         }
@@ -166,7 +166,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': None,
             'planet_api_key': "secret-api-key",
-            'balance': 0,
+            'balance': 100000,
             'on_hold': 0,
             'discount': 0
         }
@@ -184,7 +184,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': 100,
             'planet_api_key': "secret-api-key",
-            'balance': 100000,
+            'balance': 12345,
             'on_hold': 5,
             'discount': 100
         }
@@ -196,7 +196,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': None,
             'planet_api_key': "secret-api-key",
-            'balance': 0,
+            'balance': 100000,
             'on_hold': 0,
             'discount': 0
         }

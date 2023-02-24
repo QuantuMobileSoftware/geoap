@@ -1,6 +1,7 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
+from django.db import transaction
 
 from user.models import User, Transaction
 
@@ -48,3 +49,17 @@ class TransactionModel(admin.ModelAdmin):
             'fields': ('amount', 'user', 'request', 'comment', 'completed')
         }),
     )
+
+    def top_up_user_balance(self, request, obj):
+        with transaction.atomic():
+            is_updated = obj.user.top_up_balance(obj.amount)
+            if is_updated:
+                obj.completed = True
+                obj.save(update_fields=("completed",))
+            else:
+                messages.error(request, _("Error caused in user balance top up!"))
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if not change:
+            self.top_up_user_balance(request, obj)

@@ -1,3 +1,5 @@
+import decimal
+
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
@@ -51,6 +53,18 @@ class User(AbstractUser):
         if self.areas_total_ha - old_area_ha + new_area_ha > self.area_limit_ha:
             return False
         return True
+
+    @property
+    def actual_balance(self):
+        return self.balance - self.on_hold
+
+    def top_up_balance(self, amount) -> bool:
+        try:
+            self.balance += amount
+            self.save(update_fields=("balance",))
+            return True
+        except decimal.InvalidOperation:
+            return False
 
 
 class Transaction(models.Model):

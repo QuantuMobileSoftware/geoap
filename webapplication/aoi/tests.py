@@ -1,10 +1,12 @@
 import json
 import logging
+from decimal import Decimal
+
 from rest_framework import status
 from django.urls import reverse
 from django.conf import settings
 from user.models import User
-from .models import AoI, Component
+from .models import AoI, Component, Request
 from .serializers import AoISerializer
 from user.tests import UserBase
 
@@ -522,6 +524,33 @@ class RequestTestCase(UserBase):
 
     def test_create_request_without_required_period(self):
         pass
+
+    def test_request_price_and_user_balance_calculation(self):
+        self.client.force_login(self.staff_user)
+        target_request_price = Decimal('3685.01')
+        response = self.create_request(self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        request_id = response.data.get("id", None)
+        component_id = response.data.get("notebook", None)
+        aoi_id = response.data.get("aoi", None)
+        self.assertIsNotNone(request_id)
+        self.assertIsNotNone(component_id)
+        self.assertIsNotNone(aoi_id)
+
+        request = Request.objects.get(pk=request_id)
+        aoi = AoI.objects.get(pk=aoi_id)
+        component = Component.objects.get(pk=component_id)
+        transaction = request.transactions.first()
+
+        calculated_price = component.calculate_request_price(
+            area=aoi.area_in_sq_km,
+            user=request.user
+        )
+
+        self.assertIsNotNone(transaction)
+        self.assertEqual(calculated_price, target_request_price)
+        self.assertEqual(abs(transaction.amount), target_request_price)
+        self.assertEqual(request.user.on_hold, target_request_price)
     
     
 class AOIRequestsTestCase(UserBase):

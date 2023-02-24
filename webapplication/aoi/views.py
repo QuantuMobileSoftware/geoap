@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
@@ -10,7 +12,7 @@ from .models import AoI, Component, Request
 from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
-from user.models import User
+from user.models import User, Transaction
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -165,6 +167,15 @@ class RequestListCreateAPIView(ListCreateAPIView):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
+    def create_transaction(self, user, amount, request):
+        Transaction.objects.create(
+            user=user,
+            amount=-amount,
+            request=request
+        )
+        user.on_hold += amount
+        user.save(update_fields=("on_hold",))
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.initial_data['user'] != self.request.user.id and \
@@ -174,8 +185,27 @@ class RequestListCreateAPIView(ListCreateAPIView):
         if not component.validated and \
                 not self.request.user.has_perm('aoi.can_run_not_validated'):
             return Response(status=status.HTTP_403_FORBIDDEN)
+
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        request_price = component.calculate_request_price(
+            user=request.user,
+            area=serializer.validated_data["aoi"].area_in_sq_km
+        )
+        user_actual_balance = request.user.actual_balance
+        if user_actual_balance < request_price:
+            return Response(_(f"Your actual balance is {request.user.actual_balance}. "
+                              f"It’s not enough to run the request. Please replenish the balance. "
+                              f"Contact support (support@soilmate.ai)"),
+                            status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            self.perform_create(serializer)
+            self.create_transaction(
+                user=request.user,
+                amount=request_price,
+                request=serializer.instance
+            )
+        if not serializer.instance:
+            return Response("Error while creating a report", status=status.HTTP_400_BAD_REQUEST)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     

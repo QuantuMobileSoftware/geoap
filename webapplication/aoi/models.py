@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -24,6 +26,14 @@ class AoI(models.Model):
         verbose_name = 'Area of interest'
         verbose_name_plural = 'Areas of interest'
         ordering = ['name']
+
+    @property
+    def area_in_sq_km(self) -> Decimal:
+        # EPSG:4326 has degree units
+        # EPSG:8857 has metre units
+        # we need to convert EPSG:4326 to EPSG:8857
+        self.polygon.transform(8857)
+        return Decimal(self.polygon.area) / 1_000_000
 
 
 class Component(models.Model):
@@ -72,6 +82,13 @@ class Component(models.Model):
         verbose_name = 'Component'
         verbose_name_plural = 'Components'
         ordering = ['name']
+
+    def calculate_request_price(self, area: Decimal, user) -> Decimal:
+        """
+        Request price = Area (in sq.km, rounded up) * Product basic price * (1-User Personal discount).
+        Format XX.XX
+        """
+        return round(area * self.basic_price * (1 - user.discount), 2)
 
 
 class Request(models.Model):
