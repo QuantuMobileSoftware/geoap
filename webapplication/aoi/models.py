@@ -30,10 +30,12 @@ class Component(models.Model):
     DATE_YEAR_TYPE = 1
     DATE_RANGE_TYPE = 2
     DATE_SEASON_TYPE = 3
+    DATE_DAY_TYPE = 4
     DATE_TYPE_CHOICES = (
         (DATE_YEAR_TYPE, "YEAR"),
         (DATE_RANGE_TYPE, "DATE RANGE"),
-        (DATE_SEASON_TYPE, "SEASON")
+        (DATE_SEASON_TYPE, "SEASON"),
+        (DATE_DAY_TYPE, "DAY")
     )
 
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
