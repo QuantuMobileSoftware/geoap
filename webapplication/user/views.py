@@ -1,4 +1,6 @@
 from allauth.account.views import ConfirmEmailView
+from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
+from django.contrib.auth.models import Group
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView
@@ -10,6 +12,14 @@ from rest_framework.views import APIView
 
 from user.models import Transaction
 from user.serializers import TransactionSerializer
+
+
+class RegisterView(BasicRegisterView):
+    def perform_create(self, serializer):
+        user = super().perform_create(serializer)
+        client_group = Group.objects.get(name="Client")
+        user.groups.add(client_group)
+        return user
 
 
 class VerifyEmailView(APIView, ConfirmEmailView):
