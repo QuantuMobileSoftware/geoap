@@ -2,13 +2,13 @@
 SIP URL Configuration
 """
 from allauth.account.views import EmailVerificationSentView
-from dj_rest_auth.registration.views import ResendEmailVerificationView, RegisterView
+from dj_rest_auth.registration.views import ResendEmailVerificationView
 from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView, PasswordResetView, PasswordResetConfirmView, \
     PasswordChangeView
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from user.views import VerifyEmailView
+from user.views import VerifyEmailView, RegisterView
 from .docs_drf_yasg import urlpatterns as doc_urls
 
 
