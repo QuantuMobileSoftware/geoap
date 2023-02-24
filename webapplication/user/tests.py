@@ -220,6 +220,10 @@ class AuthTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(response.data, response_data)
         self.assertEqual(len(mail.outbox), 1)
+
+        current_user = User.objects.get(username=input_data.get("username"), email=input_data.get("email"))
+        self.assertEqual(len(current_user.groups.all()), 1)
+        self.assertEqual(current_user.groups.first().name, "Client")
         
         url_matches = re.findall(r"http.*account-confirm-email.*\B", mail.outbox[0].body)
         self.assertTrue(url_matches)
