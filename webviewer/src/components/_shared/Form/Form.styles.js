@@ -10,7 +10,7 @@ import { Typography } from '../Typography';
 
 export const FormPreloader = styled(Preloader)``;
 
-export const FormMessage = styled(Typography).attrs({ element: 'p' })`
+export const FormMessage = styled(Typography).attrs({ element: 'div' })`
   ${({ theme }) => {
     const fontSize = theme.fontSizes[2];
 
@@ -24,6 +24,13 @@ export const FormMessage = styled(Typography).attrs({ element: 'p' })`
   }}
 `;
 
+export const FormHeader = styled(Typography).attrs({
+  element: 'h2',
+  variant: 'h2'
+})`
+  margin-bottom: ${em(16)};
+`;
+
 export const FormMessageError = styled(FormMessage)`
   ${({ theme }) => css`
     color: ${theme.colors.danger};
@@ -33,10 +40,9 @@ export const FormMessageError = styled(FormMessage)`
 export const FormMessages = styled.div`
   ${({ theme }) => css`
     margin-top: ${rem(theme.spacing[7])};
+    text-align: center;
   `}
 `;
-
-export const FormFooter = styled.footer``;
 
 export const FormAction = styled(({ children, ...props }) => {
   const className = cn(children.props.className, props.className);
@@ -47,6 +53,8 @@ export const FormAction = styled(({ children, ...props }) => {
 export const FormActions = styled.div`
   ${({ theme }) => css`
     margin-top: ${rem(theme.spacing[10])};
+    display: flex;
+    justify-content: center;
   `}
 `;
 

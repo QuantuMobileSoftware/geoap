@@ -9,4 +9,22 @@ const setApiKey = data => {
   return axiosInstance.patch(usersEndpoints.current, data);
 };
 
-export const usersRequests = { getCurrentUser, setApiKey };
+const registerUser = data => {
+  return axiosInstance.post(usersEndpoints.signup, data);
+};
+
+const confirmRegistration = key => {
+  return axiosInstance.get(usersEndpoints.confirm(key));
+};
+
+const resendUserEmail = email => {
+  return axiosInstance.post(usersEndpoints.resend, { email });
+};
+
+export const usersRequests = {
+  getCurrentUser,
+  setApiKey,
+  registerUser,
+  confirmRegistration,
+  resendUserEmail
+};

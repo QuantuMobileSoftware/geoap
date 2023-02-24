@@ -46,6 +46,10 @@ const radius = [4, 6, 10, 20];
 
 const zIndexes = [100, 500, 1000, 1500];
 
+const formSize = {
+  width: '320px'
+};
+
 const borders = theme => ({
   default: props => {
     const { fontSize, color = theme.colors.nature.n1 } = props;
@@ -54,7 +58,7 @@ const borders = theme => ({
 });
 
 const shadows = ({ fontSize } = {}) => [
-  `0px ${em(1, fontSize)} ${em(4, fontSize)} rgba(0, 0, 0, 0.05);`
+  `0px ${em(1, fontSize)} ${em(4, fontSize)} rgba(0, 0, 0, 0.25);`
 ];
 
 const duration = {
@@ -91,6 +95,7 @@ export const themeDefault = {
   duration,
   transitions,
   zIndexes,
+  formSize,
   breakpoints,
   setFontSize: size => (isNumber(size) ? fontSizes[size] : parseFloat(size))
 };

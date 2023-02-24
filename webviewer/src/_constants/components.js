@@ -35,4 +35,10 @@ export const REQUEST_TABS = {
   IN_PROGRESS: 2
 };
 
+export const FIELD_VALIDATION = {
+  PASSWORD: 'Password must be at least 8 characters',
+  PASSWORD_MATCH: 'Passwords must match',
+  REQUIRED: 'This field is required'
+};
+
 export const NO_DATA = 'No data';

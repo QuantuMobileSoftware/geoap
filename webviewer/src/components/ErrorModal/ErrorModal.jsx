@@ -13,15 +13,16 @@ import {
 } from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
 
+const catchErrRoutes = [ROUTES.AUTH, ROUTES.SIGN_UP];
+
 export const ErrorModal = () => {
   const [error, setError] = useState(null);
   const [errorText, setErrorText] = useState('');
   const location = useLocation();
-  const isAuthRoute = location.pathname === ROUTES.AUTH;
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
-      if (error.config?.method === 'get' || isAuthRoute) {
+      if (error.config?.method === 'get' || catchErrRoutes.includes(location.pathname)) {
         setError(null);
         return;
       }
@@ -42,7 +43,7 @@ export const ErrorModal = () => {
         }
       }
     });
-  }, [location, isAuthRoute]);
+  }, [location]);
 
   const handleCloseModal = () => setError(null);
 

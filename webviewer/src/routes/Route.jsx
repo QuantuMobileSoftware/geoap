@@ -7,13 +7,14 @@ import { ROUTES } from '_constants';
 import { selectIsAuthorized } from 'state';
 
 export const Route = ({ component: Component, isPrivate = false, ...props }) => {
-  const { location } = props;
+  const { location, path } = props;
   const isAuthorized = useSelector(selectIsAuthorized);
+  const guestRouts = [ROUTES.AUTH, ROUTES.SIGN_UP, ROUTES.SIGN_UP_CONFIRM];
 
   const renderRoute = props => {
     if ((!isPrivate || isAuthorized) && Component) {
-      if (location.pathname.match(ROUTES.AUTH) && isAuthorized) {
-        return <Redirect to={location.state?.prevLocation || ROUTES.ROOT} />;
+      if (guestRouts.includes(path) && isAuthorized) {
+        return <Redirect to={ROUTES.ROOT} />;
       }
 
       return <Component {...props} />;

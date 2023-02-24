@@ -1,26 +1,35 @@
 import React from 'react';
 import * as Yup from 'yup';
 
-import { StyledAuthForm } from './AuthForm.styles';
-
-import { FormField, FormFieldset } from 'components/_shared/Form';
+import { StyledLink, StyledMessage } from './AuthForm.styles';
 import { Button } from 'components/_shared/Button';
+import { FormField, FormFieldset, Form } from 'components/_shared/Form';
+
+import { ROUTES, FIELD_VALIDATION } from '_constants';
 
 const validationSchema = Yup.object().shape({
-  username: Yup.string().required(),
-  password: Yup.string().required()
+  username: Yup.string().required(FIELD_VALIDATION.REQUIRED),
+  password: Yup.string().required(FIELD_VALIDATION.REQUIRED)
 });
 
 export const AuthForm = ({ initialValues = {}, ...props }) => {
   const _initialValues = { username: '', password: '', ...initialValues };
+  const formMessage = (
+    <>
+      <StyledMessage>Don’t have an account? </StyledMessage>
+      <StyledLink to={ROUTES.SIGN_UP}>Sign up</StyledLink>
+    </>
+  );
 
   return (
-    <StyledAuthForm
+    <Form
       {...props}
       initialValues={_initialValues}
       validationSchema={validationSchema}
+      header='Login'
+      message={formMessage}
       actions={[
-        <Button key='submit' type='submit' variant='primary'>
+        <Button key='submit' type='submit' variant='primary' fullWidth>
           Login
         </Button>
       ]}
@@ -33,12 +42,12 @@ export const AuthForm = ({ initialValues = {}, ...props }) => {
           placeholder='Enter username'
         />
         <FormField
-          label='Passowrd'
+          label='Password'
           type='password'
           name='password'
           placeholder='Enter password'
         />
       </FormFieldset>
-    </StyledAuthForm>
+    </Form>
   );
 };
