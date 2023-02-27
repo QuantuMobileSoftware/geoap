@@ -1,7 +1,6 @@
 """
 Aoi serializer module.
 """
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from .models import AoI, Component, Request
 
@@ -11,20 +10,6 @@ class AoISerializer(serializers.ModelSerializer):
         model = AoI
         fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type')
         read_only_fields = ['createdat', ]
-
-    @property
-    def current_user(self):
-        request = self.context.get('request', None)
-        if request:
-            return request.user
-
-    def validate(self, attrs):
-        aoi_name = attrs.get('name', None)
-        current_user = self.current_user
-        if aoi_name and current_user:
-            if AoI.objects.filter(name=aoi_name, user=current_user).exists():
-                raise serializers.ValidationError({'name': _(f"The area with name \"{aoi_name}\" already exists.")})
-        return super().validate(attrs)
 
 
 class ComponentSerializer(serializers.ModelSerializer):
