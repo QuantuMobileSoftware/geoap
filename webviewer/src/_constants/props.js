@@ -13,5 +13,6 @@ export const NOT_FORWARD_PROPS = [
   'staticContext',
   'variant',
   'variantType',
-  'withUnmountToggle'
+  'withUnmountToggle',
+  'fullWidth'
 ];

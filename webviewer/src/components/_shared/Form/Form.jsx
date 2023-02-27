@@ -5,7 +5,7 @@ import {
   FormAction,
   FormActions,
   FormBody,
-  FormFooter,
+  FormHeader,
   FormMessage,
   FormMessageError,
   FormMessages,
@@ -21,6 +21,7 @@ export const Form = forwardRef(
       children,
       initialValues = {},
       validationSchema,
+      header,
       error,
       message,
       actions = [],
@@ -46,8 +47,7 @@ export const Form = forwardRef(
 
     useImperativeHandle(ref, () => ({ element: rootRef.current, ...formik }), [formik]);
 
-    const canRenderMessages = error || message;
-    const canRenderFooter = canRenderMessages;
+    const canRenderFooter = error || message;
 
     const renderActions = () => {
       if (!actions || !actions.length) return null;
@@ -69,19 +69,16 @@ export const Form = forwardRef(
         onSubmit={formik.handleSubmit}
       >
         <FormikProvider value={formik}>
+          {header && <FormHeader>{header}</FormHeader>}
           {children && <FormBody>{withFunction(children, formik)}</FormBody>}
 
           {renderActions()}
 
           {canRenderFooter && (
-            <FormFooter>
-              {canRenderMessages && (
-                <FormMessages>
-                  {error && <FormMessageError>{error}</FormMessageError>}
-                  {message && <FormMessage>{message}</FormMessage>}
-                </FormMessages>
-              )}
-            </FormFooter>
+            <FormMessages>
+              {error && <FormMessageError>{error}</FormMessageError>}
+              {message && <FormMessage>{message}</FormMessage>}
+            </FormMessages>
           )}
 
           {isLoading && <FormPreloader />}
