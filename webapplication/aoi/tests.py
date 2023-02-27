@@ -106,6 +106,23 @@ class AOITestCase(UserBase):
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_aoi_unique_name(self):
+        url = reverse('aoi:aoi_list_or_create')
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        target_response = {"non_field_errors": ["The fields user, name must make a unique set."]}
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, target_response)
+
+        # Another user can create aoi with this name
+        self.client.force_authenticate(user=self.ex_2_user)
+        creation_data = {**self.data_create, "user": self.ex_2_user.id}
+        response = self.client.post(url, creation_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_get_aoi_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
         response = self.get_aoi(1001)

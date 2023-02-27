@@ -12,7 +12,7 @@ class AoI(models.Model):
     )
 
     user = models.ForeignKey('user.User', on_delete=models.CASCADE, verbose_name='User id', related_name='aoi')
-    name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='AOI name')
+    name = models.CharField(max_length=200, blank=False, null=False, verbose_name='AOI name')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
     type = models.IntegerField(choices=AREA_TYPE_CHOICES, default=USER_DEFINED_TYPE)
@@ -24,6 +24,7 @@ class AoI(models.Model):
         verbose_name = 'Area of interest'
         verbose_name_plural = 'Areas of interest'
         ordering = ['name']
+        unique_together = ('user', 'name')
 
 
 class Component(models.Model):
