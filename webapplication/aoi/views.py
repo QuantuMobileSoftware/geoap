@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.serializers import ValidationError, as_serializer_error
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.generics import get_object_or_404
@@ -9,7 +10,7 @@ from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, Component, Request
-from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
+from .serializers import AoISerializer, ComponentSerializer, ComponentPriceSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 from user.models import User, Transaction
@@ -146,8 +147,17 @@ class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     http_method_names = ("get", "patch", 'delete')
-   
-    
+
+
+class ComponentPriceAPIView(RetrieveAPIView):
+    permission_classes = (ModelPermissions, )
+    queryset = Component.objects.all()
+    serializer_class = ComponentPriceSerializer
+
+    def get(self, request, aoi=None, *args, **kwargs):
+        return super().get(request, aoi=aoi, *args, **kwargs)
+
+
 class RequestListCreateAPIView(ListCreateAPIView):
     """
     Get list of all Requests available for User, or creates new Request for calculation.
@@ -193,10 +203,10 @@ class RequestListCreateAPIView(ListCreateAPIView):
         )
         user_actual_balance = request.user.actual_balance
         if user_actual_balance < request_price:
-            return Response(_(f"Your actual balance is {request.user.actual_balance}. "
-                              f"It’s not enough to run the request. Please replenish the balance. "
-                              f"Contact support (support@soilmate.ai)"),
-                            status=status.HTTP_400_BAD_REQUEST)
+            validation_error = ValidationError(_(f"Your actual balance is {request.user.actual_balance}. "
+                                                 f"It’s not enough to run the request. Please replenish the balance. "
+                                                 f"Contact support (support@soilmate.ai)"))
+            return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             self.perform_create(serializer)
             self.create_transaction(
@@ -205,7 +215,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
                 request=serializer.instance
             )
         if not serializer.instance:
-            return Response("Error while creating a report", status=status.HTTP_400_BAD_REQUEST)
+            validation_error = ValidationError(_("Error while creating a report"))
+            return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     

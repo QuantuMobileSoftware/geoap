@@ -551,7 +551,34 @@ class RequestTestCase(UserBase):
         self.assertEqual(calculated_price, target_request_price)
         self.assertEqual(abs(transaction.amount), target_request_price)
         self.assertEqual(request.user.on_hold, target_request_price)
-    
+
+    def test_creating_request_error(self):
+        self.client.force_login(self.all_results_no_acl_user)
+        target_response = {
+            "non_field_errors": [
+                f"Your actual balance is {self.all_results_no_acl_user.actual_balance}. "
+                f"It’s not enough to run the request. Please replenish the balance. "
+                f"Contact support (support@soilmate.ai)"
+            ]
+        }
+        data_create = {
+            'user': 1005,
+            'aoi': 1001,
+            'notebook': 1001,
+        }
+        response = self.create_request(data_create)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, target_response)
+
+    def test_request_price_calculation(self):
+        self.client.force_login(self.staff_user)
+        target_request_price = Decimal('3685.01')
+        url = reverse('aoi:calculate_notebook_execution_price', kwargs={'pk': 1001, 'aoi': 1001})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data.get('price'))
+        self.assertEqual(response.data.get('price'), target_request_price)
+
     
 class AOIRequestsTestCase(UserBase):
     fixtures = ['user/fixtures/user_fixtures.json',

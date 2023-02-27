@@ -2,6 +2,8 @@
 Aoi serializer module.
 """
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from .models import AoI, Component, Request
 
 
@@ -19,6 +21,32 @@ class ComponentSerializer(serializers.ModelSerializer):
         model = Component
         fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
                   'additional_parameter', 'period_required', 'date_type')
+
+
+class ComponentPriceSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(max_digits=9, decimal_places=2, coerce_to_string=False, read_only=True, default=0)
+
+    class Meta:
+        model = Component
+        fields = ('price',)
+        validate = []
+
+    def calculate_price(self, instance):
+        aoi_id = self.context.get('view').kwargs.get('aoi')
+        user = self.context.get('request').user
+        try:
+            aoi = AoI.objects.get(id=aoi_id, user=user)
+        except AoI.DoesNotExist as e:
+            raise ValidationError(e)
+        return instance.calculate_request_price(
+            area=aoi.area_in_sq_km,
+            user=user
+        )
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['price'] = self.calculate_price(instance)
+        return ret
 
 
 class RequestSerializer(serializers.ModelSerializer):
