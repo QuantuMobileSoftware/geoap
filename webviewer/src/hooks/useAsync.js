@@ -35,7 +35,8 @@ export const useAsync = () => {
         result = await withFunction(callback);
         updateState(INITIAL_STATE);
       } catch (error) {
-        updateState({ error, isLoading: false });
+        const err = typeof error === 'string' ? error : Object.values(error.data)[0];
+        updateState({ error: err, isLoading: false });
         result = handleError(error);
       }
       if (loader) {

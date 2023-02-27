@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-import { StyledPageAuth } from './PageAuth.styles';
-
+import { FormPage } from 'components/_shared/Page';
 import { AuthForm } from 'components/Auth';
-import { Logo } from 'components/Logo';
 import { Paper } from 'components/_shared/Paper';
 
 import { useUserActions, selectIsAuthorized, selectIsAutoLogged } from 'state';
@@ -31,11 +29,10 @@ export const PageAuth = ({ ...props }) => {
   }, []);
 
   return (
-    <StyledPageAuth {...props} header={false}>
+    <FormPage {...props} header={false}>
       <Paper padding={4}>
-        <Logo />
         <AuthForm isLoading={isLoading} error={error} onSubmit={handleSubmit} />
       </Paper>
-    </StyledPageAuth>
+    </FormPage>
   );
 };
