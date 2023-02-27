@@ -8,8 +8,8 @@ import { FormField, FormFieldset, Form } from 'components/_shared/Form';
 import { ROUTES, FIELD_VALIDATION } from '_constants';
 
 const validationSchema = Yup.object().shape({
-  username: Yup.string().required(FIELD_VALIDATION.REQUIRED),
-  password: Yup.string().required(FIELD_VALIDATION.REQUIRED)
+  username: Yup.string().trim().required(FIELD_VALIDATION.REQUIRED),
+  password: Yup.string().trim().required(FIELD_VALIDATION.REQUIRED)
 });
 
 export const AuthForm = ({ initialValues = {}, ...props }) => {
