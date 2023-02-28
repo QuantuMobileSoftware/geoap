@@ -1,6 +1,7 @@
 """
 Aoi serializer module.
 """
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -36,8 +37,8 @@ class ComponentPriceSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         try:
             aoi = AoI.objects.get(id=aoi_id, user=user)
-        except AoI.DoesNotExist as e:
-            raise ValidationError(e)
+        except AoI.DoesNotExist:
+            raise ValidationError(_("Request price calculation error"))
         return instance.calculate_request_price(
             area=aoi.area_in_sq_km,
             user=user

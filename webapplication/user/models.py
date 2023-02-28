@@ -58,14 +58,6 @@ class User(AbstractUser):
     def actual_balance(self):
         return self.balance - self.on_hold
 
-    def top_up_balance(self, amount) -> bool:
-        try:
-            self.balance += amount
-            self.save(update_fields=("balance",))
-            return True
-        except decimal.InvalidOperation:
-            return False
-
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
