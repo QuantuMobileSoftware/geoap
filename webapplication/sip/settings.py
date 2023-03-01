@@ -75,6 +75,8 @@ REST_FRAMEWORK = {
 
 REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'user.serializers.UserSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'user.serializers.PasswordResetSerializer',
+    'PASSWORD_RESET_USE_SITES_DOMAIN': True
 }
 
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -173,6 +175,7 @@ SESSION_COOKIE_AGE = 28800  # 8 hours, in seconds
 
 # Account
 AUTH_USER_MODEL = 'user.User'
+ACCOUNT_ADAPTER = 'user.adapters.AccountAdapter'
 
 LOGGING = {
     'version': 1,

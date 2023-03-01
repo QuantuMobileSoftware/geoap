@@ -1,5 +1,9 @@
+from django.conf import settings
+from dj_rest_auth.serializers import PasswordResetSerializer as DefaultPasswordResetSerializer
+from django.contrib.auth.forms import PasswordResetForm as DefaultPasswordResetForm
 from rest_framework import serializers
 
+from user.forms import PasswordResetForm
 from user.models import User, Transaction
 
 
@@ -16,3 +20,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed')
         read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed')
+
+
+class PasswordResetSerializer(DefaultPasswordResetSerializer):
+    @property
+    def password_reset_form_class(self):
+        if 'allauth' in settings.INSTALLED_APPS:
+            return PasswordResetForm
+        else:
+            return DefaultPasswordResetForm
