@@ -77,16 +77,8 @@ to receive bash command for authorization with login and password included, like
 `docker login --username ***********@quantumobile.com --password ***************************************************** https://registry.quantumobile.co`
 
 ### Authorizing k8s cluster to pull images from local registry
+#### Check [k8s config](https://github.com/QuantuMobileSoftware/geoap-ee) for more information.
 
-To allow k8s pull images you need to create special secret. Keep in mind that Secret is namespace bound object so you need to create namespace first:
-```
-kubectl create namespace sip --save-config && \
-kubectl create secret docker-registry regcred \
-  --docker-server=https://registry.quantumobile.co \
-  --docker-username=***********@quantumobile.com \
-  --docker-password=***************************************************** \
-  --namespace=sip
-```
 
 ## Building & Pushing images
 
@@ -115,33 +107,7 @@ To copy images from host to kind cluster use command:
 `kind load docker-image registry.quantumobile.co/sip-web-server:latest registry.quantumobile.co/sip-web-application:latest`
 
 # Working with k8s
-
-## Installing kind for local development 
-
-Check [kind documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) for installation details.
-
-## Running local cluster with kind
-
-To create cluster with kind use command:
-
-`kind create cluster  --config=./k8s/kind-config.yaml`
-
-then use `kubectl` to interact with cluster.
-
-## Running sip in k8s cluster
-
-To run sip in kind use command:
-
-`kubectl apply -f ./k8s/sip-deploy.yaml`
-
-After this UI will be available on `http://localhost:31080/`
-
-### Database initiation
-
-During the first run and after volume erasing you need to populate data with initial and test values 
-The next command will fill database with data:
-
-`kubectl exec -it deploy/webapplication -- bash -c "python -m manage dbshell < clear.sql&&python -m manage dbshell < ./db.dump"`
+#### Check [k8s config](https://github.com/QuantuMobileSoftware/geoap-ee) for more information.
 
 ## Settings&Environment
 
