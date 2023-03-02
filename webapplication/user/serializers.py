@@ -1,6 +1,4 @@
-from django.conf import settings
 from dj_rest_auth.serializers import PasswordResetSerializer as DefaultPasswordResetSerializer
-from django.contrib.auth.forms import PasswordResetForm as DefaultPasswordResetForm
 from rest_framework import serializers
 
 from user.forms import PasswordResetForm
@@ -25,7 +23,4 @@ class TransactionSerializer(serializers.ModelSerializer):
 class PasswordResetSerializer(DefaultPasswordResetSerializer):
     @property
     def password_reset_form_class(self):
-        if 'allauth' in settings.INSTALLED_APPS:
-            return PasswordResetForm
-        else:
-            return DefaultPasswordResetForm
+        return PasswordResetForm
