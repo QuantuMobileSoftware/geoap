@@ -5,7 +5,7 @@ import { hotjar } from 'react-hotjar';
 import { ROUTES } from '_constants';
 
 import { Route } from './Route';
-import { PageAuth, PageMain } from 'pages';
+import { PageAuth, PageMain, SingUp } from 'pages';
 
 const { REACT_APP_HOTJAR_ID, REACT_APP_HOTJAR_SV } = process.env;
 
@@ -18,6 +18,8 @@ export const Routes = () => {
 
   return (
     <Switch>
+      <Route path={ROUTES.SIGN_UP_CONFIRM} component={SingUp} />
+      <Route path={ROUTES.SIGN_UP} component={SingUp} />
       <Route path={ROUTES.AUTH} component={PageAuth} />
       <Route isPrivate path={ROUTES.ROOT} component={PageMain} />
     </Switch>

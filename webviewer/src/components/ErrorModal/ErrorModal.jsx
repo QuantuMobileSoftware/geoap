@@ -9,19 +9,24 @@ import {
   PERMISSION_ERROR,
   SERVER_ERROR,
   SIZE_ERROR,
-  DEFAULT_ERROR
+  DEFAULT_ERROR,
+  NOT_FOUND
 } from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
+
+const catchErrRoutes = [ROUTES.AUTH, ROUTES.SIGN_UP];
 
 export const ErrorModal = () => {
   const [error, setError] = useState(null);
   const [errorText, setErrorText] = useState('');
   const location = useLocation();
-  const isAuthRoute = location.pathname === ROUTES.AUTH;
 
   useEffect(() => {
     areasEvents.onToggleErrorModal(({ error }) => {
-      if (error.config?.method === 'get' || isAuthRoute) {
+      const isIgnoreError =
+        catchErrRoutes.includes(location.pathname) && error.status === 400;
+
+      if (error.config?.method === 'get' || isIgnoreError) {
         setError(null);
         return;
       }
@@ -35,6 +40,8 @@ export const ErrorModal = () => {
           } else {
             setErrorText(PERMISSION_ERROR);
           }
+        } else if (error.status === 404) {
+          setErrorText(NOT_FOUND);
         } else if (error.status === 500) {
           setErrorText(SERVER_ERROR);
         } else {
@@ -42,7 +49,7 @@ export const ErrorModal = () => {
         }
       }
     });
-  }, [location, isAuthRoute]);
+  }, [location]);
 
   const handleCloseModal = () => setError(null);
 

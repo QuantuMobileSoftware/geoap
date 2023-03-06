@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0014_user_planet_api_key'),
+        ('user', '0016_transaction'),
     ]
 
     operations = [

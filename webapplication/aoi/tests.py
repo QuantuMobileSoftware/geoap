@@ -106,6 +106,23 @@ class AOITestCase(UserBase):
         response = self.client.post(url, self.data_create)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_aoi_unique_name(self):
+        url = reverse('aoi:aoi_list_or_create')
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        target_response = {"non_field_errors": ["The fields user, name must make a unique set."]}
+        response = self.client.post(url, self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, target_response)
+
+        # Another user can create aoi with this name
+        self.client.force_authenticate(user=self.ex_2_user)
+        creation_data = {**self.data_create, "user": self.ex_2_user.id}
+        response = self.client.post(url, creation_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_get_aoi_as_not_auth_user(self):
         self.client.force_authenticate(user=None)
         response = self.get_aoi(1001)
@@ -275,19 +292,23 @@ class JupyterNotebookTestCase(UserBase):
         self.not_staff_user = User.objects.get(id=1002)
         self.data_create = {
             "name": "JupyterNotebook_test_created",
+            "basic_price": 1.2,
             "image": "some docker command",
             "path": "work/notebooks/example/geojson_created.ipynb",
             "kernel_name": "3.8",
             "run_validation": True,
-            "success": False
+            "success": False,
+            "date_type": 2
         }
         
         self.data_patch = {
             "name": "JupyterNotebook_test_patch",
+            "basic_price": 1.4,
             "image": "some new docker command",
             "kernel_name": "3.3",
             "run_validation": True,
             "success": True,
+            "date_type": 2
         }
     
     def test_create_notebook_as_not_auth_user(self):
@@ -348,11 +369,13 @@ class JupyterNotebookTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = json.loads(response.content)
         self.assertEqual(content['name'], self.data_patch['name'])
+        self.assertEqual(content['basic_price'], self.data_patch['basic_price'])
         self.assertEqual(content['image'], self.data_patch['image'])
         self.assertEqual(content['path'], 'work/notebooks/example/geojson.ipynb')
         self.assertEqual(content['kernel_name'], self.data_patch['kernel_name'])
         self.assertEqual(content['run_validation'], self.data_patch['run_validation'])
         self.assertEqual(content['success'], self.data_patch['success'])
+        self.assertEqual(content['date_type'], self.data_patch['date_type'])
     
     def test_get_notebook_list_as_not_auth_user(self):
         self.client.force_authenticate(user=None)

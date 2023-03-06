@@ -4,3 +4,5 @@ export const FILE_ERROR =
   'Sorry, we can not process your file. Please check its size/format';
 export const SIZE_ERROR = 'To access more areas, please contact the administrator';
 export const DEFAULT_ERROR = 'Something went wrong';
+export const NOT_POLYGON = 'Please add file with type "Polygon"';
+export const NOT_FOUND = 'Not found';

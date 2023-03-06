@@ -51,5 +51,28 @@ export const useUserActions = () => {
     }
   }, [dispatch, handleAsync, logout]);
 
-  return { isLoading, error, login, logout, getCurrentUser, setApiKey };
+  const registerUser = useCallback(
+    async data => {
+      return await handleAsync(async () => await API.users.registerUser(data));
+    },
+    [handleAsync]
+  );
+
+  const confirmRegistration = useCallback(
+    async key => {
+      return await handleAsync(async () => await API.users.confirmRegistration(key));
+    },
+    [handleAsync]
+  );
+
+  return {
+    isLoading,
+    error,
+    login,
+    logout,
+    getCurrentUser,
+    setApiKey,
+    registerUser,
+    confirmRegistration
+  };
 };
