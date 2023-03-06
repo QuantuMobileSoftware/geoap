@@ -16,6 +16,8 @@ from abc import ABCMeta, abstractmethod
 from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
+
+from shapely import Polygon
 from shapely.ops import transform
 from shapely.geometry import box
 from django.conf import settings
@@ -172,7 +174,10 @@ class Geojson(File):
                 logger.info(f"{self.path}: {self.df.crs}. Transform to {self.crs}")
                 self.df.to_crs(self.crs, inplace=True)
 
-            self.bound_box = str(box(*self.df.total_bounds))
+            if all(self.df.is_empty):
+                self.bound_box = self.request.aoi.polygon if self.request else Polygon()
+            else:
+                self.bound_box = str(box(*self.df.total_bounds))
         except Exception as ex:
             logger.error(f"Cannot read file {self.path}: {str(ex)}")
 
@@ -266,7 +271,6 @@ class Geotif(File):
     def read_file(self):
         try:
             with rasterio.open(self.path) as dataset:
-
                 bound_box = box(*dataset.bounds)
 
                 if str(dataset.crs).lower() != self.crs:
