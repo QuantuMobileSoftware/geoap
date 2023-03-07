@@ -175,7 +175,7 @@ class Geojson(File):
                 self.df.to_crs(self.crs, inplace=True)
 
             if all(self.df.is_empty):
-                self.bound_box = self.request.aoi.polygon if self.request else Polygon()
+                self.bound_box = self.request.polygon if self.request else Polygon()
             else:
                 self.bound_box = str(box(*self.df.total_bounds))
         except Exception as ex:
