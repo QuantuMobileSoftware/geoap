@@ -71,19 +71,6 @@ REST_FRAMEWORK = {
     ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'COERCE_DECIMAL_TO_STRING': False,
-    'DATE_INPUT_FORMATS': [
-        "%Y-%m-%d",
-        "%m/%d/%Y",
-        "%m/%d/%y",
-        "%b %d %Y",
-        "%b %d, %Y",
-        "%d %b %Y",
-        "%d %b, %Y",
-        "%B %d %Y",
-        "%B %d, %Y",
-        "%d %B %Y",
-        "%d %B, %Y",
-    ]
 }
 
 REST_AUTH = {
