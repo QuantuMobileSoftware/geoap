@@ -10,7 +10,7 @@ from publisher.serializers import ResultSerializer
 from publisher.models import Result
 from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, Component, Request
-from .serializers import AoISerializer, ComponentSerializer, ComponentPriceSerializer, RequestSerializer
+from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 from user.models import User, Transaction
@@ -149,15 +149,6 @@ class ComponentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     http_method_names = ("get", "patch", 'delete')
 
 
-class ComponentPriceAPIView(RetrieveAPIView):
-    permission_classes = (ModelPermissions, )
-    queryset = Component.objects.all()
-    serializer_class = ComponentPriceSerializer
-
-    def get(self, request, aoi=None, *args, **kwargs):
-        return super().get(request, aoi=aoi, *args, **kwargs)
-
-
 class RequestListCreateAPIView(ListCreateAPIView):
     """
     Get list of all Requests available for User, or creates new Request for calculation.
@@ -201,6 +192,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
             user=request.user,
             area=serializer.validated_data["aoi"].area_in_sq_km
         )
+        if serializer.validated_data.get("pre_submit"):
+            return Response({"price": request_price}, status=status.HTTP_200_OK)
         user_actual_balance = request.user.actual_balance
         if user_actual_balance < request_price:
             validation_error = ValidationError(_(f"Your actual balance is {request.user.actual_balance}. "

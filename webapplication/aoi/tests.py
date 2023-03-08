@@ -572,12 +572,14 @@ class RequestTestCase(UserBase):
 
     def test_request_price_calculation(self):
         self.client.force_login(self.staff_user)
-        target_request_price = Decimal('3685.01')
-        url = reverse('aoi:calculate_notebook_execution_price', kwargs={'pk': 1001, 'aoi': 1001})
-        response = self.client.get(url)
+        target_response = {
+            'price': Decimal('3685.01')
+        }
+        data_create = {**self.data_create, 'pre_submit': True}
+
+        response = self.create_request(data_create)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.get('price'))
-        self.assertEqual(response.data.get('price'), target_request_price)
+        self.assertEqual(response.data, target_response)
 
     
 class AOIRequestsTestCase(UserBase):

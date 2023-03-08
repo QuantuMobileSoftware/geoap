@@ -17,6 +17,11 @@ class User(AbstractUser):
     discount = models.PositiveIntegerField(_("Discount"), null=True, blank=True, default=0,
                                            validators=(MaxValueValidator(100),))
 
+    class Meta:
+        permissions = (
+            ("can_change_balance", "Can change balance"),
+        )
+
     @property
     def areas_total_ha(self):
         total = 0
