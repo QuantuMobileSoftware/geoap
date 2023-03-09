@@ -12,6 +12,7 @@ const USER_DEFAULT_STATE = {
   last_name: '',
   isAuthorized: false,
   isAutoLogged: false,
+  isShowLogoutModal: false,
   planet_api_key: null
 };
 
@@ -31,6 +32,10 @@ const userSlice = createSlice({
       mergeObjects(USER_DEFAULT_STATE, {
         isAutoLogged: action.payload
       }),
+
+    toggleLogoutModal: state => {
+      state.isShowLogoutModal = !state.isShowLogoutModal;
+    },
 
     setEntity: (state, action) => mergeObjects(state, action.payload),
 

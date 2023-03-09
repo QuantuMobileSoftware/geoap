@@ -6,22 +6,21 @@ import { AreasSidebar } from 'components/Areas';
 import { Map } from 'components/Map';
 import { ContactUs } from 'components/ContactUs';
 
-import { useAreasActions, useUserActions } from 'state';
+import { useAreasActions } from 'state';
 
 export const PageMain = ({ ...props }) => {
-  const { getCurrentUser } = useUserActions();
   const { getAreas } = useAreasActions();
+  const isOpen = props.history.action === 'PUSH' && props.location.state?.isOpenSidebar;
 
   useEffect(() => {
-    getCurrentUser();
     getAreas();
-  }, [getCurrentUser, getAreas]);
+  }, [getAreas]);
 
   return (
     <StyledPageMain {...props}>
       <PageMainContainer>
         <Map />
-        <AreasSidebar />
+        <AreasSidebar isOpen={isOpen} />
         <ContactUs />
       </PageMainContainer>
     </StyledPageMain>

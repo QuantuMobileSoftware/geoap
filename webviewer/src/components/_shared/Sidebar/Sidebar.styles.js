@@ -37,19 +37,20 @@ export const SidebarButtonClose = styled(Button).attrs({
     }
   `}
 `;
+export const BasicSidebar = styled(Paper).attrs({ padding: 1 })`
+  width: ${rem(300)};
+  height: 100%;
+  border-radius: 0;
+`;
 
-export const StyledSidebar = styled(Paper).attrs({ padding: 1 })`
+export const StyledSidebar = styled(BasicSidebar)`
   ${({ theme, withUnmountToggle }) => [
     css`
       position: absolute;
       top: 0;
       left: 0;
-      width: ${rem(300)};
-      height: 100%;
       display: flex;
       flex-direction: column;
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
       z-index: ${theme.zIndexes[1]};
     `,
     !withUnmountToggle &&

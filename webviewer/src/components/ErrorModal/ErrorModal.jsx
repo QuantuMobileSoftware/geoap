@@ -42,7 +42,7 @@ export const ErrorModal = () => {
           }
         } else if (error.status === 404) {
           setErrorText(NOT_FOUND);
-        } else if (error.status === 500) {
+        } else if (error.status >= 500) {
           setErrorText(SERVER_ERROR);
         } else {
           setErrorText(error.data?.name?.[0] || Object.values(error.data)?.[0][0]);
