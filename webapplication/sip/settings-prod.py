@@ -6,6 +6,8 @@ ALLOWED_HOSTS.append("portal.soilmate.ai")
 
 CSRF_TRUSTED_ORIGINS = ["portal.soilmate.ai"]
 
+DEFAULT_HTTP_PROTOCOL = "HTTPS"
+
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"
 HOST_VOLUME_DATA_BASENAME = "sip"

@@ -2,11 +2,11 @@ import styled, { css } from 'styled-components';
 
 import { rem } from 'styles';
 
-import { Page } from 'components/_shared/Page';
+import { Page } from './Page';
 import { StyledPaper } from 'components/_shared/Paper';
 import { StyledLogo } from 'components/Logo';
 
-export const StyledPageAuth = styled(Page)`
+export const StyledFormPage = styled(Page)`
   ${({ theme }) => css`
     display: flex;
     align-items: center;
@@ -16,7 +16,6 @@ export const StyledPageAuth = styled(Page)`
       display: flex;
       flex-direction: column;
       align-items: center;
-      transform: translateY(-10%);
     }
 
     ${StyledLogo} {

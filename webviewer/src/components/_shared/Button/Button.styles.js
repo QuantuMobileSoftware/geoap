@@ -101,7 +101,7 @@ const buttonVariantTypeStyles = {
 };
 
 export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
-  ${({ theme, hasChildren, variant, variantType, icon, disabled }) => {
+  ${({ theme, hasChildren, variant, variantType, icon, disabled, fullWidth }) => {
     const fontSize = theme.fontSizes[2];
 
     return [
@@ -138,7 +138,13 @@ export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
           }
         `,
       variantType && buttonVariantTypeStyles[variantType],
-      disabled && buttonDisabledStyle
+      disabled && buttonDisabledStyle,
+      fullWidth &&
+        css`
+           {
+            width: 100%;
+          }
+        `
     ];
   }};
 `;

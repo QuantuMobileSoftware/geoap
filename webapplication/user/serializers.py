@@ -1,5 +1,7 @@
+from dj_rest_auth.serializers import PasswordResetSerializer as DefaultPasswordResetSerializer
 from rest_framework import serializers
 
+from user.forms import PasswordResetForm
 from user.models import User, Transaction
 
 
@@ -17,3 +19,9 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed', 'rolled_back')
         read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed',
                             'rolled_back')
+
+
+class PasswordResetSerializer(DefaultPasswordResetSerializer):
+    @property
+    def password_reset_form_class(self):
+        return PasswordResetForm
