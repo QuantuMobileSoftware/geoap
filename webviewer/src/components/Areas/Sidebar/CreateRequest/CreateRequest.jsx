@@ -59,8 +59,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
       : {};
     const dateRange = notebook.period_required
       ? {
-          date_from: startDate.toLocaleDateString('en-CA'),
-          date_to: endDate.toLocaleDateString('en-CA')
+          date_from: startDate.toISOString().split('T')[0],
+          date_to: endDate.toISOString().split('T')[0]
         }
       : {};
 
