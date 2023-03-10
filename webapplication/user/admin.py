@@ -64,13 +64,13 @@ admin.site.register(User, UserAdmin)
 @admin.register(Transaction)
 class TransactionModel(admin.ModelAdmin):
     list_display = ('amount', 'user', 'request', 'created_at', 'completed')
-    list_filter = ('created_at', 'completed')
+    list_filter = ('created_at', 'completed', 'rolled_back')
     search_fields = ('user', 'request')
     readonly_fields = ('amount', 'user', 'request', 'created_at', 'updated_at')
 
     fieldsets = (
         (_('Transaction info'), {
-            'fields': ('amount', 'user', 'request', 'comment', 'completed')
+            'fields': ('amount', 'user', 'request', 'comment', 'completed', 'rolled_back')
         }),
         (_('Important dates'), {
             'classes': ('collapse',),

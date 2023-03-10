@@ -73,6 +73,7 @@ class Transaction(models.Model):
                                 related_name="transactions")
     comment = models.TextField(_("Comment"), blank=True, default="")
     completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)
+    rolled_back = models.BooleanField(_("Rolled back"), default=False, blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]

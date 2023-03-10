@@ -120,10 +120,11 @@ class NotebookDockerThread(StoppableThread):
             else:
                 request.finished_at=localtime()
                 request.save(update_fields=['finished_at'])
+                request_transaction.rolled_back = True
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
             with transaction.atomic():
-                request_transaction.save(update_fields=("completed",))
+                request_transaction.save(update_fields=("completed", "rolled_back"))
                 request_transaction.user.save(update_fields=("on_hold", "balance"))
             try:
                 container.remove()

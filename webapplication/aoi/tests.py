@@ -573,6 +573,22 @@ class RequestTestCase(UserBase):
     def test_request_price_calculation(self):
         self.client.force_login(self.staff_user)
         target_response = {
+            'id': None,
+            'user': 1001,
+            'aoi': 1001,
+            'notebook': 1001,
+            'notebook_name': 'JupyterNotebook_test',
+            'date_from': None,
+            'date_to': None,
+            'started_at': None,
+            'finished_at': None,
+            'error': None,
+            'calculated': False,
+            'success': False,
+            'polygon': 'SRID=4326;POLYGON ((2845602.088258859 6000928.138035979, 2888096.417874162 5999611.150529142, '
+                       '2904738.569550101 5927643.915068185, 2863436.145120111 5926315.09384418, '
+                       '2845602.088258859 6000928.138035979))',
+            'additional_parameter': None,
             'price': Decimal('3685.01')
         }
         data_create = {**self.data_create, 'pre_submit': True}

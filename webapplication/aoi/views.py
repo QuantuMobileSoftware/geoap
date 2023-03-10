@@ -193,7 +193,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
             area=serializer.validated_data["aoi"].area_in_sq_km
         )
         if serializer.validated_data.get("pre_submit"):
-            return Response({"price": request_price}, status=status.HTTP_200_OK)
+            self.perform_create(serializer)
+            return Response({**serializer.data, "price": request_price}, status=status.HTTP_200_OK)
         user_actual_balance = request.user.actual_balance
         if user_actual_balance < request_price:
             validation_error = ValidationError(_(f"Your actual balance is {request.user.actual_balance}. "

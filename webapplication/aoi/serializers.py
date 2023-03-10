@@ -31,8 +31,9 @@ class RequestSerializer(serializers.ModelSerializer):
                                                   label="Component id")
 
     def create(self, validated_data):
-        validated_data.pop('pre_submit')
         validated_data.update({'polygon': validated_data["aoi"].polygon})
+        if validated_data.pop('pre_submit'):
+            return Request(**validated_data)
         return Request.objects.create(**validated_data)
 
     def validate(self, attrs):
