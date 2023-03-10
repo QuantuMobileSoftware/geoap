@@ -3,9 +3,7 @@
 --
 
 -- Dumped from database version 13.1 (Debian 13.1-1.pgdg100+1)
--- Dumped by pg_dump version 14.5 (Ubuntu 14.5-0ubuntu0.22.04.1)
-
--- Started on 2022-11-22 21:05:15 EET
+-- Dumped by pg_dump version 13.1 (Debian 13.1-1.pgdg100+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,7 +17,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 10 (class 2615 OID 19129)
 -- Name: tiger; Type: SCHEMA; Schema: -; Owner: sip
 --
 
@@ -29,7 +26,6 @@ CREATE SCHEMA tiger;
 ALTER SCHEMA tiger OWNER TO sip;
 
 --
--- TOC entry 11 (class 2615 OID 19399)
 -- Name: tiger_data; Type: SCHEMA; Schema: -; Owner: sip
 --
 
@@ -39,7 +35,6 @@ CREATE SCHEMA tiger_data;
 ALTER SCHEMA tiger_data OWNER TO sip;
 
 --
--- TOC entry 9 (class 2615 OID 18974)
 -- Name: topology; Type: SCHEMA; Schema: -; Owner: sip
 --
 
@@ -49,8 +44,6 @@ CREATE SCHEMA topology;
 ALTER SCHEMA topology OWNER TO sip;
 
 --
--- TOC entry 4611 (class 0 OID 0)
--- Dependencies: 9
 -- Name: SCHEMA topology; Type: COMMENT; Schema: -; Owner: sip
 --
 
@@ -58,7 +51,6 @@ COMMENT ON SCHEMA topology IS 'PostGIS Topology schema';
 
 
 --
--- TOC entry 5 (class 3079 OID 25260)
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -66,8 +58,6 @@ CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
 
 
 --
--- TOC entry 4612 (class 0 OID 0)
--- Dependencies: 5
 -- Name: EXTENSION fuzzystrmatch; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -75,7 +65,6 @@ COMMENT ON EXTENSION fuzzystrmatch IS 'determine similarities and distance betwe
 
 
 --
--- TOC entry 2 (class 3079 OID 25271)
 -- Name: postgis; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -83,8 +72,6 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 
 
 --
--- TOC entry 4613 (class 0 OID 0)
--- Dependencies: 2
 -- Name: EXTENSION postgis; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -92,7 +79,6 @@ COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial
 
 
 --
--- TOC entry 3 (class 3079 OID 26273)
 -- Name: postgis_tiger_geocoder; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -100,8 +86,6 @@ CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder WITH SCHEMA tiger;
 
 
 --
--- TOC entry 4614 (class 0 OID 0)
--- Dependencies: 3
 -- Name: EXTENSION postgis_tiger_geocoder; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -109,7 +93,6 @@ COMMENT ON EXTENSION postgis_tiger_geocoder IS 'PostGIS tiger geocoder and rever
 
 
 --
--- TOC entry 4 (class 3079 OID 26700)
 -- Name: postgis_topology; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -117,8 +100,6 @@ CREATE EXTENSION IF NOT EXISTS postgis_topology WITH SCHEMA topology;
 
 
 --
--- TOC entry 4615 (class 0 OID 0)
--- Dependencies: 4
 -- Name: EXTENSION postgis_topology; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -130,7 +111,80 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 268 (class 1259 OID 26843)
+-- Name: account_emailaddress; Type: TABLE; Schema: public; Owner: sip
+--
+
+CREATE TABLE public.account_emailaddress (
+    id integer NOT NULL,
+    email character varying(254) NOT NULL,
+    verified boolean NOT NULL,
+    "primary" boolean NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+ALTER TABLE public.account_emailaddress OWNER TO sip;
+
+--
+-- Name: account_emailaddress_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
+--
+
+CREATE SEQUENCE public.account_emailaddress_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.account_emailaddress_id_seq OWNER TO sip;
+
+--
+-- Name: account_emailaddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
+--
+
+ALTER SEQUENCE public.account_emailaddress_id_seq OWNED BY public.account_emailaddress.id;
+
+
+--
+-- Name: account_emailconfirmation; Type: TABLE; Schema: public; Owner: sip
+--
+
+CREATE TABLE public.account_emailconfirmation (
+    id integer NOT NULL,
+    created timestamp with time zone NOT NULL,
+    sent timestamp with time zone,
+    key character varying(64) NOT NULL,
+    email_address_id integer NOT NULL
+);
+
+
+ALTER TABLE public.account_emailconfirmation OWNER TO sip;
+
+--
+-- Name: account_emailconfirmation_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
+--
+
+CREATE SEQUENCE public.account_emailconfirmation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.account_emailconfirmation_id_seq OWNER TO sip;
+
+--
+-- Name: account_emailconfirmation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
+--
+
+ALTER SEQUENCE public.account_emailconfirmation_id_seq OWNED BY public.account_emailconfirmation.id;
+
+
+--
 -- Name: aoi_aoi; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -147,7 +201,6 @@ CREATE TABLE public.aoi_aoi (
 ALTER TABLE public.aoi_aoi OWNER TO sip;
 
 --
--- TOC entry 269 (class 1259 OID 26849)
 -- Name: aoi_aoi_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -163,8 +216,6 @@ CREATE SEQUENCE public.aoi_aoi_id_seq
 ALTER TABLE public.aoi_aoi_id_seq OWNER TO sip;
 
 --
--- TOC entry 4616 (class 0 OID 0)
--- Dependencies: 269
 -- Name: aoi_aoi_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -172,7 +223,6 @@ ALTER SEQUENCE public.aoi_aoi_id_seq OWNED BY public.aoi_aoi.id;
 
 
 --
--- TOC entry 270 (class 1259 OID 26851)
 -- Name: aoi_component; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -189,14 +239,17 @@ CREATE TABLE public.aoi_component (
     period_required boolean NOT NULL,
     command character varying(400),
     sentinel_google_api_key_required boolean NOT NULL,
-    planet_api_key_required boolean NOT NULL
+    planet_api_key_required boolean NOT NULL,
+    scihub_creds_required boolean NOT NULL,
+    sentinel1_aws_creds_required boolean NOT NULL,
+    basic_price numeric(9,2) NOT NULL,
+    date_type integer NOT NULL
 );
 
 
 ALTER TABLE public.aoi_component OWNER TO sip;
 
 --
--- TOC entry 271 (class 1259 OID 26857)
 -- Name: aoi_jupyternotebook_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -212,8 +265,6 @@ CREATE SEQUENCE public.aoi_jupyternotebook_id_seq
 ALTER TABLE public.aoi_jupyternotebook_id_seq OWNER TO sip;
 
 --
--- TOC entry 4617 (class 0 OID 0)
--- Dependencies: 271
 -- Name: aoi_jupyternotebook_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -221,7 +272,6 @@ ALTER SEQUENCE public.aoi_jupyternotebook_id_seq OWNED BY public.aoi_component.i
 
 
 --
--- TOC entry 272 (class 1259 OID 26859)
 -- Name: aoi_request; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -245,7 +295,6 @@ CREATE TABLE public.aoi_request (
 ALTER TABLE public.aoi_request OWNER TO sip;
 
 --
--- TOC entry 273 (class 1259 OID 26865)
 -- Name: aoi_request_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -261,8 +310,6 @@ CREATE SEQUENCE public.aoi_request_id_seq
 ALTER TABLE public.aoi_request_id_seq OWNER TO sip;
 
 --
--- TOC entry 4618 (class 0 OID 0)
--- Dependencies: 273
 -- Name: aoi_request_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -270,7 +317,6 @@ ALTER SEQUENCE public.aoi_request_id_seq OWNED BY public.aoi_request.id;
 
 
 --
--- TOC entry 274 (class 1259 OID 26867)
 -- Name: auth_group; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -283,7 +329,6 @@ CREATE TABLE public.auth_group (
 ALTER TABLE public.auth_group OWNER TO sip;
 
 --
--- TOC entry 275 (class 1259 OID 26870)
 -- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -299,8 +344,6 @@ CREATE SEQUENCE public.auth_group_id_seq
 ALTER TABLE public.auth_group_id_seq OWNER TO sip;
 
 --
--- TOC entry 4619 (class 0 OID 0)
--- Dependencies: 275
 -- Name: auth_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -308,7 +351,6 @@ ALTER SEQUENCE public.auth_group_id_seq OWNED BY public.auth_group.id;
 
 
 --
--- TOC entry 276 (class 1259 OID 26872)
 -- Name: auth_group_permissions; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -322,7 +364,6 @@ CREATE TABLE public.auth_group_permissions (
 ALTER TABLE public.auth_group_permissions OWNER TO sip;
 
 --
--- TOC entry 277 (class 1259 OID 26875)
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -338,8 +379,6 @@ CREATE SEQUENCE public.auth_group_permissions_id_seq
 ALTER TABLE public.auth_group_permissions_id_seq OWNER TO sip;
 
 --
--- TOC entry 4620 (class 0 OID 0)
--- Dependencies: 277
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -347,7 +386,6 @@ ALTER SEQUENCE public.auth_group_permissions_id_seq OWNED BY public.auth_group_p
 
 
 --
--- TOC entry 278 (class 1259 OID 26877)
 -- Name: auth_permission; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -362,7 +400,6 @@ CREATE TABLE public.auth_permission (
 ALTER TABLE public.auth_permission OWNER TO sip;
 
 --
--- TOC entry 279 (class 1259 OID 26880)
 -- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -378,8 +415,6 @@ CREATE SEQUENCE public.auth_permission_id_seq
 ALTER TABLE public.auth_permission_id_seq OWNER TO sip;
 
 --
--- TOC entry 4621 (class 0 OID 0)
--- Dependencies: 279
 -- Name: auth_permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -387,7 +422,6 @@ ALTER SEQUENCE public.auth_permission_id_seq OWNED BY public.auth_permission.id;
 
 
 --
--- TOC entry 280 (class 1259 OID 26882)
 -- Name: authtoken_token; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -401,7 +435,6 @@ CREATE TABLE public.authtoken_token (
 ALTER TABLE public.authtoken_token OWNER TO sip;
 
 --
--- TOC entry 281 (class 1259 OID 26885)
 -- Name: django_admin_log; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -421,7 +454,6 @@ CREATE TABLE public.django_admin_log (
 ALTER TABLE public.django_admin_log OWNER TO sip;
 
 --
--- TOC entry 282 (class 1259 OID 26892)
 -- Name: django_admin_log_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -437,8 +469,6 @@ CREATE SEQUENCE public.django_admin_log_id_seq
 ALTER TABLE public.django_admin_log_id_seq OWNER TO sip;
 
 --
--- TOC entry 4622 (class 0 OID 0)
--- Dependencies: 282
 -- Name: django_admin_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -446,7 +476,6 @@ ALTER SEQUENCE public.django_admin_log_id_seq OWNED BY public.django_admin_log.i
 
 
 --
--- TOC entry 283 (class 1259 OID 26894)
 -- Name: django_content_type; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -460,7 +489,6 @@ CREATE TABLE public.django_content_type (
 ALTER TABLE public.django_content_type OWNER TO sip;
 
 --
--- TOC entry 284 (class 1259 OID 26897)
 -- Name: django_content_type_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -476,8 +504,6 @@ CREATE SEQUENCE public.django_content_type_id_seq
 ALTER TABLE public.django_content_type_id_seq OWNER TO sip;
 
 --
--- TOC entry 4623 (class 0 OID 0)
--- Dependencies: 284
 -- Name: django_content_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -485,7 +511,6 @@ ALTER SEQUENCE public.django_content_type_id_seq OWNED BY public.django_content_
 
 
 --
--- TOC entry 285 (class 1259 OID 26899)
 -- Name: django_migrations; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -500,7 +525,6 @@ CREATE TABLE public.django_migrations (
 ALTER TABLE public.django_migrations OWNER TO sip;
 
 --
--- TOC entry 286 (class 1259 OID 26905)
 -- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -516,8 +540,6 @@ CREATE SEQUENCE public.django_migrations_id_seq
 ALTER TABLE public.django_migrations_id_seq OWNER TO sip;
 
 --
--- TOC entry 4624 (class 0 OID 0)
--- Dependencies: 286
 -- Name: django_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -525,7 +547,6 @@ ALTER SEQUENCE public.django_migrations_id_seq OWNED BY public.django_migrations
 
 
 --
--- TOC entry 287 (class 1259 OID 26907)
 -- Name: django_session; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -539,7 +560,6 @@ CREATE TABLE public.django_session (
 ALTER TABLE public.django_session OWNER TO sip;
 
 --
--- TOC entry 288 (class 1259 OID 26913)
 -- Name: django_site; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -553,7 +573,6 @@ CREATE TABLE public.django_site (
 ALTER TABLE public.django_site OWNER TO sip;
 
 --
--- TOC entry 289 (class 1259 OID 26916)
 -- Name: django_site_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -569,8 +588,6 @@ CREATE SEQUENCE public.django_site_id_seq
 ALTER TABLE public.django_site_id_seq OWNER TO sip;
 
 --
--- TOC entry 4625 (class 0 OID 0)
--- Dependencies: 289
 -- Name: django_site_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -578,7 +595,6 @@ ALTER SEQUENCE public.django_site_id_seq OWNED BY public.django_site.id;
 
 
 --
--- TOC entry 290 (class 1259 OID 26918)
 -- Name: publisher_acl; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -592,7 +608,6 @@ CREATE TABLE public.publisher_acl (
 ALTER TABLE public.publisher_acl OWNER TO sip;
 
 --
--- TOC entry 291 (class 1259 OID 26924)
 -- Name: publisher_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -608,8 +623,6 @@ CREATE SEQUENCE public.publisher_acl_id_seq
 ALTER TABLE public.publisher_acl_id_seq OWNER TO sip;
 
 --
--- TOC entry 4626 (class 0 OID 0)
--- Dependencies: 291
 -- Name: publisher_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -617,7 +630,6 @@ ALTER SEQUENCE public.publisher_acl_id_seq OWNED BY public.publisher_acl.id;
 
 
 --
--- TOC entry 292 (class 1259 OID 26926)
 -- Name: publisher_result; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -645,7 +657,6 @@ CREATE TABLE public.publisher_result (
 ALTER TABLE public.publisher_result OWNER TO sip;
 
 --
--- TOC entry 293 (class 1259 OID 26932)
 -- Name: publisher_result_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -661,8 +672,6 @@ CREATE SEQUENCE public.publisher_result_id_seq
 ALTER TABLE public.publisher_result_id_seq OWNER TO sip;
 
 --
--- TOC entry 4627 (class 0 OID 0)
--- Dependencies: 293
 -- Name: publisher_result_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -670,7 +679,46 @@ ALTER SEQUENCE public.publisher_result_id_seq OWNED BY public.publisher_result.i
 
 
 --
--- TOC entry 294 (class 1259 OID 26934)
+-- Name: user_transaction; Type: TABLE; Schema: public; Owner: sip
+--
+
+CREATE TABLE public.user_transaction (
+    id integer NOT NULL,
+    amount numeric(9,2) NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    comment text NOT NULL,
+    completed boolean,
+    request_id integer,
+    user_id integer NOT NULL
+);
+
+
+ALTER TABLE public.user_transaction OWNER TO sip;
+
+--
+-- Name: user_transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
+--
+
+CREATE SEQUENCE public.user_transaction_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_transaction_id_seq OWNER TO sip;
+
+--
+-- Name: user_transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
+--
+
+ALTER SEQUENCE public.user_transaction_id_seq OWNED BY public.user_transaction.id;
+
+
+--
 -- Name: user_user; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -687,14 +735,17 @@ CREATE TABLE public.user_user (
     is_active boolean NOT NULL,
     date_joined timestamp with time zone NOT NULL,
     area_limit_ha integer,
-    planet_api_key character varying(64)
+    planet_api_key character varying(64),
+    balance numeric(9,2),
+    discount integer,
+    on_hold numeric(9,2),
+    CONSTRAINT user_user_discount_check CHECK ((discount >= 0))
 );
 
 
 ALTER TABLE public.user_user OWNER TO sip;
 
 --
--- TOC entry 295 (class 1259 OID 26940)
 -- Name: user_user_groups; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -708,7 +759,6 @@ CREATE TABLE public.user_user_groups (
 ALTER TABLE public.user_user_groups OWNER TO sip;
 
 --
--- TOC entry 296 (class 1259 OID 26943)
 -- Name: user_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -724,8 +774,6 @@ CREATE SEQUENCE public.user_user_groups_id_seq
 ALTER TABLE public.user_user_groups_id_seq OWNER TO sip;
 
 --
--- TOC entry 4628 (class 0 OID 0)
--- Dependencies: 296
 -- Name: user_user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -733,7 +781,6 @@ ALTER SEQUENCE public.user_user_groups_id_seq OWNED BY public.user_user_groups.i
 
 
 --
--- TOC entry 297 (class 1259 OID 26945)
 -- Name: user_user_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -749,8 +796,6 @@ CREATE SEQUENCE public.user_user_id_seq
 ALTER TABLE public.user_user_id_seq OWNER TO sip;
 
 --
--- TOC entry 4629 (class 0 OID 0)
--- Dependencies: 297
 -- Name: user_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -758,7 +803,6 @@ ALTER SEQUENCE public.user_user_id_seq OWNED BY public.user_user.id;
 
 
 --
--- TOC entry 298 (class 1259 OID 26947)
 -- Name: user_user_user_permissions; Type: TABLE; Schema: public; Owner: sip
 --
 
@@ -772,7 +816,6 @@ CREATE TABLE public.user_user_user_permissions (
 ALTER TABLE public.user_user_user_permissions OWNER TO sip;
 
 --
--- TOC entry 299 (class 1259 OID 26950)
 -- Name: user_user_user_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: sip
 --
 
@@ -788,8 +831,6 @@ CREATE SEQUENCE public.user_user_user_permissions_id_seq
 ALTER TABLE public.user_user_user_permissions_id_seq OWNER TO sip;
 
 --
--- TOC entry 4630 (class 0 OID 0)
--- Dependencies: 299
 -- Name: user_user_user_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: sip
 --
 
@@ -797,7 +838,20 @@ ALTER SEQUENCE public.user_user_user_permissions_id_seq OWNED BY public.user_use
 
 
 --
--- TOC entry 4198 (class 2604 OID 26952)
+-- Name: account_emailaddress id; Type: DEFAULT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailaddress ALTER COLUMN id SET DEFAULT nextval('public.account_emailaddress_id_seq'::regclass);
+
+
+--
+-- Name: account_emailconfirmation id; Type: DEFAULT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailconfirmation ALTER COLUMN id SET DEFAULT nextval('public.account_emailconfirmation_id_seq'::regclass);
+
+
+--
 -- Name: aoi_aoi id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -805,7 +859,6 @@ ALTER TABLE ONLY public.aoi_aoi ALTER COLUMN id SET DEFAULT nextval('public.aoi_
 
 
 --
--- TOC entry 4199 (class 2604 OID 26953)
 -- Name: aoi_component id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -813,7 +866,6 @@ ALTER TABLE ONLY public.aoi_component ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 4200 (class 2604 OID 26954)
 -- Name: aoi_request id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -821,7 +873,6 @@ ALTER TABLE ONLY public.aoi_request ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4201 (class 2604 OID 26955)
 -- Name: auth_group id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -829,7 +880,6 @@ ALTER TABLE ONLY public.auth_group ALTER COLUMN id SET DEFAULT nextval('public.a
 
 
 --
--- TOC entry 4202 (class 2604 OID 26956)
 -- Name: auth_group_permissions id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -837,7 +887,6 @@ ALTER TABLE ONLY public.auth_group_permissions ALTER COLUMN id SET DEFAULT nextv
 
 
 --
--- TOC entry 4203 (class 2604 OID 26957)
 -- Name: auth_permission id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -845,7 +894,6 @@ ALTER TABLE ONLY public.auth_permission ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 4204 (class 2604 OID 26958)
 -- Name: django_admin_log id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -853,7 +901,6 @@ ALTER TABLE ONLY public.django_admin_log ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 4206 (class 2604 OID 26959)
 -- Name: django_content_type id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -861,7 +908,6 @@ ALTER TABLE ONLY public.django_content_type ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- TOC entry 4207 (class 2604 OID 26960)
 -- Name: django_migrations id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -869,7 +915,6 @@ ALTER TABLE ONLY public.django_migrations ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 4208 (class 2604 OID 26961)
 -- Name: django_site id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -877,7 +922,6 @@ ALTER TABLE ONLY public.django_site ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4209 (class 2604 OID 26962)
 -- Name: publisher_acl id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -885,7 +929,6 @@ ALTER TABLE ONLY public.publisher_acl ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 4210 (class 2604 OID 26963)
 -- Name: publisher_result id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -893,7 +936,13 @@ ALTER TABLE ONLY public.publisher_result ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 4211 (class 2604 OID 26964)
+-- Name: user_transaction id; Type: DEFAULT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.user_transaction ALTER COLUMN id SET DEFAULT nextval('public.user_transaction_id_seq'::regclass);
+
+
+--
 -- Name: user_user id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -901,7 +950,6 @@ ALTER TABLE ONLY public.user_user ALTER COLUMN id SET DEFAULT nextval('public.us
 
 
 --
--- TOC entry 4212 (class 2604 OID 26965)
 -- Name: user_user_groups id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -909,7 +957,6 @@ ALTER TABLE ONLY public.user_user_groups ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 4213 (class 2604 OID 26966)
 -- Name: user_user_user_permissions id; Type: DEFAULT; Schema: public; Owner: sip
 --
 
@@ -917,8 +964,24 @@ ALTER TABLE ONLY public.user_user_user_permissions ALTER COLUMN id SET DEFAULT n
 
 
 --
--- TOC entry 4574 (class 0 OID 26843)
--- Dependencies: 268
+-- Data for Name: account_emailaddress; Type: TABLE DATA; Schema: public; Owner: sip
+--
+
+COPY public.account_emailaddress (id, email, verified, "primary", user_id) FROM stdin;
+1	tester@gmail.com	t	t	2
+2	admin@localhost	t	t	1
+\.
+
+
+--
+-- Data for Name: account_emailconfirmation; Type: TABLE DATA; Schema: public; Owner: sip
+--
+
+COPY public.account_emailconfirmation (id, created, sent, key, email_address_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: aoi_aoi; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -931,26 +994,21 @@ COPY public.aoi_aoi (id, name, polygon, createdat, user_id, type) FROM stdin;
 
 
 --
--- TOC entry 4576 (class 0 OID 26851)
--- Dependencies: 270
 -- Data for Name: aoi_component; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.aoi_component (id, name, image, notebook_path, kernel_name, run_validation, success, additional_parameter, run_on_gpu, period_required, command, sentinel_google_api_key_required, planet_api_key_required) FROM stdin;
-1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	python37	t	t	\N	t	t	\N	f	f
-7	TCI_NDVI	registry.quantumobile.co/sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	t	t	\N	f	t	\N	t	f
-5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb	python37	t	t	\N	t	t	\N	f	f
-3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	python37	t	t	\N	t	t	\N	f	f
-2	example_geotiff	sip_jupyter:latest	work/notebooks/example/geotiff.ipynb	python37	t	t	\N	t	f	\N	f	f
-6	Test2_Execution	sip_jupyter:latest	work/notebooks/test/Test2_Execution.ipynb	python37	t	t	\N	t	f	\N	f	f
-4	test_geotiff	ndvi_jupyter:latest	work/notebooks/test/test_geotiff.ipynb	python3	t	f	\N	t	f	\N	f	f
-8	TCI_NDVI_component	registry.quantumobile.co/sip_tci_ndvi:0.0.3-dev	\N	\N	t	t	\N	f	t	\N	t	f
+COPY public.aoi_component (id, name, image, notebook_path, kernel_name, run_validation, success, additional_parameter, run_on_gpu, period_required, command, sentinel_google_api_key_required, planet_api_key_required, scihub_creds_required, sentinel1_aws_creds_required, basic_price, date_type) FROM stdin;
+1	example_geojson	sip_jupyter:latest	work/notebooks/example/geojson.ipynb	python37	t	t	\N	t	t	\N	f	f	f	f	0.00	2
+7	TCI_NDVI	registry.quantumobile.co/sip_jupyter:latest	work/notebooks/example/tci_ndvi/TCI_NDVI.ipynb	python37	t	t	\N	f	t	\N	t	f	f	f	0.00	2
+5	Test1_Execution	sip_jupyter:latest	work/notebooks/test/Test1_Execution.ipynb	python37	t	t	\N	t	t	\N	f	f	f	f	0.00	2
+3	test_geojson	sip_jupyter:latest	work/notebooks/test/test_geojson.ipynb	python37	t	t	\N	t	t	\N	f	f	f	f	0.00	2
+2	example_geotiff	sip_jupyter:latest	work/notebooks/example/geotiff.ipynb	python37	t	t	\N	t	f	\N	f	f	f	f	0.00	2
+6	Test2_Execution	sip_jupyter:latest	work/notebooks/test/Test2_Execution.ipynb	python37	t	t	\N	t	f	\N	f	f	f	f	0.00	2
+4	test_geotiff	ndvi_jupyter:latest	work/notebooks/test/test_geotiff.ipynb	python3	t	f	\N	t	f	\N	f	f	f	f	0.00	2
 \.
 
 
 --
--- TOC entry 4578 (class 0 OID 26859)
--- Dependencies: 272
 -- Data for Name: aoi_request; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -962,14 +1020,10 @@ COPY public.aoi_request (id, date_from, date_to, started_at, finished_at, error,
 8	\N	\N	2022-06-22 16:10:43.541404+00	2022-06-22 16:11:12.665409+00	\N	1	2	2	t	0103000020E6100000010000000A000000000000E03C2B42401C4205E84A07494000000060FC274240FEDC03992807494000000060A227424051CE9070C805494000000090262842406B5C887E8104494000000080612A4240651E4883E203494000000000482D42408D0670CEFB034940FFFFFFCF582E424042DC7A7458054940000000E0DF2D4240390E400EBE06494000000040F92C424007504EEF53074940000000E03C2B42401C4205E84A074940	t	\N
 5	\N	\N	2022-06-22 16:10:41.742174+00	2022-06-22 16:11:12.665409+00	\N	4	6	2	t	0103000020E610000001000000080000000000004094A14140748B3DEAC80C494000000040139B41400249E498AB0A4940000000005797414055CEB8E041074940000000C0569B4140A6EEF00964034940FFFFFFBF5EA24140AF70CA44EA04494000000000B3A441407C156B50950849400000000059A441403D384AA8100B49400000004094A14140748B3DEAC80C4940	t	\N
 2	\N	\N	2021-01-19 08:41:00+00	\N	\N	3	4	2	f	0103000020E6100000010000000A000000FDFFFF3F722C4240A5A80862E5D24840FDFFFFFFB01E42404EC57E1EE0D0484002000080621A4240E9886E5812C94840FBFFFF7FD81C424098F7EAE966C04840FCFFFFBF802542407536B0B049C04840020000C03C2D4240976698BA99C148400400000004354240888FB33823C54840030000C0BA36424048CD657B78C94840000000C009334240A54D643098CF4840FDFFFF3F722C4240A5A80862E5D24840	f	\N
-9	2021-07-01	2021-08-01	\N	\N	\N	1	8	2	f	0103000020E6100000010000000A000000000000E03C2B42401C4205E84A07494000000060FC274240FEDC03992807494000000060A227424051CE9070C805494000000090262842406B5C887E8104494000000080612A4240651E4883E203494000000000482D42408D0670CEFB034940FFFFFFCF582E424042DC7A7458054940000000E0DF2D4240390E400EBE06494000000040F92C424007504EEF53074940000000E03C2B42401C4205E84A074940	f	\N
-10	2021-07-01	2021-08-01	\N	\N	\N	1	7	2	f	0103000020E6100000010000000A000000000000E03C2B42401C4205E84A07494000000060FC274240FEDC03992807494000000060A227424051CE9070C805494000000090262842406B5C887E8104494000000080612A4240651E4883E203494000000000482D42408D0670CEFB034940FFFFFFCF582E424042DC7A7458054940000000E0DF2D4240390E400EBE06494000000040F92C424007504EEF53074940000000E03C2B42401C4205E84A074940	f	\N
 \.
 
 
 --
--- TOC entry 4580 (class 0 OID 26867)
--- Dependencies: 274
 -- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -980,8 +1034,6 @@ COPY public.auth_group (id, name) FROM stdin;
 
 
 --
--- TOC entry 4582 (class 0 OID 26872)
--- Dependencies: 276
 -- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1009,12 +1061,11 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 28	1	64
 29	1	65
 30	2	67
+31	1	68
 \.
 
 
 --
--- TOC entry 4584 (class 0 OID 26877)
--- Dependencies: 278
 -- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1078,12 +1129,37 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 65	Can change Component	11	change_component
 66	Can delete Component	11	delete_component
 67	Can view Component	11	view_component
+68	Can run requests with not validated components	11	can_run_not_validated
+69	Can add social application	16	add_socialapp
+70	Can change social application	16	change_socialapp
+71	Can delete social application	16	delete_socialapp
+72	Can view social application	16	view_socialapp
+73	Can add social account	17	add_socialaccount
+74	Can change social account	17	change_socialaccount
+75	Can delete social account	17	delete_socialaccount
+76	Can view social account	17	view_socialaccount
+77	Can add social application token	18	add_socialtoken
+78	Can change social application token	18	change_socialtoken
+79	Can delete social application token	18	delete_socialtoken
+80	Can view social application token	18	view_socialtoken
+81	Can add email address	19	add_emailaddress
+82	Can change email address	19	change_emailaddress
+83	Can delete email address	19	delete_emailaddress
+84	Can view email address	19	view_emailaddress
+85	Can add email confirmation	20	add_emailconfirmation
+86	Can change email confirmation	20	change_emailconfirmation
+87	Can delete email confirmation	20	delete_emailconfirmation
+88	Can view email confirmation	20	view_emailconfirmation
+89	Can add Transaction	21	add_transaction
+90	Can change Transaction	21	change_transaction
+91	Can delete Transaction	21	delete_transaction
+92	Can view Transaction	21	view_transaction
+93	Can view all transactions	21	view_all_transactions
+94	Can delete any result	10	delete_any_result
 \.
 
 
 --
--- TOC entry 4586 (class 0 OID 26882)
--- Dependencies: 280
 -- Data for Name: authtoken_token; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1094,8 +1170,6 @@ COPY public.authtoken_token (key, created, user_id) FROM stdin;
 
 
 --
--- TOC entry 4587 (class 0 OID 26885)
--- Dependencies: 281
 -- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1112,12 +1186,16 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 10	2022-06-22 16:14:20.824271+00	6	Test2_Execution	2	[{"changed": {"fields": ["Start and end dates are requaired"]}}]	11	1
 11	2022-06-22 16:14:32.922426+00	4	test_geotiff	2	[{"changed": {"fields": ["Start and end dates are requaired"]}}]	11	1
 12	2022-06-22 16:14:40.490829+00	2	Request object (2)	2	[]	14	1
+13	2023-03-10 16:36:37.563042+00	10	Request object (10)	3		14	1
+14	2023-03-10 16:36:37.576041+00	9	Request object (9)	3		14	1
+15	2023-03-10 16:36:44.910631+00	8	TCI_NDVI_component	3		11	1
+16	2023-03-10 16:37:21.084383+00	2	test	2	[{"changed": {"fields": ["Email address"]}}]	7	1
+17	2023-03-10 16:37:31.800515+00	1	tester@gmail.com	1	[{"added": {}}]	19	1
+18	2023-03-10 16:37:46.637476+00	2	admin@localhost	1	[{"added": {}}]	19	1
 \.
 
 
 --
--- TOC entry 4589 (class 0 OID 26894)
--- Dependencies: 283
 -- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1136,12 +1214,16 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 13	publisher	acl
 14	aoi	request
 11	aoi	component
+16	allauth	socialapp
+17	allauth	socialaccount
+18	allauth	socialtoken
+19	account	emailaddress
+20	account	emailconfirmation
+21	user	transaction
 \.
 
 
 --
--- TOC entry 4591 (class 0 OID 26899)
--- Dependencies: 285
 -- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1227,12 +1309,21 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 79	aoi	0022_auto_20221121_1713	2022-11-22 18:55:38.791709+00
 80	aoi	0023_rename_notebook_to_component	2022-11-22 18:55:39.18747+00
 81	aoi	0024_make_change_in_component	2022-11-22 18:55:39.267752+00
+82	account	0001_initial	2023-03-10 16:22:59.374412+00
+83	account	0002_email_max_length	2023-03-10 16:22:59.420883+00
+84	aoi	0025_component_validation_pernissions	2023-03-10 16:22:59.460765+00
+85	aoi	0026_additional_inputs	2023-03-10 16:22:59.474019+00
+86	aoi	0027_component_basic_price	2023-03-10 16:22:59.483282+00
+87	aoi	0028_component_date_type	2023-03-10 16:22:59.492007+00
+88	aoi	0029_auto_20230224_1248	2023-03-10 16:22:59.499871+00
+89	aoi	0030_changed_unique_fields	2023-03-10 16:22:59.531654+00
+90	publisher	0020_auto_20230214_1231	2023-03-10 16:22:59.544598+00
+91	user	0015_auto_20230215_1052	2023-03-10 16:22:59.581355+00
+92	user	0016_transaction	2023-03-10 16:22:59.609242+00
 \.
 
 
 --
--- TOC entry 4593 (class 0 OID 26907)
--- Dependencies: 287
 -- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1244,12 +1335,11 @@ xxpxw53jxwsthdpazstu89lr4wjoczqq	NWJkMWU0YTRiYjI5YmY4ZTY2MWJhMGYxOTZkNjEwOThkNjc
 f0n2qtfj93b6un4mbl6f1d4r76p1h436	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1l7IXc:vIJvbWkUcACcV0VPSa9lClNkoLeVTd00EZglb0-NKJQ	2021-02-03 21:49:56.302818+00
 53v3jubywtmx9bqid5nprmy2bsu13lag	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1lKmth:3lDgfMZqbMMyQpb2d1__a_aMBSqME9XRl62vWV3CeaM	2021-03-13 02:52:29.935898+00
 cd5y6duf0kppd75tl64jxd0hfbernaw1	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1o42zH:5cZN24icjiERFw-OQdl8uIVtfmIeMV7QYPqv93laBlw	2022-06-23 00:13:51.989355+00
+6ykpl7s0n6i27uliij4roz7456p4nxyj	.eJxVjMEOwiAQRP-FsyEILEWP3vsNZBcWqRpISnsy_rtt0oMeZ96beYuA61LC2nkOUxJXcRan344wPrnuID2w3puMrS7zRHJX5EG7HFvi1-1w_w4K9rKtnWdQEZ3yxOQVgL4oZTNHD84ZC-ish-QhZ50ZM5ktxJhA60GlgYz4fAHW9Dfd:1pafWt:HmeVDDsEGv1fk90PE2TXpybB_0ztS8KpOH5W_huQPF0	2023-03-11 00:23:39.794323+00
 \.
 
 
 --
--- TOC entry 4594 (class 0 OID 26913)
--- Dependencies: 288
 -- Data for Name: django_site; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1259,8 +1349,6 @@ COPY public.django_site (id, domain, name) FROM stdin;
 
 
 --
--- TOC entry 4596 (class 0 OID 26918)
--- Dependencies: 290
 -- Data for Name: publisher_acl; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1269,23 +1357,16 @@ COPY public.publisher_acl (id, restrict_projects_to, user_id) FROM stdin;
 
 
 --
--- TOC entry 4598 (class 0 OID 26926)
--- Dependencies: 292
 -- Data for Name: publisher_result; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
 COPY public.publisher_result (id, filepath, modifiedat, layer_type, bounding_polygon, rel_url, options, description, released, start_date, end_date, name, to_be_deleted, request_id, styles_url, labels, colormap) FROM stdin;
-6	example/737da21c-80eb-45d4-99ff-4c7719b7cbf5_Green_2020-07-05.geojson	2022-06-22 16:01:03.05798+00	GEOJSON	0103000020E61000000100000005000000F9F36DC152354240967B8159A1C04840F9F36DC152354240F9BB77D4980049404E4700378B1B4240F9BB77D4980049404E4700378B1B4240967B8159A1C04840F9F36DC152354240967B8159A1C04840	/results/example/737da21c-80eb-45d4-99ff-4c7719b7cbf5_Green_2020-07-05.geojson	\N		f	\N	\N	Green	f	\N	\N	""	""
-7	example/827db405-5de6-4648-af30-da6edf27a7fc_NDVI_2020-07-28.geojson	2022-06-22 16:03:27.199467+00	GEOJSON	0103000020E610000001000000050000001497E315882042405DDF878384F648401497E3158820424013D55B035B0349404E4700378B1B424013D55B035B0349404E4700378B1B42405DDF878384F648401497E315882042405DDF878384F64840	/results/example/827db405-5de6-4648-af30-da6edf27a7fc_NDVI_2020-07-28.geojson	\N		f	2020-03-31	2020-12-14	NDVI	f	\N	\N	""	""
-8	example/ba372221-bd50-4eed-bdb9-39bce7593550_PSRI_2022-03-01.geojson	2022-06-22 16:04:33.503518+00	GEOJSON	0103000020E6100000010000000500000037A79201A0204240C7F0D8CF6281484037A79201A020424088307E1AF7FE484001FA7DFFE615424088307E1AF7FE484001FA7DFFE6154240C7F0D8CF6281484037A79201A0204240C7F0D8CF62814840	/results/example/ba372221-bd50-4eed-bdb9-39bce7593550_PSRI_2022-03-01.geojson	\N		f	\N	\N	PSRI	f	\N	\N	""	""
-9	test/Test_AOI1.geojson	2022-06-16 07:19:15.196268+00	GEOJSON	0103000020E61000000100000005000000000000607D2E4240AD348B06CB034940000000607D2E4240B196D5366D07494000000040FF264240B196D5366D07494000000040FF264240AD348B06CB034940000000607D2E4240AD348B06CB034940	/results/test/Test_AOI1.geojson	\N		t	2021-01-01	2021-01-19		f	1	\N	""	""
-10	test/Test_AOI4.geojson	2022-06-16 07:19:15.197269+00	GEOJSON	0103000020E6100000010000000500000000000000829842406CB90F85629448400000000082984240CCB65E076DA3484000000000467A4240CCB65E076DA3484000000000467A42406CB90F856294484000000000829842406CB90F8562944840	/results/test/Test_AOI4.geojson	\N		t	2021-02-03	2021-02-01		f	6	\N	""	""
+10	test/Test_AOI4.geojson	2023-03-10 15:25:02.52363+00	GEOJSON	0103000020E6100000010000000500000000000000829842406CB90F85629448400000000082984240CCB65E076DA3484000000000467A4240CCB65E076DA3484000000000467A42406CB90F856294484000000000829842406CB90F8562944840	/results/test/Test_AOI4.geojson	\N		f	2021-02-03	2021-02-01		f	\N	\N	""	""
+9	test/Test_AOI1.geojson	2023-03-10 15:25:02.52363+00	GEOJSON	0103000020E61000000100000005000000000000607D2E4240AD348B06CB034940000000607D2E4240B196D5366D07494000000040FF264240B196D5366D07494000000040FF264240AD348B06CB034940000000607D2E4240AD348B06CB034940	/results/test/Test_AOI1.geojson	\N		f	2021-01-01	2021-01-19		f	\N	\N	""	""
 \.
 
 
 --
--- TOC entry 4126 (class 0 OID 25576)
--- Dependencies: 208
 -- Data for Name: spatial_ref_sys; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1294,20 +1375,24 @@ COPY public.spatial_ref_sys (srid, auth_name, auth_srid, srtext, proj4text) FROM
 
 
 --
--- TOC entry 4600 (class 0 OID 26934)
--- Dependencies: 294
--- Data for Name: user_user; Type: TABLE DATA; Schema: public; Owner: sip
+-- Data for Name: user_transaction; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
-COPY public.user_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, area_limit_ha, planet_api_key) FROM stdin;
-2	pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=	2020-10-25 13:48:59.815632+00	f	test				f	t	2020-10-25 13:47:22.734006+00	\N	\N
-1	pbkdf2_sha256$216000$5lxslJOZ99ef$j1TFWeW904OT0VDlEeYhfIRfXWothXtZHHnuwAb+hOg=	2022-06-22 16:13:51.983362+00	t	admin			admin@localhost	t	t	2020-10-25 11:54:51.550807+00	\N	\N
+COPY public.user_transaction (id, amount, created_at, updated_at, comment, completed, request_id, user_id) FROM stdin;
 \.
 
 
 --
--- TOC entry 4601 (class 0 OID 26940)
--- Dependencies: 295
+-- Data for Name: user_user; Type: TABLE DATA; Schema: public; Owner: sip
+--
+
+COPY public.user_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, area_limit_ha, planet_api_key, balance, discount, on_hold) FROM stdin;
+1	pbkdf2_sha256$216000$5lxslJOZ99ef$j1TFWeW904OT0VDlEeYhfIRfXWothXtZHHnuwAb+hOg=	2023-03-10 16:23:39.782455+00	t	admin			admin@localhost	t	t	2020-10-25 11:54:51.550807+00	\N	\N	0.00	0	0.00
+2	pbkdf2_sha256$150000$xBdzPJKdgbvQ$Zn4LMX9EZXgDfQC/7QUUHmslVB8Dwb1PXe0xLn0eus4=	2020-10-25 13:48:59+00	f	test			tester@gmail.com	f	t	2020-10-25 13:47:22+00	\N	\N	0.00	0	0.00
+\.
+
+
+--
 -- Data for Name: user_user_groups; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1318,8 +1403,6 @@ COPY public.user_user_groups (id, user_id, group_id) FROM stdin;
 
 
 --
--- TOC entry 4604 (class 0 OID 26947)
--- Dependencies: 298
 -- Data for Name: user_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: sip
 --
 
@@ -1328,8 +1411,6 @@ COPY public.user_user_user_permissions (id, user_id, permission_id) FROM stdin;
 
 
 --
--- TOC entry 4127 (class 0 OID 26279)
--- Dependencies: 213
 -- Data for Name: geocode_settings; Type: TABLE DATA; Schema: tiger; Owner: sip
 --
 
@@ -1338,8 +1419,6 @@ COPY tiger.geocode_settings (name, setting, unit, category, short_desc) FROM std
 
 
 --
--- TOC entry 4128 (class 0 OID 26633)
--- Dependencies: 257
 -- Data for Name: pagc_gaz; Type: TABLE DATA; Schema: tiger; Owner: sip
 --
 
@@ -1348,8 +1427,6 @@ COPY tiger.pagc_gaz (id, seq, word, stdword, token, is_custom) FROM stdin;
 
 
 --
--- TOC entry 4129 (class 0 OID 26645)
--- Dependencies: 259
 -- Data for Name: pagc_lex; Type: TABLE DATA; Schema: tiger; Owner: sip
 --
 
@@ -1358,8 +1435,6 @@ COPY tiger.pagc_lex (id, seq, word, stdword, token, is_custom) FROM stdin;
 
 
 --
--- TOC entry 4130 (class 0 OID 26657)
--- Dependencies: 261
 -- Data for Name: pagc_rules; Type: TABLE DATA; Schema: tiger; Owner: sip
 --
 
@@ -1368,8 +1443,6 @@ COPY tiger.pagc_rules (id, rule, is_custom) FROM stdin;
 
 
 --
--- TOC entry 4131 (class 0 OID 26703)
--- Dependencies: 263
 -- Data for Name: topology; Type: TABLE DATA; Schema: topology; Owner: sip
 --
 
@@ -1378,8 +1451,6 @@ COPY topology.topology (id, name, srid, "precision", hasz) FROM stdin;
 
 
 --
--- TOC entry 4132 (class 0 OID 26716)
--- Dependencies: 264
 -- Data for Name: layer; Type: TABLE DATA; Schema: topology; Owner: sip
 --
 
@@ -1388,8 +1459,20 @@ COPY topology.layer (topology_id, layer_id, schema_name, table_name, feature_col
 
 
 --
--- TOC entry 4631 (class 0 OID 0)
--- Dependencies: 269
+-- Name: account_emailaddress_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
+--
+
+SELECT pg_catalog.setval('public.account_emailaddress_id_seq', 2, true);
+
+
+--
+-- Name: account_emailconfirmation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
+--
+
+SELECT pg_catalog.setval('public.account_emailconfirmation_id_seq', 1, false);
+
+
+--
 -- Name: aoi_aoi_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1397,8 +1480,6 @@ SELECT pg_catalog.setval('public.aoi_aoi_id_seq', 5, true);
 
 
 --
--- TOC entry 4632 (class 0 OID 0)
--- Dependencies: 271
 -- Name: aoi_jupyternotebook_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1406,8 +1487,6 @@ SELECT pg_catalog.setval('public.aoi_jupyternotebook_id_seq', 7, true);
 
 
 --
--- TOC entry 4633 (class 0 OID 0)
--- Dependencies: 273
 -- Name: aoi_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1415,8 +1494,6 @@ SELECT pg_catalog.setval('public.aoi_request_id_seq', 8, true);
 
 
 --
--- TOC entry 4634 (class 0 OID 0)
--- Dependencies: 275
 -- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1424,53 +1501,41 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 2, true);
 
 
 --
--- TOC entry 4635 (class 0 OID 0)
--- Dependencies: 277
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 30, true);
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 31, true);
 
 
 --
--- TOC entry 4636 (class 0 OID 0)
--- Dependencies: 279
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 67, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 94, true);
 
 
 --
--- TOC entry 4637 (class 0 OID 0)
--- Dependencies: 282
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 12, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 18, true);
 
 
 --
--- TOC entry 4638 (class 0 OID 0)
--- Dependencies: 284
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 15, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 21, true);
 
 
 --
--- TOC entry 4639 (class 0 OID 0)
--- Dependencies: 286
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 81, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 92, true);
 
 
 --
--- TOC entry 4640 (class 0 OID 0)
--- Dependencies: 289
 -- Name: django_site_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1478,8 +1543,6 @@ SELECT pg_catalog.setval('public.django_site_id_seq', 1, true);
 
 
 --
--- TOC entry 4641 (class 0 OID 0)
--- Dependencies: 291
 -- Name: publisher_acl_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1487,8 +1550,6 @@ SELECT pg_catalog.setval('public.publisher_acl_id_seq', 1, false);
 
 
 --
--- TOC entry 4642 (class 0 OID 0)
--- Dependencies: 293
 -- Name: publisher_result_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1496,8 +1557,13 @@ SELECT pg_catalog.setval('public.publisher_result_id_seq', 10, true);
 
 
 --
--- TOC entry 4643 (class 0 OID 0)
--- Dependencies: 296
+-- Name: user_transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
+--
+
+SELECT pg_catalog.setval('public.user_transaction_id_seq', 1, false);
+
+
+--
 -- Name: user_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1505,8 +1571,6 @@ SELECT pg_catalog.setval('public.user_user_groups_id_seq', 3, true);
 
 
 --
--- TOC entry 4644 (class 0 OID 0)
--- Dependencies: 297
 -- Name: user_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1514,8 +1578,6 @@ SELECT pg_catalog.setval('public.user_user_id_seq', 2, true);
 
 
 --
--- TOC entry 4645 (class 0 OID 0)
--- Dependencies: 299
 -- Name: user_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sip
 --
 
@@ -1523,16 +1585,38 @@ SELECT pg_catalog.setval('public.user_user_user_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 4336 (class 2606 OID 26968)
--- Name: aoi_aoi aoi_aoi_name_key; Type: CONSTRAINT; Schema: public; Owner: sip
+-- Name: account_emailaddress account_emailaddress_email_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
-ALTER TABLE ONLY public.aoi_aoi
-    ADD CONSTRAINT aoi_aoi_name_key UNIQUE (name);
+ALTER TABLE ONLY public.account_emailaddress
+    ADD CONSTRAINT account_emailaddress_email_key UNIQUE (email);
 
 
 --
--- TOC entry 4338 (class 2606 OID 26970)
+-- Name: account_emailaddress account_emailaddress_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailaddress
+    ADD CONSTRAINT account_emailaddress_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: account_emailconfirmation account_emailconfirmation_key_key; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailconfirmation
+    ADD CONSTRAINT account_emailconfirmation_key_key UNIQUE (key);
+
+
+--
+-- Name: account_emailconfirmation account_emailconfirmation_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailconfirmation
+    ADD CONSTRAINT account_emailconfirmation_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: aoi_aoi aoi_aoi_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1541,7 +1625,14 @@ ALTER TABLE ONLY public.aoi_aoi
 
 
 --
--- TOC entry 4343 (class 2606 OID 26972)
+-- Name: aoi_aoi aoi_aoi_user_id_name_62e1f076_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.aoi_aoi
+    ADD CONSTRAINT aoi_aoi_user_id_name_62e1f076_uniq UNIQUE (user_id, name);
+
+
+--
 -- Name: aoi_component aoi_jupyternotebook_name_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1550,7 +1641,6 @@ ALTER TABLE ONLY public.aoi_component
 
 
 --
--- TOC entry 4346 (class 2606 OID 26974)
 -- Name: aoi_component aoi_jupyternotebook_path_to_a_notebook_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1559,7 +1649,6 @@ ALTER TABLE ONLY public.aoi_component
 
 
 --
--- TOC entry 4348 (class 2606 OID 26976)
 -- Name: aoi_component aoi_jupyternotebook_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1568,7 +1657,6 @@ ALTER TABLE ONLY public.aoi_component
 
 
 --
--- TOC entry 4352 (class 2606 OID 26978)
 -- Name: aoi_request aoi_request_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1577,7 +1665,6 @@ ALTER TABLE ONLY public.aoi_request
 
 
 --
--- TOC entry 4357 (class 2606 OID 26980)
 -- Name: auth_group auth_group_name_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1586,7 +1673,6 @@ ALTER TABLE ONLY public.auth_group
 
 
 --
--- TOC entry 4362 (class 2606 OID 26982)
 -- Name: auth_group_permissions auth_group_permissions_group_id_permission_id_0cd325b0_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1595,7 +1681,6 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 4365 (class 2606 OID 26984)
 -- Name: auth_group_permissions auth_group_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1604,7 +1689,6 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 4359 (class 2606 OID 26986)
 -- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1613,7 +1697,6 @@ ALTER TABLE ONLY public.auth_group
 
 
 --
--- TOC entry 4368 (class 2606 OID 26988)
 -- Name: auth_permission auth_permission_content_type_id_codename_01ab375a_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1622,7 +1705,6 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- TOC entry 4370 (class 2606 OID 26990)
 -- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1631,7 +1713,6 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- TOC entry 4373 (class 2606 OID 26992)
 -- Name: authtoken_token authtoken_token_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1640,7 +1721,6 @@ ALTER TABLE ONLY public.authtoken_token
 
 
 --
--- TOC entry 4375 (class 2606 OID 26994)
 -- Name: authtoken_token authtoken_token_user_id_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1649,7 +1729,6 @@ ALTER TABLE ONLY public.authtoken_token
 
 
 --
--- TOC entry 4378 (class 2606 OID 26996)
 -- Name: django_admin_log django_admin_log_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1658,7 +1737,6 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 4381 (class 2606 OID 26998)
 -- Name: django_content_type django_content_type_app_label_model_76bd3d3b_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1667,7 +1745,6 @@ ALTER TABLE ONLY public.django_content_type
 
 
 --
--- TOC entry 4383 (class 2606 OID 27000)
 -- Name: django_content_type django_content_type_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1676,7 +1753,6 @@ ALTER TABLE ONLY public.django_content_type
 
 
 --
--- TOC entry 4385 (class 2606 OID 27002)
 -- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1685,7 +1761,6 @@ ALTER TABLE ONLY public.django_migrations
 
 
 --
--- TOC entry 4388 (class 2606 OID 27004)
 -- Name: django_session django_session_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1694,7 +1769,6 @@ ALTER TABLE ONLY public.django_session
 
 
 --
--- TOC entry 4392 (class 2606 OID 27006)
 -- Name: django_site django_site_domain_a2e37b91_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1703,7 +1777,6 @@ ALTER TABLE ONLY public.django_site
 
 
 --
--- TOC entry 4394 (class 2606 OID 27008)
 -- Name: django_site django_site_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1712,7 +1785,6 @@ ALTER TABLE ONLY public.django_site
 
 
 --
--- TOC entry 4396 (class 2606 OID 27010)
 -- Name: publisher_acl publisher_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1721,7 +1793,6 @@ ALTER TABLE ONLY public.publisher_acl
 
 
 --
--- TOC entry 4398 (class 2606 OID 27012)
 -- Name: publisher_acl publisher_acl_user_id_id_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1730,7 +1801,6 @@ ALTER TABLE ONLY public.publisher_acl
 
 
 --
--- TOC entry 4401 (class 2606 OID 27014)
 -- Name: publisher_result publisher_result_filepath_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1739,7 +1809,6 @@ ALTER TABLE ONLY public.publisher_result
 
 
 --
--- TOC entry 4403 (class 2606 OID 27016)
 -- Name: publisher_result publisher_result_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1748,7 +1817,14 @@ ALTER TABLE ONLY public.publisher_result
 
 
 --
--- TOC entry 4413 (class 2606 OID 27018)
+-- Name: user_transaction user_transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.user_transaction
+    ADD CONSTRAINT user_transaction_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_user_groups user_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1757,7 +1833,6 @@ ALTER TABLE ONLY public.user_user_groups
 
 
 --
--- TOC entry 4416 (class 2606 OID 27020)
 -- Name: user_user_groups user_user_groups_user_id_group_id_bb60391f_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1766,7 +1841,6 @@ ALTER TABLE ONLY public.user_user_groups
 
 
 --
--- TOC entry 4407 (class 2606 OID 27022)
 -- Name: user_user user_user_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1775,7 +1849,6 @@ ALTER TABLE ONLY public.user_user
 
 
 --
--- TOC entry 4419 (class 2606 OID 27024)
 -- Name: user_user_user_permissions user_user_user_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1784,7 +1857,6 @@ ALTER TABLE ONLY public.user_user_user_permissions
 
 
 --
--- TOC entry 4422 (class 2606 OID 27026)
 -- Name: user_user_user_permissions user_user_user_permissions_user_id_permission_id_64f4d5b8_uniq; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1793,7 +1865,6 @@ ALTER TABLE ONLY public.user_user_user_permissions
 
 
 --
--- TOC entry 4410 (class 2606 OID 27028)
 -- Name: user_user user_user_username_key; Type: CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -1802,15 +1873,34 @@ ALTER TABLE ONLY public.user_user
 
 
 --
--- TOC entry 4334 (class 1259 OID 27029)
--- Name: aoi_aoi_name_327f8309_like; Type: INDEX; Schema: public; Owner: sip
+-- Name: account_emailaddress_email_03be32b2_like; Type: INDEX; Schema: public; Owner: sip
 --
 
-CREATE INDEX aoi_aoi_name_327f8309_like ON public.aoi_aoi USING btree (name varchar_pattern_ops);
+CREATE INDEX account_emailaddress_email_03be32b2_like ON public.account_emailaddress USING btree (email varchar_pattern_ops);
 
 
 --
--- TOC entry 4339 (class 1259 OID 27030)
+-- Name: account_emailaddress_user_id_2c513194; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX account_emailaddress_user_id_2c513194 ON public.account_emailaddress USING btree (user_id);
+
+
+--
+-- Name: account_emailconfirmation_email_address_id_5b7f8c58; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX account_emailconfirmation_email_address_id_5b7f8c58 ON public.account_emailconfirmation USING btree (email_address_id);
+
+
+--
+-- Name: account_emailconfirmation_key_f43612bd_like; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX account_emailconfirmation_key_f43612bd_like ON public.account_emailconfirmation USING btree (key varchar_pattern_ops);
+
+
+--
 -- Name: aoi_aoi_polygon_id; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1818,7 +1908,6 @@ CREATE INDEX aoi_aoi_polygon_id ON public.aoi_aoi USING gist (polygon);
 
 
 --
--- TOC entry 4340 (class 1259 OID 27031)
 -- Name: aoi_aoi_user_id_id_11e356b5; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1826,7 +1915,6 @@ CREATE INDEX aoi_aoi_user_id_id_11e356b5 ON public.aoi_aoi USING btree (user_id)
 
 
 --
--- TOC entry 4341 (class 1259 OID 27032)
 -- Name: aoi_jupyternotebook_name_5ca4f926_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1834,7 +1922,6 @@ CREATE INDEX aoi_jupyternotebook_name_5ca4f926_like ON public.aoi_component USIN
 
 
 --
--- TOC entry 4344 (class 1259 OID 27033)
 -- Name: aoi_jupyternotebook_path_to_a_notebook_9e413ab7_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1842,7 +1929,6 @@ CREATE INDEX aoi_jupyternotebook_path_to_a_notebook_9e413ab7_like ON public.aoi_
 
 
 --
--- TOC entry 4349 (class 1259 OID 27034)
 -- Name: aoi_request_aoi_id_id_48f40c33; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1850,7 +1936,6 @@ CREATE INDEX aoi_request_aoi_id_id_48f40c33 ON public.aoi_request USING btree (a
 
 
 --
--- TOC entry 4350 (class 1259 OID 27035)
 -- Name: aoi_request_jupyter_notebook_id_id_3d19e09e; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1858,7 +1943,6 @@ CREATE INDEX aoi_request_jupyter_notebook_id_id_3d19e09e ON public.aoi_request U
 
 
 --
--- TOC entry 4353 (class 1259 OID 27036)
 -- Name: aoi_request_polygon_id; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1866,7 +1950,6 @@ CREATE INDEX aoi_request_polygon_id ON public.aoi_request USING gist (polygon);
 
 
 --
--- TOC entry 4354 (class 1259 OID 27037)
 -- Name: aoi_request_user_id_id_b43c7e99; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1874,7 +1957,6 @@ CREATE INDEX aoi_request_user_id_id_b43c7e99 ON public.aoi_request USING btree (
 
 
 --
--- TOC entry 4355 (class 1259 OID 27038)
 -- Name: auth_group_name_a6ea08ec_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1882,7 +1964,6 @@ CREATE INDEX auth_group_name_a6ea08ec_like ON public.auth_group USING btree (nam
 
 
 --
--- TOC entry 4360 (class 1259 OID 27039)
 -- Name: auth_group_permissions_group_id_b120cbf9; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1890,7 +1971,6 @@ CREATE INDEX auth_group_permissions_group_id_b120cbf9 ON public.auth_group_permi
 
 
 --
--- TOC entry 4363 (class 1259 OID 27040)
 -- Name: auth_group_permissions_permission_id_84c5c92e; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1898,7 +1978,6 @@ CREATE INDEX auth_group_permissions_permission_id_84c5c92e ON public.auth_group_
 
 
 --
--- TOC entry 4366 (class 1259 OID 27041)
 -- Name: auth_permission_content_type_id_2f476e4b; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1906,7 +1985,6 @@ CREATE INDEX auth_permission_content_type_id_2f476e4b ON public.auth_permission 
 
 
 --
--- TOC entry 4371 (class 1259 OID 27042)
 -- Name: authtoken_token_key_10f0b77e_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1914,7 +1992,6 @@ CREATE INDEX authtoken_token_key_10f0b77e_like ON public.authtoken_token USING b
 
 
 --
--- TOC entry 4376 (class 1259 OID 27043)
 -- Name: django_admin_log_content_type_id_c4bce8eb; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1922,7 +1999,6 @@ CREATE INDEX django_admin_log_content_type_id_c4bce8eb ON public.django_admin_lo
 
 
 --
--- TOC entry 4379 (class 1259 OID 27044)
 -- Name: django_admin_log_user_id_c564eba6; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1930,7 +2006,6 @@ CREATE INDEX django_admin_log_user_id_c564eba6 ON public.django_admin_log USING 
 
 
 --
--- TOC entry 4386 (class 1259 OID 27045)
 -- Name: django_session_expire_date_a5c62663; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1938,7 +2013,6 @@ CREATE INDEX django_session_expire_date_a5c62663 ON public.django_session USING 
 
 
 --
--- TOC entry 4389 (class 1259 OID 27046)
 -- Name: django_session_session_key_c0390e0f_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1946,7 +2020,6 @@ CREATE INDEX django_session_session_key_c0390e0f_like ON public.django_session U
 
 
 --
--- TOC entry 4390 (class 1259 OID 27047)
 -- Name: django_site_domain_a2e37b91_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1954,7 +2027,6 @@ CREATE INDEX django_site_domain_a2e37b91_like ON public.django_site USING btree 
 
 
 --
--- TOC entry 4399 (class 1259 OID 27048)
 -- Name: publisher_result_filepath_4afb94f5_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1962,7 +2034,6 @@ CREATE INDEX publisher_result_filepath_4afb94f5_like ON public.publisher_result 
 
 
 --
--- TOC entry 4404 (class 1259 OID 27049)
 -- Name: publisher_result_polygon_id; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1970,7 +2041,6 @@ CREATE INDEX publisher_result_polygon_id ON public.publisher_result USING gist (
 
 
 --
--- TOC entry 4405 (class 1259 OID 27050)
 -- Name: publisher_result_request_id_id_c342f397; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1978,7 +2048,27 @@ CREATE INDEX publisher_result_request_id_id_c342f397 ON public.publisher_result 
 
 
 --
--- TOC entry 4411 (class 1259 OID 27051)
+-- Name: user_transaction_created_at_ac4e3537; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX user_transaction_created_at_ac4e3537 ON public.user_transaction USING btree (created_at);
+
+
+--
+-- Name: user_transaction_request_id_c90a3691; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX user_transaction_request_id_c90a3691 ON public.user_transaction USING btree (request_id);
+
+
+--
+-- Name: user_transaction_user_id_78e02c6c; Type: INDEX; Schema: public; Owner: sip
+--
+
+CREATE INDEX user_transaction_user_id_78e02c6c ON public.user_transaction USING btree (user_id);
+
+
+--
 -- Name: user_user_groups_group_id_c57f13c0; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1986,7 +2076,6 @@ CREATE INDEX user_user_groups_group_id_c57f13c0 ON public.user_user_groups USING
 
 
 --
--- TOC entry 4414 (class 1259 OID 27052)
 -- Name: user_user_groups_user_id_13f9a20d; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -1994,7 +2083,6 @@ CREATE INDEX user_user_groups_user_id_13f9a20d ON public.user_user_groups USING 
 
 
 --
--- TOC entry 4417 (class 1259 OID 27053)
 -- Name: user_user_user_permissions_permission_id_ce49d4de; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -2002,7 +2090,6 @@ CREATE INDEX user_user_user_permissions_permission_id_ce49d4de ON public.user_us
 
 
 --
--- TOC entry 4420 (class 1259 OID 27054)
 -- Name: user_user_user_permissions_user_id_31782f58; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -2010,7 +2097,6 @@ CREATE INDEX user_user_user_permissions_user_id_31782f58 ON public.user_user_use
 
 
 --
--- TOC entry 4408 (class 1259 OID 27055)
 -- Name: user_user_username_e2bdfe0c_like; Type: INDEX; Schema: public; Owner: sip
 --
 
@@ -2018,7 +2104,22 @@ CREATE INDEX user_user_username_e2bdfe0c_like ON public.user_user USING btree (u
 
 
 --
--- TOC entry 4423 (class 2606 OID 27056)
+-- Name: account_emailaddress account_emailaddress_user_id_2c513194_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailaddress
+    ADD CONSTRAINT account_emailaddress_user_id_2c513194_fk_user_user_id FOREIGN KEY (user_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: account_emailconfirmation account_emailconfirm_email_address_id_5b7f8c58_fk_account_e; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.account_emailconfirmation
+    ADD CONSTRAINT account_emailconfirm_email_address_id_5b7f8c58_fk_account_e FOREIGN KEY (email_address_id) REFERENCES public.account_emailaddress(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
 -- Name: aoi_aoi aoi_aoi_user_id_10b54171_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2027,7 +2128,6 @@ ALTER TABLE ONLY public.aoi_aoi
 
 
 --
--- TOC entry 4425 (class 2606 OID 27061)
 -- Name: aoi_request aoi_request_aoi_id_a780f213_fk_aoi_aoi_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2036,7 +2136,6 @@ ALTER TABLE ONLY public.aoi_request
 
 
 --
--- TOC entry 4424 (class 2606 OID 27146)
 -- Name: aoi_request aoi_request_component_id_3304cb91_fk_aoi_component_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2045,7 +2144,6 @@ ALTER TABLE ONLY public.aoi_request
 
 
 --
--- TOC entry 4426 (class 2606 OID 27071)
 -- Name: aoi_request aoi_request_user_id_9d499769_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2054,7 +2152,6 @@ ALTER TABLE ONLY public.aoi_request
 
 
 --
--- TOC entry 4427 (class 2606 OID 27076)
 -- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2063,7 +2160,6 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 4428 (class 2606 OID 27081)
 -- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2072,7 +2168,6 @@ ALTER TABLE ONLY public.auth_group_permissions
 
 
 --
--- TOC entry 4429 (class 2606 OID 27086)
 -- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2081,7 +2176,6 @@ ALTER TABLE ONLY public.auth_permission
 
 
 --
--- TOC entry 4430 (class 2606 OID 27091)
 -- Name: authtoken_token authtoken_token_user_id_35299eff_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2090,7 +2184,6 @@ ALTER TABLE ONLY public.authtoken_token
 
 
 --
--- TOC entry 4431 (class 2606 OID 27096)
 -- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2099,7 +2192,6 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 4432 (class 2606 OID 27101)
 -- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2108,7 +2200,6 @@ ALTER TABLE ONLY public.django_admin_log
 
 
 --
--- TOC entry 4433 (class 2606 OID 27106)
 -- Name: publisher_acl publisher_acl_user_id_9f5c1ca9_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2117,7 +2208,6 @@ ALTER TABLE ONLY public.publisher_acl
 
 
 --
--- TOC entry 4434 (class 2606 OID 27111)
 -- Name: publisher_result publisher_result_request_id_164a445f_fk_aoi_request_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2126,7 +2216,22 @@ ALTER TABLE ONLY public.publisher_result
 
 
 --
--- TOC entry 4435 (class 2606 OID 27116)
+-- Name: user_transaction user_transaction_request_id_c90a3691_fk_aoi_request_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.user_transaction
+    ADD CONSTRAINT user_transaction_request_id_c90a3691_fk_aoi_request_id FOREIGN KEY (request_id) REFERENCES public.aoi_request(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: user_transaction user_transaction_user_id_78e02c6c_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
+--
+
+ALTER TABLE ONLY public.user_transaction
+    ADD CONSTRAINT user_transaction_user_id_78e02c6c_fk_user_user_id FOREIGN KEY (user_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
 -- Name: user_user_groups user_user_groups_group_id_c57f13c0_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2135,7 +2240,6 @@ ALTER TABLE ONLY public.user_user_groups
 
 
 --
--- TOC entry 4436 (class 2606 OID 27121)
 -- Name: user_user_groups user_user_groups_user_id_13f9a20d_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2144,7 +2248,6 @@ ALTER TABLE ONLY public.user_user_groups
 
 
 --
--- TOC entry 4437 (class 2606 OID 27126)
 -- Name: user_user_user_permissions user_user_user_permi_permission_id_ce49d4de_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
@@ -2153,15 +2256,12 @@ ALTER TABLE ONLY public.user_user_user_permissions
 
 
 --
--- TOC entry 4438 (class 2606 OID 27131)
 -- Name: user_user_user_permissions user_user_user_permissions_user_id_31782f58_fk_user_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sip
 --
 
 ALTER TABLE ONLY public.user_user_user_permissions
     ADD CONSTRAINT user_user_user_permissions_user_id_31782f58_fk_user_user_id FOREIGN KEY (user_id) REFERENCES public.user_user(id) DEFERRABLE INITIALLY DEFERRED;
 
-
--- Completed on 2022-11-22 21:05:16 EET
 
 --
 -- PostgreSQL database dump complete
