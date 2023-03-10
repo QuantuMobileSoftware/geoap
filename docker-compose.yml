@@ -16,6 +16,7 @@ services:
       context: ./webapplication
       dockerfile: Dockerfile
     command: /bin/bash -c "exec invoke run"
+    env_file: webapplication/.env.local
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings
       - POSTGRES_DB=sip_db

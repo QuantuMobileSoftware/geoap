@@ -21,6 +21,7 @@ services:
       - ./webapplication:/code
       - ../data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    env_file: /webapplication/.env.production.local
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-prod
       - POSTGRES_DB=sip_db
