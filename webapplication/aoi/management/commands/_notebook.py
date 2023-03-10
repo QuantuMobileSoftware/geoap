@@ -3,6 +3,9 @@ import logging
 
 from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
+
+from django.db import transaction
+
 from aoi.models import Component, Request
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
@@ -106,15 +109,23 @@ class NotebookDockerThread(StoppableThread):
         for container in exited_containers:
             attrs = Container.container_attrs(container)
             request = Request.objects.get(pk=attrs['pk'])
+            request_transaction = request.transactions.first()
+            request_transaction.completed = True
+            request_transaction.user.on_hold -= abs(request_transaction.amount)
             if attrs['exit_code'] == 0:
                 logger.info(f"Notebook in container {container.name} executed successfully")
                 request.calculated = True
                 request.save(update_fields=['calculated'])
+                request_transaction.user.balance -= abs(request_transaction.amount)
             else:
                 request.finished_at=localtime()
                 request.save(update_fields=['finished_at'])
+                request_transaction.rolled_back = True
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
+            with transaction.atomic():
+                request_transaction.save(update_fields=("completed", "rolled_back"))
+                request_transaction.user.save(update_fields=("on_hold", "balance"))
             try:
                 container.remove()
             except:

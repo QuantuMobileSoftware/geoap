@@ -129,7 +129,7 @@ class AuthTestCase(UserBase):
             'last_name': '',
             'area_limit_ha': None,
             'planet_api_key': None,
-            "balance": 0,
+            "balance": 100000,
             "on_hold": 0,
             "discount": 0
         }
@@ -154,7 +154,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': 100,
             'planet_api_key': "secret-api-key",
-            'balance': 100000,
+            'balance': 12345,
             'on_hold': 5,
             'discount': 100
         }
@@ -166,7 +166,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': None,
             'planet_api_key': "secret-api-key",
-            'balance': 0,
+            'balance': 100000,
             'on_hold': 0,
             'discount': 0
         }
@@ -184,7 +184,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': 100,
             'planet_api_key': "secret-api-key",
-            'balance': 100000,
+            'balance': 12345,
             'on_hold': 5,
             'discount': 100
         }
@@ -196,7 +196,7 @@ class AuthTestCase(UserBase):
             'last_name': 'admin',
             'area_limit_ha': None,
             'planet_api_key': "secret-api-key",
-            'balance': 0,
+            'balance': 100000,
             'on_hold': 0,
             'discount': 0
         }
@@ -283,7 +283,8 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:15:11.230000Z",
                 "request": None,
                 "comment": "",
-                "completed": False
+                "completed": False,
+                "rolled_back": False
             }
         ]
         url = reverse("get_transactions_list")
@@ -303,7 +304,8 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:16:21.210000Z",
                 "request": 1001,
                 "comment": "",
-                "completed": True
+                "completed": True,
+                "rolled_back": False
             },
             {
                 "id": 1002,
@@ -313,7 +315,8 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:15:11.230000Z",
                 "request": None,
                 "comment": "",
-                "completed": False
+                "completed": False,
+                "rolled_back": False
             },
             {
                 "id": 1001,
@@ -323,7 +326,8 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:14:31.140000Z",
                 "request": 1001,
                 "comment": "",
-                "completed": True
+                "completed": True,
+                "rolled_back": False
             }
         ]
         url = reverse("get_transactions_list")

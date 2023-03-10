@@ -1,3 +1,5 @@
+import decimal
+
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
@@ -14,6 +16,11 @@ class User(AbstractUser):
     on_hold = models.DecimalField(_("On hold"), max_digits=9, decimal_places=2, default=0, null=True, blank=True)
     discount = models.PositiveIntegerField(_("Discount"), null=True, blank=True, default=0,
                                            validators=(MaxValueValidator(100),))
+
+    class Meta:
+        permissions = (
+            ("can_change_balance", "Can change balance"),
+        )
 
     @property
     def areas_total_ha(self):
@@ -52,6 +59,10 @@ class User(AbstractUser):
             return False
         return True
 
+    @property
+    def actual_balance(self):
+        return self.balance - self.on_hold
+
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
@@ -62,6 +73,7 @@ class Transaction(models.Model):
                                 related_name="transactions")
     comment = models.TextField(_("Comment"), blank=True, default="")
     completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)
+    rolled_back = models.BooleanField(_("Rolled back"), default=False, blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]
