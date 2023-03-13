@@ -1,16 +1,17 @@
 import React from 'react';
 import { Profile } from '../Profile';
 import { PageWrapper } from '../PageWrapper';
+import { TAB_NAMES } from '../../constants';
 
-export const PageContent = ({ activeTab, tabs }) => {
+export const PageContent = ({ activeTab }) => {
   switch (activeTab) {
-    case tabs[0].name:
+    case TAB_NAMES.profile:
       return (
         <PageWrapper header='Your information'>
           <Profile />
         </PageWrapper>
       );
-    case tabs[1].name:
+    case TAB_NAMES.transactions:
       return (
         <PageWrapper header='Your transactions'>
           <h2>Transactions</h2>

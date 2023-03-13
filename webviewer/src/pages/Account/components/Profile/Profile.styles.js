@@ -21,7 +21,7 @@ export const InfoValue = styled.span`
 `;
 
 export const Title = styled(Typography).attrs({
-  element: 'h3',
+  element: 'h2',
   variant: 'h3'
 })`
   margin-top: ${em(60)};

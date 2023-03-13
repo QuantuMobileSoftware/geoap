@@ -22,7 +22,7 @@ export const ErrorModal = () => {
   const location = useLocation();
 
   useEffect(() => {
-    areasEvents.onToggleErrorModal(({ error }) => {
+    return areasEvents.onToggleErrorModal(({ error }) => {
       const isIgnoreError =
         catchErrRoutes.includes(location.pathname) && error.status === 400;
 

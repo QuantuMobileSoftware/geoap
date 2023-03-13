@@ -4,19 +4,16 @@ import { ContactUs } from 'components/ContactUs';
 import { Sidebar } from './components';
 import { Wrapper } from './Account.styles';
 import { PageContent } from './components';
-const TABS = [
-  { name: 'Profile', icon: 'Settings' },
-  { name: 'Transactions', icon: 'Document' }
-];
+import { TAB_NAMES } from './constants';
 
 export const Account = ({ ...props }) => {
-  const [activeTab, setActiveTab] = useState(TABS[0].name);
+  const [activeTab, setActiveTab] = useState(TAB_NAMES.profile);
 
   return (
     <Page {...props}>
       <Wrapper>
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} tabs={TABS} />
-        <PageContent activeTab={activeTab} tabs={TABS} />
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <PageContent activeTab={activeTab} />
       </Wrapper>
       <ContactUs />
     </Page>

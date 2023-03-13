@@ -3,7 +3,7 @@ import { em } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 
 export const Header = styled(Typography).attrs({
-  element: 'h2',
+  element: 'h1',
   variant: 'h2'
 })`
   color: ${({ theme }) => theme.colors.nature.n4};
