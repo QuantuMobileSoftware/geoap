@@ -11,12 +11,13 @@ export const PageContent = ({ activeTab }) => {
           <Profile />
         </PageWrapper>
       );
-    case TAB_NAMES.transactions:
-      return (
-        <PageWrapper header='Your transactions'>
-          <h2>Transactions</h2>
-        </PageWrapper>
-      );
+    // TODO: add in next PR with transaction tab
+    // case TAB_NAMES.transactions:
+    //   return (
+    //     <PageWrapper header='Your transactions'>
+    //       <h2>Transactions</h2>
+    //     </PageWrapper>
+    //   );
     default:
       return null;
   }

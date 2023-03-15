@@ -42,3 +42,8 @@ export const FIELD_VALIDATION = {
 };
 
 export const NO_DATA = 'No data';
+
+export const EMAIL_TEXT = {
+  error: 'Failed to send your message, please try again later',
+  success: 'Your message has been successfully sent'
+};

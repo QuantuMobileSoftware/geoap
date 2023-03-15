@@ -33,3 +33,9 @@ export const StyledButton = styled(Button)`
   margin: ${em(20)} 0;
   color: ${({ theme, variantType }) => variantType === 'danger' && theme.colors.danger};
 `;
+
+export const ButtonWrapper = styled.div`
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: ${em(24)};
+`;
