@@ -10,10 +10,13 @@ import { useUserActions, selectIsAuthorized, selectIsAutoLogged } from 'state';
 const { REACT_APP_AUTOLOGIN, REACT_APP_AUTOPASSWORD } = process.env;
 
 export const PageAuth = ({ ...props }) => {
-  const { isLoading, error, login } = useUserActions();
+  const { isLoading, error, login, getCurrentUser } = useUserActions();
   const isAuthorized = useSelector(selectIsAuthorized);
   const isAutoLogged = useSelector(selectIsAutoLogged);
-  const handleSubmit = values => login(values);
+  const handleSubmit = async values => {
+    await login(values);
+    await getCurrentUser();
+  };
 
   useEffect(() => {
     if (isAuthorized || isAutoLogged) {

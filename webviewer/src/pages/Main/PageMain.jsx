@@ -1,27 +1,26 @@
 import React, { useEffect } from 'react';
-
-import { PageMainContainer, StyledPageMain } from './PageMain.styles';
-
+import { useSelector } from 'react-redux';
+import { useAreasActions, selectAreasList } from 'state';
 import { AreasSidebar } from 'components/Areas';
 import { Map } from 'components/Map';
 import { ContactUs } from 'components/ContactUs';
-
-import { useAreasActions, useUserActions } from 'state';
+import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 export const PageMain = ({ ...props }) => {
-  const { getCurrentUser } = useUserActions();
   const { getAreas } = useAreasActions();
+  const areas = useSelector(selectAreasList);
+  const isOpen = props.history.action === 'PUSH' && props.location.state?.isOpenSidebar;
 
   useEffect(() => {
-    getCurrentUser();
+    if (areas.length) return;
     getAreas();
-  }, [getCurrentUser, getAreas]);
+  }, [getAreas, areas.length]);
 
   return (
     <StyledPageMain {...props}>
       <PageMainContainer>
         <Map />
-        <AreasSidebar />
+        <AreasSidebar isOpen={isOpen} />
         <ContactUs />
       </PageMainContainer>
     </StyledPageMain>

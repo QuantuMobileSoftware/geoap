@@ -10,6 +10,10 @@ export const useUserActions = () => {
   const dispatch = useDispatch();
   const { isLoading, error, handleAsync } = useAsync();
 
+  const toggleLogoutModal = () => {
+    dispatch(userActions.toggleLogoutModal());
+  };
+
   const login = useCallback(
     async body => {
       await handleAsync(async () => {
@@ -70,6 +74,7 @@ export const useUserActions = () => {
     error,
     login,
     logout,
+    toggleLogoutModal,
     getCurrentUser,
     setApiKey,
     registerUser,

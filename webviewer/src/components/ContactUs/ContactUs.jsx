@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
-import { send } from 'emailjs-com';
-
+import { useEmail } from 'hooks';
 import { Modal } from 'components/_shared/Modal';
 import { Form } from 'components/_shared/Form';
-
+import { EMAIL_TEXT } from '_constants';
 import { areasEvents } from '_events';
 import { StyledFormField, StyledButton } from './ContactUs.styles';
 
@@ -14,52 +13,28 @@ const validationSchema = Yup.object().shape({
   message: Yup.string().trim().required().max(500)
 });
 
-const MESSAGE_ERROR = 'Failed to send your message, please try again later';
-const MESSAGE_SUCCESS = 'Your message has been successfully sent';
 const FORM_TITLE =
   'Please leave your Name, email address and a message in the fields below:';
-const {
-  REACT_APP_EMAILJS_SERVICE_ID,
-  REACT_APP_EMAILJS_TEMPLATE_ID,
-  REACT_APP_EMAILJS_USER_ID
-} = process.env;
 
 export const ContactUs = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShowMessage, setIsShowMessage] = useState(false);
   const [modalTitle, setModalTitle] = useState(FORM_TITLE);
-  const [isDisabledSend, setIsDisabledSend] = useState(false);
+  const { isLoading, sendEmail } = useEmail();
 
   useEffect(() => {
     return areasEvents.onToggleContactUs(isOpen => setIsFormOpen(isOpen));
   }, []);
 
-  const handleSendForm = values => {
-    setIsDisabledSend(true);
-    send(
-      REACT_APP_EMAILJS_SERVICE_ID,
-      REACT_APP_EMAILJS_TEMPLATE_ID,
-      values,
-      REACT_APP_EMAILJS_USER_ID
-    )
-      .then(
-        () => {
-          setModalTitle(MESSAGE_SUCCESS);
-        },
-        () => {
-          setModalTitle(MESSAGE_ERROR);
-        }
-      )
-      .then(() => {
-        setIsModalOpen(true);
-        setIsDisabledSend(false);
-      });
+  const handleSendForm = async values => {
+    const isSent = await sendEmail(values);
+    setModalTitle(isSent ? EMAIL_TEXT.success : EMAIL_TEXT.error);
+    setIsShowMessage(true);
   };
 
   const handleCloseContactUs = () => {
     setIsFormOpen(false);
-    setIsModalOpen(false);
-    setIsDisabledSend(false);
+    setIsShowMessage(false);
     setModalTitle(FORM_TITLE);
   };
 
@@ -67,8 +42,8 @@ export const ContactUs = () => {
 
   return (
     <>
-      <Modal header={modalTitle} close={handleCloseContactUs} textCenter={isModalOpen}>
-        {isModalOpen ? (
+      <Modal header={modalTitle} close={handleCloseContactUs} textCenter={isShowMessage}>
+        {isShowMessage ? (
           <StyledButton variant='primary' onClick={handleCloseContactUs}>
             Ok
           </StyledButton>
@@ -97,7 +72,7 @@ export const ContactUs = () => {
                   placeholder='Message'
                   type='textArea'
                 />
-                <StyledButton type='submit' variant='primary' disabled={isDisabledSend}>
+                <StyledButton type='submit' variant='primary' disabled={isLoading}>
                   Send
                 </StyledButton>
               </>

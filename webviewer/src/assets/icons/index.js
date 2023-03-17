@@ -27,3 +27,6 @@ export { ReactComponent as User } from './User.svg';
 export { ReactComponent as ArrowUp } from './ArrowUp.svg';
 export { ReactComponent as Delete } from './Delete.svg';
 export { ReactComponent as Detect } from './Detect.svg';
+export { ReactComponent as Link } from './Link.svg';
+export { ReactComponent as Document } from './Document.svg';
+export { ReactComponent as Eye } from './Eye.svg';

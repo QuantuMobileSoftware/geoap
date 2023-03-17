@@ -3,7 +3,8 @@ import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
 import { Modal } from 'components/_shared/Modal';
 import { Form } from 'components/_shared/Form';
-
+import { ROUTES } from '_constants';
+import { useHistory } from 'react-router-dom';
 import {
   StyledFormField,
   StyledUserbar,
@@ -23,11 +24,11 @@ const validationSchema = Yup.object().shape({
 });
 
 export const Userbar = ({ ...props }) => {
+  const history = useHistory();
   const menuRef = useRef(null);
   const user = useSelector(selectUser);
-  const { logout, setApiKey, isLoading } = useUserActions();
+  const { logout, setApiKey, isLoading, toggleLogoutModal } = useUserActions();
   const { resetAreasState } = useAreasActions();
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingModalOpen] = useState(false);
 
   const hasDemoUser = process.env.REACT_APP_AUTOLOGIN === user.username;
@@ -43,8 +44,8 @@ export const Userbar = ({ ...props }) => {
     handleToggleSettingsModal();
   };
 
-  const handleToggleLogoutModal = () => setIsLogoutModalOpen(!isLogoutModalOpen);
   const handleToggleSettingsModal = () => setIsSettingModalOpen(!isSettingsModalOpen);
+  const handleSettings = () => history.push(ROUTES.ACCOUNT);
 
   return (
     <>
@@ -65,23 +66,26 @@ export const Userbar = ({ ...props }) => {
               ignoredClassNames: [getStyledComponentClassName(StyledUserbar)]
             }}
           >
-            <Button icon='LogOut' onClick={handleToggleLogoutModal}>
-              Log Out
-            </Button>
-            <Button icon='Settings' onClick={handleToggleSettingsModal}>
+            <Button icon='Settings' onClick={handleSettings}>
               Settings
+            </Button>
+            <Button icon='Link' onClick={handleToggleSettingsModal}>
+              API Manager
+            </Button>
+            <Button icon='LogOut' onClick={toggleLogoutModal}>
+              Log Out
             </Button>
           </UserbarMenu>
         </StyledUserbar>
       )}
-      {isLogoutModalOpen && (
+      {user.isShowLogoutModal && (
         <Modal
           header='Are you sure to log out from account?'
           textCenter={true}
-          close={handleToggleLogoutModal}
+          close={toggleLogoutModal}
         >
           <ButtonWrapper>
-            <Button variant='secondary' onClick={handleToggleLogoutModal}>
+            <Button variant='secondary' onClick={toggleLogoutModal}>
               Cancel
             </Button>
             <Button variant='primary' onClick={handleLogOut}>

@@ -4,8 +4,6 @@ import cn from 'classnames';
 
 import { shouldForwardProp } from 'utils';
 
-export const PageBody = styled.main``;
-
 export const PageHeader = styled(({ children, ...props }) => {
   const className = cn(children.props.className, props.className);
   return cloneElement(children, { ...props, className });
