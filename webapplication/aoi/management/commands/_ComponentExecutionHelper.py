@@ -21,8 +21,6 @@ class ComponentExecutionHelper():
         env_variables = {
             'REQUEST_ID':str(request.pk),
             'AOI':request.aoi.polygon.wkt,
-            'START_DATE':request.date_from.strftime("%Y-%m-%d"),
-            'END_DATE':request.date_to.strftime("%Y-%m-%d")
         }
         env_update = {
             'OUTPUT_FOLDER':os.path.join(
@@ -34,9 +32,15 @@ class ComponentExecutionHelper():
             'SENTINEL2_CACHE':os.path.join(
                 settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
                 str(settings.SATELLITE_IMAGES_FOLDER). \
-                    replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', '')
+                    replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
+                f"request_{request.pk}_cache"
             )
         }
+        if request.component.period_required:
+            env_update.update({
+                'START_DATE':request.date_from.strftime("%Y-%m-%d"),
+                'END_DATE':request.date_to.strftime("%Y-%m-%d")
+            })
         if request.component.sentinel_google_api_key_required:
             env_update.update({
                 'SENTINEL2_GOOGLE_API_KEY':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SENTINEL2_GOOGLE_API_KEY)
