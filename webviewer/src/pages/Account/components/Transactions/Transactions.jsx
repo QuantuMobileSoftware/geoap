@@ -56,7 +56,7 @@ export const Transactions = () => {
 
   if (!transactions?.length) return <h3>You have no transactions</h3>;
 
-  const firsTransaction = new Date(transactions[0].created_at);
+  const firstTransaction = new Date(transactions[0].created_at);
 
   return (
     <div>
@@ -65,7 +65,7 @@ export const Transactions = () => {
           selectedDate={selectedDate}
           onChange={setSelectedDate}
           onApply={handleApplyMonth}
-          minDate={new Date(firsTransaction.getFullYear(), firsTransaction.getMonth())}
+          minDate={new Date(firstTransaction.getFullYear(), firstTransaction.getMonth())}
           maxDate={Date.now()}
         />
         {isFiltered && (
@@ -83,13 +83,16 @@ export const Transactions = () => {
           </tr>
           {rowsData?.map(t => {
             const isNegativeAmount = t.amount < 0;
+            const date = t.created_at.split('T')[0].replaceAll('-', '.');
             const layer = layers.find(l => l.id === t.request)?.name;
+            const amount = isNegativeAmount
+              ? `- $${Math.abs(t.amount)}`
+              : `+ $${t.amount}`;
+
             return (
               <tr key={t.id}>
-                <td>{t.created_at.split('T')[0].replaceAll('-', '.')}</td>
-                <TableAmount negative={isNegativeAmount}>
-                  {isNegativeAmount ? `- $${Math.abs(t.amount)}` : `+ $${t.amount}`}
-                </TableAmount>
+                <td>{date}</td>
+                <TableAmount negative={isNegativeAmount}>{amount}</TableAmount>
                 <TableComment>
                   {t.request && <LayerName>{layer}. </LayerName>}
                   {t.comment}

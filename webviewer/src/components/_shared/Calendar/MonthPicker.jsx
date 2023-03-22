@@ -31,8 +31,8 @@ export const MonthPicker = ({ selectedDate, onChange, onApply, ...props }) => {
   const [isOpen, setIsOpen] = useState(false);
   const calendarRef = useRef(null);
 
-  const handleOnOpen = () => setIsOpen(true);
-  const handleOnClose = () => setIsOpen(false);
+  const handleOnToggle = () => setIsOpen(prev => !prev);
+
   const handleApply = () => {
     calendarRef.current.setOpen(false);
     onApply?.();
@@ -56,8 +56,8 @@ export const MonthPicker = ({ selectedDate, onChange, onApply, ...props }) => {
         selected={selectedDate}
         shouldCloseOnSelect={false}
         customInput={<CalendarInput open={isOpen} />}
-        onCalendarClose={handleOnClose}
-        onCalendarOpen={handleOnOpen}
+        onCalendarClose={handleOnToggle}
+        onCalendarOpen={handleOnToggle}
         calendarContainer={CalendarContainer}
         ref={calendarRef}
         renderDayContents={renderDayContents}

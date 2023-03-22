@@ -44,5 +44,5 @@ export const Filter = styled.div`
 `;
 
 export const ClearFilterBtn = styled(Button)`
-  margin-left: 40px;
+  margin-left: ${em(40)};
 `;
