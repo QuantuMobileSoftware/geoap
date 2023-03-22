@@ -5,6 +5,8 @@ import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { Typography } from '../Typography';
 
+const disabledColor = '#ccc';
+
 export const StyledDatePicker = styled.button`
   ${({ theme }) => css`
     width: 100%;
@@ -86,7 +88,7 @@ export const StyledCalendarContainer = styled.div`
         background: ${theme.colors.nature.n0};
         color: ${theme.colors.nature.n5};
         &.react-datepicker__day--disabled {
-          color: #cccccc;
+          color: ${disabledColor};
         }
       }
       & .react-datepicker__day--in-range {
@@ -195,4 +197,40 @@ export const CalendarTitle = styled(Typography).attrs({ variant: 'caption1' })`
     color: ${theme.colors.nature.n5};
     font-size: ${rem(14)};
   `}
+`;
+
+export const StyledMonthPickerContainer = styled(StyledCalendarContainer)`
+  ${({ theme }) => css`
+    width: auto;
+    padding: ${rem(10)};
+    & .react-datepicker__month-container {
+      width: 100%;
+    }
+    & .react-datepicker__month-text {
+      border-radius: 20px;
+      width: ${rem(40)};
+    }
+    & .react-datepicker__month-text.react-datepicker__month--selected:hover,
+    & .react-datepicker__month-wrapper div.react-datepicker__month--selected,
+    & .react-datepicker__month-text--keyboard-selected {
+      background: ${theme.colors.primary.p2};
+      color: ${theme.colors.nature.n0};
+    }
+    & .react-datepicker__month-text--keyboard-selected.react-datepicker__month--disabled {
+      color: ${disabledColor};
+      background: inherit;
+    }
+    & .react-datepicker__navigation {
+      top: ${rem(12)};
+    }
+  `}
+`;
+
+export const DatePickerWrapper = styled.div`
+  & .react-datepicker-popper[data-placement^='bottom'] {
+    padding: 0;
+  }
+  & .react-datepicker__input-container {
+    min-width: 230px;
+  }
 `;

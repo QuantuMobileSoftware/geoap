@@ -86,3 +86,8 @@ export const getCentroid = arr => {
 export const getElementBottom = el => {
   if (el) return el.current?.offsetTop + el.current?.offsetHeight + el.current?.scrollTop;
 };
+
+export const getTransactionDate = date => {
+  const formatConfig = { month: 'long', year: 'numeric' };
+  return new Intl.DateTimeFormat('en-US', formatConfig).format(new Date(date));
+};
