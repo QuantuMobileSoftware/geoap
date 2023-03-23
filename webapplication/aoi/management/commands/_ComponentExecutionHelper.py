@@ -28,14 +28,23 @@ class ComponentExecutionHelper():
                 str(settings.RESULTS_FOLDER). \
                     replace(os.path.commonpath([settings.RESULTS_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
                 f"request_{request.pk}"
-            ),
-            'SENTINEL2_CACHE':os.path.join(
-                settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
-                str(settings.SATELLITE_IMAGES_FOLDER). \
-                    replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
-                f"request_{request.pk}_cache"
             )
         }
+        if request.component.separate_cache_folder:
+            env_update.update({
+                'SENTINEL2_CACHE':os.path.join(
+                    settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                    str(settings.SATELLITE_IMAGES_FOLDER). \
+                        replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''), 
+                    f"request_{request.pk}_cache")
+            })
+        else:
+            env_update.update({
+                'SENTINEL2_CACHE':os.path.join(
+                    settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 
+                    str(settings.SATELLITE_IMAGES_FOLDER). \
+                        replace(os.path.commonpath([settings.SATELLITE_IMAGES_FOLDER, settings.PERSISTENT_STORAGE_PATH])+'/', ''))
+            })
         if request.component.period_required:
             env_update.update({
                 'START_DATE':request.date_from.strftime("%Y-%m-%d"),
