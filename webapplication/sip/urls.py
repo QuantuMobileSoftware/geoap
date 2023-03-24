@@ -7,13 +7,14 @@ from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView, PasswordR
     PasswordChangeView
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.views.decorators.csrf import csrf_exempt
 
 from user.views import VerifyEmailView, RegisterView
 from .docs_drf_yasg import urlpatterns as doc_urls
 
 
 auth_patterns = [
-    path('login', LoginView.as_view(), name='rest_login'),
+    path('login', csrf_exempt(LoginView.as_view()), name='rest_login'),
     path('logout', LogoutView.as_view(), name='rest_logout'),
     path('password/change', PasswordChangeView.as_view(), name='rest_password_change'),
     path('password/reset', PasswordResetView.as_view(), name='rest_password_reset'),
