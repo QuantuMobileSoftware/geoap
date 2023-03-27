@@ -82,3 +82,7 @@ class Transaction(models.Model):
         permissions = (
             ("view_all_transactions", "Can view all transactions"),
         )
+
+    @staticmethod
+    def generate_comment(request: Request, aoi: AoI):
+        return f"{request.component_name}. Area: {aoi.name} processed."
