@@ -21,10 +21,15 @@ const resendUserEmail = email => {
   return axiosInstance.post(usersEndpoints.resend, { email });
 };
 
+const changePassword = data => {
+  return axiosInstance.post(usersEndpoints.password.change, data);
+};
+
 export const usersRequests = {
   getCurrentUser,
   setApiKey,
   registerUser,
   confirmRegistration,
-  resendUserEmail
+  resendUserEmail,
+  changePassword
 };

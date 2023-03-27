@@ -14,7 +14,7 @@ import {
 } from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
 
-const catchErrRoutes = [ROUTES.AUTH, ROUTES.SIGN_UP];
+const catchErrRoutes = [ROUTES.AUTH, ROUTES.SIGN_UP, ROUTES.RESET_PASSWORD];
 
 export const ErrorModal = () => {
   const [error, setError] = useState(null);
