@@ -20,6 +20,3 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = "noreply@portal.soilmate.ai"
 EMAIL_HOST = "smtp"
 EMAIL_PORT = 587
-
-ACCOUNT_EMAIL_VERIFICATION = "optional"
-ACCOUNT_EMAIL_REQUIRED = False
