@@ -85,4 +85,7 @@ class Transaction(models.Model):
 
     @staticmethod
     def generate_comment(request: Request, aoi: AoI):
-        return f"{request.component_name}. Area: {aoi.name} processed."
+        comment = f"{request.component_name}."
+        if aoi:
+            comment += f" Area: {aoi.name} processed."
+        return comment
