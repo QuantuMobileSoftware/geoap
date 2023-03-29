@@ -9,7 +9,9 @@ const resend = `${signup}/resend-email`;
 // change password
 const passwordRoot = '/password';
 const password = {
-  change: `${passwordRoot}/change`
+  change: `${passwordRoot}/change`,
+  forgot: `${passwordRoot}/reset`,
+  confirm: (userId, token) => `${passwordRoot}/reset/confirm/${userId}/${token}`
 };
 
 export const usersEndpoints = { current, signup, confirm, resend, password };

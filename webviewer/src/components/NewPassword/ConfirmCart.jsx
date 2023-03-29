@@ -2,14 +2,19 @@ import React from 'react';
 import { useUserActions, useAreasActions } from 'state';
 import { Button } from 'components/_shared/Button';
 import { Header, Text } from './NewPassword.styles';
+import { useHistory } from 'react-router-dom';
+import { ROUTES } from '_constants';
 
-export const ConfirmCard = () => {
+export const ConfirmCard = ({ isLogged }) => {
   const { resetAreasState } = useAreasActions();
   const { logout } = useUserActions();
+  const history = useHistory();
 
   const handleClick = () => {
-    logout(true);
-    resetAreasState();
+    if (isLogged) {
+      logout(true);
+      resetAreasState();
+    } else history.push(ROUTES.AUTH);
   };
 
   return (

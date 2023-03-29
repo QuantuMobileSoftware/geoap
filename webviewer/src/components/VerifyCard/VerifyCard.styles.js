@@ -23,3 +23,15 @@ export const CardText = styled(Typography).attrs({
   margin-bottom: ${em(30)};
   color: ${({ error, theme }) => (error ? theme.colors.danger : theme.colors.nature.n4)};
 `;
+
+export const ResendButton = styled(Typography).attrs({
+  element: 'button',
+  variant: 'caption1'
+})`
+  font-weight: ${({ theme }) => theme.fontWeights[1]};
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: ${em(5)};
+`;

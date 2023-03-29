@@ -1,14 +1,13 @@
-import { API } from 'api';
 import React, { useEffect, useState } from 'react';
-import { Header, CardText, ResendButton, CardWrap } from './Card.styles';
+import { Header, CardText, ResendButton, CardWrap } from './VerifyCard.styles';
 
 const TIMER_TIME = 20;
 
-export const VerifyCard = ({ email }) => {
+export const VerifyCard = ({ email, onResend }) => {
   const [time, setTime] = useState(null);
 
   const handleClick = () => {
-    API.users.resendUserEmail(email);
+    onResend();
     setTime(TIMER_TIME);
   };
 

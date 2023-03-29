@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import * as Yup from 'yup';
+import { useParams } from 'react-router-dom';
 import { FIELD_VALIDATION } from '_constants';
 import { useUserActions } from 'state';
 import { FormField, FormFieldset } from 'components/_shared/Form';
@@ -25,15 +26,18 @@ const _initialValues = {
 };
 
 export const NewPassword = () => {
-  const { isLoading, changePassword, error } = useUserActions();
+  const { uid, token } = useParams();
+  const { isLoading, changePassword, error, confirmPassword } = useUserActions();
   const [isShowNotice, setIsShowNotice] = useState(false);
+  const isLogged = !(uid && token);
 
   const onSubmit = async values => {
-    const resp = await changePassword(values);
-    if (resp.statusText === 'OK') setIsShowNotice(true);
+    if (isLogged) await changePassword(values);
+    else await confirmPassword({ uid, token, ...values });
+    setIsShowNotice(true);
   };
 
-  if (isShowNotice) return <ConfirmCard />;
+  if (isShowNotice) return <ConfirmCard isLogged={isLogged} />;
 
   return (
     <StyledForm

@@ -2,14 +2,15 @@ import React from 'react';
 import { useUserActions } from 'state';
 import { FormField, FormFieldset } from 'components/_shared/Form';
 import { Button } from 'components/_shared/Button';
+import { Link } from 'components/_shared/Link';
 import { ROUTES } from '_constants';
 import { validationSchema, _initialValues } from './formValues';
-import { StyledLink, StyledMessage, StyledForm } from './SignUp.styles';
+import { StyledMessage, StyledForm } from './SignUp.styles';
 
 const formMessage = (
   <>
     <StyledMessage>Already have an account? </StyledMessage>
-    <StyledLink to={ROUTES.AUTH}>Login</StyledLink>
+    <Link to={ROUTES.AUTH}>Login</Link>
   </>
 );
 const formButton = (

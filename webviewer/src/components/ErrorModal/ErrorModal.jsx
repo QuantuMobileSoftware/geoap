@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from 'components/_shared/Modal';
 import { Button } from 'components/_shared/Button';
-import { useLocation } from 'react-router';
+import { useLocation, matchPath } from 'react-router';
 
 import { areasEvents } from '_events';
 import {
@@ -14,7 +14,13 @@ import {
 } from '_constants';
 import { ButtonWrapper } from './ErrorModal.styles';
 
-const catchErrRoutes = [ROUTES.AUTH, ROUTES.SIGN_UP, ROUTES.RESET_PASSWORD];
+const catchErrRoutes = [
+  ROUTES.AUTH,
+  ROUTES.SIGN_UP,
+  ROUTES.RESET_PASSWORD,
+  ROUTES.FORGOT_PASSWORD,
+  ROUTES.CONFIRM_PASSWORD
+];
 
 export const ErrorModal = () => {
   const [error, setError] = useState(null);
@@ -24,7 +30,8 @@ export const ErrorModal = () => {
   useEffect(() => {
     return areasEvents.onToggleErrorModal(({ error }) => {
       const isIgnoreError =
-        catchErrRoutes.includes(location.pathname) && error.status === 400;
+        catchErrRoutes.some(route => matchPath(location.pathname, route)) &&
+        error.status === 400;
 
       if (error.config?.method === 'get' || isIgnoreError) {
         setError(null);
