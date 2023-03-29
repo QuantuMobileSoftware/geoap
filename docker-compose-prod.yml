@@ -62,5 +62,14 @@ services:
       - .env
     restart: on-failure
 
+  # https://github.com/bokysan/docker-postfix#relaying-messages-through-google-apps-account
+  smtp:
+    image: boky/postfix
+    environment:
+      - ALLOWED_SENDER_DOMAINS=portal.soilmate.ai
+      - RELAYHOST=smtp-relay.gmail.com:587
+    networks:
+      - sip
+
 networks:
   sip:

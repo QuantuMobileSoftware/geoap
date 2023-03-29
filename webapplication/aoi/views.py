@@ -168,11 +168,12 @@ class RequestListCreateAPIView(ListCreateAPIView):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
 
-    def create_transaction(self, user, amount, request):
+    def create_transaction(self, user, amount, request, aoi):
         Transaction.objects.create(
             user=user,
             amount=-amount,
-            request=request
+            request=request,
+            comment=Transaction.generate_comment(request, aoi)
         )
         user.on_hold += amount
         user.save(update_fields=("on_hold",))
@@ -206,7 +207,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
             self.create_transaction(
                 user=request.user,
                 amount=request_price,
-                request=serializer.instance
+                request=serializer.instance,
+                aoi=serializer.validated_data.get("aoi", None)
             )
         if not serializer.instance:
             validation_error = ValidationError(_("Error while creating a report"))

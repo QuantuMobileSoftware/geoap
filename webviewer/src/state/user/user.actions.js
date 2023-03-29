@@ -69,6 +69,13 @@ export const useUserActions = () => {
     [handleAsync]
   );
 
+  const changePassword = useCallback(
+    async data => {
+      return await handleAsync(async () => await API.users.changePassword(data));
+    },
+    [handleAsync]
+  );
+
   return {
     isLoading,
     error,
@@ -78,6 +85,7 @@ export const useUserActions = () => {
     getCurrentUser,
     setApiKey,
     registerUser,
-    confirmRegistration
+    confirmRegistration,
+    changePassword
   };
 };

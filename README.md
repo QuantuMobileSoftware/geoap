@@ -61,10 +61,6 @@ curl -H  "accept: application/json" http://localhost:9000/api/users/current?apik
 ```
 
 
-## Jupyter
-Go to http://127.0.0.1:8888/
-password: God9uumi
-
 # Work with registry.quantumobile.co
 
 ## Authorization on registry.quantumobile.co

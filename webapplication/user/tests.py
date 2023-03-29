@@ -227,7 +227,10 @@ class AuthTestCase(UserBase):
         
         url_matches = re.findall(r"http.*account-confirm-email.*\B", mail.outbox[0].body)
         self.assertTrue(url_matches)
-        confirmation_url = url_matches[0]
+        confirmation_url = url_matches[0]  # Confirmation URL built for FE purposes and doesn't contain "/api/" part
+        url_parts = confirmation_url.split("signup")
+        url_parts.insert(1, "api/signup")
+        confirmation_url = "".join(url_parts)
         response_data = "Email has been successfully confirmed!"
 
         response = self.client.get(confirmation_url)
