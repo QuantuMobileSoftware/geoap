@@ -7,6 +7,6 @@ export const StyledMessage = styled.span`
   `}
 `;
 
-export const LinkWrap = styled.div`
+export const ForgotPassLinkWrap = styled.div`
   text-align: right;
 `;
