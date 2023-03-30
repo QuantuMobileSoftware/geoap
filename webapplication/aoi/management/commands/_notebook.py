@@ -156,8 +156,15 @@ class NotebookDockerThread(StoppableThread):
             except:
                 logger.exception(f"Request {request.pk}, notebook {request.component.name}:")
                 try:
-                    request.finished_at = localtime()
-                    request.save(update_fields=['finished_at'])
+                    with transaction.atomic():
+                        request_transaction = request.transactions.first()
+                        request_transaction.user.on_hold -= abs(request_transaction.amount)
+                        request_transaction.rolled_back = True
+                        request.finished_at = localtime()
+
+                        request_transaction.save(update_fields=("rolled_back",))
+                        request_transaction.user.save(update_fields=("on_hold",))
+                        request.save(update_fields=['finished_at'])
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 
