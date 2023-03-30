@@ -123,6 +123,13 @@ class NotebookDockerThread(StoppableThread):
                 request_transaction.rolled_back = True
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
+                collected_error = attrs['logs']
+                error_max_length = request._meta.get_field('error').max_length
+                if len(collected_error) > error_max_length:
+                    request.error = collected_error[len(collected_error) - error_max_length:]
+                else:
+                    request.error = collected_error
+                request.save(update_fields=['error'])
             with transaction.atomic():
                 request_transaction.save(update_fields=("completed", "rolled_back"))
                 request_transaction.user.save(update_fields=("on_hold", "balance"))
