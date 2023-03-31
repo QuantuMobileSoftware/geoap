@@ -31,11 +31,12 @@ try:
                     args=[user_pk_to_url_str(user), temp_key],
                 )
                 path = self.remove_backend_prefix(path)
+                protocol = allauth_account_settings.DEFAULT_HTTP_PROTOCOL
 
                 if api_settings.PASSWORD_RESET_USE_SITES_DOMAIN:
-                    url = build_absolute_uri(None, path)
+                    url = build_absolute_uri(None, path, protocol=protocol)
                 else:
-                    url = build_absolute_uri(request, path)
+                    url = build_absolute_uri(request, path, protocol=protocol)
 
                 url = url.replace("%3F", "?")
 

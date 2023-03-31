@@ -1,4 +1,5 @@
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account import app_settings
 from allauth.utils import build_absolute_uri
 from django.urls import reverse
 
@@ -11,5 +12,5 @@ class AccountAdapter(DefaultAccountAdapter):
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = reverse("account_confirm_email", args=[emailconfirmation.key])
         url = self.remove_backend_prefix(url)
-        ret = build_absolute_uri(None, url)
+        ret = build_absolute_uri(None, url, protocol=app_settings.DEFAULT_HTTP_PROTOCOL)
         return ret
