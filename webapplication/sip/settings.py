@@ -79,10 +79,6 @@ REST_AUTH = {
     'PASSWORD_RESET_USE_SITES_DOMAIN': True
 }
 
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_LOGOUT_ON_GET = True
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -176,6 +172,9 @@ SESSION_COOKIE_AGE = 28800  # 8 hours, in seconds
 # Account
 AUTH_USER_MODEL = 'user.User'
 ACCOUNT_ADAPTER = 'user.adapters.AccountAdapter'
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGOUT_ON_GET = True
 
 LOGGING = {
     'version': 1,
