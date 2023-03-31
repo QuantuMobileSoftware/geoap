@@ -18,6 +18,7 @@ import { Button } from 'components/_shared/Button';
 
 import { selectUser, useUserActions, useAreasActions } from 'state';
 import { getStyledComponentClassName, getUserName } from 'utils';
+import { TAB_HASH } from 'pages/Account/constants';
 
 const validationSchema = Yup.object().shape({
   planet_api_key: Yup.string().max(64).label('API key')
@@ -45,7 +46,8 @@ export const Userbar = ({ ...props }) => {
   };
 
   const handleToggleSettingsModal = () => setIsSettingModalOpen(!isSettingsModalOpen);
-  const handleSettings = () => history.push(ROUTES.ACCOUNT);
+  const handleSettings = () =>
+    history.push({ pathname: ROUTES.ACCOUNT, hash: TAB_HASH.profile });
 
   return (
     <>

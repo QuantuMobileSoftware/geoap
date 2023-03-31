@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useAsync } from 'hooks';
 import { API } from 'api';
-import { useAreasActions } from 'state';
+import { useAreasActions, selectAreasList } from 'state';
 import { Spinner } from 'components/_shared/Spinner';
 import { ViewReportBtn } from './ViewReportBtn';
 import { MonthPicker } from 'components/_shared/Calendar';
@@ -16,7 +17,8 @@ import {
 
 export const Transactions = () => {
   const { isLoading, handleAsync } = useAsync();
-  const { getLayers } = useAreasActions();
+  const { getLayers, getAreas } = useAreasActions();
+  const areas = useSelector(selectAreasList);
   const [transactions, setTransactions] = useState();
   const [isFiltered, setIsFiltered] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,6 +36,11 @@ export const Transactions = () => {
   useEffect(() => {
     getLayers();
   }, [getLayers]);
+
+  useEffect(() => {
+    if (areas.length) return;
+    getAreas();
+  }, [getAreas, areas.length]);
 
   const rowsData = useMemo(() => {
     return isFiltered
@@ -85,7 +92,7 @@ export const Transactions = () => {
             const date = t.created_at.split('T')[0].replaceAll('-', '.');
             const amount = isNegativeAmount
               ? `- $${Math.abs(t.amount)}`
-              : `${t.amount == 0 ? '' : '+'} $${t.amount}`;
+              : `${t.amount === 0 ? '' : '+'} $${t.amount}`;
 
             return (
               <tr key={t.id}>
@@ -94,7 +101,9 @@ export const Transactions = () => {
                 <td>{t.completed ? 'done' : 'in progress'}</td>
                 <TableComment>
                   {t.comment}
-                  <ViewReportBtn request={t.request}>View report</ViewReportBtn>
+                  <ViewReportBtn request={t.request} areas={areas}>
+                    View report
+                  </ViewReportBtn>
                 </TableComment>
               </tr>
             );

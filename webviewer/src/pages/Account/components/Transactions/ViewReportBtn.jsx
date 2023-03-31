@@ -1,14 +1,12 @@
 import React from 'react';
 import { Button } from 'components/_shared/Button';
-import { useSelector } from 'react-redux';
-import { selectAreasList, useAreasActions } from 'state';
+import { useAreasActions } from 'state';
 import { useHistory } from 'react-router-dom';
 import { ROUTES, SIDEBAR_MODE } from '_constants';
 
-export const ViewReportBtn = ({ request }) => {
+export const ViewReportBtn = ({ request, areas }) => {
   const history = useHistory();
   const { setCurrentArea, setSelectedResult, setSidebarMode } = useAreasActions();
-  const areas = useSelector(selectAreasList);
 
   const handleClick = () => {
     const currentArea = areas.find(({ requests }) =>

@@ -17,11 +17,14 @@ export const Sidebar = props => {
         <BreadCrumbsItem current>Personal account</BreadCrumbsItem>
       </BreadCrumbs>
       <div>
-        {TABS.map(({ name, icon }) => (
+        {TABS.map(({ name, icon, hash }) => (
           <TabItem
             key={name}
             isActive={name === activeTab}
-            onClick={() => setActiveTab(name)}
+            onClick={() => {
+              setActiveTab(name);
+              history.push({ hash });
+            }}
           >
             <Icon>{icon}</Icon> {name}
           </TabItem>
