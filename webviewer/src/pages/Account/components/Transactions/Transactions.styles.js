@@ -31,13 +31,6 @@ export const TableAmount = styled.td`
  `}
 `;
 
-export const LayerName = styled.span`
-  ${({ theme }) => `
-   font-weight: ${theme.fontWeights[1]};
-   color: ${theme.colors.nature.n5};
- `}
-`;
-
 export const Filter = styled.div`
   display: flex;
   padding: ${em(20)} 0;

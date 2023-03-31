@@ -1,24 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'hooks';
-import { useSelector } from 'react-redux';
 import { API } from 'api';
-import { useAreasActions, selectLayers } from 'state';
+import { useAreasActions } from 'state';
 import { Spinner } from 'components/_shared/Spinner';
+import { ViewReportBtn } from './ViewReportBtn';
+import { MonthPicker } from 'components/_shared/Calendar';
+import { getTransactionDate } from 'utils';
 import {
   TableHeader,
   TableComment,
   TableAmount,
-  LayerName,
   Filter,
   ClearFilterBtn
 } from './Transactions.styles';
-import { MonthPicker } from 'components/_shared/Calendar';
-import { getTransactionDate } from 'utils';
 
 export const Transactions = () => {
   const { isLoading, handleAsync } = useAsync();
   const { getLayers } = useAreasActions();
-  const layers = useSelector(selectLayers);
   const [transactions, setTransactions] = useState();
   const [isFiltered, setIsFiltered] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -79,23 +77,24 @@ export const Transactions = () => {
           <tr>
             <TableHeader>Date</TableHeader>
             <TableHeader>Amount</TableHeader>
-            <TableHeader>Request</TableHeader>
+            <TableHeader>Status</TableHeader>
+            <TableHeader>Comment</TableHeader>
           </tr>
           {rowsData?.map(t => {
             const isNegativeAmount = t.amount < 0;
             const date = t.created_at.split('T')[0].replaceAll('-', '.');
-            const layer = layers.find(l => l.id === t.request)?.name;
             const amount = isNegativeAmount
               ? `- $${Math.abs(t.amount)}`
-              : `+ $${t.amount}`;
+              : `${t.amount == 0 ? '' : '+'} $${t.amount}`;
 
             return (
               <tr key={t.id}>
                 <td>{date}</td>
                 <TableAmount negative={isNegativeAmount}>{amount}</TableAmount>
+                <td>{t.completed ? 'done' : 'in progress'}</td>
                 <TableComment>
-                  {t.request && <LayerName>{layer}. </LayerName>}
                   {t.comment}
+                  <ViewReportBtn request={t.request}>View report</ViewReportBtn>
                 </TableComment>
               </tr>
             );
