@@ -25,11 +25,21 @@ const changePassword = data => {
   return axiosInstance.post(usersEndpoints.password.change, data);
 };
 
+const forgotPassword = email => {
+  return axiosInstance.post(usersEndpoints.password.forgot, email);
+};
+
+const confirmPassword = data => {
+  return axiosInstance.post(usersEndpoints.password.confirm(data.uid, data.token), data);
+};
+
 export const usersRequests = {
   getCurrentUser,
   setApiKey,
   registerUser,
   confirmRegistration,
   resendUserEmail,
-  changePassword
+  changePassword,
+  forgotPassword,
+  confirmPassword
 };

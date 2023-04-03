@@ -1,11 +1,11 @@
 import React from 'react';
 import * as Yup from 'yup';
 
-import { StyledLink, StyledMessage } from './AuthForm.styles';
 import { Button } from 'components/_shared/Button';
 import { FormField, FormFieldset, Form } from 'components/_shared/Form';
-
+import { Link } from 'components/_shared/Link';
 import { ROUTES, FIELD_VALIDATION } from '_constants';
+import { StyledMessage, ForgotPassLinkWrap } from './AuthForm.styles';
 
 const validationSchema = Yup.object().shape({
   username: Yup.string().trim().required(FIELD_VALIDATION.REQUIRED),
@@ -17,7 +17,7 @@ export const AuthForm = ({ initialValues = {}, ...props }) => {
   const formMessage = (
     <>
       <StyledMessage>Don’t have an account? </StyledMessage>
-      <StyledLink to={ROUTES.SIGN_UP}>Sign up</StyledLink>
+      <Link to={ROUTES.SIGN_UP}>Sign up</Link>
     </>
   );
 
@@ -47,6 +47,9 @@ export const AuthForm = ({ initialValues = {}, ...props }) => {
           name='password'
           placeholder='Enter password'
         />
+        <ForgotPassLinkWrap>
+          <Link to={ROUTES.FORGOT_PASSWORD}>Forgot password?</Link>
+        </ForgotPassLinkWrap>
       </FormFieldset>
     </Form>
   );

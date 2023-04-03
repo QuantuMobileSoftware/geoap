@@ -9,7 +9,7 @@ import { selectIsAuthorized } from 'state';
 export const Route = ({ component: Component, isPrivate = false, ...props }) => {
   const { location, path } = props;
   const isAuthorized = useSelector(selectIsAuthorized);
-  const guestRouts = [ROUTES.AUTH, ROUTES.SIGN_UP, ROUTES.SIGN_UP_CONFIRM];
+  const guestRouts = [ROUTES.AUTH, ROUTES.SIGN_UP, ROUTES.FORGOT_PASSWORD];
 
   const renderRoute = props => {
     if ((!isPrivate || isAuthorized) && Component) {
