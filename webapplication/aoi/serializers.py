@@ -31,7 +31,8 @@ class RequestSerializer(serializers.ModelSerializer):
                                                   label="Component id")
 
     def create(self, validated_data):
-        validated_data.update({'polygon': validated_data["aoi"].polygon})
+        if validated_data.get("aoi"):
+            validated_data.update({'polygon': validated_data["aoi"].polygon})
         if validated_data.pop('pre_submit'):
             return Request(**validated_data)
         return Request.objects.create(**validated_data)
@@ -58,4 +59,3 @@ class RequestSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
                   'additional_parameter', 'pre_submit')
-        read_only_fields = ('polygon',)
