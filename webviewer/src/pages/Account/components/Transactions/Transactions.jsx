@@ -28,7 +28,7 @@ export const Transactions = () => {
       const resp = await API.transactions.getTransactions();
       if (resp.statusText === 'OK')
         setTransactions(
-          resp.data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          resp.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         );
     });
   }, [handleAsync]);
@@ -61,7 +61,7 @@ export const Transactions = () => {
 
   if (!transactions?.length) return <h3>You have no transactions</h3>;
 
-  const firstTransaction = new Date(transactions[0].created_at);
+  const firstTransaction = new Date(transactions[transactions.length - 1].created_at);
 
   return (
     <div>
@@ -90,6 +90,7 @@ export const Transactions = () => {
           {rowsData?.map(t => {
             const isNegativeAmount = t.amount < 0;
             const date = t.created_at.split('T')[0].replaceAll('-', '.');
+            const completeText = t.completed ? 'done' : 'in progress';
             const amount = isNegativeAmount
               ? `- $${Math.abs(t.amount)}`
               : `${t.amount === 0 ? '' : '+'} $${t.amount}`;
@@ -98,12 +99,14 @@ export const Transactions = () => {
               <tr key={t.id}>
                 <td>{date}</td>
                 <TableAmount negative={isNegativeAmount}>{amount}</TableAmount>
-                <td>{t.completed ? 'done' : 'in progress'}</td>
+                <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
                   {t.comment}
-                  <ViewReportBtn request={t.request} areas={areas}>
-                    View report
-                  </ViewReportBtn>
+                  {t.request && (
+                    <ViewReportBtn request={t.request} areas={areas}>
+                      View report
+                    </ViewReportBtn>
+                  )}
                 </TableComment>
               </tr>
             );
