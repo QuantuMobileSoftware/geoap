@@ -4,10 +4,13 @@ import { ContactUs } from 'components/ContactUs';
 import { Sidebar } from './components';
 import { Wrapper } from './Account.styles';
 import { PageContent } from './components';
-import { TAB_NAMES } from './constants';
+import { TAB_NAMES, TABS } from './constants';
+import { useLocation } from 'react-router-dom';
 
 export const Account = ({ ...props }) => {
-  const [activeTab, setActiveTab] = useState(TAB_NAMES.profile);
+  const { hash } = useLocation();
+  const currentTab = TABS.find(tab => tab.hash === hash);
+  const [activeTab, setActiveTab] = useState(currentTab?.name ?? TAB_NAMES.profile);
 
   return (
     <Page {...props}>
