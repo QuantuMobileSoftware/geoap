@@ -85,4 +85,6 @@ def run_publisher_k8s(ctx):
 @task
 def test(ctx):
     wait_port_is_open(os.getenv('POSTGRES_HOST', 'db'), 5432)
-    ctx.run('python -m manage test')
+    ctx.run('coverage run -m manage test --noinput')
+    ctx.run('coverage report > coverage.txt')
+    ctx.run('coverage xml -o coverage.xml')
