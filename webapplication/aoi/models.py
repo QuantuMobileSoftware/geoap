@@ -28,13 +28,17 @@ class AoI(models.Model):
         ordering = ['name']
         unique_together = ('user', 'name')
 
-    @property
-    def area_in_sq_km(self) -> Decimal:
+    @staticmethod
+    def polygon_in_sq_km(polygon):
         # EPSG:4326 has degree units
         # EPSG:8857 has metre units
         # we need to convert EPSG:4326 to EPSG:8857
-        self.polygon.transform(8857)
-        return Decimal(self.polygon.area) / 1_000_000
+        polygon_copy = polygon.transform(8857, clone=True)
+        return Decimal(polygon_copy.area) / 1_000_000
+
+    @property
+    def area_in_sq_km(self) -> Decimal:
+        return self.polygon_in_sq_km(self.polygon)
 
 
 class Component(models.Model):

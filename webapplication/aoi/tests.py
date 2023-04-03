@@ -438,6 +438,7 @@ class RequestTestCase(UserBase):
             'user': 1001,
             'aoi': 1001,
             'notebook': 1001,
+            'polygon': ''
         }
 
         self.data_patch = {
@@ -449,6 +450,15 @@ class RequestTestCase(UserBase):
             'user': 1001,
             'aoi': 1001,
             'notebook': 1003,
+        }
+
+        # Data to test request creation without AoI
+        self.data_polygon_create = {
+            'user': 1001,
+            'notebook': 1001,
+            'polygon': 'SRID=4326;POLYGON ((36.01678367017178 50.14982647696019, 36.55073998712133 50.13673931232907, '
+                       '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
+                       '50.14982647696019))'
         }
 
     def test_create_request_as_not_auth_user(self):
@@ -472,6 +482,43 @@ class RequestTestCase(UserBase):
         self.client.force_authenticate(user=self.staff_user)
         response = self.create_request(self.data_no_period)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_request_without_aoi(self):
+        target_response = {
+            'user': 1001,
+            'aoi': None,
+            'notebook': 1001,
+            'notebook_name': 'JupyterNotebook_test',
+            'date_from': None,
+            'date_to': None,
+            'started_at': None,
+            'finished_at': None,
+            'error': None,
+            'calculated': False,
+            'success': False,
+            'polygon': 'SRID=4326;POLYGON ((36.01678367017178 50.14982647696019, 36.55073998712133 50.13673931232907, '
+                       '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
+                       '50.14982647696019))',
+            'additional_parameter': None
+        }
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.create_request(self.data_polygon_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response.data.pop('id')
+        self.assertEqual(response.data, target_response)
+
+    def test_create_request_with_invalid_polygon(self):
+        self.client.force_authenticate(user=self.staff_user)
+        data_create = {
+            **self.data_polygon_create,
+            'polygon': 'SRID=4326;POLYGON ((36.01678367017178 50.14982647696019, 36.55073998712133 50.13673931232907'
+        }
+        target_error_message = {
+            "non_field_errors": ["Sorry, we couldn't process your request because the provided location is invalid"]
+        }
+        response = self.create_request(data_create)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, target_error_message)
 
     def create_request(self, data):
         url = reverse('aoi:request_list_or_create')
@@ -539,9 +586,6 @@ class RequestTestCase(UserBase):
         url = reverse('aoi:request_list_or_create')
         return self.client.get(url)
 
-    def test_create_request_without_required_period(self):
-        pass
-
     def test_request_price_and_user_balance_calculation(self):
         self.client.force_login(self.staff_user)
         target_request_price = Decimal('3685.01')
@@ -582,6 +626,7 @@ class RequestTestCase(UserBase):
             'user': 1005,
             'aoi': 1001,
             'notebook': 1001,
+            'polygon': ''
         }
         response = self.create_request(data_create)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -602,9 +647,9 @@ class RequestTestCase(UserBase):
             'error': None,
             'calculated': False,
             'success': False,
-            'polygon': 'SRID=4326;POLYGON ((2845602.088258859 6000928.138035979, 2888096.417874162 5999611.150529142, '
-                       '2904738.569550101 5927643.915068185, 2863436.145120111 5926315.09384418, '
-                       '2845602.088258859 6000928.138035979))',
+            'polygon': 'SRID=4326;POLYGON ((36.01678367017178 50.14982647696019, 36.55073998712133 50.13673931232907, '
+                       '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
+                       '50.14982647696019))',
             'additional_parameter': None,
             'price': Decimal('3685.01')
         }

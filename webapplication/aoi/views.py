@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry, GEOSException
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
@@ -153,10 +154,10 @@ class RequestListCreateAPIView(ListCreateAPIView):
     """
     Get list of all Requests available for User, or creates new Request for calculation.
     Accepts: GET, POST methods.
-    Accepted field (POST): 'user', 'aoi', 'notebook' 'date_from', 'date_to', 'additional_parameter'[optional].
+    Accepted field (POST): 'user', 'aoi'[optional], 'polygon', 'notebook' 'date_from', 'date_to',
+                    'additional_parameter'[optional].
     Display fields (GET): 'id', 'user', 'aoi', 'notebook', 'notebook_name', 'date_from', 'date_to', 'started_at',
                     'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameter'.
-    Read-only fields: 'polygon'.
     Returns: RequestModel fields.
     """
     permission_classes = (ModelPermissions, )
@@ -167,6 +168,15 @@ class RequestListCreateAPIView(ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(user=self.request.user)
+
+    def get_area_in_sq_km(self, validated_data):
+        aoi = validated_data.get("aoi")
+        if aoi:
+            area = aoi.area_in_sq_km
+        else:
+            polygon = GEOSGeometry(validated_data.get("polygon"))
+            area = AoI.polygon_in_sq_km(polygon)
+        return area
 
     def create_transaction(self, user, amount, request, aoi):
         Transaction.objects.create(
@@ -189,9 +199,16 @@ class RequestListCreateAPIView(ListCreateAPIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         serializer.is_valid(raise_exception=True)
+        try:
+            area = self.get_area_in_sq_km(serializer.validated_data)
+        except GEOSException:
+            validation_error = ValidationError(_("Sorry, we couldn't process your request because the provided "
+                                                 "location is invalid"))
+            return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
+
         request_price = component.calculate_request_price(
             user=request.user,
-            area=serializer.validated_data["aoi"].area_in_sq_km
+            area=area
         )
         if serializer.validated_data.get("pre_submit"):
             self.perform_create(serializer)
