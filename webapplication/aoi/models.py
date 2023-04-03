@@ -68,8 +68,6 @@ class Component(models.Model):
                                                        verbose_name='Sentinel 1 AWS credentials are required')
     scihub_creds_required = models.BooleanField(default=False,
                                                 verbose_name='Copernicus Open Access Hub credentials are required')
-    separate_cache_folder = models.BooleanField(default=False,
-                                                verbose_name='Separate cache folder for each request required')
     date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
 
     def __str__(self):
