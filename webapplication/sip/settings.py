@@ -223,7 +223,7 @@ CODE_PATH = '/code'
 SENTINEL2_GOOGLE_API_KEY = '.secret/google-api-key.json'
 SENTINEL1_AWS_CREDS =  '.secret/sentinel1_aws_creds.json'
 SCIHUB_CREDS = '.secret/scihub_creds.json'
-USER_KEY_AND_API_ENDPOINT = '.secret/user_key_and_api_endpoint.json'
+GEOAP_CREDS= '.secret/geoap_creds.json'
 
 AREA_IS_OVER_LIMITED_CODE = 603
 

@@ -56,9 +56,9 @@ class ComponentExecutionHelper():
             env_update.update({
                 'SCIHUB_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.SCIHUB_CREDS)
             })
-        if request.component.user_key_and_api_endpoint_required:
+        if request.component.geoap_creds_required:
                 env_update.update({
-                'USER_KEY_AND_API_ENDPOINT':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.USER_KEY_AND_API_ENDPOINT)
+                'GEOAP_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS)
             })
         if request.component.additional_parameter:
             env_update.update(
