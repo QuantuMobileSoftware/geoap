@@ -20,6 +20,7 @@ class ComponentExecutionHelper():
 
         env_variables = {
             'REQUEST_ID':str(request.pk),
+            'COMPONENT_NAME':request.component_name,
             'AOI':request.aoi.polygon.wkt,
         }
         env_update = {
@@ -59,7 +60,8 @@ class ComponentExecutionHelper():
         if request.component.additional_parameter:
             env_update.update(
                 {
-                    request.component.additional_parameter:request.additional_parameter
+                    request.component.additional_parameter:request.additional_parameter,
+                    'ADDITIONAL_PARAMETER_NAME': request.component.additional_parameter
                 }
             )
         env_variables.update(env_update)
