@@ -89,15 +89,3 @@ def test(ctx):
     ctx.run('coverage report > coverage.txt')
     ctx.run('coverage xml -o coverage.xml')
 
-@task
-def run_lviv(ctx):
-    init_db(ctx, recreate_db=False)
-    collect_static_element(ctx)
-
-    thread_cron = threading.Thread(target=devcron, args=(ctx,))
-    thread_cron.start()
-
-    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
-    thread_nb_executor.start()
-
-    ctx.run('uwsgi --ini uwsgi.ini')

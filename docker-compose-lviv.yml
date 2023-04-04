@@ -16,8 +16,8 @@ services:
   webapplication:
     build:
       context: ./webapplication
-      dockerfile: Dockerfile
-    command: /bin/bash -c "exec invoke run-lviv"
+      dockerfile: prod.Dockerfile
+    command: /bin/bash -c "exec invoke run-prod"
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-lviv
       - POSTGRES_DB=sip_db
