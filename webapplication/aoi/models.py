@@ -73,6 +73,10 @@ class Component(models.Model):
     scihub_creds_required = models.BooleanField(default=False,
                                                 verbose_name='Copernicus Open Access Hub credentials are required')
     date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
+    user_key_required = models.BooleanField(default=False,
+                                                           verbose_name='User key is required')
+    api_endpoint_required = models.BooleanField(default=False,
+                                                           verbose_name='API endpoint is required')
 
     def __str__(self):
         return self.name
