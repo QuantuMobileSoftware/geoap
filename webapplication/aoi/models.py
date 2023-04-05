@@ -73,6 +73,8 @@ class Component(models.Model):
     scihub_creds_required = models.BooleanField(default=False,
                                                 verbose_name='Copernicus Open Access Hub credentials are required')
     date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
+    geoap_creds_required = models.BooleanField(default=False,
+                                                           verbose_name='Geoap creds is required')
 
     def __str__(self):
         return self.name
