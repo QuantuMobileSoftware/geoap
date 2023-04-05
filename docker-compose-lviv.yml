@@ -36,7 +36,7 @@ services:
   webserver:
     build:
       context: ./
-      dockerfile: ./webserver/prod.Dockerfile
+      dockerfile: ./webserver/lviv.Dockerfile
       args:
         REACT_APP_HOTJAR_ID:
         REACT_APP_HOTJAR_SV:
