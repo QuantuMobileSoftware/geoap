@@ -19,14 +19,12 @@ export const PageAuth = ({ ...props }) => {
   };
 
   useEffect(() => {
-    if (isAuthorized || isAutoLogged) {
-      return;
-    }
+    if (isAuthorized || isAutoLogged) return;
     if (REACT_APP_AUTOLOGIN && REACT_APP_AUTOPASSWORD) {
       login({
         username: REACT_APP_AUTOLOGIN,
         password: REACT_APP_AUTOPASSWORD
-      });
+      }).then(() => getCurrentUser());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
