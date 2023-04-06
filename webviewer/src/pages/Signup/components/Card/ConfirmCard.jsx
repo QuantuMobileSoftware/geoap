@@ -7,10 +7,10 @@ import { useUserActions } from 'state';
 
 export const ConfirmCard = ({ error }) => {
   const history = useHistory();
-  const { setAutoLogged } = useUserActions();
+  const { stopAutoLogin } = useUserActions();
 
-  const handleContinueClick = async () => {
-    setAutoLogged(true);
+  const handleGoToLogin = async () => {
+    stopAutoLogin(true);
     history.push(ROUTES.AUTH);
   };
 
@@ -32,7 +32,7 @@ export const ConfirmCard = ({ error }) => {
         Your account has been
         <br /> successfully created
       </CardText>
-      <Button variant='primary' onClick={handleContinueClick} fullWidth>
+      <Button variant='primary' onClick={handleGoToLogin} fullWidth>
         Continue
       </Button>
     </CardWrap>
