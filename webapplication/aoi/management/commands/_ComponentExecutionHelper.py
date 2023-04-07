@@ -21,7 +21,7 @@ class ComponentExecutionHelper():
         env_variables = {
             'REQUEST_ID':str(request.pk),
             'COMPONENT_NAME':request.component_name,
-            'AOI':request.aoi.polygon.wkt,
+            'AOI':request.polygon.wkt,
         }
         env_update = {
             'OUTPUT_FOLDER':os.path.join(
