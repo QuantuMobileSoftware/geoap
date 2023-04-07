@@ -2,26 +2,18 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import { Button } from 'components/_shared/Button';
-import { Calendar } from 'components/_shared/Calendar';
 import { AdditionalField } from './AdditionalField';
-import { isEmpty } from 'lodash-es';
-
+import { PeriodSelect } from './PeriodSelect';
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
 import { useAreasActions, selectLayers, selectUser } from 'state';
+import { convertDate, hasSelectedNotebook } from './utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import {
   ButtonWrapper,
   StyledSelect,
   SelectsWrapper,
-  Wrapper,
-  WarningText
+  Wrapper
 } from './CreateRequest.styles';
-
-const plotBoundariesId = 4;
-const startYear = 2015;
-const layerYears = Array.from({ length: new Date().getFullYear() - startYear + 1 }).map(
-  (el, i) => ({ value: startYear + i, name: startYear + i })
-);
 
 export const CreateRequest = ({ areas, currentArea }) => {
   const { setSidebarMode, saveAreaRequest, setRequestTab, setCurrentArea } =
@@ -29,9 +21,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const currentUser = useSelector(selectUser);
   const layers = useSelector(selectLayers);
 
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
   const [notebook, setNotebook] = useState({});
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
@@ -42,13 +33,15 @@ export const CreateRequest = ({ areas, currentArea }) => {
     () => areas.map(({ name, id }) => ({ name, value: id })),
     [areas]
   );
+
   const selectOptionsLayers = useMemo(
     () =>
-      filteredLayers.map(({ name, id, additional_parameter, period_required }) => ({
-        name,
-        value: id,
-        additional_parameter,
-        period_required
+      filteredLayers.map(layer => ({
+        name: layer.name,
+        value: layer.id,
+        additional_parameter: layer.additional_parameter,
+        period_required: layer.period_required,
+        date_type: layer.date_type
       })),
     [filteredLayers]
   );
@@ -59,8 +52,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
       : {};
     const dateRange = notebook.period_required
       ? {
-          date_from: startDate.toISOString().split('T')[0],
-          date_to: endDate.toISOString().split('T')[0]
+          date_from: convertDate(startDate),
+          date_to: convertDate(endDate)
         }
       : {};
 
@@ -68,6 +61,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
       aoi: areaId,
       notebook: notebook.value,
       user: currentUser.pk,
+      polygon: '', // required filed in BE but can be empty if send aoi id
       ...dateRange,
       ...additionalParameter
     };
@@ -87,24 +81,11 @@ export const CreateRequest = ({ areas, currentArea }) => {
   }, [notebook, startDate, endDate]);
 
   const handleAreChange = item => setAreaId(item.value);
-  const setDates = (year, notebook) => {
-    if (notebook === plotBoundariesId) {
-      setStartDate(new Date(year, 5, 1));
-      setEndDate(new Date(year, 6, 30));
-    } else {
-      setStartDate(new Date(year, 0));
-      setEndDate(null);
-    }
-  };
 
   const handleNoteBookChange = item => {
     setNotebook(item);
-    setDates(year, item.value);
-  };
-
-  const handleYearChange = item => {
-    setYear(item.value);
-    setDates(item.value, notebook.value);
+    setStartDate(null);
+    setEndDate(null);
   };
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
@@ -125,29 +106,14 @@ export const CreateRequest = ({ areas, currentArea }) => {
           label='Select layers'
         />
         {notebook.period_required && (
-          <StyledSelect
-            items={layerYears}
-            onSelect={handleYearChange}
-            label='Year'
-            value={year}
+          <PeriodSelect
+            notebook={notebook}
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
           />
         )}
-        {notebook.period_required &&
-          (notebook.value !== plotBoundariesId ? (
-            <Calendar
-              startDate={startDate}
-              endDate={endDate}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
-              title='Date range'
-              notebook={notebook.value}
-            />
-          ) : (
-            <WarningText>
-              To have better quality and result, Plot Boundaries detection will apply
-              dates from June to August
-            </WarningText>
-          ))}
         <AdditionalField
           label={notebook.additional_parameter}
           value={additionalParameterValue}
@@ -170,8 +136,3 @@ export const CreateRequest = ({ areas, currentArea }) => {
     </Wrapper>
   );
 };
-
-function hasSelectedNotebook(notebook) {
-  if (!notebook || isEmpty(notebook)) return false;
-  return notebook.additional_parameter?.trim() !== '';
-}

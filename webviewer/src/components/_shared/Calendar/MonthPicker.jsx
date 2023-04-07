@@ -27,7 +27,7 @@ const renderDayContents = day => {
   );
 };
 
-export const MonthPicker = ({ selectedDate, onChange, onApply, ...props }) => {
+export const MonthPicker = ({ selectedDate, onApply, ...props }) => {
   const [isOpen, setIsOpen] = useState(false);
   const calendarRef = useRef(null);
 
@@ -52,7 +52,6 @@ export const MonthPicker = ({ selectedDate, onChange, onApply, ...props }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
-        onChange={onChange}
         selected={selectedDate}
         shouldCloseOnSelect={false}
         customInput={<CalendarInput open={isOpen} />}
