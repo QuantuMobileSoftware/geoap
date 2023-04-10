@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { useAreasActions } from 'state';
+import { useAreasActions, useInterfaceActions } from 'state';
 import { ROUTES, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 
@@ -10,6 +10,7 @@ import { MenuItem, StyledMenu } from './Menu.styles';
 export const Menu = () => {
   const history = useHistory();
   const { setSidebarMode } = useAreasActions();
+  const { setOpenContactUs } = useInterfaceActions();
 
   const handleOpenFields = () => {
     history.push(ROUTES.ROOT, { isOpenSidebar: true });
@@ -24,7 +25,7 @@ export const Menu = () => {
   };
 
   const handleOpenContactUs = () => {
-    areasEvents.toggleContactUs(true);
+    setOpenContactUs(true);
   };
 
   return (
