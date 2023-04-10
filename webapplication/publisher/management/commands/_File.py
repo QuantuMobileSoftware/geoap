@@ -252,7 +252,7 @@ class Geojson(File):
                        "--no-tile-size-limit",
                        "--exclude-all",
                        "--minimum-zoom=10",
-                       "--maximum-zoom=17",
+                       f"--maximum-zoom={settings.ZOOM_LEVEL_MAX}",
                        "--no-tile-compression",
                        "--include=style",
                        "--include=data",
@@ -313,7 +313,7 @@ class Geotif(File):
                    "--xyz",
                    "--webviewer=none",
                    "--processes=6",
-                   "--zoom=8-17",
+                   f"--zoom=8-{settings.ZOOM_LEVEL_MAX}",
                    self.path,
                    save_path,
                    ]
