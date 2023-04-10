@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from 'components/_shared/Modal';
 import { Button } from 'components/_shared/Button';
 import { useLocation, matchPath } from 'react-router';
-
+import { useInterfaceActions } from 'state';
 import { areasEvents } from '_events';
 import {
   ROUTES,
@@ -23,6 +23,7 @@ const catchErrRoutes = [
 ];
 
 export const ErrorModal = () => {
+  const { setOpenContactUs } = useInterfaceActions();
   const [error, setError] = useState(null);
   const [errorText, setErrorText] = useState('');
   const location = useLocation();
@@ -62,7 +63,7 @@ export const ErrorModal = () => {
 
   const handleOpenContactUs = () => {
     setError(null);
-    areasEvents.toggleContactUs(true);
+    setOpenContactUs(true);
   };
 
   return (

@@ -46,6 +46,7 @@ export const useMapRequests = (selectedArea, map) => {
       setSidebarMode(SIDEBAR_MODE.REQUESTS);
       addNewArea(polygon);
       deleteSelectedResult();
+      areasEvents.toggleSidebar(true);
       areasEvents.toggleModal(true, {
         type: MODAL_TYPE.SAVE_FIELD,
         prevArea: selectedArea.id

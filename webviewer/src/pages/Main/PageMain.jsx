@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useAreasActions } from 'state';
 import { AreasSidebar } from 'components/Areas';
 import { Map } from 'components/Map';
-import { ContactUs } from 'components/ContactUs';
 import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 export const PageMain = ({ ...props }) => {
@@ -18,7 +17,6 @@ export const PageMain = ({ ...props }) => {
       <PageMainContainer>
         <Map />
         <AreasSidebar isOpen={isOpen} />
-        <ContactUs />
       </PageMainContainer>
     </StyledPageMain>
   );
