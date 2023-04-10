@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, rem } from 'styles';
-import { rgba } from 'polished';
+import { SelectToggleGeneral, em, rem } from 'styles';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { Typography } from '../Typography';
@@ -35,13 +34,6 @@ export const ApplyButton = styled(Button)`
   clear: both;
 `;
 
-export const WarningText = styled.p`
-  color: ${({ theme }) => theme.colors.danger};
-  font-size: ${rem(12)};
-  text-align: center;
-  clear: both;
-`;
-
 export const StyledIcon = styled(Icon)`
   position: absolute;
   top: 50%;
@@ -52,16 +44,6 @@ export const StyledIcon = styled(Icon)`
 
 export const StyledCalendarContainer = styled.div`
   ${({ theme }) => {
-    const dateAfter = `
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
-      width: 50%;
-      background: ${rgba(theme.colors.primary.p1, 0.3)};
-    `;
-
     const activeCalendarDay = `
       position: relative;
       background: ${theme.colors.primary.p2};
@@ -71,13 +53,8 @@ export const StyledCalendarContainer = styled.div`
 
     return css`
       position: relative;
-      width: ${em(520)};
       background: ${theme.colors.nature.n0};
       padding-bottom: 10px;
-      & .react-datepicker__month-container {
-        width: 50%;
-        margin-bottom: ${em(20)};
-      }
       & .react-datepicker__day--today {
         font-weight: normal;
         &:hover {
@@ -85,16 +62,11 @@ export const StyledCalendarContainer = styled.div`
         }
       }
       & .react-datepicker__day--keyboard-selected {
-        background: ${theme.colors.nature.n0};
-        color: ${theme.colors.nature.n5};
+        background: ${theme.colors.primary.p1};
+        color: ${theme.colors.nature.n0};
         &.react-datepicker__day--disabled {
           color: ${disabledColor};
         }
-      }
-      & .react-datepicker__day--in-range {
-        color: ${theme.colors.nature.n5};
-        background: ${rgba(theme.colors.primary.p1, 0.3)};
-        border-radius: 0;
       }
       & .react-datepicker__day {
         margin-right: 0;
@@ -102,53 +74,12 @@ export const StyledCalendarContainer = styled.div`
         width: calc(100% / 7);
         line-height: ${em(17)};
       }
-      &
-        .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--selecting-range-start) {
-        background: ${rgba(theme.colors.primary.p1, 0.3)};
-        color: ${theme.colors.nature.n0};
-        border-radius: 0;
-        &:hover {
-          position: relative;
-          background: inherit;
-          &:after {
-            ${dateAfter}
-            left: 0;
-            right: auto;
-          }
-          ${CalendarDay} {
-            ${activeCalendarDay}
-          }
-        }
-      }
-      & .react-datepicker__day--selected.react-datepicker__day--range-start,
-      & .react-datepicker__day--selected.react-datepicker__day--range-end,
       & .react-datepicker__day--selected {
         color: ${theme.colors.nature.n0};
         font-weight: normal;
         background: inherit;
         ${CalendarDay} {
           ${activeCalendarDay}
-        }
-      }
-      & .react-datepicker__day--range-start,
-      & .react-datepicker__day--selecting-range-start,
-      & .react-datepicker__day--range-end {
-        position: relative;
-        background: inherit;
-        font-weight: normal;
-        pointer-events: none;
-        color: ${theme.colors.nature.n0};
-        ${CalendarDay} {
-          ${activeCalendarDay}
-        }
-        &:after {
-          ${dateAfter}
-        }
-      }
-      & .react-datepicker__day--range-end:not(.react-datepicker__day--range-start) {
-        &:after {
-          left: 0;
-          right: auto;
         }
       }
 
@@ -233,4 +164,21 @@ export const DatePickerWrapper = styled.div`
   & .react-datepicker__input-container {
     min-width: 230px;
   }
+`;
+
+// Day Picker
+export const DayPickerWrapper = styled.div`
+  ${({ theme }) => css`
+    // input
+    & .react-datepicker__input-container input {
+      ${SelectToggleGeneral}
+      width: 100%;
+      color: ${theme.colors.nature.n3};
+      outline: none;
+    }
+
+    & .react-datepicker-popper {
+      padding: 0;
+    }
+  `}
 `;

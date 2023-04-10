@@ -1,0 +1,63 @@
+version: "3.5"
+services:
+
+  db:
+    image: postgis/postgis:13-3.0
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=eiJ2koo6
+    networks:
+      - sip
+    restart: on-failure
+
+  webapplication:
+    build:
+      context: ./webapplication
+      dockerfile: prod.Dockerfile
+    volumes:
+      - ./webapplication:/code
+      - /mnt/storage/geoap_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DJANGO_SETTINGS_MODULE=sip.settings-lviv
+      - POSTGRES_DB=sip_db
+      - POSTGRES_USER=sip
+      - POSTGRES_PASSWORD=eiJ2koo6
+    command: /bin/bash -c "exec invoke run-prod"
+    depends_on:
+      - db
+    networks:
+      - sip
+    restart: on-failure
+
+  webserver:
+    build:
+      context: ./
+      dockerfile: ./webserver/lviv.Dockerfile
+      args:
+        REACT_APP_HOTJAR_ID:
+        REACT_APP_HOTJAR_SV:
+        REACT_APP_EMAILJS_SERVICE_ID:
+        REACT_APP_EMAILJS_TEMPLATE_ID:
+        REACT_APP_EMAILJS_USER_ID:
+        REACT_APP_AUTOLOGIN:
+        REACT_APP_AUTOPASSWORD:
+    volumes:
+      - /mnt/storage/geoap_data:/data
+    expose:
+      - 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - webapplication
+    networks:
+      - sip
+    env_file:
+      - .env
+    restart: on-failure
+
+networks:
+  sip:

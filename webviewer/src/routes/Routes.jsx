@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Switch } from 'react-router-dom';
 import { hotjar } from 'react-hotjar';
 import { useUserActions } from 'state';
@@ -7,14 +7,16 @@ import { ROUTES } from '_constants';
 import { Route } from './Route';
 import { PageAuth, PageMain, SingUp, Account, ChangePassword } from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
+import { Spinner } from 'components/_shared/Spinner';
 
 const { REACT_APP_HOTJAR_ID, REACT_APP_HOTJAR_SV } = process.env;
 
 export const Routes = () => {
   const { getCurrentUser } = useUserActions();
+  const [load, setLoad] = useState(true);
 
   useEffect(() => {
-    getCurrentUser();
+    getCurrentUser().finally(() => setLoad(false));
   }, [getCurrentUser]);
 
   useEffect(() => {
@@ -22,6 +24,8 @@ export const Routes = () => {
       hotjar.initialize(REACT_APP_HOTJAR_ID, REACT_APP_HOTJAR_SV);
     }
   }, []);
+
+  if (load) return <Spinner />;
 
   return (
     <Switch>

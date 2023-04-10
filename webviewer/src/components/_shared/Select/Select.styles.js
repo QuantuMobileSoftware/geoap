@@ -1,14 +1,14 @@
 import styled, { css } from 'styled-components';
 
-import { rem, em, scrollbar } from 'styles';
-
+import { rem, scrollbar } from 'styles';
+import { SelectToggleGeneral } from 'styles';
 import { Dropdown } from '../Dropdown';
 import { Typography } from '../Typography';
 import { Icon } from 'components/_shared/Icon';
 
 export const SelectDropdown = styled(Dropdown)`
   min-width: 100%;
-  max-height: ${rem(260)};
+  max-height: ${rem(200)};
   top: ${rem(43)};
   left: 0;
   padding: 0;
@@ -17,18 +17,9 @@ export const SelectDropdown = styled(Dropdown)`
 `;
 
 export const SelectToggle = styled.div`
-  ${({ theme }) =>
-    css`
-      position: relative;
-      border: ${theme.borders.default({ fontSize: theme.fontSizes[2] })};
-      padding: ${rem(9)} ${rem(10)} ${rem(7)};
-      border-radius: ${em(theme.radius[0], theme.fontSizes[2])};
-      cursor: pointer;
-      &:hover {
-        border-color: ${theme.colors.primary.p2};
-        color: ${theme.colors.primary.p2};
-      }
-    `}
+  ${SelectToggleGeneral}
+  position: relative;
+  cursor: pointer;
 `;
 
 export const SelectToggleText = styled.div`

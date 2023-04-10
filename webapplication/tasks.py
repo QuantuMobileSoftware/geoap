@@ -88,3 +88,4 @@ def test(ctx):
     ctx.run('coverage run -m manage test --noinput')
     ctx.run('coverage report > coverage.txt')
     ctx.run('coverage xml -o coverage.xml')
+

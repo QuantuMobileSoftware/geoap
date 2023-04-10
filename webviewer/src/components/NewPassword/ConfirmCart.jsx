@@ -7,14 +7,17 @@ import { ROUTES } from '_constants';
 
 export const ConfirmCard = ({ isLogged }) => {
   const { resetAreasState } = useAreasActions();
-  const { logout } = useUserActions();
+  const { logout, stopAutoLogin } = useUserActions();
   const history = useHistory();
 
   const handleClick = () => {
     if (isLogged) {
       logout(true);
       resetAreasState();
-    } else history.push(ROUTES.AUTH);
+    } else {
+      stopAutoLogin(true);
+      history.push(ROUTES.AUTH);
+    }
   };
 
   return (

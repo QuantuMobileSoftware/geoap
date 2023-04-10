@@ -3,9 +3,16 @@ import { Button } from 'components/_shared/Button';
 import { Header, CardText, CardWrap } from './Card.styles';
 import { useHistory } from 'react-router-dom';
 import { DEFAULT_ERROR, ROUTES } from '_constants';
+import { useUserActions } from 'state';
 
 export const ConfirmCard = ({ error }) => {
   const history = useHistory();
+  const { stopAutoLogin } = useUserActions();
+
+  const handleGoToLogin = async () => {
+    stopAutoLogin(true);
+    history.push(ROUTES.AUTH);
+  };
 
   if (error)
     return (
@@ -25,7 +32,7 @@ export const ConfirmCard = ({ error }) => {
         Your account has been
         <br /> successfully created
       </CardText>
-      <Button variant='primary' onClick={() => history.push(ROUTES.AUTH)} fullWidth>
+      <Button variant='primary' onClick={handleGoToLogin} fullWidth>
         Continue
       </Button>
     </CardWrap>

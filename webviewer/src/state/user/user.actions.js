@@ -44,6 +44,13 @@ export const useUserActions = () => {
     [dispatch, handleAsync]
   );
 
+  const stopAutoLogin = useCallback(
+    isAutoLogged => {
+      dispatch(userActions.logout(isAutoLogged));
+    },
+    [dispatch]
+  );
+
   const getCurrentUser = useCallback(async () => {
     try {
       await handleAsync(async () => {
@@ -95,6 +102,7 @@ export const useUserActions = () => {
     error,
     login,
     logout,
+    stopAutoLogin,
     toggleLogoutModal,
     getCurrentUser,
     setApiKey,
