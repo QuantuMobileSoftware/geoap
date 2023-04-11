@@ -62,9 +62,12 @@ class ResultListAPIView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user.has_perm('publisher.view_unreleased_result'):
-            return queryset
-        return queryset.filter(released=True)
+        request_id = self.request.query_params.get('request_id')
+        if request_id is not None:
+            queryset = queryset.filter(request_id=request_id)
+        if not self.request.user.has_perm('publisher.view_unreleased_result'):
+            queryset = queryset.filter(released=True)
+        return queryset
 
 
 class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
