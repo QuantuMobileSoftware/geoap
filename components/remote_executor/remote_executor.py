@@ -10,17 +10,25 @@ if __name__ == "__main__":
     output_dir = os.getenv("OUTPUT_FOLDER")
     component_name = os.getenv("COMPONENT_NAME")
     geoap_creds = os.getenv("GEOAP_CREDS")
+    additional_parameter_name = os.getenv("ADDITIONAL_PARAMETER_NAME", "")
+    if additional_parameter_name:
+        additional_parameter = os.getenv(additional_parameter_name) 
 
     geoapp_client = GeoappClient(geoap_creds)
     component_id = geoapp_client.get_component_id(component_name)
     user_id = geoapp_client.get_user_id()
-    request = geoapp_client.create_request(data={
+
+    data = {
         "user": user_id,
         "notebook": component_id,
         "polygon": area,
-        "date_from": start_date,
-        "date_to": end_date
-    })
+        "date_from": start_date if start_date else '',
+        "date_to": end_date if end_date else ''
+    }
+    if additional_parameter_name:
+        data[additional_parameter_name] = additional_parameter 
+
+    request = geoapp_client.create_request(data=data)
     is_success, error_message = geoapp_client.wait_for_request_success_finish(
         request.get('id'))
     if not is_success:
