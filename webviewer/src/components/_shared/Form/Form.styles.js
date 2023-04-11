@@ -60,4 +60,6 @@ export const FormActions = styled.div`
 
 export const FormBody = styled.div``;
 
-export const StyledForm = styled.form.withConfig({ shouldForwardProp })``;
+export const StyledForm = styled.form.withConfig({ shouldForwardProp })`
+  min-width: ${({ theme }) => theme.formSize.width};
+`;

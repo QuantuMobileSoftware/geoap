@@ -47,7 +47,7 @@ const radius = [4, 6, 10, 20];
 const zIndexes = [100, 500, 1000, 1500];
 
 const formSize = {
-  width: '320px'
+  width: '280px'
 };
 
 const borders = theme => ({
