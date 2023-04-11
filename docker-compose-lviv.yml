@@ -4,7 +4,7 @@ services:
   db:
     image: postgis/postgis:13-3.0
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ../geoap_data_files/db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
