@@ -224,6 +224,7 @@ SENTINEL2_GOOGLE_API_KEY = '.secret/google-api-key.json'
 SENTINEL1_AWS_CREDS =  '.secret/sentinel1_aws_creds.json'
 SCIHUB_CREDS = '.secret/scihub_creds.json'
 GEOAP_CREDS = '.secret/geoap_creds.json'
+ZOOM_LEVEL_MIN = 10
 ZOOM_LEVEL_MAX = 17
 
 AREA_IS_OVER_LIMITED_CODE = 603
