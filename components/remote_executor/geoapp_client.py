@@ -75,36 +75,29 @@ class GeoappClient:
         while time.time() < start_time + RETRY_LIMIT_SECONDS:
             response = self.http.request('GET', url, fields=self.params)
             curr_request = json.loads(response.data.decode())
-            if not curr_request.get("calculated"):
-                if curr_request.get("error") and curr_request.get("finished_at"):
+            if curr_request.get("finished_at"):
+                if curr_request.get("calculated"):
+                    return True, ""
+                else:
                     return False, curr_request.get("error")
+            else:
                 self.log.info(
                     f"Not calculated: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
-            else:
-                self.log.info("Notebook calculated")
-                return True, ""
-            time.sleep(60)
+                time.sleep(60)
         return False, f"Not finished during {RETRY_LIMIT_SECONDS} seconds"
+
 
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
-        start_time = time.time()
+        params = self.params
+        params["request_id"] = created_request_id
         paths = []
-        self.log.info(
-            f"pull_results started: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
-        while time.time() < start_time + RETRY_LIMIT_SECONDS:
-            response = self.http.request('GET', url, fields=self.params)
-            curr_request = json.loads(response.data.decode())
-            for result in curr_request:
-                if result.get("request") == created_request_id:
-                    paths.append(result.get("filepath"))
-            if paths:
-                return paths
-            else:
-                self.log.info(
-                    f"No results yet!: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
-                # TODO: need to be checked, we don't know how many responce files we have
-                time.sleep(300)
+        response = self.http.request('GET', url, fields=self.params)
+        curr_request = json.loads(response.data.decode())
+        for result in curr_request:
+            paths.append(result.get("filepath"))
+        return paths
+            
 
     def download_stream_and_save_results(self, result_path, dir_path):
         url = self.api_endpoint + f"results/{result_path}"
