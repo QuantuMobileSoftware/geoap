@@ -7,4 +7,4 @@ COPY ./ .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "data_tunnel.py"]
+CMD ["python", "remote_executor.py"]
