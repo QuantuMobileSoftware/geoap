@@ -21,22 +21,27 @@ class GeoappClient:
                                backoff_factor=60, status_forcelist=[502, 503, 504])
         timeout = urllib3.Timeout(
             total=RETRY_LIMIT_SECONDS, connect=10.0, read=10.0)
-        http = urllib3.PoolManager(timeout=timeout, retries=retry_strategy)
 
         with open(geoap_creds, 'r') as f:
             geoap_creds_data = json.load(f)
 
+        headers = {
+            'Authorization': f"Token {geoap_creds_data['API_KEY']}",
+            'Accept-Encoding': 'gzip'
+        }
+        http = urllib3.PoolManager(
+            timeout=timeout, retries=retry_strategy, headers=headers)
+
         self.api_endpoint = geoap_creds_data["API_ENDPOINT"]
         self.http = http
         self.log = log
-        self.params = {"apikey": geoap_creds_data["API_KEY"]}
 
     def get_component_id(self, name):
         url = self.api_endpoint + "api/notebook"
-        response = self.http.request('GET', url, fields=self.params)
+        response = self.http.request('GET', url)
         if response.status != 200:
             raise Exception(
-                f"Get Component ID error  - status code {response.status_code}")
+                f"Get Component ID error  - status code {response.status}")
 
         components_list = json.loads(response.data.decode())
         for component in components_list:
@@ -48,21 +53,20 @@ class GeoappClient:
 
     def get_user_id(self):
         url = self.api_endpoint + "api/users/current"
-        response = self.http.request('GET', url, fields=self.params)
+        response = self.http.request('GET', url)
         if response.status != 200:
             raise Exception(
-                f"Get User ID error  - status code {response.status_code}")
+                f"Get User ID error  - status code {response.status}")
         user_id = json.loads(response.data.decode()).get("pk")
         self.log.info(f"user_id: {user_id}")
         return user_id
 
     def create_request(self, data):
         url = self.api_endpoint + "api/request"
-        response = self.http.request(
-            'POST', url + f"?apikey={self.params['apikey']}", fields=data)
+        response = self.http.request('POST', url, fields=data)
         if response.status not in (200, 201):  # TODO Left only 201
             raise Exception(
-                f"Create Request error - status code {response.status_code}")
+                f"Create Request error - status code {response.status}")
         request = json.loads(response.data.decode())
         self.log.info(f"request: {request}")
         return request
@@ -73,7 +77,7 @@ class GeoappClient:
         self.log.info(
             f"wait_for_request_success started: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
         while time.time() < start_time + RETRY_LIMIT_SECONDS:
-            response = self.http.request('GET', url, fields=self.params)
+            response = self.http.request('GET', url)
             curr_request = json.loads(response.data.decode())
             if curr_request.get("finished_at"):
                 if curr_request.get("calculated"):
@@ -86,18 +90,15 @@ class GeoappClient:
                 time.sleep(60)
         return False, f"Not finished during {RETRY_LIMIT_SECONDS} seconds"
 
-
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
-        params = self.params
-        params["request_id"] = created_request_id
         paths = []
-        response = self.http.request('GET', url, fields=self.params)
+        response = self.http.request(
+            'GET', url, fields={"request_id": created_request_id})
         curr_request = json.loads(response.data.decode())
         for result in curr_request:
             paths.append(result.get("filepath"))
         return paths
-            
 
     def download_stream_and_save_results(self, result_path, dir_path):
         url = self.api_endpoint + f"results/{result_path}"
@@ -109,9 +110,7 @@ class GeoappClient:
             os.makedirs(dir_path)
             self.log.info(f"Created dir:{data_path}")
 
-        headers = {'Accept-Encoding': 'gzip'}
-        req = self.http.request(
-            'GET', url, fields=self.params, headers=headers, preload_content=False)
+        req = self.http.request('GET', url, preload_content=False)
 
         self.log.info("Started writing result")
         with open(data_path, 'wb') as f:
