@@ -3,7 +3,7 @@ from geoapp_client import GeoappClient
 
 
 if __name__ == "__main__":
-    area = "SRID=4236;"+os.getenv("AOI")
+    area = "SRID=4326;"+os.getenv("AOI")
     request_id = int(os.getenv("REQUEST_ID"))
     start_date = os.getenv("START_DATE")
     end_date = os.getenv("END_DATE")
