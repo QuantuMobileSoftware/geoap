@@ -18,7 +18,7 @@ class GeoappClient:
         log.addHandler(logging.StreamHandler())
 
         retry_strategy = Retry(total=RETRY_INTERVAL,
-                               backoff_factor=60, status_forcelist=[502, 503, 504])
+                               backoff_factor=60, status_forcelist=[500, 502, 503, 504])
         timeout = urllib3.Timeout(
             total=RETRY_LIMIT_SECONDS, connect=10.0, read=10.0)
 
