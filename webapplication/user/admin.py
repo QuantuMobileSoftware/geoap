@@ -34,7 +34,7 @@ class UserForm(forms.ModelForm):
 
 class UserAdmin(BaseUserAdmin):
     form = UserForm
-    list_display = ('username', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha')
+    list_display = ('username', 'email', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha')
     fieldsets = (
         ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key')}),
         ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
