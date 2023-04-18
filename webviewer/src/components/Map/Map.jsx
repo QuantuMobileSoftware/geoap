@@ -50,8 +50,7 @@ const getShapePositions = polygon => {
 
 const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
 
-const { REACT_APP_TILE_LAYER } = process.env;
-console.log('REACT_APP_TILE_LAYER', REACT_APP_TILE_LAYER);
+const { REACT_APP_IS_MAPBOX_AVAILABLE } = process.env;
 
 export const Map = () => {
   const [map, setMap] = useState(null);
@@ -199,7 +198,7 @@ export const Map = () => {
         zoomControl={false}
         whenCreated={setMap}
       >
-        {REACT_APP_TILE_LAYER === 'production' ? (
+        {REACT_APP_IS_MAPBOX_AVAILABLE ? (
           <TileLayer
             attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
             url='/tiles/mapbox/{z}/{x}/{y}.png'
