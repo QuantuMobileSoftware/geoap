@@ -45,6 +45,8 @@ services:
         REACT_APP_EMAILJS_USER_ID:
         REACT_APP_AUTOLOGIN:
         REACT_APP_AUTOPASSWORD:
+        MAPBOX_ACCESS_TOKEN:
+        REACT_APP_IS_MAPBOX_AVAILABLE:
     volumes:
       - /mnt/storage/geoap_data:/data
     expose:

@@ -50,6 +50,8 @@ const getShapePositions = polygon => {
 
 const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
 
+const { REACT_APP_IS_MAPBOX_AVAILABLE } = process.env;
+
 export const Map = () => {
   const [map, setMap] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -196,18 +198,18 @@ export const Map = () => {
         zoomControl={false}
         whenCreated={setMap}
       >
-        {process.env.NODE_ENV === 'development' ? (
-          <TileLayer
-            attribution="&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors'>OpenStreetMap</a>"
-            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-          />
-        ) : (
+        {REACT_APP_IS_MAPBOX_AVAILABLE ? (
           <TileLayer
             attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
             url='/tiles/mapbox/{z}/{x}/{y}.png'
             tileSize={512}
             maxZoom={17}
             zoomOffset={-1}
+          />
+        ) : (
+          <TileLayer
+            attribution="&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors'>OpenStreetMap</a>"
+            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
           />
         )}
         <FeatureGroup>
