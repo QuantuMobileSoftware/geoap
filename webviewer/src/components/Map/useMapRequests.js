@@ -8,22 +8,23 @@ import {
   getLayerOpacity,
   useAreasActions,
   selectUser,
-  selectAreasList
+  selectAreasList,
+  useChartActions
 } from 'state';
 import { API } from 'api';
 import {
   SHAPE_OPTIONS,
   FILL_OPACITY,
   MODAL_TYPE,
-  NO_DATA,
   AOI_TYPE,
   SIDEBAR_MODE
 } from '_constants';
 import { areasEvents } from '_events';
-import { getPolygonPositions, getNewAreaNumber, getShapePositionsString } from 'utils';
+import { getPolygonPositions, getNewAreaNumber } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
   const { addNewArea, deleteSelectedResult, setSidebarMode } = useAreasActions();
+  const { setChartData } = useChartActions();
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const currentUser = useSelector(selectUser);
@@ -101,9 +102,12 @@ export const useMapRequests = (selectedArea, map) => {
                 selectedLeafletLayer.setStyle(layerStyle ?? SHAPE_OPTIONS);
               }
               selectedLeafletLayer = layer;
-              if (feature.properties.label !== NO_DATA) {
-                addNewField(createField(getShapePositionsString(layer)));
-              }
+              // if (feature.properties.label !== NO_DATA) { // TODO: add later with other design
+              //   addNewField(createField(getShapePositionsString(layer)));
+              // }
+              const chartData = feature.properties.data ?? null;
+              const chartLayout = feature.properties.layout ?? null;
+              setChartData({ data: chartData, layout: chartLayout });
             });
             if (feature.properties.label) {
               layer.bindPopup(feature.properties.label);
@@ -179,7 +183,8 @@ export const useMapRequests = (selectedArea, map) => {
     renderedLayers,
     prevRenderedLayers,
     createField,
-    addNewField
+    addNewField,
+    setChartData
   ]);
 
   useEffect(() => {
