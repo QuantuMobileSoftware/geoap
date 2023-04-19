@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.contrib.postgres.fields import ArrayField
+from django.conf import settings
 
 
 class AoI(models.Model):
@@ -55,8 +57,11 @@ class Component(models.Model):
 
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
     basic_price = models.DecimalField(_("Basic Price (per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
-    image = models.CharField(max_length=400, verbose_name='Image')
+    image = models.CharField(max_length=400, verbose_name='Docker Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
+    description = models.CharField(max_length=400, blank=True, null=True, verbose_name="Description")
+    domains = ArrayField(models.CharField(max_length=15), size=8, blank=True, verbose_name="Domains", null=True)
+    component_image = models.ImageField(upload_to=settings.MEDIA_PATH, blank=True, null=True, verbose_name="Component picture")
     notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True,
                                      verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
