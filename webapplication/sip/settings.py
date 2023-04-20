@@ -165,7 +165,7 @@ DATETIME_FORMAT = "Y-m-d H:i:s"
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_PATH = 'static'
+MEDIA_PATH = 'media'
 
 # Session
 SESSION_COOKIE_AGE = 28800  # 8 hours, in seconds
