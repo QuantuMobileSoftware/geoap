@@ -21,7 +21,7 @@ class ComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Component
         fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
-                  'additional_parameter', 'period_required', 'date_type', 'description', 'domains', 'component_image')
+                  'additional_parameter', 'period_required', 'date_type', 'description', 'domains', 'description_picture')
 
 
 class RequestSerializer(serializers.ModelSerializer):

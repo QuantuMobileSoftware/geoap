@@ -61,7 +61,7 @@ class Component(models.Model):
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
     description = models.CharField(max_length=400, blank=True, null=True, verbose_name="Description")
     domains = ArrayField(models.CharField(max_length=15), size=8, blank=True, verbose_name="Domains", null=True)
-    component_image = models.ImageField(upload_to=settings.MEDIA_PATH, blank=True, null=True, verbose_name="Component picture")
+    description_picture = models.ImageField(upload_to=settings.MEDIA_PATH, blank=True, null=True, verbose_name="Description picture")
     notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True,
                                      verbose_name='Path to a notebook')
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
