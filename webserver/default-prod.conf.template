@@ -50,6 +50,11 @@ server {
         include     /etc/nginx/uwsgi_params;
     }
 
+    location /media {
+        uwsgi_pass  webapplication;
+        include     /etc/nginx/uwsgi_params;
+    }
+
     location /file_download {
         internal;
         alias /data;
