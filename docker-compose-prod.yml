@@ -19,6 +19,7 @@ services:
       dockerfile: prod.Dockerfile
     volumes:
       - ../data:/data
+      - ../data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-prod
