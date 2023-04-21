@@ -55,6 +55,7 @@ export const useUserActions = () => {
     try {
       await handleAsync(async () => {
         const user = (await API.users.getCurrentUser()).data;
+        dispatch(userActions.login());
         dispatch(userActions.setEntity(user));
       });
     } catch (error) {

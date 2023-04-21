@@ -1,33 +1,43 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-
+import { useUserActions, selectIsAuthorized, selectIsAutoLogged } from 'state';
 import { FormPage } from 'components/_shared/Page';
 import { AuthForm } from 'components/Auth';
 import { Paper } from 'components/_shared/Paper';
-
-import { useUserActions, selectIsAuthorized, selectIsAutoLogged } from 'state';
+import { Spinner } from 'components/_shared/Spinner';
 
 const { REACT_APP_AUTOLOGIN, REACT_APP_AUTOPASSWORD } = process.env;
+
+const autoLoginData = {
+  username: REACT_APP_AUTOLOGIN,
+  password: REACT_APP_AUTOPASSWORD
+};
 
 export const PageAuth = ({ ...props }) => {
   const { isLoading, error, login, getCurrentUser } = useUserActions();
   const isAuthorized = useSelector(selectIsAuthorized);
   const isAutoLogged = useSelector(selectIsAutoLogged);
+  const [isShowSpinner, setIsShowSpinner] = useState(true);
+
   const handleSubmit = async values => {
     await login(values);
     await getCurrentUser();
   };
 
   useEffect(() => {
-    if (isAuthorized || isAutoLogged) return;
+    if (isAuthorized || isAutoLogged) {
+      setIsShowSpinner(false);
+      return;
+    }
     if (REACT_APP_AUTOLOGIN && REACT_APP_AUTOPASSWORD) {
-      login({
-        username: REACT_APP_AUTOLOGIN,
-        password: REACT_APP_AUTOPASSWORD
-      }).then(() => getCurrentUser());
+      login(autoLoginData)
+        .then(() => getCurrentUser())
+        .finally(() => setIsShowSpinner(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (isShowSpinner) return <Spinner />;
 
   return (
     <FormPage {...props} header={false}>

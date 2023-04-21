@@ -6,9 +6,10 @@ import { Map } from 'components/Map';
 import { Chart } from 'components/Chart';
 import { SIDEBAR_MODE } from '_constants';
 import { PageMainContainer, StyledPageMain } from './PageMain.styles';
+import { Spinner } from 'components/_shared/Spinner';
 
 export const PageMain = ({ ...props }) => {
-  const { getAreas } = useAreasActions();
+  const { getAreas, isLoading } = useAreasActions();
   const chart = useSelector(selectChartData);
   const sidebarMode = useSelector(selectSidebarMode);
 
@@ -18,6 +19,8 @@ export const PageMain = ({ ...props }) => {
   useEffect(() => {
     getAreas();
   }, [getAreas]);
+
+  if (isLoading) return <Spinner />;
 
   return (
     <StyledPageMain {...props}>
