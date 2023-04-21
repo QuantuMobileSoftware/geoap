@@ -24,7 +24,7 @@ services:
     volumes:
       - ./webapplication:/code
       - ./data:/data
-      - ./data/media:/code/media
+      - ./data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db

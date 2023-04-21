@@ -20,7 +20,7 @@ services:
     volumes:
       - ./webapplication:/code
       - /mnt/storage/geoap_data:/data
-      - /mnt/storage/geoap_data/media:/code/media
+      - /mnt/storage/geoap_data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-lviv
