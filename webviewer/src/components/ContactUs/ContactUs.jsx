@@ -4,13 +4,14 @@ import { useEmail } from 'hooks';
 import { useInterfaceActions } from 'state';
 import { Modal } from 'components/_shared/Modal';
 import { Form } from 'components/_shared/Form';
-import { EMAIL_TEXT } from '_constants';
+import { EMAIL_TEXT, EMAIL_VARIABLES } from '_constants';
 import { StyledFormField, StyledButton } from './ContactUs.styles';
 
+const { name, email, message } = EMAIL_VARIABLES;
 const validationSchema = Yup.object().shape({
-  name: Yup.string().trim().required().max(100),
-  email: Yup.string().email().required().max(100),
-  message: Yup.string().trim().required().max(500)
+  [name]: Yup.string().trim().required().max(100),
+  [email]: Yup.string().email().required().max(100),
+  [message]: Yup.string().trim().required().max(500)
 });
 
 const FORM_TITLE =
@@ -42,9 +43,9 @@ export const ContactUs = () => {
         ) : (
           <Form
             initialValues={{
-              name: '',
-              email: '',
-              message: ''
+              [name]: '',
+              [email]: '',
+              [message]: ''
             }}
             validationSchema={validationSchema}
             onSubmit={handleSendForm}

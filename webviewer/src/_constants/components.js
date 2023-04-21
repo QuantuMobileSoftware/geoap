@@ -48,4 +48,11 @@ export const EMAIL_TEXT = {
   success: 'Your message has been successfully sent'
 };
 
+export const EMAIL_VARIABLES = {
+  name: 'name',
+  email: 'email',
+  message: 'message',
+  id: 'id'
+};
+
 export const DATE_TYPES = { year: 1, range: 2, season: 3, day: 4 };
