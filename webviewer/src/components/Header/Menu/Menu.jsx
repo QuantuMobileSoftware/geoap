@@ -5,7 +5,7 @@ import { useAreasActions, useInterfaceActions } from 'state';
 import { ROUTES, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 
-import { MenuItem, StyledMenu } from './Menu.styles';
+import { MenuItem, StyledMenu, MenuLink } from './Menu.styles';
 
 export const Menu = () => {
   const history = useHistory();
@@ -24,14 +24,15 @@ export const Menu = () => {
     setSidebarMode(SIDEBAR_MODE.AREAS);
   };
 
-  const handleOpenContactUs = () => {
-    setOpenContactUs(true);
-  };
+  const handleOpenContactUs = () => setOpenContactUs(true);
 
   return (
     <StyledMenu>
       <MenuItem onClick={handleOpenFields}>Fields</MenuItem>
       <MenuItem onClick={handleOpenAreas}>Areas</MenuItem>
+      <MenuItem>
+        <MenuLink to={ROUTES.MODELS}>Geo models</MenuLink>
+      </MenuItem>
       <MenuItem onClick={handleOpenContactUs}>Contact us</MenuItem>
     </StyledMenu>
   );

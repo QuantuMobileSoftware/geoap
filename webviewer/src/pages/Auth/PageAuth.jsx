@@ -18,6 +18,8 @@ export const PageAuth = ({ ...props }) => {
   const isAuthorized = useSelector(selectIsAuthorized);
   const isAutoLogged = useSelector(selectIsAutoLogged);
   const [isShowSpinner, setIsShowSpinner] = useState(true);
+  const canAutoLogin =
+    !(isAuthorized || isAutoLogged) && REACT_APP_AUTOLOGIN && REACT_APP_AUTOPASSWORD;
 
   const handleSubmit = async values => {
     await login(values);
@@ -25,15 +27,12 @@ export const PageAuth = ({ ...props }) => {
   };
 
   useEffect(() => {
-    if (isAuthorized || isAutoLogged) {
-      setIsShowSpinner(false);
-      return;
-    }
-    if (REACT_APP_AUTOLOGIN && REACT_APP_AUTOPASSWORD) {
+    if (canAutoLogin) {
       login(autoLoginData)
         .then(() => getCurrentUser())
         .finally(() => setIsShowSpinner(false));
     }
+    setIsShowSpinner(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
