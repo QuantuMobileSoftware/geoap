@@ -5,15 +5,18 @@ import { ROUTES } from '_constants';
 import { TABS } from '../../constants';
 import { StyledSidebar, StyledBreadcrumbs, TabItem } from './Sidebar.styles';
 
+const breadcrumbsItems = [
+  { link: ROUTES.ROOT, text: 'Home' },
+  { text: 'Personal account' }
+];
+
 export const Sidebar = props => {
   const { activeTab, setActiveTab } = props;
   const history = useHistory();
 
   return (
     <StyledSidebar>
-      <StyledBreadcrumbs
-        items={[{ link: ROUTES.ROOT, text: 'Home' }, { text: 'Personal account' }]}
-      />
+      <StyledBreadcrumbs items={breadcrumbsItems} />
       <div>
         {TABS.map(({ name, icon, hash }) => (
           <TabItem

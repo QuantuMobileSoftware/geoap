@@ -5,17 +5,18 @@ import { Link } from '../Link';
 export const Breadcrumbs = ({ items, ...props }) => {
   return (
     <StyledBreadcrumbs {...props}>
-      {items.map(({ text, link }) => {
-        if (link)
-          return (
-            <BreadcrumbsItem key={text}>
+      {items.map(({ text, link }) => (
+        <BreadcrumbsItem key={text}>
+          {link ? (
+            <>
               <Link to={link}>{text}</Link>
               <Separator>/</Separator>
-            </BreadcrumbsItem>
-          );
-
-        return <BreadcrumbsItem key={text}>{text}</BreadcrumbsItem>;
-      })}
+            </>
+          ) : (
+            text
+          )}
+        </BreadcrumbsItem>
+      ))}
     </StyledBreadcrumbs>
   );
 };
