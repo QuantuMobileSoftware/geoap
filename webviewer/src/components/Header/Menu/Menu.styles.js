@@ -1,10 +1,9 @@
 import styled, { css } from 'styled-components';
-
 import { rem, em } from 'styles';
+import { Link } from 'react-router-dom';
 
-export const MenuItem = styled.li`
+const MenuListItem = css`
   ${({ theme }) => css`
-    margin-right: ${em(24)};
     font-size: ${rem(13)};
     color: ${theme.colors.nature.n5};
     cursor: pointer;
@@ -12,6 +11,16 @@ export const MenuItem = styled.li`
       color: ${theme.colors.primary.p1};
     }
   `}
+`;
+
+export const MenuItem = styled.li`
+  ${MenuListItem}
+  margin-right: ${em(24)};
+`;
+
+export const MenuLink = styled(Link)`
+  ${MenuListItem}
+  text-decoration: none;
 `;
 
 export const StyledMenu = styled.ul`

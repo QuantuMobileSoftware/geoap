@@ -2,20 +2,16 @@ import styled, { css } from 'styled-components';
 import { em } from 'styles';
 import { rgba } from 'polished';
 import { BasicSidebar } from 'components/_shared/Sidebar';
-import { StyledBreadCrumbs } from 'components/_shared/Sidebar/BreadCrumbs';
 import { StyledIcon } from 'components/_shared/Icon';
+import { Breadcrumbs } from 'components/_shared/Breadcrumbs';
 
-export const BreadCrumbs = styled(StyledBreadCrumbs)`
-  padding: ${em(20)};
-`;
-
-export const BreadCrumbsItem = styled.span`
-  cursor: ${({ current }) => !current && 'pointer'};
+export const StyledBreadcrumbs = styled(Breadcrumbs)`
+  padding: ${em(16)} 0;
+  padding-left: ${em(25)};
 `;
 
 export const StyledSidebar = styled(BasicSidebar)`
-  padding-left: 0;
-  padding-right: 0;
+  padding: 0;
 `;
 
 export const TabItem = styled.div`

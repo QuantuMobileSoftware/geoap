@@ -3,19 +3,20 @@ import React from 'react';
 import { useHistory } from 'react-router-dom';
 import { ROUTES } from '_constants';
 import { TABS } from '../../constants';
-import { StyledSidebar, BreadCrumbsItem, BreadCrumbs, TabItem } from './Sidebar.styles';
+import { StyledSidebar, StyledBreadcrumbs, TabItem } from './Sidebar.styles';
+
+const breadcrumbsItems = [
+  { link: ROUTES.ROOT, text: 'Home' },
+  { text: 'Personal account' }
+];
 
 export const Sidebar = props => {
   const { activeTab, setActiveTab } = props;
   const history = useHistory();
-  const handleClickHome = () => history.push(ROUTES.ROOT);
 
   return (
     <StyledSidebar>
-      <BreadCrumbs>
-        <BreadCrumbsItem onClick={handleClickHome}>Home</BreadCrumbsItem> /{' '}
-        <BreadCrumbsItem current>Personal account</BreadCrumbsItem>
-      </BreadCrumbs>
+      <StyledBreadcrumbs items={breadcrumbsItems} />
       <div>
         {TABS.map(({ name, icon, hash }) => (
           <TabItem
