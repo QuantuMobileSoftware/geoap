@@ -142,7 +142,10 @@ export const Map = () => {
         map.panTo(center).fitBounds(bounds);
         return () => shape.off('add', createShape);
       } else {
-        const shape = new L.Draw[shapeType](map, { shapeOptions: SHAPE_OPTIONS });
+        const shape = new L.Draw[shapeType](map, {
+          shapeOptions: SHAPE_OPTIONS,
+          metric: ['km']
+        });
         shape.enable();
         setDrawingShape(shape);
       }

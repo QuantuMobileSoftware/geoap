@@ -3,6 +3,7 @@ import L from 'leaflet';
 import { Polygon } from 'react-leaflet';
 import { useMapActions, useAreasActions } from 'state';
 import { SHAPE_OPTIONS, SELECTED_SHAPE_OPTIONS } from '_constants';
+import { getSquareKilometers } from 'utils';
 
 export const MapPolygon = ({
   coordinates,
@@ -52,7 +53,7 @@ export const MapPolygon = ({
   useEffect(() => {
     if (polyRef.current) {
       const area = L.GeometryUtil.geodesicArea(polyRef.current?.getLatLngs()[0]);
-      setEntitySize(id, Math.round(area));
+      setEntitySize(id, getSquareKilometers(area));
     }
   }, [polyRef, setEntitySize, id]);
 

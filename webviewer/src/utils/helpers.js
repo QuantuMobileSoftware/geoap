@@ -91,3 +91,9 @@ export const getTransactionDate = date => {
   const formatConfig = { month: 'long', year: 'numeric' };
   return new Intl.DateTimeFormat('en-US', formatConfig).format(new Date(date));
 };
+
+export const getSquareKilometers = meters => {
+  const quantityMetersInKm = 1000000;
+  const kilometers = meters / quantityMetersInKm;
+  return Math.round(kilometers);
+};

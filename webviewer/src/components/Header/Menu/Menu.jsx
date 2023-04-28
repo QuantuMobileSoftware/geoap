@@ -11,12 +11,12 @@ export const Menu = () => {
   const history = useHistory();
   const { setSidebarMode } = useAreasActions();
   const { setOpenContactUs } = useInterfaceActions();
-
-  const handleOpenFields = () => {
-    history.push(ROUTES.ROOT, { isOpenSidebar: true });
-    areasEvents.toggleSidebar(true);
-    setSidebarMode(SIDEBAR_MODE.FIELDS);
-  };
+  // TODO: add with subarea
+  // const handleOpenFields = () => {
+  //   history.push(ROUTES.ROOT, { isOpenSidebar: true });
+  //   areasEvents.toggleSidebar(true);
+  //   setSidebarMode(SIDEBAR_MODE.FIELDS);
+  // };
 
   const handleOpenAreas = () => {
     history.push(ROUTES.ROOT, { isOpenSidebar: true });
@@ -28,7 +28,7 @@ export const Menu = () => {
 
   return (
     <StyledMenu>
-      <MenuItem onClick={handleOpenFields}>Fields</MenuItem>
+      {/* <MenuItem onClick={handleOpenFields}>Fields</MenuItem> */}
       <MenuItem onClick={handleOpenAreas}>Areas</MenuItem>
       <MenuItem>
         <MenuLink to={ROUTES.MODELS}>Geo models</MenuLink>
