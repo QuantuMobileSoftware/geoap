@@ -96,7 +96,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
         {area.hasOwnProperty('size') && (
-          <AreasListItemSize>Size: {area.size} m2</AreasListItemSize>
+          <AreasListItemSize>Size: {area.size} km2</AreasListItemSize>
         )}
       </AreasListItemBody>
 
