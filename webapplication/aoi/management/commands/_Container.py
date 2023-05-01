@@ -70,7 +70,7 @@ class Container:
                 detach=True,
                 user="root")
         if self.component.run_on_gpu:
-            containers_params['runtime']="nvidia"
+            containers_params["runtime"] = "nvidia"
 
         client.containers.run(**containers_params)
 
