@@ -59,8 +59,7 @@ class Container:
         image = client.images.get(self.component.image)
         volumes = self.get_volumes(client)
 
-        client.containers.run(
-                command=command,
+        containers_params = dict(command=command,
                 image=image,
                 shm_size=self.shm_size,
                 volumes=volumes,
@@ -69,7 +68,11 @@ class Container:
                 name=self.container_name,
                 labels=self.labels,
                 detach=True,
-                user="root" )
+                user="root")
+        if self.component.run_on_gpu:
+            containers_params["runtime"] = "nvidia"
+
+        client.containers.run(**containers_params)
 
     def get_volumes(self, client: docker.DockerClient):
         base_container = client.containers.get(self.get_base_container_name())
