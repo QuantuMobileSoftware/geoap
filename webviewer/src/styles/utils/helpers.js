@@ -29,7 +29,7 @@ export const rem = (sizes, base) => convertSizes('rem', sizes, base);
 export const createBreakpoints = breakpoints => {
   const getMediaQuery = size => {
     return (style, widthKey = 'max') => css`
-      @media screen and (${widthKey}-width: ${size}) {
+      @media screen and (${widthKey}-width: ${size}px) {
         ${style};
       }
     `;

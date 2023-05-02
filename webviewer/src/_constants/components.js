@@ -56,3 +56,5 @@ export const EMAIL_VARIABLES = {
 };
 
 export const DATE_TYPES = { year: 1, range: 2, season: 3, day: 4 };
+
+export const STORAGE_WELCOME_KEY = 'hide_welcome';
