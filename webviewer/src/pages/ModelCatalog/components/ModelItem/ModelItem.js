@@ -16,7 +16,7 @@ export const ModelItem = ({ model }) => {
           <ModelTitle>{model.name}</ModelTitle>
         </ModelTitleWrap>
         <ModelText>{model.description}</ModelText>
-        <ModelPrice>Price {model.basic_price} $ per 1 sq. km.</ModelPrice>
+        <ModelPrice>Price {model.basic_price || 0} $ per 1 sq. km.</ModelPrice>
       </ModelDescription>
     </Model>
   );
