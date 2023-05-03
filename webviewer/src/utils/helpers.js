@@ -1,5 +1,5 @@
 import Wkt from 'wicket';
-import { isArray, isEmpty, isFunction, mergeWith } from 'lodash-es';
+import { isArray, isEmpty, isFunction, mergeWith, round } from 'lodash-es';
 
 export const withFunction = (value, args) => {
   return isFunction(value) ? value(args) : value;
@@ -95,5 +95,6 @@ export const getTransactionDate = date => {
 export const getSquareKilometers = meters => {
   const quantityMetersInKm = 1000000;
   const kilometers = meters / quantityMetersInKm;
-  return Math.round(kilometers);
+  const roundPrecision = kilometers < 1 ? 2 : 0;
+  return round(kilometers, roundPrecision);
 };

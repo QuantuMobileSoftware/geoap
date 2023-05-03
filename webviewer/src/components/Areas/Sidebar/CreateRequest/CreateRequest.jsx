@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-
+import { useSuccessfulLayers } from 'hooks';
 import { Button } from 'components/_shared/Button';
 import { AdditionalField } from './AdditionalField';
 import { PeriodSelect } from './PeriodSelect';
 import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
-import { useAreasActions, selectLayers, selectUser } from 'state';
+import { useAreasActions, selectUser } from 'state';
 import { convertDate, hasSelectedNotebook } from './utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import {
@@ -19,7 +19,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const { setSidebarMode, saveAreaRequest, setRequestTab, setCurrentArea } =
     useAreasActions();
   const currentUser = useSelector(selectUser);
-  const layers = useSelector(selectLayers);
+  const layers = useSuccessfulLayers();
 
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
@@ -28,7 +28,6 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [canSaveRequest, setCanSaveRequest] = useState(false);
   const [additionalParameterValue, setAdditionalParameterValue] = useState('');
 
-  const filteredLayers = useMemo(() => layers.filter(l => l.success), [layers]);
   const selectOptionsAreas = useMemo(
     () => areas.map(({ name, id }) => ({ name, value: id })),
     [areas]
@@ -36,14 +35,14 @@ export const CreateRequest = ({ areas, currentArea }) => {
 
   const selectOptionsLayers = useMemo(
     () =>
-      filteredLayers.map(layer => ({
+      layers.map(layer => ({
         name: layer.name,
         value: layer.id,
         additional_parameter: layer.additional_parameter,
         period_required: layer.period_required,
         date_type: layer.date_type
       })),
-    [filteredLayers]
+    [layers]
   );
 
   const handleSaveRequest = () => {

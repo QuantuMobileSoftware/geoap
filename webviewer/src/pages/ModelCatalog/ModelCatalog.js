@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useAreasActions, selectLayers } from 'state';
+import { useAreasActions } from 'state';
+import { useSuccessfulLayers } from 'hooks';
 import { Header } from 'components/Header';
 import { ModelItem } from './components/ModelItem';
 import { Breadcrumbs } from 'components/_shared/Breadcrumbs';
@@ -12,7 +12,7 @@ const breadcrumbsItems = [{ link: ROUTES.ROOT, text: 'Home' }, { text: 'Geo mode
 
 export const ModelCatalog = () => {
   const { getLayers } = useAreasActions();
-  const layers = useSelector(selectLayers);
+  const layers = useSuccessfulLayers();
   const [selectedOption, setSelectedOption] = useState(filterDefaultValue);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUser, selectAreasList } from 'state';
+import { selectUser, selectAreasList, selectLayers } from 'state';
 import { getNewAreaNumber } from 'utils';
 import { getShapePositionsString } from 'utils/helpers';
 import { AOI_TYPE } from '_constants';
@@ -18,4 +19,10 @@ export const useAreaData = (layer, type) => {
     type: type
   };
   return data;
+};
+
+export const useSuccessfulLayers = () => {
+  const allLayers = useSelector(selectLayers);
+  const layers = useMemo(() => allLayers.filter(l => l.success), [allLayers]);
+  return layers;
 };
