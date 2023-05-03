@@ -4,7 +4,8 @@ import {
   ModelDescription,
   ModelTitle,
   ModelText,
-  ModelTitleWrap
+  ModelTitleWrap,
+  ModelPrice
 } from './ModelItem.styles';
 
 export const ModelItem = ({ model }) => {
@@ -15,6 +16,7 @@ export const ModelItem = ({ model }) => {
           <ModelTitle>{model.name}</ModelTitle>
         </ModelTitleWrap>
         <ModelText>{model.description}</ModelText>
+        <ModelPrice>Price {model.basic_price} $ per 1 sq. km.</ModelPrice>
       </ModelDescription>
     </Model>
   );
