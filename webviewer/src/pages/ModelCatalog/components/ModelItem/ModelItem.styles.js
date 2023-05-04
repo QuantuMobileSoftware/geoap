@@ -51,4 +51,20 @@ export const ModelTitleWrap = styled.div`
 export const ModelText = styled.p`
   font-size: ${em(13)};
   color: ${({ theme }) => theme.colors.black};
+  max-height: 62%;
+  overflow: hidden;
+`;
+
+export const ModelPrice = styled.p`
+  ${({ theme }) => css`
+    color: ${theme.colors.black};
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: ${em(6)} ${em(14)};
+    text-align: center;
+    font-size: ${em(14)};
+    background: ${rgba(theme.colors.black, 0.08)};
+  `}
 `;

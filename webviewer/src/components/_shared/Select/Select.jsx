@@ -68,7 +68,7 @@ export const Select = forwardRef(
             onClose={handleClose}
           >
             {items?.map((item, i) => (
-              <Option key={i} onClick={() => handleItemClick(item)}>
+              <Option key={i} onClick={() => handleItemClick(item)} title={item.title}>
                 {item.name}
               </Option>
             ))}

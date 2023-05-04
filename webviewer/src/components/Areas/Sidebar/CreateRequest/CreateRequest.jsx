@@ -40,7 +40,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
         value: layer.id,
         additional_parameter: layer.additional_parameter,
         period_required: layer.period_required,
-        date_type: layer.date_type
+        date_type: layer.date_type,
+        title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`
       })),
     [layers]
   );
