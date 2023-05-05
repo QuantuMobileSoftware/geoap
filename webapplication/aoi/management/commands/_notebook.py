@@ -110,13 +110,11 @@ class NotebookDockerThread(StoppableThread):
             attrs = Container.container_attrs(container)
             request = Request.objects.get(pk=attrs['pk'])
             request_transaction = request.transactions.first()
-            request_transaction.completed = True
             request_transaction.user.on_hold -= abs(request_transaction.amount)
             if attrs['exit_code'] == 0:
                 logger.info(f"Notebook in container {container.name} executed successfully")
                 request.calculated = True
                 request.save(update_fields=['calculated'])
-                request_transaction.user.balance -= abs(request_transaction.amount)
             else:
                 request.finished_at=localtime()
                 request.save(update_fields=['finished_at'])
@@ -131,8 +129,8 @@ class NotebookDockerThread(StoppableThread):
                     request.error = collected_error
                 request.save(update_fields=['error'])
             with transaction.atomic():
-                request_transaction.save(update_fields=("completed", "rolled_back"))
-                request_transaction.user.save(update_fields=("on_hold", "balance"))
+                request_transaction.save(update_fields=("rolled_back",))
+                request_transaction.user.save(update_fields=("on_hold",))
             try:
                 container.remove()
             except:
@@ -185,6 +183,14 @@ class PublisherThread(StoppableThread):
         management.call_command("publish")
         success_requests = Request.objects.filter(calculated=True, success=False)
         logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
+        for sr in success_requests:
+            request_transaction = sr.transactions.first()
+            if request_transaction:
+                request_transaction.completed = True
+                request_transaction.user.balance -= abs(request_transaction.amount)
+                with transaction.atomic():
+                    request_transaction.save(update_fields=("completed",))
+                    request_transaction.user.save(update_fields=("balance",))
         success_requests.update(finished_at=localtime(), success=True)
 
 
