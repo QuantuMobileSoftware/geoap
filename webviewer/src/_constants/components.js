@@ -30,11 +30,6 @@ export const SHAPE_NAMES = {
 
 export const GET_DATA_INTERVAL = 10000;
 
-export const REQUEST_TABS = {
-  CREATED: 1,
-  IN_PROGRESS: 2
-};
-
 export const FIELD_VALIDATION = {
   PASSWORD: 'Password must be at least 8 characters',
   PASSWORD_MATCH: 'Passwords must match',

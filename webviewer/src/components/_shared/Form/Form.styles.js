@@ -1,14 +1,20 @@
 import { cloneElement } from 'react';
 import styled, { css } from 'styled-components';
 import cn from 'classnames';
-
 import { em, rem } from 'styles';
 import { shouldForwardProp } from 'utils';
-
-import { Preloader } from '../Preloader';
 import { Typography } from '../Typography';
 
-export const FormPreloader = styled(Preloader)``;
+export const FormPreloader = styled.div`
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+`;
 
 export const FormMessage = styled(Typography).attrs({ element: 'div' })`
   ${({ theme }) => {
@@ -62,4 +68,5 @@ export const FormBody = styled.div``;
 
 export const StyledForm = styled.form.withConfig({ shouldForwardProp })`
   min-width: ${({ theme }) => theme.formSize.width};
+  position: relative;
 `;

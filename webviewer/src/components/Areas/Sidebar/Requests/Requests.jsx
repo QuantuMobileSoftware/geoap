@@ -10,35 +10,31 @@ import {
   useAreasActions,
   selectCurrentRequests,
   selectCurrentResults,
-  getSelectedResults,
-  selectRequestTab
+  getSelectedResults
 } from 'state';
-import { SIDEBAR_MODE, AOI_TYPE, GET_DATA_INTERVAL, REQUEST_TABS } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, GET_DATA_INTERVAL } from '_constants';
 import {
   ButtonWrapper,
   StyledIcon,
   ButtonTopWrapper,
-  TabsWrapper,
-  TabItem,
   StyledSelect,
   DeleteButton,
-  ModalButtonsWrapper
+  ModalButtonsWrapper,
+  ReportTitle
 } from './Requests.styles';
 
-const { CREATED, IN_PROGRESS } = REQUEST_TABS;
+const getRequestName = obj => {
+  if (obj.notebook_name) return obj.notebook_name;
+  return obj.name ? obj.name : obj.layer_type;
+};
 
 export const Requests = React.memo(({ currentArea }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const selectedResults = useSelector(getSelectedResults);
-  const activeTab = useSelector(selectRequestTab);
-  const {
-    setSidebarMode,
-    deleteResult,
-    patchResults,
-    setRequestTab,
-    deleteSelectedResult
-  } = useAreasActions();
+
+  const { setSidebarMode, deleteResult, patchResults, deleteSelectedResult } =
+    useAreasActions();
 
   const [isUpSortList, setIsUpSortList] = useState(true);
   const [filterType, setFilterType] = useState('');
@@ -46,45 +42,38 @@ export const Requests = React.memo(({ currentArea }) => {
 
   const areaMode =
     currentArea.type === AOI_TYPE.AREA ? SIDEBAR_MODE.AREAS : SIDEBAR_MODE.FIELDS;
+
   const requestsInProgress = useMemo(
     () => requests.filter(request => !request.finished_at),
     [requests]
   );
+
   const filterItems = useMemo(() => {
-    let reportNames;
-    if (activeTab === CREATED) {
-      reportNames = results.map(({ name, filepath }) => (name ? name : filepath));
-    } else {
-      reportNames = requestsInProgress.map(({ notebook_name }) => notebook_name);
-    }
-    reportNames = [...new Set(reportNames)];
+    const resultNames = results.map(({ name, layer_type }) => (name ? name : layer_type));
+    const requestNames = requestsInProgress.map(r => r.notebook_name);
+    const setReportNames = [...new Set([...resultNames, ...requestNames])];
     return [
       { name: 'All report type', value: '' },
-      ...reportNames.map(name => ({ value: name, name }))
+      ...setReportNames.map(name => ({ value: name, name }))
     ];
-  }, [activeTab, requestsInProgress, results]);
+  }, [requestsInProgress, results]);
 
   useEffect(() => {
     patchResults(currentArea);
-    return () => setRequestTab(CREATED);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
     const intervalId = setInterval(() => {
       patchResults(currentArea);
     }, GET_DATA_INTERVAL);
     return () => clearInterval(intervalId);
-  }, [currentArea, patchResults]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredResults = useMemo(() => {
     if (filterType) {
-      return results.filter(({ name, filepath }) =>
-        name ? name === filterType : filepath === filterType
+      return results.filter(({ name, layer_type }) =>
+        name ? name === filterType : layer_type === filterType
       );
-    } else {
-      return results;
     }
+    return results;
   }, [results, filterType]);
 
   const filteredRequests = useMemo(() => {
@@ -98,26 +87,16 @@ export const Requests = React.memo(({ currentArea }) => {
   }, [requestsInProgress, filterType]);
 
   const sortingListItems = useMemo(() => {
-    const isCreatedTab = activeTab === CREATED;
-    const items = isCreatedTab ? filteredResults : filteredRequests;
-    const getValue = obj => {
-      if (isCreatedTab) {
-        return obj.name ? obj.name : obj.filepath;
-      } else {
-        return obj.notebook_name;
-      }
-    };
-    if (isUpSortList) {
-      return items.sort((prev, next) => getValue(prev).localeCompare(getValue(next)));
-    }
-    return items.sort((prev, next) => getValue(next).localeCompare(getValue(prev)));
-  }, [isUpSortList, filteredResults, filteredRequests, activeTab]);
+    const sortCb = upSort => (prev, next) =>
+      getRequestName(upSort ? prev : next).localeCompare(
+        getRequestName(upSort ? next : prev)
+      );
 
-  const handleTabItemClick = tab => () => {
-    setFilterType('');
-    deleteSelectedResult();
-    setRequestTab(tab);
-  };
+    const results = filteredResults.sort(sortCb(isUpSortList));
+    const requests = filteredRequests.sort(sortCb(isUpSortList));
+    return [...requests, ...results];
+  }, [isUpSortList, filteredResults, filteredRequests]);
+
   const handleSortChange = () => setIsUpSortList(!isUpSortList);
   const handleSelectChange = item => {
     deleteSelectedResult();
@@ -136,7 +115,7 @@ export const Requests = React.memo(({ currentArea }) => {
   const handleOpenModal = () => setIsModalOpen(true);
 
   const resultLength = selectedResults.length;
-  const isShowDelete = resultLength > 0 && activeTab === CREATED;
+  const isShowDelete = resultLength > 0;
   const modalHeader =
     resultLength > 1
       ? `Are you sure to delete ${resultLength} reports ?`
@@ -144,17 +123,7 @@ export const Requests = React.memo(({ currentArea }) => {
 
   return (
     <>
-      <TabsWrapper>
-        <TabItem isActive={activeTab === CREATED} onClick={handleTabItemClick(CREATED)}>
-          Created reports
-        </TabItem>
-        <TabItem
-          isActive={activeTab === IN_PROGRESS}
-          onClick={handleTabItemClick(IN_PROGRESS)}
-        >
-          In progress
-        </TabItem>
-      </TabsWrapper>
+      <ReportTitle>Reports</ReportTitle>
       <ButtonTopWrapper>
         <Button onClick={handleSortChange}>
           Sorting <StyledIcon up={isUpSortList ? 'true' : ''}>ArrowUp</StyledIcon>
@@ -166,9 +135,7 @@ export const Requests = React.memo(({ currentArea }) => {
         />
         {isShowDelete && <DeleteButton onClick={handleOpenModal} icon='Delete' />}
       </ButtonTopWrapper>
-
       <List items={sortingListItems} />
-
       <ButtonWrapper>
         <Button
           icon='ArrowInCircle'
@@ -183,7 +150,7 @@ export const Requests = React.memo(({ currentArea }) => {
           variant='primary'
           onClick={handleChangeMode(SIDEBAR_MODE.CREATE_REQUEST)}
         >
-          Create new
+          Create new Request
         </Button>
       </ButtonWrapper>
       {isModalOpen && (

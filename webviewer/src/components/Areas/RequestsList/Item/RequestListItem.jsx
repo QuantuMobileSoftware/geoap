@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-
 import { Checkbox } from 'components/_shared/Checkbox';
-
-import { SIDEBAR_MODE, REQUEST_TABS, NO_DATA } from '_constants';
-import { useAreasActions, getSelectedResults, selectRequestTab } from 'state';
+import { Preloader } from 'components/_shared/Preloader';
+import { SIDEBAR_MODE, NO_DATA } from '_constants';
+import { useAreasActions, getSelectedResults } from 'state';
 
 import {
   RequestListItemBody,
@@ -15,12 +14,9 @@ import {
 
 export const ListItem = ({ report = {}, ...props }) => {
   const selectedResults = useSelector(getSelectedResults);
-  const activeTab = useSelector(selectRequestTab);
   const areaRef = useRef(null);
   const { setSelectedResult, deleteSelectedResult, setSidebarMode } = useAreasActions();
   const [isChecked, setIsChecked] = useState(false);
-
-  const isShowCheckbox = activeTab === REQUEST_TABS.CREATED;
 
   useEffect(
     () => setIsChecked(selectedResults.some(item => item === report.id)),
@@ -28,22 +24,21 @@ export const ListItem = ({ report = {}, ...props }) => {
   );
 
   const handleRequestClick = () => {
+    if (report.notebook_name) return;
     if (isChecked) {
       deleteSelectedResult(report.id);
     } else {
       setSelectedResult(report.id);
-      if (report.labels) {
-        setSidebarMode(SIDEBAR_MODE.LEGEND);
-      }
+      if (report.labels) setSidebarMode(SIDEBAR_MODE.LEGEND);
     }
     setIsChecked(!isChecked);
   };
 
   const isActive = selectedResults.some(item => item === report.id);
   const isResult = report.hasOwnProperty('request');
-  const { name, filepath, notebook_name } = report;
+  const { name, layer_type, notebook_name } = report;
   const hasData = !name?.includes(NO_DATA);
-  const reportName = isResult ? (name ? name : filepath) : notebook_name;
+  const reportName = isResult ? (name ? name : layer_type) : notebook_name;
 
   const reportDate = useMemo(() => {
     const { date_from, date_to, start_date, end_date } = report;
@@ -61,12 +56,12 @@ export const ListItem = ({ report = {}, ...props }) => {
       isActive={isActive}
       onClick={handleRequestClick}
     >
-      {isShowCheckbox && <Checkbox checked={isChecked} />}
-
+      {isResult && <Checkbox checked={isChecked} />}
       <RequestListItemBody>
         <RequestListItemText $hasData={hasData}>{reportName}</RequestListItemText>
         <RequestListItemDate>{reportDate}</RequestListItemDate>
       </RequestListItemBody>
+      {!isResult && <Preloader />}
     </RequestListItem>
   );
 };

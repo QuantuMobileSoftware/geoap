@@ -4,7 +4,7 @@ import { useSuccessfulLayers } from 'hooks';
 import { Button } from 'components/_shared/Button';
 import { AdditionalField } from './AdditionalField';
 import { PeriodSelect } from './PeriodSelect';
-import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
 import { useAreasActions, selectUser } from 'state';
 import { convertDate, hasSelectedNotebook } from './utils';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -16,8 +16,7 @@ import {
 } from './CreateRequest.styles';
 
 export const CreateRequest = ({ areas, currentArea }) => {
-  const { setSidebarMode, saveAreaRequest, setRequestTab, setCurrentArea } =
-    useAreasActions();
+  const { setSidebarMode, saveAreaRequest, setCurrentArea } = useAreasActions();
   const currentUser = useSelector(selectUser);
   const layers = useSuccessfulLayers();
 
@@ -66,7 +65,6 @@ export const CreateRequest = ({ areas, currentArea }) => {
     };
     setCurrentArea(areaId);
     saveAreaRequest(areaId, request);
-    setRequestTab(REQUEST_TABS.IN_PROGRESS);
     setSidebarMode(SIDEBAR_MODE.REQUESTS);
   };
 

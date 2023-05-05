@@ -7,13 +7,11 @@ import { ListItem } from './Item';
 export const List = ({ items = [], ...props }) => {
   const requestsRef = useRef(null);
 
-  const requestsList = items.map(item => (
-    <ListItem key={item.id} report={item} parent={requestsRef} />
-  ));
-
   return (
     <RequestsList ref={requestsRef} {...props} isEmpty={!items.length}>
-      {requestsList}
+      {items.map((item, i) => (
+        <ListItem key={i} report={item} parent={requestsRef} />
+      ))}
     </RequestsList>
   );
 };

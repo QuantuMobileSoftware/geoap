@@ -30,6 +30,7 @@ export const RequestListItemBody = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+  flex-grow: 1;
   margin-left: ${em(10)};
   > * {
     transition: inherit;
