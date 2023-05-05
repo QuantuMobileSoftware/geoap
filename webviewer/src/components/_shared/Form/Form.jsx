@@ -1,5 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { FormikProvider, useFormik } from 'formik';
+import { withFunction } from 'utils';
+import { Preloader } from '../Preloader';
 
 import {
   FormAction,
@@ -12,8 +14,6 @@ import {
   FormPreloader,
   StyledForm
 } from './Form.styles';
-
-import { withFunction } from 'utils';
 
 export const Form = forwardRef(
   (
@@ -81,7 +81,11 @@ export const Form = forwardRef(
             </FormMessages>
           )}
 
-          {isLoading && <FormPreloader />}
+          {isLoading && (
+            <FormPreloader>
+              <Preloader />
+            </FormPreloader>
+          )}
         </FormikProvider>
       </StyledForm>
     );

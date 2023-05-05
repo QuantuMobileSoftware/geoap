@@ -11,7 +11,6 @@ import {
   SIDEBAR_MODE,
   AOI_TYPE,
   SHAPE_NAMES,
-  REQUEST_TABS,
   NOT_POLYGON
 } from '_constants';
 import { areasEvents } from '_events';
@@ -27,8 +26,7 @@ import {
   useAreasActions,
   selectSidebarMode,
   getLoading,
-  getSelectedResults,
-  selectRequestTab
+  getSelectedResults
 } from 'state';
 
 import { getShapePositionsString, getPolygonPositions, getCentroid } from 'utils/helpers';
@@ -65,20 +63,18 @@ export const Map = () => {
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
   const selectedResults = useSelector(getSelectedResults);
-  const activeTab = useSelector(selectRequestTab);
   const { addNewArea, setCurrentArea, setSidebarMode, deleteSelectedResult } =
     useAreasActions();
 
-  const isCreatedTab = activeTab === REQUEST_TABS.CREATED;
   const currentResult = useMemo(() => {
-    if (currentAreaId && !!selectedResults.length && isCreatedTab) {
+    if (currentAreaId && !!selectedResults.length) {
       return areasObject[currentAreaId].results[
         selectedResults[selectedResults.length - 1]
       ];
     }
-  }, [selectedResults, areasObject, currentAreaId, isCreatedTab]);
+  }, [selectedResults, areasObject, currentAreaId]);
 
-  const isShowRange = selectedResults.length && isCreatedTab;
+  const isShowRange = selectedResults.length;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${

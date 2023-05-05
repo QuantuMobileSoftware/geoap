@@ -1,7 +1,7 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 
-import { SIDEBAR_MODE, REQUEST_TABS } from '_constants';
+import { SIDEBAR_MODE } from '_constants';
 
 const AREAS_INITIAL_STATE = {
   entities: {},
@@ -9,7 +9,6 @@ const AREAS_INITIAL_STATE = {
   current: null,
   selectedResults: [],
   mode: SIDEBAR_MODE.AREAS,
-  requestTab: REQUEST_TABS.CREATED,
   layers: [],
   isLoading: false
 };
@@ -59,9 +58,6 @@ const areasSlice = createSlice({
     setSidebarMode: (state, action) => {
       state.mode = action.payload;
     },
-    setRequestTab: (state, action) => {
-      state.requestTab = action.payload;
-    },
     updateArea: (state, action) => {
       const id = state.current;
       const newArea = { [id]: { ...state.entities[id], ...action.payload } };
@@ -86,7 +82,6 @@ export const selectAreas = state => state.areas.entities;
 export const selectCurrentArea = state => state.areas.current;
 export const getSelectedResults = state => state.areas.selectedResults;
 export const selectSidebarMode = state => state.areas.mode;
-export const selectRequestTab = state => state.areas.requestTab;
 export const getSelectedEntitiesId = state => state.areas.selectedEntitiesId;
 
 export const selectAreasList = createSelector(selectAreas, areas => {

@@ -36,17 +36,12 @@ export const ButtonTopWrapper = styled.div`
   ${sidebarTopButtons};
 `;
 
-export const TabsWrapper = styled.div`
-  display: flex;
-`;
-
-export const TabItem = styled.div`
-  ${({ theme, isActive }) => css`
-    width: 50%;
+export const ReportTitle = styled.div`
+  ${({ theme }) => css`
     border-bottom: ${theme.borders.default({ fontSize: theme.fontSizes[1] })};
-    color: ${isActive ? theme.colors.primary.p2 : theme.colors.nature.n3};
-    border-color: ${isActive ? theme.colors.primary.p2 : theme.colors.nature.n3};
-    cursor: pointer;
+    color: ${theme.colors.primary.p2};
+    border-color: ${theme.colors.primary.p2};
+    font-size: ${em(18)};
     text-align: center;
   `}
 `;
