@@ -38,7 +38,7 @@ export const ListItem = ({ report = {}, ...props }) => {
   const isResult = report.hasOwnProperty('request');
   const { name, layer_type, notebook_name } = report;
   const hasData = !name?.includes(NO_DATA);
-  const reportName = isResult ? (name ? name : layer_type) : notebook_name;
+  const reportName = isResult ? name || layer_type : notebook_name;
 
   const reportDate = useMemo(() => {
     const { date_from, date_to, start_date, end_date } = report;

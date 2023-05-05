@@ -25,7 +25,7 @@ import {
 
 const getRequestName = obj => {
   if (obj.notebook_name) return obj.notebook_name;
-  return obj.name ? obj.name : obj.layer_type;
+  return obj.name || obj.layer_type;
 };
 
 export const Requests = React.memo(({ currentArea }) => {
@@ -49,7 +49,7 @@ export const Requests = React.memo(({ currentArea }) => {
   );
 
   const filterItems = useMemo(() => {
-    const resultNames = results.map(({ name, layer_type }) => (name ? name : layer_type));
+    const resultNames = results.map(({ name, layer_type }) => name || layer_type);
     const requestNames = requestsInProgress.map(r => r.notebook_name);
     const setReportNames = [...new Set([...resultNames, ...requestNames])];
     return [
