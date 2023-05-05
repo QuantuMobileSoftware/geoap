@@ -116,10 +116,6 @@ class NotebookDockerThread(StoppableThread):
             else:
                 request.finished_at=localtime()
                 request.save(update_fields=['finished_at'])
-                request_transaction = request.transactions.first()
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.rolled_back = True
-                request_transaction.completed = True
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
                 collected_error = attrs['logs']
@@ -129,6 +125,11 @@ class NotebookDockerThread(StoppableThread):
                 else:
                     request.error = collected_error
                 request.save(update_fields=['error'])
+                
+                request_transaction = request.transactions.first()
+                request_transaction.user.on_hold -= abs(request_transaction.amount)
+                request_transaction.rolled_back = True
+                request_transaction.completed = True
                 with transaction.atomic():
                     request_transaction.save(update_fields=("rolled_back", "completed"))
                     request_transaction.user.save(update_fields=("on_hold",))
