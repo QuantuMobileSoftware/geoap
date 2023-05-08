@@ -34,7 +34,7 @@ if __name__ == "__main__":
     )
     if not is_success:
         raise Exception(error_message)
-    files_amount, paths_to_results = geoapp_client.pull_results(request.get("id"))
+    paths_to_results = geoapp_client.pull_results(request.get("id"))
     for path_to_result in paths_to_results:
         geoapp_client.download_stream_and_save_results(path_to_result, output_dir)
-    geoapp_client.check_files_amount(output_dir, files_amount)
+    geoapp_client.check_files_amount(output_dir, len(paths_to_results))

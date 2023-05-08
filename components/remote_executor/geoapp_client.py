@@ -98,10 +98,9 @@ class GeoappClient:
         curr_request = json.loads(response.data.decode())
         for result in curr_request:
             paths.append(result.get("filepath"))
-        num_of_files = len(paths)
         if paths:
-            self.log.info(f"Pull results collected num of files: {num_of_files}")
-            return num_of_files, paths
+            self.log.info(f"Pull results collected num of files: {len(paths)}")
+            return paths
         else:
             raise Exception("no result files generated after script run")
 
@@ -115,13 +114,22 @@ class GeoappClient:
             os.makedirs(dir_path)
             self.log.info(f"Created dir:{data_path}")
 
-        req = self.http.request("GET", url, preload_content=False)
-
-        self.log.info("Started writing result")
-        with open(data_path, "wb") as f:
-            for chunk in req.stream(1024):
-                f.write(chunk)
-        req.release_conn()
+        self.log.info(f"Started writing result {result_path}")
+        try:
+            req = self.http.request("GET", url, preload_content=False)
+            with open(data_path, "wb") as f:
+                for chunk in req.stream(1024):
+                    f.write(chunk)
+        except urllib3.exceptions.HTTPError as e:
+            raise Exception(f"HTTPError occurred: {e}")
+        except urllib3.exceptions.RequestError as e:
+            raise Exception("RequestError occurred: {e}")
+        except urllib3.exceptions.URLError as e:
+            raise Exception("URLError occurred: {e}")
+        except Exception as e:
+            raise Exception("An error occurred: {e}")
+        finally:
+            req.release_conn()
         self.log.info("Finished writing result, closed connection")
 
     def check_files_amount(self, result_folder_path, files_amount):
