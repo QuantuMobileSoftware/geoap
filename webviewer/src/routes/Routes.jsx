@@ -17,6 +17,8 @@ export const Routes = () => {
 
   useEffect(() => {
     getCurrentUser().finally(() => setLoad(false));
+    window.addEventListener('focus', getCurrentUser);
+    return () => window.removeEventListener('focus', getCurrentUser);
   }, [getCurrentUser]);
 
   useEffect(() => {
