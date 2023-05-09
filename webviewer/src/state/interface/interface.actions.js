@@ -11,5 +11,10 @@ export const useInterfaceActions = () => {
     [dispatch]
   );
 
-  return { setOpenContactUs };
+  const hideWelcomeWindow = useCallback(
+    () => dispatch(interfaceActions.hideWelcome()),
+    [dispatch]
+  );
+
+  return { setOpenContactUs, hideWelcomeWindow };
 };

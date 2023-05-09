@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useAreasActions, selectChartData, selectSidebarMode } from 'state';
+import {
+  useAreasActions,
+  useInterfaceActions,
+  selectChartData,
+  selectSidebarMode,
+  welcomeWindowState
+} from 'state';
 import { AreasSidebar } from 'components/Areas';
 import { Map } from 'components/Map';
 import { Chart } from 'components/Chart';
-import { SIDEBAR_MODE, STORAGE_WELCOME_KEY } from '_constants';
-import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 import { Spinner } from 'components/_shared/Spinner';
 import { WelcomeWindow } from 'components/WelcomeWindow';
+import { SIDEBAR_MODE, STORAGE_WELCOME_KEY } from '_constants';
+import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
 export const PageMain = ({ ...props }) => {
   const { getAreas, isLoading } = useAreasActions();
+  const { hideWelcomeWindow } = useInterfaceActions();
   const chart = useSelector(selectChartData);
   const sidebarMode = useSelector(selectSidebarMode);
-  const [isShowWelcome, setIsShowWelcome] = useState(false);
+  const isShowWelcome = useSelector(welcomeWindowState);
 
   const isOpen = props.history.action === 'PUSH' && props.location.state?.isOpenSidebar;
   const isShowChart = sidebarMode === SIDEBAR_MODE.REQUESTS && chart.data;
@@ -22,13 +29,8 @@ export const PageMain = ({ ...props }) => {
     getAreas();
   }, [getAreas]);
 
-  useEffect(() => {
-    const value = localStorage.getItem(STORAGE_WELCOME_KEY);
-    if (value === null) setIsShowWelcome(true);
-  }, []);
-
   const handleCloseWelcome = isHide => {
-    setIsShowWelcome(false);
+    hideWelcomeWindow(false);
     if (isHide) localStorage.setItem(STORAGE_WELCOME_KEY, isHide);
   };
 
