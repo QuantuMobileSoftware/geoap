@@ -115,8 +115,10 @@ class GeoappClient:
             self.log.info(f"Created dir:{data_path}")
 
         self.log.info(f"Started writing result {result_path}")
+        req = self.http.request("GET", url, preload_content=False)
+        if req.status != 200: 
+            raise Exception(f"Writing result error - status code {req.status}")
         try:
-            req = self.http.request("GET", url, preload_content=False)
             with open(data_path, "wb") as f:
                 for chunk in req.stream(1024):
                     f.write(chunk)
@@ -124,8 +126,6 @@ class GeoappClient:
             raise Exception(f"HTTPError occurred: {e}")
         except urllib3.exceptions.RequestError as e:
             raise Exception("RequestError occurred: {e}")
-        except urllib3.exceptions.URLError as e:
-            raise Exception("URLError occurred: {e}")
         except Exception as e:
             raise Exception("An error occurred: {e}")
         finally:
