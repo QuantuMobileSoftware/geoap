@@ -13,4 +13,5 @@ export const Wrapper = styled.div`
   padding: ${em(22)} ${em(42)};
   background: ${({ theme }) => theme.colors.nature.n1};
   flex-grow: 1;
+  overflow-y: auto;
 `;
