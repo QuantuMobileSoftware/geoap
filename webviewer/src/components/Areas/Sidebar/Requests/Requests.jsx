@@ -68,12 +68,13 @@ export const Requests = React.memo(({ currentArea }) => {
   }, []);
 
   const filteredResults = useMemo(() => {
+    const filtered = results.filter(r => !r.to_be_deleted);
     if (filterType) {
-      return results.filter(({ name, layer_type }) =>
+      return filtered.filter(({ name, layer_type }) =>
         name ? name === filterType : layer_type === filterType
       );
     }
-    return results;
+    return filtered;
   }, [results, filterType]);
 
   const filteredRequests = useMemo(() => {
