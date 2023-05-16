@@ -1,5 +1,6 @@
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -19,6 +20,7 @@ class RegisterView(BasicRegisterView):
         user = super().perform_create(serializer)
         client_group = Group.objects.get(name="Client")
         user.groups.add(client_group)
+        user.top_up_balance(settings.NEW_USER_BALANCE, settings.NEW_USER_TOP_UP_BALANCE_MESSAGE)
         return user
 
 

@@ -3,6 +3,7 @@ import decimal
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 
@@ -62,6 +63,17 @@ class User(AbstractUser):
     @property
     def actual_balance(self):
         return self.balance - self.on_hold
+
+    def top_up_balance(self, amount, comment):
+        with transaction.atomic():
+            Transaction.objects.create(
+                user=self,
+                amount=amount,
+                comment=comment,
+                completed=True
+            )
+            self.balance += amount
+        self.save(update_fields=("balance",))
 
 
 class Transaction(models.Model):
