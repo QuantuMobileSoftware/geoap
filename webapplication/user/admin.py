@@ -19,17 +19,9 @@ class UserForm(forms.ModelForm):
     def save(self, commit=True):
         top_up_balance = self.cleaned_data.get('top_up_balance', None)
         top_up_comment = self.cleaned_data.get('top_up_comment', self.default_comment)
-
-        with transaction.atomic():
-            if top_up_balance:
-                Transaction.objects.create(
-                    user=self.instance,
-                    amount=top_up_balance,
-                    comment=top_up_comment or self.default_comment,
-                    completed=True
-                )
-                self.instance.balance += top_up_balance
-            return super().save(commit)
+        if top_up_balance:
+            self.instance.top_up_balance(top_up_balance, top_up_comment)
+        return super().save(commit)
 
 
 class UserAdmin(BaseUserAdmin):
