@@ -1,6 +1,4 @@
-import decimal
-import datetime
-
+from django.utils import timezone
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
@@ -71,13 +69,13 @@ class User(AbstractUser):
         return self.balance - self.on_hold
 
     def finish_trial (self):
-        self.trial_finished_at=datetime.datetime.now()
-        self.top_up_balance(-(self.balance), settings.TRIAL_PERIOD_FINISH_COMMENT)
+        self.trial_finished_at=timezone.now()
+        self.top_up_balance(-self.balance, settings.TRIAL_PERIOD_FINISH_COMMENT)
         self.save(update_fields=("trial_finished_at",))
 
     def start_trial (self):
-        self.trial_started_at=datetime.datetime.now()
         self.top_up_balance(settings.TRIAL_PERIOD_BALANCE, settings.TRIAL_PERIOD_START_COMMENT)
+        self.trial_started_at=timezone.now()
         self.save(update_fields=("trial_started_at",))
         
     def top_up_balance(self, amount, comment):
