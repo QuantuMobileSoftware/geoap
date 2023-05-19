@@ -32,7 +32,6 @@ export const Userbar = ({ ...props }) => {
   const { resetAreasState } = useAreasActions();
   const [isSettingsModalOpen, setIsSettingModalOpen] = useState(false);
 
-  const hasDemoUser = process.env.REACT_APP_AUTOLOGIN === user.username;
   const apiKey = user.planet_api_key ? user.planet_api_key : '';
 
   const handleLogOut = () => {
@@ -51,7 +50,7 @@ export const Userbar = ({ ...props }) => {
 
   return (
     <>
-      {hasDemoUser ? (
+      {user.isDemo ? (
         <Button variant='primary' onClick={handleLogOut}>
           Log in
         </Button>

@@ -7,7 +7,7 @@ import { Button } from 'components/_shared/Button';
 
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
-import { getSelectedEntitiesId } from 'state';
+import { getSelectedEntitiesId, selectUser } from 'state';
 import {
   AreasSidebarMessage,
   AreasSidebarButton,
@@ -17,6 +17,7 @@ import {
 
 export const AreasList = React.memo(({ areas }) => {
   const selectedAreas = useSelector(getSelectedEntitiesId);
+  const user = useSelector(selectUser);
   const [isAreasNotFound, setIsAreasNotFound] = useState(false);
   const [listItems, setListItems] = useState(areas);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -111,25 +112,26 @@ export const AreasList = React.memo(({ areas }) => {
 
       {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
 
-      {isDrawing ? (
-        <AreasSidebarButton
-          variant='primary'
-          onClick={() => {
-            areasEvents.stopDrawing();
-            setIsDrawing(false);
-          }}
-        >
-          Undo drawing
-        </AreasSidebarButton>
-      ) : (
-        <AreasSidebarButton
-          variant='primary'
-          icon='Plus'
-          onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
-        >
-          Add new area
-        </AreasSidebarButton>
-      )}
+      {!user.isDemo &&
+        (isDrawing ? (
+          <AreasSidebarButton
+            variant='primary'
+            onClick={() => {
+              areasEvents.stopDrawing();
+              setIsDrawing(false);
+            }}
+          >
+            Undo drawing
+          </AreasSidebarButton>
+        ) : (
+          <AreasSidebarButton
+            variant='primary'
+            icon='Plus'
+            onClick={() => areasEvents.toggleModal(true, { type: MODAL_TYPE.SAVE })}
+          >
+            Add new area
+          </AreasSidebarButton>
+        ))}
     </>
   );
 });

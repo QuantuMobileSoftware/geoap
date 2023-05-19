@@ -10,7 +10,8 @@ import {
   useAreasActions,
   selectCurrentRequests,
   selectCurrentResults,
-  getSelectedResults
+  getSelectedResults,
+  selectUser
 } from 'state';
 import { SIDEBAR_MODE, AOI_TYPE, GET_DATA_INTERVAL } from '_constants';
 import {
@@ -32,6 +33,7 @@ export const Requests = React.memo(({ currentArea }) => {
   const requests = useSelector(selectCurrentRequests);
   const results = useSelector(selectCurrentResults);
   const selectedResults = useSelector(getSelectedResults);
+  const user = useSelector(selectUser);
 
   const { setSidebarMode, deleteResult, patchResults, deleteSelectedResult } =
     useAreasActions();
@@ -146,13 +148,15 @@ export const Requests = React.memo(({ currentArea }) => {
         >
           Cancel
         </Button>
-        <Button
-          icon='Plus'
-          variant='primary'
-          onClick={handleChangeMode(SIDEBAR_MODE.CREATE_REQUEST)}
-        >
-          Create new Request
-        </Button>
+        {!user.isDemo && (
+          <Button
+            icon='Plus'
+            variant='primary'
+            onClick={handleChangeMode(SIDEBAR_MODE.CREATE_REQUEST)}
+          >
+            Create new Request
+          </Button>
+        )}
       </ButtonWrapper>
       {isModalOpen && (
         <Modal header={modalHeader} textCenter={true} close={handleCloseModal}>

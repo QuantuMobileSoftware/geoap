@@ -55,8 +55,9 @@ export const useUserActions = () => {
     try {
       await handleAsync(async () => {
         const user = (await API.users.getCurrentUser()).data;
+        const isDemo = user.username === process.env.REACT_APP_AUTOLOGIN;
         dispatch(userActions.login());
-        dispatch(userActions.setEntity(user));
+        dispatch(userActions.setEntity({ ...user, isDemo }));
       });
     } catch (error) {
       logout(false);

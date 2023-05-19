@@ -5,6 +5,7 @@ import { COOKIE_CSRF_TOKEN_VALUE } from '_constants';
 import { mergeObjects } from 'utils';
 
 const USER_DEFAULT_STATE = {
+  isDemo: false,
   pk: null,
   username: '',
   email: '',
