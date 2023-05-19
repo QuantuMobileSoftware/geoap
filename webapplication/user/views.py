@@ -20,7 +20,7 @@ class RegisterView(BasicRegisterView):
         user = super().perform_create(serializer)
         client_group = Group.objects.get(name="Client")
         user.groups.add(client_group)
-        user.top_up_balance(settings.NEW_USER_BALANCE, settings.NEW_USER_TOP_UP_BALANCE_MESSAGE)
+        user.start_trial()
         return user
 
 

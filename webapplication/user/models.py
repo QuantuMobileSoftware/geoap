@@ -1,5 +1,5 @@
-import decimal
-
+from django.utils import timezone
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
@@ -17,6 +17,10 @@ class User(AbstractUser):
     on_hold = models.DecimalField(_("On hold"), max_digits=9, decimal_places=2, default=0, null=True, blank=True)
     discount = models.PositiveIntegerField(_("Discount"), null=True, blank=True, default=0,
                                            validators=(MaxValueValidator(100),))
+    trial_started_at = models.DateTimeField(blank=True, null=True, verbose_name='Trial started at')
+    trial_finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Trial finished at')
+    is_trial_end_notified = models.BooleanField(default=False, verbose_name='Is trial end notified')
+
 
     class Meta:
         permissions = (
@@ -64,7 +68,20 @@ class User(AbstractUser):
     def actual_balance(self):
         return self.balance - self.on_hold
 
+    def finish_trial (self):
+        self.trial_finished_at=timezone.now()
+        self.top_up_balance(-self.balance, settings.TRIAL_PERIOD_FINISH_COMMENT)
+        self.save(update_fields=("trial_finished_at",))
+
+    def start_trial (self):
+        self.top_up_balance(settings.TRIAL_PERIOD_BALANCE, settings.TRIAL_PERIOD_START_COMMENT)
+        self.trial_started_at=timezone.now()
+        self.save(update_fields=("trial_started_at",))
+        
     def top_up_balance(self, amount, comment):
+        if self.trial_started_at and not self.trial_finished_at:
+            self.finish_trial()
+
         with transaction.atomic():
             Transaction.objects.create(
                 user=self,

@@ -243,5 +243,7 @@ GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
 
-NEW_USER_BALANCE = 100
-NEW_USER_TOP_UP_BALANCE_MESSAGE = 'New user registration balance'
+TRIAL_PERIOD_IN_DAYS = 30
+TRIAL_PERIOD_BALANCE = 100
+TRIAL_PERIOD_START_COMMENT = 'Started trial period'
+TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
