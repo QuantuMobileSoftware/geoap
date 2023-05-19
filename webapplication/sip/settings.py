@@ -244,6 +244,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
 
 TRIAL_PERIOD_IN_DAYS = 30
-TRIAL_PERIOD_BALANCE = 500
+TRIAL_PERIOD_BALANCE = 100
 TRIAL_PERIOD_START_COMMENT = 'Started trial period'
 TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
