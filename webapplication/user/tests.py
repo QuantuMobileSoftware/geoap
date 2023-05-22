@@ -131,7 +131,10 @@ class AuthTestCase(UserBase):
             'planet_api_key': None,
             "balance": 100000,
             "on_hold": 0,
-            "discount": 0
+            "discount": 0,
+            'trial_started_at': None,
+            'trial_finished_at': None,
+            'is_trial_end_notified': False,
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
@@ -168,7 +171,10 @@ class AuthTestCase(UserBase):
             'planet_api_key': "secret-api-key",
             'balance': 100000,
             'on_hold': 0,
-            'discount': 0
+            'discount': 0,
+            'trial_started_at': None,
+            'trial_finished_at': None,
+            'is_trial_end_notified': False,
         }
         url = reverse("rest_user_details")
         response = self.client.patch(url, input_data)
@@ -198,7 +204,10 @@ class AuthTestCase(UserBase):
             'planet_api_key': "secret-api-key",
             'balance': 100000,
             'on_hold': 0,
-            'discount': 0
+            'discount': 0,
+            'trial_started_at': None,
+            'trial_finished_at': None,
+            'is_trial_end_notified': False,
         }
         url = reverse("rest_user_details")
         response = self.client.put(url, input_data)
