@@ -72,7 +72,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
   useEffect(() => {
     const canSave =
       (!notebook.period_required || (startDate && endDate)) &&
-      (!notebook.additional_parameter || Boolean(additionalParameterValue));
+      (!notebook.additional_parameter || !!additionalParameterValue);
     if (hasSelectedNotebook(notebook) && canSave) {
       setCanSaveRequest(true);
     } else {
