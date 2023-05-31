@@ -70,13 +70,15 @@ export const CreateRequest = ({ areas, currentArea }) => {
   };
 
   useEffect(() => {
-    const canSave = !notebook.period_required || (startDate && endDate);
+    const canSave =
+      (!notebook.period_required || (startDate && endDate)) &&
+      (!notebook.additional_parameter || !!additionalParameterValue);
     if (hasSelectedNotebook(notebook) && canSave) {
       setCanSaveRequest(true);
     } else {
       setCanSaveRequest(false);
     }
-  }, [notebook, startDate, endDate]);
+  }, [notebook, startDate, endDate, additionalParameterValue]);
 
   const handleAreChange = item => setAreaId(item.value);
 
