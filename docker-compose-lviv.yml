@@ -19,8 +19,8 @@ services:
       dockerfile: prod.Dockerfile
     volumes:
       - ./webapplication:/code
-      - /mnt/storage/geoap_data:/data
-      - /mnt/storage/geoap_data/media:/media
+      - ../geoap_data:/data
+      - ../geoap_data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-lviv
@@ -49,7 +49,7 @@ services:
         MAPBOX_ACCESS_TOKEN:
         REACT_APP_IS_MAPBOX_AVAILABLE:
     volumes:
-      - /mnt/storage/geoap_data:/data
+      - ../geoap_data:/data
     expose:
       - 8080
     ports:
