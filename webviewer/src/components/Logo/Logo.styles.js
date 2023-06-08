@@ -19,5 +19,8 @@ export const StyledLogo = styled.div`
         fill: currentColor;
       }
     }
+    img {
+      max-width: 50%;
+    }
   `}
 `;

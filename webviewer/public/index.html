@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Geoap" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="manifest" id="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- favicon - start -->
-    <link rel="icon" href="%PUBLIC_URL%/assets/favicon/favicon.ico" />
+    <link rel="icon" id="favicon" href="%PUBLIC_URL%/assets/favicon/favicon.ico" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -17,12 +17,14 @@
       rel="icon"
       type="image/png"
       sizes="16x16"
+      id="favicon16"
       href="%PUBLIC_URL%/assets/favicon/favicon-16x16.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
+      id="favicon32"
       href="%PUBLIC_URL%/assets/favicon/favicon-32x32.png"
     />
     <link
@@ -49,10 +51,39 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <!-- Leaflet map end -->
 
-    <title>Geoap</title>
+    <title id="page-title">Geoap</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      (function () {
+        var domain = window.location.hostname;
+        var pageTitle = document.getElementById('page-title');
+        var favicon = document.getElementById('favicon');
+        var manifest = document.getElementById('manifest');
+        var favicon32 = document.getElementById('favicon32');
+        var favicon16 = document.getElementById('favicon16');
+
+        var domainMappings = {
+          'agrieos.in': {
+            title: 'Agrieos',
+            favicon: '%PUBLIC_URL%/assets/favicon/agrieos-logo.ico',
+            manifest: '%PUBLIC_URL%/manifest_agrieos.json',
+            favicon32: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
+            favicon16: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
+          },
+        };
+
+        if (domainMappings.hasOwnProperty(domain)) {
+          var mapping = domainMappings[domain];
+          document.title = mapping.title;
+          favicon.href = mapping.favicon;
+          manifest.href = mapping.manifest;
+          favicon32.href = mapping.favicon32;
+          favicon16.href = mapping.favicon32;
+        }
+      })();
+    </script>
   </body>
 </html>
