@@ -2,10 +2,9 @@ from sip.settings import *
 
 DEBUG = False
 
-ALLOWED_HOSTS.append("portal.soilmate.ai")
-SITE_ID = 2
+ALLOWED_HOSTS.extend(["portal.soilmate.ai", "agrieos.in"])
 
-CSRF_TRUSTED_ORIGINS = ["portal.soilmate.ai"]
+CSRF_TRUSTED_ORIGINS = ["portal.soilmate.ai", "agrieos.in"]
 
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"
