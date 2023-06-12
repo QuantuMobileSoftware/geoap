@@ -28,7 +28,7 @@ class UserAdmin(BaseUserAdmin):
     form = UserForm
     list_display = ('username', 'email', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha')
     fieldsets = (
-        ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key')}),
+        ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key', 'receive_notification')}),
         ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
         ('Top up', {'fields': ('top_up_balance', 'top_up_comment')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', )}),
