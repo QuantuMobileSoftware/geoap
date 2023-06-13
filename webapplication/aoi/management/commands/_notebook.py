@@ -233,3 +233,4 @@ class NotebookK8sThread(StoppableThread):
         # Execution
         self.notebook_handler.start_notebook_execution()
         self.notebook_handler.start_component_execution_jobs_supervision()
+
