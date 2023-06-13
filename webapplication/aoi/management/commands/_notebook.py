@@ -146,7 +146,7 @@ class NotebookDockerThread(StoppableThread):
                 else:
                     request.error = collected_error
                 request.save(update_fields=['error'])
-                
+
                 request_transaction = request.transactions.first()
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
                 request_transaction.rolled_back = True
@@ -233,4 +233,3 @@ class NotebookK8sThread(StoppableThread):
         # Execution
         self.notebook_handler.start_notebook_execution()
         self.notebook_handler.start_component_execution_jobs_supervision()
-
