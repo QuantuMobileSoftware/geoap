@@ -241,6 +241,7 @@ GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
+EMAIL_SUBJECT = 'Geoap Notification'
 
 TRIAL_PERIOD_IN_DAYS = 30
 TRIAL_PERIOD_BALANCE = 100

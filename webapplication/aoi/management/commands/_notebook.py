@@ -6,7 +6,8 @@ from threading import Thread, Lock, Event
 
 from django.db import transaction
 
-from aoi.models import Component, Request
+from aoi.models import Component, Request, AoI
+from user.models import User
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
@@ -14,11 +15,31 @@ from aoi.management.commands._k8s_notebook_handler import K8sNotebookHandler
 
 from django.utils.timezone import localtime
 from django.core import management
+from django.core.mail import send_mail
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+
+
+def send_email_notification(transaction_request, status):
+    user_data = User.objects.filter(id=transaction_request.user_id).first()
+    aoi_name = AoI.objects.filter(id=transaction_request.request.aoi_id).first()
+    if not user_data.receive_notification:
+        logger.info(f"Not sending email for user '{user_data.email}'")
+        return
+    message = f"Your request for AOI '{aoi_name.name}' and layer '{transaction_request.request.component_name}' is {status}"
+    recipient_list = [user_data.email]
+    result = 0
+    try:
+        result = send_mail(settings.EMAIL_SUBJECT, message, None, recipient_list)
+    except Exception as ex:
+        logger.error(f"Error while sending mail: {str(ex)}")
+    if result == 1:
+        logger.info(f"Email sent successfully! for user '{user_data.email}'")
+    else:
+        logger.info(f"Failed to send the email for user '{user_data.email}'")
 
 
 class StoppableThread(ABC, Thread):
@@ -114,7 +135,7 @@ class NotebookDockerThread(StoppableThread):
                 request.calculated = True
                 request.save(update_fields=['calculated'])
             else:
-                request.finished_at=localtime()
+                request.finished_at = localtime()
                 request.save(update_fields=['finished_at'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
@@ -133,6 +154,8 @@ class NotebookDockerThread(StoppableThread):
                 with transaction.atomic():
                     request_transaction.save(update_fields=("rolled_back", "completed"))
                     request_transaction.user.save(update_fields=("on_hold",))
+
+                send_email_notification(request_transaction, "failed")
             try:
                 container.remove()
             except:
@@ -165,6 +188,8 @@ class NotebookDockerThread(StoppableThread):
                         request_transaction.save(update_fields=("rolled_back",))
                         request_transaction.user.save(update_fields=("on_hold",))
                         request.save(update_fields=['finished_at'])
+
+                        send_email_notification(request_transaction, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 
@@ -194,6 +219,8 @@ class PublisherThread(StoppableThread):
                 with transaction.atomic():
                     request_transaction.save(update_fields=("completed",))
                     request_transaction.user.save(update_fields=("balance", "on_hold"))
+
+                send_email_notification(request_transaction, "succeeded")
         success_requests.update(finished_at=localtime(), success=True)
 
 
@@ -206,4 +233,3 @@ class NotebookK8sThread(StoppableThread):
         # Execution
         self.notebook_handler.start_notebook_execution()
         self.notebook_handler.start_component_execution_jobs_supervision()
-    
