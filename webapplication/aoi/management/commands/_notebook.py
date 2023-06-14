@@ -17,19 +17,25 @@ from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
+from allauth.account import app_settings
+from django.contrib.sites.shortcuts import get_current_site
 
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
 
 
-def send_email_notification(transaction_request, status):
-    user_data = User.objects.filter(id=transaction_request.user_id).first()
-    aoi_name = AoI.objects.filter(id=transaction_request.request.aoi_id).first()
+def send_email_notification(request, status):
+    user_data = User.objects.filter(id=request.user_id).first()
+    aoi_name = AoI.objects.filter(id=request.aoi_id).first()
     if not user_data.receive_notification:
         logger.info(f"Not sending email for user '{user_data.email}'")
         return
-    message = f"Your request for AOI '{aoi_name.name}' and layer '{transaction_request.request.component_name}' is {status}"
+    current_site = get_current_site(request)
+    site_link = f"{app_settings.DEFAULT_HTTP_PROTOCOL}://{current_site.domain}"
+
+    message = f"""Your request for AOI '{aoi_name.name}' and layer '{request.component_name}' is {status}
+    \n\nClick the link below to visit the site:\n{site_link}"""
     recipient_list = [user_data.email]
     result = 0
     try:
@@ -155,7 +161,7 @@ class NotebookDockerThread(StoppableThread):
                     request_transaction.save(update_fields=("rolled_back", "completed"))
                     request_transaction.user.save(update_fields=("on_hold",))
 
-                send_email_notification(request_transaction, "failed")
+                send_email_notification(request, "failed")
             try:
                 container.remove()
             except:
@@ -189,7 +195,7 @@ class NotebookDockerThread(StoppableThread):
                         request_transaction.user.save(update_fields=("on_hold",))
                         request.save(update_fields=['finished_at'])
 
-                        send_email_notification(request_transaction, "failed")
+                        send_email_notification(request, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 
@@ -220,7 +226,7 @@ class PublisherThread(StoppableThread):
                     request_transaction.save(update_fields=("completed",))
                     request_transaction.user.save(update_fields=("balance", "on_hold"))
 
-                send_email_notification(request_transaction, "succeeded")
+                send_email_notification(sr, "succeeded")
         success_requests.update(finished_at=localtime(), success=True)
 
 
