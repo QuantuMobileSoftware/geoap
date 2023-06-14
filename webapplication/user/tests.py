@@ -135,6 +135,7 @@ class AuthTestCase(UserBase):
             'trial_started_at': None,
             'trial_finished_at': None,
             'is_trial_end_notified': False,
+            'receive_notification': True,
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
@@ -175,6 +176,7 @@ class AuthTestCase(UserBase):
             'trial_started_at': None,
             'trial_finished_at': None,
             'is_trial_end_notified': False,
+            'receive_notification': True,
         }
         url = reverse("rest_user_details")
         response = self.client.patch(url, input_data)
@@ -208,6 +210,7 @@ class AuthTestCase(UserBase):
             'trial_started_at': None,
             'trial_finished_at': None,
             'is_trial_end_notified': False,
+            'receive_notification': True,
         }
         url = reverse("rest_user_details")
         response = self.client.put(url, input_data)
