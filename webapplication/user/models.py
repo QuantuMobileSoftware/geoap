@@ -20,6 +20,7 @@ class User(AbstractUser):
     trial_started_at = models.DateTimeField(blank=True, null=True, verbose_name='Trial started at')
     trial_finished_at = models.DateTimeField(blank=True, null=True, verbose_name='Trial finished at')
     is_trial_end_notified = models.BooleanField(default=False, verbose_name='Is trial end notified')
+    receive_notification = models.BooleanField(default=True, verbose_name='Receive Notification')
 
 
     class Meta:
