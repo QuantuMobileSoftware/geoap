@@ -12,5 +12,5 @@ class AccountAdapter(DefaultAccountAdapter):
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = reverse("account_confirm_email", args=[emailconfirmation.key])
         url = self.remove_backend_prefix(url)
-        ret = build_absolute_uri(None, url, protocol=app_settings.DEFAULT_HTTP_PROTOCOL)
+        ret = build_absolute_uri(request, url, protocol=app_settings.DEFAULT_HTTP_PROTOCOL)
         return ret
