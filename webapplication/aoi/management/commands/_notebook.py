@@ -17,8 +17,6 @@ from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
-from allauth.account import app_settings
-from django.contrib.sites.shortcuts import get_current_site
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +29,9 @@ def send_email_notification(request, status):
     if not user_data.receive_notification:
         logger.info(f"Not sending email for user '{user_data.email}'")
         return
-    current_site = get_current_site(request)
-    site_link = f"{app_settings.DEFAULT_HTTP_PROTOCOL}://{current_site.domain}"
 
     message = f"""Your request for AOI '{aoi_name.name}' and layer '{request.component_name}' is {status}
-    \n\nClick the link below to visit the site:\n{site_link}"""
+    \n\nClick the link below to visit the site:\n{request.request_origin}"""
     recipient_list = [user_data.email]
     result = 0
     try:
