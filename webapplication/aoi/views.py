@@ -15,6 +15,8 @@ from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
 from user.models import User, Transaction
+from allauth.account import app_settings
+from allauth.utils import build_absolute_uri
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -189,7 +191,10 @@ class RequestListCreateAPIView(ListCreateAPIView):
         user.save(update_fields=("on_hold",))
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        request_data = request.data
+        site_link = build_absolute_uri(request, "/", protocol=app_settings.DEFAULT_HTTP_PROTOCOL)
+        request_data['request_host'] = site_link
+        serializer = self.get_serializer(data=request_data)
         if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)

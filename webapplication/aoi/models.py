@@ -121,6 +121,7 @@ class Request(models.Model):
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
+    request_host = models.CharField(max_length=50, default="https://portal.soilmate.ai/", verbose_name='Request host')
 
     @property
     def component_name(self):
