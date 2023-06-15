@@ -31,7 +31,7 @@ def send_email_notification(request, status):
         return
 
     message = f"""Your request for AOI '{aoi_name.name}' and layer '{request.component_name}' is {status}
-    \n\nClick the link below to visit the site:\n{request.request_host}"""
+    \n\nClick the link below to visit the site:\n{request.request_origin}"""
     recipient_list = [user_data.email]
     result = 0
     try:

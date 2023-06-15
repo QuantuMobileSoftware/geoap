@@ -58,4 +58,4 @@ class RequestSerializer(serializers.ModelSerializer):
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
-                  'additional_parameter', 'pre_submit', 'request_host')
+                  'additional_parameter', 'pre_submit', 'request_origin')
