@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Geoap" />
+    <meta name="description" id="description" content="SoilMate" />
     <link rel="manifest" id="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- favicon - start -->
@@ -64,14 +64,16 @@
         var manifest = document.getElementById('manifest');
         var favicon32 = document.getElementById('favicon32');
         var favicon16 = document.getElementById('favicon16');
+        var description = document.getElementById('description');
 
         var domainMappings = {
-          'agrieos.in': {
+          'localhost': {
             title: 'Agrieos',
             favicon: '%PUBLIC_URL%/assets/favicon/agrieos-logo.ico',
             manifest: '%PUBLIC_URL%/manifest_agrieos.json',
             favicon32: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
             favicon16: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
+            description: 'Agrieos',
           },
         };
 
@@ -81,7 +83,8 @@
           favicon.href = mapping.favicon;
           manifest.href = mapping.manifest;
           favicon32.href = mapping.favicon32;
-          favicon16.href = mapping.favicon32;
+          favicon16.href = mapping.favicon16;
+          description.content = mapping.description;
         }
       })();
     </script>

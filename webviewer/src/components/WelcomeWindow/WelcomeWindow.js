@@ -16,9 +16,12 @@ export const WelcomeWindow = ({ onClose }) => {
   const handleClick = e => setIsChecked(e.target.checked);
   const handleClose = () => onClose(isChecked);
 
+  const domain = window.location.hostname;
+  const title = domain === 'localhost' ? 'Agrieos' : 'SoilMate';
+
   return (
     <StyledWindow>
-      <Header>Welcome to SoilMate</Header>
+      <Header>Welcome to {title}</Header>
       <Title> Your best geoanalytical service powered with AI </Title>
       <Services>
         <ServiceItem>1. Define your area of interest (AOI)</ServiceItem>
