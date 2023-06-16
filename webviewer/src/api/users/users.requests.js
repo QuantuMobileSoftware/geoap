@@ -5,7 +5,7 @@ const getCurrentUser = body => {
   return axiosInstance.get(usersEndpoints.current, body);
 };
 
-const setApiKey = data => {
+const updateUser = data => {
   return axiosInstance.patch(usersEndpoints.current, data);
 };
 
@@ -35,7 +35,7 @@ const confirmPassword = data => {
 
 export const usersRequests = {
   getCurrentUser,
-  setApiKey,
+  updateUser,
   registerUser,
   confirmRegistration,
   resendUserEmail,
