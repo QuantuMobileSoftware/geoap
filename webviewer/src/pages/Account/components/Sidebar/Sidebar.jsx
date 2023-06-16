@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectUser } from 'state';
@@ -16,27 +16,28 @@ export const Sidebar = props => {
   const { activeTab, setActiveTab } = props;
   const user = useSelector(selectUser);
   const history = useHistory();
+  const tabs = useMemo(() => {
+    return user.trial_finished_at
+      ? TABS
+      : TABS.filter(({ name }) => name !== TAB_NAMES.transactions);
+  }, [user.trial_finished_at]);
 
   return (
     <StyledSidebar>
       <StyledBreadcrumbs items={breadcrumbsItems} />
       <div>
-        {TABS.map(({ name, icon, hash }) => {
-          if (!user.trial_finished_at && name === TAB_NAMES.transactions) return;
-
-          return (
-            <TabItem
-              key={name}
-              isActive={name === activeTab}
-              onClick={() => {
-                setActiveTab(name);
-                history.push({ hash });
-              }}
-            >
-              <Icon>{icon}</Icon> {name}
-            </TabItem>
-          );
-        })}
+        {tabs.map(({ name, icon, hash }) => (
+          <TabItem
+            key={name}
+            isActive={name === activeTab}
+            onClick={() => {
+              setActiveTab(name);
+              history.push({ hash });
+            }}
+          >
+            <Icon>{icon}</Icon> {name}
+          </TabItem>
+        ))}
       </div>
     </StyledSidebar>
   );
