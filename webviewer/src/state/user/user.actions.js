@@ -24,11 +24,11 @@ export const useUserActions = () => {
     [dispatch, handleAsync]
   );
 
-  const setApiKey = useCallback(
+  const updateUser = useCallback(
     async data => {
       await handleAsync(async () => {
-        await API.users.setApiKey(data);
-        dispatch(userActions.setApiKey(data.planet_api_key));
+        await API.users.updateUser(data);
+        dispatch(userActions.setEntity(data));
       });
     },
     [dispatch, handleAsync]
@@ -107,7 +107,7 @@ export const useUserActions = () => {
     stopAutoLogin,
     toggleLogoutModal,
     getCurrentUser,
-    setApiKey,
+    updateUser,
     registerUser,
     confirmRegistration,
     changePassword,

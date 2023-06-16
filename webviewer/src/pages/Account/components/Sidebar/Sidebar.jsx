@@ -1,8 +1,10 @@
-import { Icon } from 'components/_shared/Icon';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectUser } from 'state';
+import { Icon } from 'components/_shared/Icon';
 import { ROUTES } from '_constants';
-import { TABS } from '../../constants';
+import { TABS, TAB_NAMES } from '../../constants';
 import { StyledSidebar, StyledBreadcrumbs, TabItem } from './Sidebar.styles';
 
 const breadcrumbsItems = [
@@ -12,13 +14,19 @@ const breadcrumbsItems = [
 
 export const Sidebar = props => {
   const { activeTab, setActiveTab } = props;
+  const user = useSelector(selectUser);
   const history = useHistory();
+  const tabs = useMemo(() => {
+    return user.trial_finished_at
+      ? TABS
+      : TABS.filter(({ name }) => name !== TAB_NAMES.transactions);
+  }, [user.trial_finished_at]);
 
   return (
     <StyledSidebar>
       <StyledBreadcrumbs items={breadcrumbsItems} />
       <div>
-        {TABS.map(({ name, icon, hash }) => (
+        {tabs.map(({ name, icon, hash }) => (
           <TabItem
             key={name}
             isActive={name === activeTab}
