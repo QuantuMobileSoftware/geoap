@@ -191,7 +191,7 @@ class RequestListCreateAPIView(ListCreateAPIView):
         user.save(update_fields=("on_hold",))
 
     def create(self, request, *args, **kwargs):
-        request_data = request.data
+        request_data = request.data.copy()
         site_link = build_absolute_uri(request, "/", protocol=app_settings.DEFAULT_HTTP_PROTOCOL)
         request_data['request_origin'] = site_link
         serializer = self.get_serializer(data=request_data)

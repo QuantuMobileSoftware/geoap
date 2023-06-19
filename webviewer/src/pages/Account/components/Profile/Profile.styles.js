@@ -39,3 +39,8 @@ export const ButtonWrapper = styled.div`
   justify-content: space-evenly;
   margin-top: ${em(24)};
 `;
+
+export const UserMessage = styled.p`
+  font-style: italic;
+  margin-bottom: ${em(16)};
+`;

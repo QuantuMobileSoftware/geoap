@@ -38,11 +38,7 @@ const userSlice = createSlice({
       state.isShowLogoutModal = !state.isShowLogoutModal;
     },
 
-    setEntity: (state, action) => mergeObjects(state, action.payload),
-
-    setApiKey: (state, action) => {
-      state.planet_api_key = action.payload;
-    }
+    setEntity: (state, action) => mergeObjects(state, action.payload)
   }
 });
 

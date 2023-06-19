@@ -28,7 +28,7 @@ export const Userbar = ({ ...props }) => {
   const history = useHistory();
   const menuRef = useRef(null);
   const user = useSelector(selectUser);
-  const { logout, setApiKey, isLoading, toggleLogoutModal } = useUserActions();
+  const { logout, updateUser, isLoading, toggleLogoutModal } = useUserActions();
   const { resetAreasState } = useAreasActions();
   const [isSettingsModalOpen, setIsSettingModalOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export const Userbar = ({ ...props }) => {
   };
 
   const handleSendForm = async values => {
-    await setApiKey(values);
+    await updateUser(values);
     handleToggleSettingsModal();
   };
 

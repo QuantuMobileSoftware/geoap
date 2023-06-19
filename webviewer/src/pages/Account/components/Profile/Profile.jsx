@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { selectUser, useUserActions } from 'state';
+import { selectUser, useUserActions, useInterfaceActions } from 'state';
 import { ROUTES } from '_constants';
-import { InfoItem, InfoTitle, InfoValue, Title, StyledButton } from './Profile.styles';
 import { ProfileModal } from './ProfileModal';
+import { Button } from 'components/_shared/Button';
+import {
+  InfoItem,
+  InfoTitle,
+  InfoValue,
+  Title,
+  StyledButton,
+  UserMessage
+} from './Profile.styles';
 
 export const Profile = () => {
   const user = useSelector(selectUser);
   const history = useHistory();
-  const { toggleLogoutModal } = useUserActions();
+  const { toggleLogoutModal, updateUser } = useUserActions();
+  const { setOpenContactUs } = useInterfaceActions();
   const [isOpenModal, setIsOpenModal] = useState(false);
 
   const toggleModal = () => setIsOpenModal(!isOpenModal);
   const handleChangePassword = () => {
     history.push(ROUTES.RESET_PASSWORD);
+  };
+  const handleTopUp = () => {
+    setOpenContactUs(true);
+    if (user.trial_finished_at && !user.is_trial_end_notified)
+      updateUser({ is_trial_end_notified: true });
   };
 
   return (
@@ -23,14 +37,30 @@ export const Profile = () => {
         <InfoTitle>Email address:</InfoTitle>
         <InfoValue>{user.email}</InfoValue>
       </InfoItem>
-      <InfoItem>
-        <InfoTitle>Your balance:</InfoTitle>
-        <InfoValue large>${user.balance}</InfoValue>
-      </InfoItem>
-      <InfoItem>
-        <InfoTitle>Personal discount:</InfoTitle>
-        <InfoValue large>{user.discount}%</InfoValue>
-      </InfoItem>
+      {user.trial_finished_at ? (
+        <>
+          <InfoItem>
+            <InfoTitle>Your balance:</InfoTitle>
+            <InfoValue large>${user.balance}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoTitle>Personal discount:</InfoTitle>
+            <InfoValue large>{user.discount}%</InfoValue>
+          </InfoItem>
+          {!user.is_trial_end_notified && (
+            <UserMessage>
+              The trial period is finished. Please top up your balance
+            </UserMessage>
+          )}
+        </>
+      ) : (
+        <UserMessage>
+          To end trial period and unlock all features, please top up your account
+        </UserMessage>
+      )}
+      <Button icon='Plus' variant='primary' onClick={handleTopUp}>
+        Top-up account
+      </Button>
       <Title>Administration</Title>
       <StyledButton icon='Eye' onClick={handleChangePassword}>
         Change password
