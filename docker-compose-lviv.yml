@@ -17,6 +17,8 @@ services:
     build:
       context: ./webapplication
       dockerfile: prod.Dockerfile
+      args:
+        DEFAULT_SYSTEM_NOTIFICATION_EMAIL:
     volumes:
       - ./webapplication:/code
       - ../geoap_data:/data
