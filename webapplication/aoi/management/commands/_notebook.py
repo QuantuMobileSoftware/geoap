@@ -45,8 +45,7 @@ def email_notification(request, status):
     \n\nClick the link below to visit the site:\n{request.request_origin}"""
     send_email_notification(user_data.email, message, settings.EMAIL_SUBJECT)
 
-    system_email = os.getenv("DEFAULT_SYSTEM_NOTIFICATION_EMAIL", '')
-    if system_email:
+    if settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL:
         system_message=f"""
         Status: {status.upper()},
         Error: {request.error},
@@ -62,7 +61,7 @@ def email_notification(request, status):
         User name: {user_data.username},
         User email: {user_data.email}
         """
-        send_email_notification(system_email, system_message, f"{settings.EMAIL_SUBJECT} - {status.upper()}")
+        send_email_notification(settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL, system_message, f"{settings.EMAIL_SUBJECT} - {status.upper()}")
 
 
 
