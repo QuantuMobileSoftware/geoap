@@ -52,7 +52,7 @@ def email_notification(request, status):
         Error: {request.error},
         Domain: {request.request_origin},
         
-        AoI Name: {aoi_name.name},
+        AoI Name: {aoi_name.name if aoi_name else None},
         AoI polygon: {request.polygon.wkt},
         Component name: {request.component_name},
         Start date: {request.date_from.strftime("%Y/%m/%d") if request.date_from else None},
