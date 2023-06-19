@@ -30,7 +30,7 @@ def send_email_notification(request, status):
         logger.info(f"Not sending email for user '{user_data.email}'")
         return
 
-    message = f"""Your request for AOI '{aoi_name.name}' and layer '{request.component_name}' is {status}
+    message = f"""Your request for AOI '{aoi_name.name if aoi_name else request.polygon.wkt}' and layer '{request.component_name}' is {status}
     \n\nClick the link below to visit the site:\n{request.request_origin}"""
     recipient_list = [user_data.email]
     result = 0
