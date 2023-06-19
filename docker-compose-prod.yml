@@ -31,8 +31,6 @@ services:
       - db
     networks:
       - sip
-    env_file:
-      - .env
     restart: on-failure
 
   webserver:
