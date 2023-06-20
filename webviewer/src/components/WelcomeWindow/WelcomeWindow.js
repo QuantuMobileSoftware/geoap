@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Analytics } from './components/Analytics';
 import { STORAGE_WELCOME_KEY } from '_constants';
+import { useDomainData } from 'hooks';
 import {
   Services,
   ServiceItem,
@@ -15,13 +16,11 @@ export const WelcomeWindow = ({ onClose }) => {
   const [isChecked, setIsChecked] = useState(false);
   const handleClick = e => setIsChecked(e.target.checked);
   const handleClose = () => onClose(isChecked);
-
-  const domain = window.location.hostname;
-  const title = domain === 'localhost' ? 'Agrieos' : 'SoilMate';
+  const { titleName } = useDomainData();
 
   return (
     <StyledWindow>
-      <Header>Welcome to {title}</Header>
+      <Header>Welcome to {titleName}</Header>
       <Title> Your best geoanalytical service powered with AI </Title>
       <Services>
         <ServiceItem>1. Define your area of interest (AOI)</ServiceItem>
