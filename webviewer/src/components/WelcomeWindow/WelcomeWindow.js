@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Analytics } from './components/Analytics';
 import { STORAGE_WELCOME_KEY } from '_constants';
+import { getDomainData } from 'utils';
 import {
   Services,
   ServiceItem,
@@ -15,10 +16,11 @@ export const WelcomeWindow = ({ onClose }) => {
   const [isChecked, setIsChecked] = useState(false);
   const handleClick = e => setIsChecked(e.target.checked);
   const handleClose = () => onClose(isChecked);
+  const { name } = getDomainData();
 
   return (
     <StyledWindow>
-      <Header>Welcome to SoilMate</Header>
+      <Header>Welcome to {name}</Header>
       <Title> Your best geoanalytical service powered with AI </Title>
       <Services>
         <ServiceItem>1. Define your area of interest (AOI)</ServiceItem>

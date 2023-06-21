@@ -1,19 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '_constants';
 import { StyledLogo } from './Logo.styles';
-
-import defaultLogoSvg from 'assets/images/logo.svg';
-import agrieosLogoPng from 'assets/images/agrieos-logo.png';
+import { getDomainData } from 'utils';
 
 export const Logo = ({ ...props }) => {
-  const domain = window.location.hostname;
+  const { logo } = getDomainData();
 
-  let logo = defaultLogoSvg;
-
-  if (domain === 'agrieos.in') {
-    logo = agrieosLogoPng;
-  }
   return (
     <Link to={ROUTES.ROOT}>
       <StyledLogo {...props}>
