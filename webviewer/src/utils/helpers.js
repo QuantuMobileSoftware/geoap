@@ -1,5 +1,8 @@
 import Wkt from 'wicket';
 import { isArray, isEmpty, isFunction, mergeWith, round } from 'lodash-es';
+import { useState, useEffect } from 'react';
+import defaultLogoSvg from 'assets/images/logo.svg';
+import agrieosLogoPng from 'assets/images/agrieos-logo.png';
 
 export const withFunction = (value, args) => {
   return isFunction(value) ? value(args) : value;
@@ -97,4 +100,24 @@ export const getSquareKilometers = meters => {
   const kilometers = meters / quantityMetersInKm;
   const roundPrecision = kilometers < 1 ? 2 : 0;
   return round(kilometers, roundPrecision);
+};
+
+const DOMAIN_DICT = {
+  'agrieos.in': {
+    name: 'Agrieos',
+    logo: agrieosLogoPng
+  },
+  'portal.soilmate.ai': {
+    name: 'SoilMate',
+    logo: defaultLogoSvg
+  },
+  default: {
+    name: 'GeoAP',
+    logo: defaultLogoSvg
+  }
+};
+
+export const getDomainData = () => {
+  const hostName = window.location.hostname;
+  return DOMAIN_DICT[hostName] ?? DOMAIN_DICT.default;
 };
