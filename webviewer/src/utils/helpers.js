@@ -1,8 +1,8 @@
 import Wkt from 'wicket';
 import { isArray, isEmpty, isFunction, mergeWith, round } from 'lodash-es';
-import { useState, useEffect } from 'react';
 import defaultLogoSvg from 'assets/images/logo.svg';
 import agrieosLogoPng from 'assets/images/agrieos-logo.png';
+import soilmateLogoSvg from 'assets/images/soilmate-logo.svg';
 
 export const withFunction = (value, args) => {
   return isFunction(value) ? value(args) : value;
@@ -109,7 +109,7 @@ const DOMAIN_DICT = {
   },
   'portal.soilmate.ai': {
     name: 'SoilMate',
-    logo: defaultLogoSvg
+    logo: soilmateLogoSvg
   },
   default: {
     name: 'GeoAP',
