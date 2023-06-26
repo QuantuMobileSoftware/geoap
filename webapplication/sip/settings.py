@@ -251,4 +251,6 @@ TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 SITE_ID = 1
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
+DEFAULT_USER_TRANSACTION_STATUS = "Something went wrong, please contact us"
+
 

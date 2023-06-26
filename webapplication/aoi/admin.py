@@ -1,5 +1,5 @@
 from django.contrib.gis import admin
-from .models import AoI, Component, Request
+from .models import AoI, Component, Request, UserError
 from .forms import ComponentAdminForm
 
 
@@ -25,5 +25,12 @@ class ComponentAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'component', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', 'additional_parameter')
+                    'calculated', 'success', 'error', 'additional_parameter', 'user_error')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
+
+
+
+@admin.register(UserError)
+class UserErrorAdmin(admin.OSMGeoAdmin):
+    list_display = ('user_error', 'component_error')
+    readonly_fields = []

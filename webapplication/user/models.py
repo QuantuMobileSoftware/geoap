@@ -114,8 +114,12 @@ class Transaction(models.Model):
         )
 
     @staticmethod
-    def generate_comment(request: Request, aoi: AoI):
+    def generate_comment(request: Request, error=None):
         comment = f"{request.component_name}."
-        if aoi:
-            comment += f" Area: {aoi.name} processed."
+        if request.aoi:
+            comment += f" Area: {request.aoi.name}."
+        if not error:
+            comment += " Processing."
+        else:
+            comment += f" Error: '{error}'."
         return comment
