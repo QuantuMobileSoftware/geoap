@@ -23,13 +23,19 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         user_requests = Request.objects.filter(user_id=request.user.id)
         user_requests_list = user_requests.values_list('id', flat=True)
+
+        user_requests_filter = Q(request_id__in=user_requests_list)
+        is_null_filter = Q(request_id__isnull=True)
+        filtered_queryset = queryset.filter(user_requests_filter)
+        if not filtered_queryset.exists():
+             filtered_queryset = queryset.filter(is_null_filter)
+
         try:
             acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
-                return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))
-
+                return filtered_queryset
             query = filter_for_results_by_acl(acl.restrict_projects_to)
             return queryset.filter(query)
         
         except ObjectDoesNotExist:
-            return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))
+            return filtered_queryset
