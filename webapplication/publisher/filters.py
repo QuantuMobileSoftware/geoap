@@ -23,7 +23,6 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         user_requests = Request.objects.filter(user_id=request.user.id)
         user_requests_list = user_requests.values_list('id', flat=True)
-
         user_requests_filter = Q(request_id__in=user_requests_list)
         is_null_filter = Q(request_id__isnull=True)
         filtered_queryset = queryset.filter(user_requests_filter)
