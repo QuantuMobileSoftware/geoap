@@ -26,10 +26,10 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
         try:
             acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
-                return queryset.filter(request_id__in=user_requests_list)
+                return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))
 
             query = filter_for_results_by_acl(acl.restrict_projects_to)
             return queryset.filter(query)
         
         except ObjectDoesNotExist:
-            return queryset.filter(request_id__in=user_requests_list)
+            return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))
