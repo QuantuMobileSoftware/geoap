@@ -24,11 +24,18 @@ logger = logging.getLogger(__name__)
 THREAD_SLEEP = 10
 
 def clean_container_logs(logs):
+    # Remove line numbers
+    # like from this "00m [38;5;167;01mValueError[39;00m([38;5;124m"[39m[38;5;124mImages not loaded for given AOI."
     log_lines = logs.split('\n')
     log_lines = [re.sub(r'^\s*\d+\s*', '', line) for line in log_lines]
 
     log_text = ''.join(log_lines)
+    # Remove ANSI escape sequences
+    # from: '\x1b[0;31mValueError\x1b[0m Traceback (most recent call last)', 'Cell \x1b[0;32mIn[26],
+    # to: 'ValueError Traceback (most recent call last)', 'Cell In[26],
     log_text = re.sub(r'\x1b\[[0-9;]*m', '', log_text)
+    # Replace multiple spaces
+    log_text = re.sub(r'\s+', ' ', log_text)
     return log_text
 
 def send_email_notification(user_mail, email_message, subject):
@@ -189,8 +196,6 @@ class NotebookDockerThread(StoppableThread):
                     logger.info("No known error for component error")
                 request.save(update_fields=['error'])
                 #todo what if more then one error acceptable
-                #todo remove trash from original error message
-
 
                 request_transaction = request.transactions.first()
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
