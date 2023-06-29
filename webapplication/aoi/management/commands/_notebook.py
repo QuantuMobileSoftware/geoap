@@ -196,7 +196,7 @@ class NotebookDockerThread(StoppableThread):
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
                 request_transaction.rolled_back = True
                 request_transaction.completed = True
-                request_transaction.comment = Transaction.generate_comment(request, error=request.user_error if request.user_error else settings.DEFAULT_USER_TRANSACTION_STATUS)
+                request_transaction.comment = Transaction.generate_comment(request, error=request.user_error if request.user_error else settings.DEFAULT_TRANSACTION_ERROR_COMMENT)
                 with transaction.atomic():
                     request_transaction.save(update_fields=("rolled_back", "completed", "comment"))
                     request_transaction.user.save(update_fields=("on_hold",))
