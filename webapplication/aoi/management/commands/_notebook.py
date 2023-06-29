@@ -7,7 +7,7 @@ from threading import Thread, Lock, Event
 
 from django.db import transaction
 
-from aoi.models import Component, Request, AoI, UserError
+from aoi.models import Component, Request, AoI, TransactionsCommentErrorMessage
 from user.models import User, Transaction
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
@@ -185,10 +185,10 @@ class NotebookDockerThread(StoppableThread):
                     request.error = collected_error[len(collected_error) - error_max_length:]
                 else:
                     request.error = collected_error
-                known_errors = [error.component_error for error in UserError.objects.all()]
+                known_errors = [error.original_component_error for error in TransactionsCommentErrorMessage.objects.all()]
                 for error in known_errors:
                     if error in request.error:
-                        request.user_error = UserError.objects.get(component_error=error).user_error
+                        request.user_error = TransactionsCommentErrorMessage.objects.get(original_component_error=error).user_readable_error
                         request.save(update_fields=['user_error'])
                         logger.info("Known error added")
                         break

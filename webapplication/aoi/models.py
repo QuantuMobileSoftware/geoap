@@ -129,6 +129,6 @@ class Request(models.Model):
         return self.component.name
 
 
-class UserError(models.Model):
-    user_error = models.CharField(max_length=400, blank=True, null=True, verbose_name='User error')
-    component_error = models.CharField(max_length=400, blank=True, null=True, unique=True, verbose_name='Component error')
+class TransactionsCommentErrorMessage(models.Model):
+    user_readable_error = models.CharField(max_length=400, blank=True, null=True, verbose_name='User-readable Error Message')
+    original_component_error = models.CharField(max_length=400, blank=True, null=True, unique=True, verbose_name='Original component "error" example')
