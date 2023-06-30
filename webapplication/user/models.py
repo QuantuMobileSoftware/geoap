@@ -118,8 +118,6 @@ class Transaction(models.Model):
         comment = f"{request.component_name}."
         if request.aoi:
             comment += f" Area: {request.aoi.name}."
-        if not error:
-            comment += " Processing."
-        else:
+        if error:
             comment += f" Errors: {', '.join([item for item in error])}."
         return comment
