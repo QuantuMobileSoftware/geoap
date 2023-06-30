@@ -176,8 +176,6 @@ class NotebookDockerThread(StoppableThread):
                 request.calculated = True
                 request.save(update_fields=['calculated'])
             else:
-                import pydevd_pycharm
-                pydevd_pycharm.settrace('host.docker.internal', port=5678, stdoutToServer=True, stderrToServer=True)
                 request.finished_at = localtime()
                 request.save(update_fields=['finished_at'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
