@@ -121,5 +121,8 @@ class Transaction(models.Model):
         if not error:
             comment += " Processing."
         else:
-            comment += f" Error: '{error}'."
+            if len(error) > 1:
+                comment += f" Errors: {', '.join([item for item in error])}."
+            else:
+                comment += f" Error: '{error}'."
         return comment

@@ -18,6 +18,7 @@ from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ def email_notification(request, status):
     if settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL:
         system_message=f"""
         Status: {status.upper()},
-        Error: {request.user_error if request.user_error else request.error},
+        Error: {', '.join(request.user_readable_errors) if request.user_readable_errors else request.error},
         Domain: {request.request_origin},
         
         AoI Name: {aoi_name.name if aoi_name else None},
@@ -175,6 +176,8 @@ class NotebookDockerThread(StoppableThread):
                 request.calculated = True
                 request.save(update_fields=['calculated'])
             else:
+                import pydevd_pycharm
+                pydevd_pycharm.settrace('host.docker.internal', port=5678, stdoutToServer=True, stderrToServer=True)
                 request.finished_at = localtime()
                 request.save(update_fields=['finished_at'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
@@ -186,22 +189,23 @@ class NotebookDockerThread(StoppableThread):
                 else:
                     request.error = collected_error
                 known_errors = [error.original_component_error for error in TransactionsCommentErrorMessage.objects.all()]
+                errors = []
                 for error in known_errors:
                     if error in request.error:
-                        request.user_error = TransactionsCommentErrorMessage.objects.get(original_component_error=error).user_readable_error
-                        request.save(update_fields=['user_error'])
-                        logger.info("Known error added")
-                        break
-                if not request.user_error:
+                        errors.append(TransactionsCommentErrorMessage.objects.get(original_component_error=error).user_readable_error)
+                if errors:
+                    request.user_readable_errors = errors
+                    request.save(update_fields=['user_readable_errors'])
+                    logger.info("Known error added")
+                else:
                     logger.info("No known error for component error")
                 request.save(update_fields=['error'])
-                #todo what if more then one error acceptable
 
                 request_transaction = request.transactions.first()
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
                 request_transaction.rolled_back = True
                 request_transaction.completed = True
-                request_transaction.comment = Transaction.generate_comment(request, error=request.user_error if request.user_error else settings.DEFAULT_TRANSACTION_ERROR_COMMENT)
+                request_transaction.comment = Transaction.generate_comment(request, error=request.user_readable_errors if request.user_readable_errors else settings.DEFAULT_TRANSACTION_ERROR_COMMENT)
                 with transaction.atomic():
                     request_transaction.save(update_fields=("rolled_back", "completed", "comment"))
                     request_transaction.user.save(update_fields=("on_hold",))
