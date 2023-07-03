@@ -44,6 +44,8 @@ services:
       - webapplication
     networks:
       - sip
+    env_file:
+      - .env
     restart: on-failure
 
 networks:

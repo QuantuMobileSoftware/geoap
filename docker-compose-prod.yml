@@ -46,6 +46,8 @@ services:
       - webapplication
     networks:
       - sip
+    env_file:
+      - .env
     restart: on-failure
 
   # https://github.com/bokysan/docker-postfix#relaying-messages-through-google-apps-account
