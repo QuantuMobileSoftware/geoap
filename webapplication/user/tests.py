@@ -298,6 +298,7 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:15:11.230000Z",
                 "request": None,
                 "comment": "",
+                "error": None,
                 "completed": False,
                 "rolled_back": False
             }
@@ -319,6 +320,7 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:16:21.210000Z",
                 "request": 1001,
                 "comment": "",
+                "error": None,
                 "completed": True,
                 "rolled_back": False
             },
@@ -330,6 +332,7 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:15:11.230000Z",
                 "request": None,
                 "comment": "",
+                "error": None,
                 "completed": False,
                 "rolled_back": False
             },
@@ -341,6 +344,7 @@ class TransactionTestCase(UserBase):
                 "updated_at": "2023-02-15T11:14:31.140000Z",
                 "request": 1001,
                 "comment": "",
+                "error": None,
                 "completed": True,
                 "rolled_back": False
             }
