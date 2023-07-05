@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='TransactionsCommentErrorMessage',
+            name='TransactionErrorMessage',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('user_readable_error', models.CharField(blank=True, max_length=400, null=True, verbose_name='User-readable Error Message')),

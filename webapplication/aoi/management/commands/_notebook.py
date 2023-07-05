@@ -7,7 +7,7 @@ from threading import Thread, Lock, Event
 
 from django.db import transaction
 
-from aoi.models import Component, Request, AoI, TransactionsCommentErrorMessage
+from aoi.models import Component, Request, AoI, TransactionErrorMessage
 from user.models import User, Transaction
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
@@ -186,11 +186,11 @@ class NotebookDockerThread(StoppableThread):
                     request.error = collected_error[len(collected_error) - error_max_length:]
                 else:
                     request.error = collected_error
-                known_errors = [error.original_component_error for error in TransactionsCommentErrorMessage.objects.all()]
+                known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
                 errors = []
                 for error in known_errors:
                     if error in request.error:
-                        errors.append(TransactionsCommentErrorMessage.objects.get(original_component_error=error).user_readable_error)
+                        errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
                 if errors:
                     request.user_readable_errors = errors
                     request.save(update_fields=['user_readable_errors'])
@@ -203,9 +203,9 @@ class NotebookDockerThread(StoppableThread):
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
                 request_transaction.rolled_back = True
                 request_transaction.completed = True
-                request_transaction.comment = Transaction.generate_comment(request, error=request.user_readable_errors if request.user_readable_errors else settings.DEFAULT_TRANSACTION_ERROR_COMMENT)
+                request_transaction.error = Transaction.generate_error(request.user_readable_errors)
                 with transaction.atomic():
-                    request_transaction.save(update_fields=("rolled_back", "completed", "comment"))
+                    request_transaction.save(update_fields=("rolled_back", "completed", "error"))
                     request_transaction.user.save(update_fields=("on_hold",))
 
                 email_notification(request, "failed")

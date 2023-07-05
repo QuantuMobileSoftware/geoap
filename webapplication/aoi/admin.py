@@ -1,5 +1,5 @@
 from django.contrib.gis import admin
-from .models import AoI, Component, Request, TransactionsCommentErrorMessage
+from .models import AoI, Component, Request, TransactionErrorMessage
 from .forms import ComponentAdminForm
 
 
@@ -30,7 +30,7 @@ class RequestAdmin(admin.OSMGeoAdmin):
 
 
 
-@admin.register(TransactionsCommentErrorMessage)
-class TransactionsCommentErrorMessageAdmin(admin.OSMGeoAdmin):
+@admin.register(TransactionErrorMessage)
+class TransactionErrorMessageAdmin(admin.OSMGeoAdmin):
     list_display = ('user_readable_error', 'original_component_error')
     readonly_fields = []

@@ -185,7 +185,6 @@ class RequestListCreateAPIView(ListCreateAPIView):
             user=user,
             amount=-amount,
             request=request,
-            comment=Transaction.generate_comment(request)
         )
         user.on_hold += amount
         user.save(update_fields=("on_hold",))

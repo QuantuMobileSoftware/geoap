@@ -102,6 +102,7 @@ class Transaction(models.Model):
     request = models.ForeignKey(Request, on_delete=models.PROTECT, default=None, blank=True, null=True,
                                 related_name="transactions")
     comment = models.TextField(_("Comment"), blank=True, default="")
+    error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)
     rolled_back = models.BooleanField(_("Rolled back"), default=False, blank=True, null=True)
 
@@ -114,10 +115,9 @@ class Transaction(models.Model):
         )
 
     @staticmethod
-    def generate_comment(request: Request, error=None):
-        comment = f"{request.component_name}."
-        if request.aoi:
-            comment += f" Area: {request.aoi.name}."
-        if error:
-            comment += f" Errors: {', '.join([item for item in error])}."
-        return comment
+    def generate_error(errors):
+        if errors:
+            return f" Errors: {', '.join([error for error in errors])}."
+        else:
+            return settings.DEFAULT_TRANSACTION_ERROR
+

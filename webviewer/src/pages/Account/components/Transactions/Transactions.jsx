@@ -102,7 +102,8 @@ export const Transactions = () => {
                 <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
                   {t.comment}
-                  {t.request && (
+                  {t.error && `Error: ${t.error}`}
+                  {t.request && !t.error && (
                     <ViewReportBtn request={t.request} areas={areas}>
                       View report
                     </ViewReportBtn>
