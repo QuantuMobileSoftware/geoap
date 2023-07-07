@@ -23,6 +23,7 @@ export const ButtonWrapper = styled.div`
     button:first-child {
       margin-right: ${em(11)};
       border: ${theme.borders.default(theme.fontSizes[2])};
+      margin-bottom: ${em(11)};
     }
   `}
 `;
