@@ -136,6 +136,7 @@ class AuthTestCase(UserBase):
             'trial_finished_at': None,
             'is_trial_end_notified': False,
             'receive_notification': True,
+            'server_for_calculation_is_needed': False,
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
