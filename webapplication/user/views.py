@@ -1,3 +1,6 @@
+import os.path
+
+import urllib3
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
 from django.conf import settings
@@ -10,9 +13,13 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
+from dj_rest_auth.views import UserDetailsView
 
 from user.models import Transaction
+from aoi.models import Component
+from django.db.models import Q
 from user.serializers import TransactionSerializer
+
 
 
 class RegisterView(BasicRegisterView):
@@ -22,6 +29,22 @@ class RegisterView(BasicRegisterView):
         user.groups.add(client_group)
         user.start_trial()
         return user
+
+
+class CustomUserDetailsView(UserDetailsView):
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        component_with_remote_executions = Component.objects.filter(Q(success=True) & Q(geoap_creds_required=True))
+        response.data['server_for_calculation_is_needed'] = component_with_remote_executions.exists()
+        if component_with_remote_executions.exists():
+            response.data['remote_server_available'] = True
+            timeout = urllib3.Timeout(total=5, connect=1.0, read=1.0)
+            http = urllib3.PoolManager(timeout=timeout)
+            try:
+                http.request("GET", os.path.join(settings.DEFAULT_REMOTE_SERVER, "api/request"))
+            except urllib3.exceptions.MaxRetryError:
+                response.data['remote_server_available'] = False
+        return response
 
 
 class VerifyEmailView(APIView, ConfirmEmailView):
