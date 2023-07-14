@@ -10,6 +10,7 @@ uWSGI==2.0.18
 coverage==6.3.2
 Pillow==9.5.0
 urllib3==1.26.15
+django-waffle
 
 psycopg2==2.8.5
 invoke==1.4.1

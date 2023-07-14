@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'flat_json_widget',
     'drf_yasg',
     'rangefilter',
+    'waffle',
 
     # Local Apps
     'user',
@@ -86,6 +87,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'waffle.middleware.WaffleMiddleware'
 ]
 
 ROOT_URLCONF = 'sip.urls'
@@ -251,5 +253,5 @@ TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 SITE_ID = 1
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
-DEFAULT_REMOTE_SERVER = "http://10.8.0.8:8080"
+WAFFLE_CREATE_MISSING_SWITCHES = True
 

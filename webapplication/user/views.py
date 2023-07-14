@@ -1,6 +1,3 @@
-import os.path
-
-import urllib3
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
 from django.conf import settings
@@ -19,6 +16,7 @@ from user.models import Transaction
 from aoi.models import Component
 from django.db.models import Q
 from user.serializers import TransactionSerializer
+from waffle import switch_is_active
 
 
 
@@ -37,13 +35,12 @@ class CustomUserDetailsView(UserDetailsView):
         component_with_remote_executions = Component.objects.filter(Q(success=True) & Q(geoap_creds_required=True))
         response.data['server_for_calculation_is_needed'] = component_with_remote_executions.exists()
         if component_with_remote_executions.exists():
-            response.data['remote_server_available'] = True
-            timeout = urllib3.Timeout(total=5, connect=1.0, read=1.0)
-            http = urllib3.PoolManager(timeout=timeout)
-            try:
-                http.request("GET", os.path.join(settings.DEFAULT_REMOTE_SERVER, "api/request"))
-            except urllib3.exceptions.MaxRetryError:
+            server_is_overloaded_notification = switch_is_active('our_server_is_overloaded_notification')
+            remote_server_available = switch_is_active('remote_server_available')
+            if server_is_overloaded_notification:
                 response.data['remote_server_available'] = False
+            else:
+                response.data['remote_server_available'] = remote_server_available
         return response
 
 
