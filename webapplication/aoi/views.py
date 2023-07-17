@@ -40,7 +40,9 @@ class AoIListCreateAPIView(ListCreateAPIView):
         return queryset.filter(user=self.request.user)
         
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        request_data = request.data.copy()
+        request_data["available_dates"] = AoI.get_available_image_dates(request_data['polygon'])
+        serializer = self.get_serializer(data=request_data)
         if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):
             return Response(status=status.HTTP_403_FORBIDDEN)
