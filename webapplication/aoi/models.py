@@ -114,6 +114,14 @@ class Component(models.Model):
         (DATE_SEASON_TYPE, "SEASON"),
         (DATE_DAY_TYPE, "DAY")
     )
+    SENTINEL_IMAGE_NONE_TYPE = 1
+    SENTINEL_IMAGE_SENTINEL1_TYPE = 2
+    SENTINEL_IMAGE_SENTINEL2_TYPE = 3
+    SENTINEL_IMAGE_CHOICES = (
+        (SENTINEL_IMAGE_NONE_TYPE, "None"),
+        (SENTINEL_IMAGE_SENTINEL1_TYPE, "Sentinel-1"),
+        (SENTINEL_IMAGE_SENTINEL2_TYPE, "Sentinel-2"),
+    )
 
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
     basic_price = models.DecimalField(_("Basic Price (per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
@@ -129,6 +137,7 @@ class Component(models.Model):
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run')
+    sentinel_image_type = models.IntegerField(choices=SENTINEL_IMAGE_CHOICES, default=SENTINEL_IMAGE_NONE_TYPE)
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
     planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
     sentinel_google_api_key_required = models.BooleanField(default=False,

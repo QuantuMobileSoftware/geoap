@@ -4,7 +4,7 @@ import { SEASONS, SEASON_DATES, WINTER_TEXT, SUMMER_TEXT, getSeasonList } from '
 import { StyledSelect, StyledDayPicker } from './PeriodSelect.styles';
 
 export const PeriodSelect = props => {
-  const { notebook, startDate, endDate, setStartDate, setEndDate } = props;
+  const { notebook, startDate, endDate, setStartDate, setEndDate, currentArea } = props;
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [season, setSeason] = useState();
@@ -13,6 +13,22 @@ export const PeriodSelect = props => {
   const MIN_DATE = new Date(START_YEAR, 0, 1);
 
   const seasonList = useMemo(() => getSeasonList(START_YEAR), []);
+
+  let highlightedDates = [];
+
+  if (currentArea.available_dates) {
+    if (
+      notebook.sentinel_image_type === 2 &&
+      currentArea.available_dates.hasOwnProperty('Sentinel-1')
+    ) {
+      highlightedDates = currentArea.available_dates['Sentinel-1'];
+    } else if (
+      notebook.sentinel_image_type === 3 &&
+      currentArea.available_dates.hasOwnProperty('Sentinel-2')
+    ) {
+      highlightedDates = currentArea.available_dates['Sentinel-2'];
+    }
+  }
 
   const handleYearChange = item => {
     setYear(item.value);
@@ -79,6 +95,7 @@ export const PeriodSelect = props => {
             onChange={setStartDate}
             minDate={MIN_DATE}
             maxDate={Date.now()}
+            highlightedDates={highlightedDates}
           />
           <StyledDayPicker
             placeholderText='To'
@@ -86,6 +103,7 @@ export const PeriodSelect = props => {
             onChange={setEndDate}
             minDate={MIN_DATE}
             maxDate={Date.now()}
+            highlightedDates={highlightedDates}
           />
         </>
       );

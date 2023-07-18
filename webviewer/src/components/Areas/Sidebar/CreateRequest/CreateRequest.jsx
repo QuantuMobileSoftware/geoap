@@ -40,7 +40,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
         additional_parameter: layer.additional_parameter,
         period_required: layer.period_required,
         date_type: layer.date_type,
-        title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`
+        title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`,
+        sentinel_image_type: layer.sentinel_image_type
       })),
     [layers]
   );
@@ -112,6 +113,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
             endDate={endDate}
             setStartDate={setStartDate}
             setEndDate={setEndDate}
+            currentArea={currentArea}
           />
         )}
         <AdditionalField

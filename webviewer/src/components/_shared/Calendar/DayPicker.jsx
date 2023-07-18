@@ -5,18 +5,21 @@ import {
   DayPickerWrapper,
   StyledCalendarContainer,
   CalendarDay,
+  AvaliableDayNotification,
   CalendarTitle
 } from './Calendar.styles';
 
-const renderDayContents = day => {
+const renderDayContents = highlightedDates => (day, date) => {
+  const isHighlighted = highlightedDates.includes(date.toISOString().slice(0, 10));
+
   return (
-    <CalendarDay>
+    <CalendarDay className={isHighlighted ? 'highlighted-date' : null}>
       <span>{day}</span>
     </CalendarDay>
   );
 };
 
-export const DayPicker = ({ title, ...props }) => {
+export const DayPicker = ({ title, highlightedDates, ...props }) => {
   const calendarRef = useRef(null);
 
   const CalendarContainer = ({ children }) => {
@@ -26,6 +29,9 @@ export const DayPicker = ({ title, ...props }) => {
         <ApplyButton variant='primary' onClick={() => calendarRef.current.setOpen(false)}>
           apply
         </ApplyButton>
+        <AvaliableDayNotification>
+          - means that a satellite image is avaliable for that day.
+        </AvaliableDayNotification>
       </StyledCalendarContainer>
     );
   };
@@ -38,7 +44,7 @@ export const DayPicker = ({ title, ...props }) => {
         dateFormat='yyyy/MM/dd'
         calendarContainer={CalendarContainer}
         ref={calendarRef}
-        renderDayContents={renderDayContents}
+        renderDayContents={renderDayContents(highlightedDates)}
         disabledKeyboardNavigation
         {...props}
       />
