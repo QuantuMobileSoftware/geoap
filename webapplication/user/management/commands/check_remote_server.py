@@ -19,11 +19,18 @@ class Command(BaseCommand):
             try:
                 with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.GEOAP_CREDS), "r") as f:
                     geoap_creds_data = json.load(f)
-                http.request("GET", geoap_creds_data["API_ENDPOINT"] + "api/request")
+                response = http.request("GET", geoap_creds_data["API_ENDPOINT"] + "api/request")
+                if response.status in [502, 503, 504]:
+                    raise Exception(f"Remote server returned status code {response.status}")
+
             except urllib3.exceptions.MaxRetryError:
                 remote_server_available_switch.active = False
                 remote_server_available_switch.save()
-                logger.info("Remote server is unavailable.")
+                logger.info("Remote server is unavailable. Error: MaxRetryError")
+            except Exception as e:
+                remote_server_available_switch.active = False
+                remote_server_available_switch.save()
+                logger.info(f"Remote server is unavailable. Error: {str(e)}")
             else:
                 remote_server_available_switch.active = True
                 remote_server_available_switch.save()
