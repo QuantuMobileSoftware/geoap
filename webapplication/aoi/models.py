@@ -57,10 +57,13 @@ class AoI(models.Model):
                 sentinelhub_creds = json.load(f)
         except FileNotFoundError:
             logger.warning(f"File {file_path} not found. Unable to read Sentinel Hub image credentials.")
+            return None
         except json.JSONDecodeError as ex:
             logger.warning(f"Error decoding JSON in {file_path}: {ex}")
+            return None
         except Exception as ex:
             logger.warning(f"An unexpected error occurred while reading {file_path}: {ex}")
+            return None
 
         finish_date = datetime.datetime.now()
         start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
