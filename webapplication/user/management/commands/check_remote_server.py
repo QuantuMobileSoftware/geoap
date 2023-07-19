@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.GEOAP_CREDS), "r") as f:
                     geoap_creds_data = json.load(f)
                 response = http.request("GET", geoap_creds_data["API_ENDPOINT"] + "api/request")
-                if response.status in [502, 503, 504]:
+                if response.status >= 500:
                     raise Exception(f"Remote server returned status code {response.status}")
 
             except urllib3.exceptions.MaxRetryError:
