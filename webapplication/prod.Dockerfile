@@ -6,6 +6,8 @@ WORKDIR /code
 
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
+ARG SECRET_KEY
+ENV SECRET_KEY ${SECRET_KEY}
 
 COPY . /code/
 RUN python -m compileall -b . && find -name '*.py' -exec rm {} \;
