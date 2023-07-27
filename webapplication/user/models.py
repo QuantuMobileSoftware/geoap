@@ -117,7 +117,7 @@ class Transaction(models.Model):
     @staticmethod
     def generate_error(errors):
         if errors:
-            return f" Errors: {', '.join([error for error in errors])}."
+            return ', '.join([error for error in errors])
         else:
             return settings.DEFAULT_TRANSACTION_ERROR
 
