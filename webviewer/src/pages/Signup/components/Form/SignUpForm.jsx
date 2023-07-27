@@ -5,10 +5,14 @@ import { Button } from 'components/_shared/Button';
 import { Link } from 'components/_shared/Link';
 import { ROUTES } from '_constants';
 import { validationSchema, _initialValues } from './formValues';
-import { StyledMessage, StyledForm } from './SignUp.styles';
+import { StyledMessage, StyledForm, TermsOfService } from './SignUp.styles';
 
 const formMessage = (
   <>
+    <TermsOfService>
+      By clicking on Sing up, you agree to <Link to={ROUTES.TERMS}>Terms of Service</Link>{' '}
+      and <Link to={ROUTES.POLICY}>Privacy Policy</Link>
+    </TermsOfService>
     <StyledMessage>Already have an account? </StyledMessage>
     <Link to={ROUTES.AUTH}>Login</Link>
   </>
