@@ -62,7 +62,7 @@ class TransactionModel(admin.ModelAdmin):
 
     fieldsets = (
         (_('Transaction info'), {
-            'fields': ('amount', 'user', 'request', 'comment', 'completed', 'rolled_back')
+            'fields': ('amount', 'user', 'request', 'comment', 'error', 'completed', 'rolled_back')
         }),
         (_('Important dates'), {
             'classes': ('collapse',),
@@ -72,6 +72,6 @@ class TransactionModel(admin.ModelAdmin):
     raw_id_fields = ("user", "request")
     add_fieldsets = (
         (_('Transaction info'), {
-            'fields': ('amount', 'user', 'request', 'comment', 'completed')
+            'fields': ('amount', 'user', 'request', 'comment', 'error', 'completed')
         }),
     )

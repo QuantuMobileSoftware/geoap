@@ -94,6 +94,11 @@ export const Transactions = () => {
             const amount = isNegativeAmount
               ? `- $${Math.abs(t.amount)}`
               : `${t.amount === 0 ? '' : '+'} $${t.amount}`;
+            const area = areas.find(({ requests }) =>
+              requests.some(r => r.id === t.request)
+            );
+            console.log(area);
+            const request = area?.requests.find(r => r.id === t.request);
 
             return (
               <tr key={t.id}>
@@ -102,7 +107,10 @@ export const Transactions = () => {
                 <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
                   {t.comment}
-                  {t.request && (
+                  {request && `Name: ${request.notebook_name}. `}
+                  {area && `Area: ${area.name}. `}
+                  {t.error && `Error: ${t.error}`}
+                  {t.request && !t.error && (
                     <ViewReportBtn request={t.request} areas={areas}>
                       View report
                     </ViewReportBtn>

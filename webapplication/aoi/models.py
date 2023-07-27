@@ -119,6 +119,7 @@ class Request(models.Model):
     calculated = models.BooleanField(default=False, verbose_name='Notebook calculated')
     success = models.BooleanField(default=False, verbose_name='Execution succeeded')
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
+    user_readable_errors = ArrayField(models.CharField(max_length=250), blank=True, null=True, verbose_name='User-readable errors')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     request_origin = models.CharField(max_length=50, default="https://portal.soilmate.ai/", verbose_name='Request origin')
@@ -126,3 +127,8 @@ class Request(models.Model):
     @property
     def component_name(self):
         return self.component.name
+
+
+class TransactionErrorMessage(models.Model):
+    user_readable_error = models.CharField(max_length=400, blank=True, null=True, verbose_name='User-readable Error Message')
+    original_component_error = models.CharField(max_length=400, blank=True, null=True, unique=True, verbose_name='Original component "error" example')

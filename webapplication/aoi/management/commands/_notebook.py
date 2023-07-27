@@ -1,14 +1,14 @@
 import docker
 import logging
-import os
+import re
 
 from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
 
 from django.db import transaction
 
-from aoi.models import Component, Request, AoI
-from user.models import User
+from aoi.models import Component, Request, AoI, TransactionErrorMessage
+from user.models import User, Transaction
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
@@ -18,10 +18,26 @@ from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+
+def clean_container_logs(logs):
+    # Remove line numbers
+    # like from this "00m [38;5;167;01mValueError[39;00m([38;5;124m"[39m[38;5;124mImages not loaded for given AOI."
+    log_lines = logs.split('\n')
+    log_lines = [re.sub(r'^\s*\d+\s*', '', line) for line in log_lines]
+
+    log_text = ''.join(log_lines)
+    # Remove ANSI escape sequences
+    # from: '\x1b[0;31mValueError\x1b[0m Traceback (most recent call last)', 'Cell \x1b[0;32mIn[26],
+    # to: 'ValueError Traceback (most recent call last)', 'Cell In[26],
+    log_text = re.sub(r'\x1b\[[0-9;]*m', '', log_text)
+    # Replace multiple spaces
+    log_text = re.sub(r'\s+', ' ', log_text)
+    return log_text
 
 def send_email_notification(user_mail, email_message, subject):
     result = 0
@@ -48,7 +64,7 @@ def email_notification(request, status):
     if settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL:
         system_message=f"""
         Status: {status.upper()},
-        Error: {request.error},
+        Error: {', '.join(request.user_readable_errors) if request.user_readable_errors else request.error},
         Domain: {request.request_origin},
         
         AoI Name: {aoi_name.name if aoi_name else None},
@@ -164,20 +180,32 @@ class NotebookDockerThread(StoppableThread):
                 request.save(update_fields=['finished_at'])
                 logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
                              f"logs: {attrs['logs']}")
-                collected_error = attrs['logs']
+                collected_error = clean_container_logs(attrs['logs'])
                 error_max_length = request._meta.get_field('error').max_length
                 if len(collected_error) > error_max_length:
                     request.error = collected_error[len(collected_error) - error_max_length:]
                 else:
                     request.error = collected_error
+                known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
+                errors = []
+                for error in known_errors:
+                    if error in request.error:
+                        errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
+                if errors:
+                    request.user_readable_errors = errors
+                    request.save(update_fields=['user_readable_errors'])
+                    logger.info("Known error added")
+                else:
+                    logger.info("No known error for component error")
                 request.save(update_fields=['error'])
 
                 request_transaction = request.transactions.first()
                 request_transaction.user.on_hold -= abs(request_transaction.amount)
                 request_transaction.rolled_back = True
                 request_transaction.completed = True
+                request_transaction.error = Transaction.generate_error(request.user_readable_errors)
                 with transaction.atomic():
-                    request_transaction.save(update_fields=("rolled_back", "completed"))
+                    request_transaction.save(update_fields=("rolled_back", "completed", "error"))
                     request_transaction.user.save(update_fields=("on_hold",))
 
                 email_notification(request, "failed")

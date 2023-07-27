@@ -180,12 +180,11 @@ class RequestListCreateAPIView(ListCreateAPIView):
             area = AoI.polygon_in_sq_km(polygon)
         return area
 
-    def create_transaction(self, user, amount, request, aoi):
+    def create_transaction(self, user, amount, request):
         Transaction.objects.create(
             user=user,
             amount=-amount,
             request=request,
-            comment=Transaction.generate_comment(request, aoi)
         )
         user.on_hold += amount
         user.save(update_fields=("on_hold",))
@@ -230,7 +229,6 @@ class RequestListCreateAPIView(ListCreateAPIView):
                 user=request.user,
                 amount=request_price,
                 request=serializer.instance,
-                aoi=serializer.validated_data.get("aoi", None)
             )
         if not serializer.instance:
             validation_error = ValidationError(_("Error while creating a report"))
