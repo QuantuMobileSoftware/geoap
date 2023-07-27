@@ -71,7 +71,8 @@ server {
         proxy_cache MAPBOX;
         proxy_cache_valid 200 31d;
         proxy_cache_use_stale  error timeout http_503 http_504;
-
+        
+        proxy_ssl_server_name on;
         proxy_pass https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v11/tiles/$1/$2/$3?access_token=${MAPBOX_ACCESS_TOKEN};
     }
 }
@@ -135,6 +136,7 @@ server {
         proxy_cache_valid 200 31d;
         proxy_cache_use_stale  error timeout http_503 http_504;
 
+        proxy_ssl_server_name on;
         proxy_pass https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v11/tiles/$1/$2/$3?access_token=${MAPBOX_ACCESS_TOKEN};
     }
 }

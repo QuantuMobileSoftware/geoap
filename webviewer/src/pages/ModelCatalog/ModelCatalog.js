@@ -6,6 +6,7 @@ import { ModelItem } from './components/ModelItem';
 import { Breadcrumbs } from 'components/_shared/Breadcrumbs';
 import { ROUTES } from '_constants';
 import { ModelWrapper, Container, StyledSelect } from './ModelCatalog.styles';
+import { RemoteServerNotification } from 'components/RemoteServerNotification';
 
 const filterDefaultValue = { name: 'All models', value: null };
 const breadcrumbsItems = [{ link: ROUTES.ROOT, text: 'Home' }, { text: 'Geo models' }];
@@ -33,6 +34,7 @@ export const ModelCatalog = () => {
 
   return (
     <>
+      <RemoteServerNotification />
       <Header />
       <Container>
         <Breadcrumbs items={breadcrumbsItems} />

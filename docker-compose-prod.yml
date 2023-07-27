@@ -14,9 +14,7 @@ services:
     restart: on-failure
 
   webapplication:
-    build:
-      context: ./webapplication
-      dockerfile: prod.Dockerfile
+    image: registry.quantumobile.co/portal_soilmate_webapplication
     volumes:
       - ../data:/data
       - ../data/media:/media
@@ -34,19 +32,7 @@ services:
     restart: on-failure
 
   webserver:
-    build:
-      context: ./
-      dockerfile: ./webserver/prod.Dockerfile
-      args:
-        REACT_APP_HOTJAR_ID:
-        REACT_APP_HOTJAR_SV:
-        REACT_APP_EMAILJS_SERVICE_ID:
-        REACT_APP_EMAILJS_TEMPLATE_ID:
-        REACT_APP_EMAILJS_USER_ID:
-        REACT_APP_AUTOLOGIN:
-        REACT_APP_AUTOPASSWORD:
-        MAPBOX_ACCESS_TOKEN:
-        REACT_APP_IS_MAPBOX_AVAILABLE:
+    image: registry.quantumobile.co/portal_soilmate_webserver
     volumes:
       - ../data:/data
       - /etc/letsencrypt:/etc/letsencrypt

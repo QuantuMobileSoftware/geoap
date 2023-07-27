@@ -4,6 +4,7 @@ from rest_framework import filters
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from publisher.models import ACL
+from aoi.models import Request
 
 
 def filter_for_results_by_acl(restrict_projects_to):
@@ -20,13 +21,15 @@ class ResultsByACLFilterBackend(filters.BaseFilterBackend):
     record from ACL table where ACL.user == request.user.id has empty  restrict_projects_to field
     """
     def filter_queryset(self, request, queryset, view):
+        user_requests = Request.objects.filter(user_id=request.user.id)
+        user_requests_list = user_requests.values_list('id', flat=True)
         try:
             acl = ACL.objects.get(user=request.user.id)
             if len(acl.restrict_projects_to) == 0:
-                return queryset.all()
+                return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))
 
             query = filter_for_results_by_acl(acl.restrict_projects_to)
             return queryset.filter(query)
         
         except ObjectDoesNotExist:
-            return queryset.all()
+            return queryset.filter(Q(request_id__in=user_requests_list) | Q(request_id__isnull=True))

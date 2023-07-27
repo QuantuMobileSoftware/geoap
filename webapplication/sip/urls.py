@@ -3,13 +3,13 @@ SIP URL Configuration
 """
 from allauth.account.views import EmailVerificationSentView
 from dj_rest_auth.registration.views import ResendEmailVerificationView
-from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView, PasswordResetView, PasswordResetConfirmView, \
+from dj_rest_auth.views import LoginView, LogoutView, PasswordResetView, PasswordResetConfirmView, \
     PasswordChangeView
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.decorators.csrf import csrf_exempt
 
-from user.views import VerifyEmailView, RegisterView
+from user.views import VerifyEmailView, RegisterView, CustomUserDetailsView
 from .docs_drf_yasg import urlpatterns as doc_urls
 
 
@@ -20,7 +20,7 @@ auth_patterns = [
     path('password/reset', PasswordResetView.as_view(), name='rest_password_reset'),
     path('password/reset/confirm/<str:uidb64>/<str:token>', PasswordResetConfirmView.as_view(),
          name='password_reset_confirm'),
-    path('users/current', UserDetailsView.as_view(), name='rest_user_details'),
+    path('users/current', CustomUserDetailsView.as_view(), name='rest_user_details'),
     path('signup', RegisterView.as_view(), name='rest_register'),
     re_path(
         r'^signup/account-confirm-email/(?P<key>[-:\w]+)/$', VerifyEmailView.as_view(),
