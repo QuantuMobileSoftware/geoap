@@ -2,12 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { Header } from 'components/Header';
 
-import { ROUTES } from '_constants';
-import { ModelWrapper, Container, StyledSelect } from './Terms.styles';
+import { Container } from './Terms.styles';
 import { RemoteServerNotification } from 'components/RemoteServerNotification';
-
-const filterDefaultValue = { name: 'All models', value: null };
-const breadcrumbsItems = [{ link: ROUTES.ROOT, text: 'Home' }, { text: 'Geo models' }];
 
 export const Terms = () => {
   return (

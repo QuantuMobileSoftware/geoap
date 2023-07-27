@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import { em } from 'styles';
-import { Select } from 'components/_shared/Select';
 
 export const Container = styled.main`
   max-width: 1280px;
@@ -54,9 +53,4 @@ export const Container = styled.main`
     font-weight: 500;
     font-size: 1.5em;
   }
-`;
-
-export const StyledSelect = styled(Select)`
-  width: 160px;
-  margin-top: ${em(10)};
 `;
