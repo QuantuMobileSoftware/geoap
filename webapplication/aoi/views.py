@@ -41,7 +41,7 @@ class AoIListCreateAPIView(ListCreateAPIView):
         
     def create(self, request, *args, **kwargs):
         request_data = request.data.copy()
-        request_data["available_dates"] = AoI.get_available_image_dates(request_data['polygon'])
+        request_data["available_dates"] = AoI.get_available_image_dates(request_data['polygon'], short_period=True)
         serializer = self.get_serializer(data=request_data)
         if serializer.initial_data['user'] != self.request.user.id and \
                 not self.request.user.has_perm('add_another_user_aoi'):

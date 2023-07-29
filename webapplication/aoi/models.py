@@ -50,7 +50,7 @@ class AoI(models.Model):
         return self.polygon_in_sq_km(self.polygon)
 
     @staticmethod
-    def get_available_image_dates(polygon):
+    def get_available_image_dates(polygon, short_period=False):
         sentinelhub_creds = None
         file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.SENTINELHUB_IMAGES_CREDS)
         try:
@@ -67,7 +67,10 @@ class AoI(models.Model):
             return None
 
         finish_date = datetime.datetime.now()
-        start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
+        if short_period:
+            start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_SHORT_PERIOD_IN_DAYS)
+        else:
+            start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
         time_interval = start_date.strftime("%Y-%m-%d"), finish_date.strftime("%Y-%m-%d")
         cloud = settings.CLOUD_PERCENT_VALUE
         collections = [{
