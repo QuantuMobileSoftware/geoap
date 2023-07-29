@@ -1,5 +1,6 @@
 import datetime, os, json, logging
 from decimal import Decimal
+import shapely
 
 from django.contrib.gis.db import models
 from django.utils import timezone
@@ -87,7 +88,7 @@ class AoI(models.Model):
             return None
 
         catalog = SentinelHubCatalog(config=config)
-        fields = {"include": ["id", "properties.datetime", "properties.eo:cloud_cover"], "exclude": []}
+        fields = {"include": ["id", "properties.datetime", "properties.eo:cloud_cover", "geometry"], "exclude": []}
         result = {}
 
         for collection in collections:
@@ -98,10 +99,25 @@ class AoI(models.Model):
                 filter=collection["filter"],
                 fields=fields,
             )
+            full_coverage = []
+            partly_coverage = []
+            base_polygone = shapely.wkt.loads(polygon)
+            for image in search_iterator:
+                if image["geometry"]["crs"]["properties"]["name"] == 'urn:ogc:def:crs:OGC::CRS84':
+                    sentinelhub_polygone = shapely.geometry.Polygon(image["geometry"]["coordinates"][0][0])
+                    if base_polygone.within(sentinelhub_polygone):
+                        full_coverage.append(image['properties']['datetime'][0:10])
+                    else:
+                        partly_coverage.append(image['properties']['datetime'][0:10])
+                else:
+                    logger.warning("Image has another coordinates, not 'urn:ogc:def:crs:OGC::CRS84'")
 
-            photos = list(set([data['properties']['datetime'][0:10] for data in search_iterator]))
-            if photos:
-                result[collection["name"].collection_type] = photos
+
+            if full_coverage or partly_coverage:
+                result[collection["name"].collection_type] = {
+                    "full_coverage": list(set(full_coverage)),
+                    "partly_coverage": list(set(partly_coverage)),
+                }
 
         return result
 

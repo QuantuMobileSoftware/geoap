@@ -41,33 +41,45 @@ export const StyledIcon = styled(Icon)`
   transform: translateY(-50%);
   transform: rotate(${props => (props.open ? 180 : 0)}deg);
 `;
-export const AvaliableDayNotification = styled.p`
+const AvaliableDayNotification = css`
   display: block;
-  width: ${em(220)};
+  width: ${em(300)};
   margin: auto;
-  margin-top: ${em(4)};
+  margin-top: ${em(6)};
   clear: both;
-
   font-family: Poppins;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.2;
   color: inherit;
   font-weight: 400;
   color: #182b1c;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
 
   &::before {
     content: '';
     display: inline-grid;
-    width: ${rem(8)};
-    height: ${rem(8)};
-    background-color: green;
+    width: ${rem(6)};
+    height: ${rem(6)};
     border-radius: 50%;
     top: ${rem(0.3)};
     left: 0;
     transform: translateX(-50%);
     opacity: 1;
     transition: opacity 0.2s ease;
+  }
+`;
+
+export const AvaliableDayNotificationFullCoverage = styled.p`
+  ${AvaliableDayNotification};
+  &::before {
+    background-color: green;
+  }
+`;
+
+export const AvaliableDayNotificationPartlyCoverage = styled.p`
+  ${AvaliableDayNotification};
+  &::before {
+    background-color: #ff9900;
   }
 `;
 
@@ -167,8 +179,12 @@ export const CalendarDay = styled.div`
     transition: opacity 0.2s ease;
   }
 
-  &.highlighted-date::before {
+  &.full-coverage-date::before {
     opacity: 1;
+  }
+  &.partly-coverage-date::before {
+    opacity: 1;
+    background-color: #ff9900;
   }
 `;
 

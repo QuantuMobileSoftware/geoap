@@ -5,15 +5,30 @@ import {
   DayPickerWrapper,
   StyledCalendarContainer,
   CalendarDay,
-  AvaliableDayNotification,
+  AvaliableDayNotificationFullCoverage,
+  AvaliableDayNotificationPartlyCoverage,
   CalendarTitle
 } from './Calendar.styles';
 
 const renderDayContents = highlightedDates => (day, date) => {
-  const isHighlighted = highlightedDates.includes(date.toISOString().slice(0, 10));
+  const fullCoverageDates = highlightedDates.full_coverage || [];
+  const partlyCoverageDates = highlightedDates.partly_coverage || [];
+
+  const dateString = date.toISOString().slice(0, 10);
+
+  const isFullCoverage = fullCoverageDates.includes(dateString);
+  const isPartlyCoverage = partlyCoverageDates.includes(dateString);
 
   return (
-    <CalendarDay className={isHighlighted ? 'highlighted-date' : null}>
+    <CalendarDay
+      className={
+        isFullCoverage
+          ? 'full-coverage-date'
+          : isPartlyCoverage
+          ? 'partly-coverage-date'
+          : null
+      }
+    >
       <span>{day}</span>
     </CalendarDay>
   );
@@ -29,9 +44,12 @@ export const DayPicker = ({ title, highlightedDates, ...props }) => {
         <ApplyButton variant='primary' onClick={() => calendarRef.current.setOpen(false)}>
           apply
         </ApplyButton>
-        <AvaliableDayNotification>
+        <AvaliableDayNotificationFullCoverage>
           - means that a satellite image is avaliable for that day.
-        </AvaliableDayNotification>
+        </AvaliableDayNotificationFullCoverage>
+        <AvaliableDayNotificationPartlyCoverage>
+          - means that a satellite image is partly avaliable for that day.
+        </AvaliableDayNotificationPartlyCoverage>
       </StyledCalendarContainer>
     );
   };
