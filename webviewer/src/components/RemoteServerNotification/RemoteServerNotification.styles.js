@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 
 import { VIEWPORT_PADDING } from '_constants';
 
-import { em, rem } from 'styles';
+import { rem } from 'styles';
 
 import { StyledUserbar } from 'components/Userbar';
 
