@@ -16,17 +16,17 @@ export const PeriodSelect = props => {
 
   let highlightedDates = [];
 
-  if (currentArea.available_dates) {
+  if (currentArea.sentinel_hub_available_dates) {
     if (
       notebook.sentinel_image_type === 2 &&
-      currentArea.available_dates.hasOwnProperty('Sentinel-1')
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-1')
     ) {
-      highlightedDates = currentArea.available_dates['Sentinel-1'];
+      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-1'];
     } else if (
       notebook.sentinel_image_type === 3 &&
-      currentArea.available_dates.hasOwnProperty('Sentinel-2')
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
     ) {
-      highlightedDates = currentArea.available_dates['Sentinel-2'];
+      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-2'];
     }
   }
 

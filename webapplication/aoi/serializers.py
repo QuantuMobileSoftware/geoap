@@ -11,7 +11,7 @@ from .models import AoI, Component, Request
 class AoISerializer(serializers.ModelSerializer):
     class Meta:
         model = AoI
-        fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type', 'available_dates')
+        fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type', 'sentinel_hub_available_dates', 'sentinel_hub_available_dates_update_time')
         read_only_fields = ['createdat', ]
 
 

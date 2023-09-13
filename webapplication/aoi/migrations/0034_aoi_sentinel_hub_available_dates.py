@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='aoi',
-            name='available_dates',
+            name='sentinel_hub_available_dates',
             field=models.JSONField(blank=True, null=True, verbose_name='Available dates'),
         ),
     ]

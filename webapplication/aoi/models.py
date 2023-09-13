@@ -25,7 +25,8 @@ class AoI(models.Model):
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
     type = models.IntegerField(choices=AREA_TYPE_CHOICES, default=USER_DEFINED_TYPE)
-    available_dates = models.JSONField(blank=True, null=True, verbose_name='Available dates')
+    sentinel_hub_available_dates = models.JSONField(blank=True, null=True, verbose_name='Available dates from Sentinel Hub')
+    sentinel_hub_available_dates_update_time = models.DateTimeField(default=None, null=True, verbose_name='Sentinel Hub available dates update time')
 
 
     def __str__(self):
@@ -50,7 +51,7 @@ class AoI(models.Model):
         return self.polygon_in_sq_km(self.polygon)
 
     @staticmethod
-    def get_available_image_dates(polygon, short_period=False):
+    def get_available_image_dates(polygon):
         sentinelhub_creds = None
         file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.SENTINELHUB_IMAGES_CREDS)
         try:
@@ -67,10 +68,7 @@ class AoI(models.Model):
             return None
 
         finish_date = datetime.datetime.now()
-        if short_period:
-            start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_SHORT_PERIOD_IN_DAYS)
-        else:
-            start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
+        start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
         time_interval = start_date.strftime("%Y-%m-%d"), finish_date.strftime("%Y-%m-%d")
         cloud = settings.CLOUD_PERCENT_VALUE
         collections = [{
@@ -80,7 +78,7 @@ class AoI(models.Model):
             "name": DataCollection.SENTINEL1_IW,
             "filter": None
         }]
-
+        # todo: check when creds inactive
         config = SHConfig()
         config.sh_client_id = sentinelhub_creds.get("client_id", "")
         config.sh_client_secret = sentinelhub_creds.get("client_secret", "")
@@ -136,14 +134,6 @@ class Component(models.Model):
         (DATE_SEASON_TYPE, "SEASON"),
         (DATE_DAY_TYPE, "DAY")
     )
-    SENTINEL_IMAGE_NONE_TYPE = 1
-    SENTINEL_IMAGE_SENTINEL1_TYPE = 2
-    SENTINEL_IMAGE_SENTINEL2_TYPE = 3
-    SENTINEL_IMAGE_CHOICES = (
-        (SENTINEL_IMAGE_NONE_TYPE, "None"),
-        (SENTINEL_IMAGE_SENTINEL1_TYPE, "Sentinel-1"),
-        (SENTINEL_IMAGE_SENTINEL2_TYPE, "Sentinel-2"),
-    )
 
     name = models.CharField(max_length=200, blank=False, null=False, unique=True, verbose_name='Component name')
     basic_price = models.DecimalField(_("Basic Price (per 1.sq.km)"), max_digits=9, decimal_places=2, default=0)
@@ -159,7 +149,7 @@ class Component(models.Model):
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
     additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run')
-    sentinel_image_type = models.IntegerField(choices=SENTINEL_IMAGE_CHOICES, default=SENTINEL_IMAGE_NONE_TYPE)
+    sentinel_image_type = models.IntegerField(choices=settings.SENTINEL_IMAGE_CHOICES, default=settings.SENTINEL_IMAGE_NONE_TYPE)
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
     planet_api_key_required = models.BooleanField(default=False, verbose_name='Planet API key is required')
     sentinel_google_api_key_required = models.BooleanField(default=False,
