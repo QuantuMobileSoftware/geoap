@@ -15,7 +15,6 @@ export const PeriodSelect = props => {
   const seasonList = useMemo(() => getSeasonList(START_YEAR), []);
 
   let highlightedDates = [];
-
   if (currentArea.sentinel_hub_available_dates) {
     if (
       notebook.sentinel_image_type === 2 &&
@@ -27,6 +26,31 @@ export const PeriodSelect = props => {
       currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
     ) {
       highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-2'];
+    } else if (
+      notebook.sentinel_image_type === 4 &&
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-1') &&
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
+    ) {
+      const intersectionFullCoverage = currentArea.sentinel_hub_available_dates[
+        'Sentinel-1'
+      ].full_coverage.filter(item =>
+        currentArea.sentinel_hub_available_dates['Sentinel-2'].full_coverage.includes(
+          item
+        )
+      );
+
+      const intersectionPartlyCoverage = currentArea.sentinel_hub_available_dates[
+        'Sentinel-1'
+      ].partly_coverage.filter(item =>
+        currentArea.sentinel_hub_available_dates['Sentinel-2'].partly_coverage.includes(
+          item
+        )
+      );
+
+      highlightedDates = {
+        full_coverage: intersectionFullCoverage,
+        partly_coverage: intersectionPartlyCoverage
+      };
     }
   }
 
