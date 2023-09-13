@@ -4,6 +4,8 @@ const SIGN_UP = `${ROOT}signup`;
 const SIGN_UP_CONFIRM = `${ROOT}signup/account-confirm-email/:id`;
 const ACCOUNT = `${ROOT}account`;
 const MODELS = `${ROOT}models`;
+const TERMS = `${ROOT}terms`;
+const POLICY = `${ROOT}policy`;
 
 const PASSWORD_ROOT = `${ROOT}password`;
 const RESET_PASSWORD = `${PASSWORD_ROOT}/reset`;
@@ -19,5 +21,7 @@ export const ROUTES = {
   MODELS,
   RESET_PASSWORD,
   FORGOT_PASSWORD,
-  CONFIRM_PASSWORD
+  CONFIRM_PASSWORD,
+  TERMS,
+  POLICY
 };

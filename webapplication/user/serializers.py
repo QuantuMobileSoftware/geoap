@@ -16,8 +16,8 @@ class UserSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed', 'rolled_back')
-        read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'completed',
+        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed', 'rolled_back')
+        read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed',
                             'rolled_back')
 
 

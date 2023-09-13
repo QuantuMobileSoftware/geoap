@@ -313,6 +313,7 @@ class Geotif(File):
                    "--xyz",
                    "--webviewer=none",
                    "--processes=6",
+                   "--resampling=near",
                    f"--zoom={settings.ZOOM_LEVEL_MIN}-{settings.ZOOM_LEVEL_MAX}",
                    self.path,
                    save_path,
@@ -325,12 +326,12 @@ class Geotif(File):
                 logger.info(f"Changing projection to Web Mercator for {self.path}")
                 gdal.Warp(tmp_file.name,
                           dataset,
-                          resampleAlg=gdalconst.GRIORA_Cubic,
+                          resampleAlg=gdalconst.GRIORA_NearestNeighbour,
                           outputType=gdal.GDT_Byte,
                           dstSRS="EPSG:3857",
                           dstNodata=0
                           )
-                command[5] = tmp_file.name
+                command[6] = tmp_file.name
                 logger.info(f"Generating tiles for {self.path}")
                 self.run_process(command, timeout)
         else:

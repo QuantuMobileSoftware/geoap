@@ -20,18 +20,7 @@ export const useAreasActions = () => {
   const getAreas = useCallback(async () => {
     await handleAsync(async () => {
       const areas = (await API.areas.getAreas()).data;
-
-      const areasWithFields = await Promise.all(
-        areas.map(async area => {
-          const [requests, results] = await Promise.all([
-            API.areas.getAreaRequests(area.id),
-            API.areas.getAreaResults(area.id)
-          ]).then(responses => responses.map(({ data }) => data));
-
-          return { ...area, requests, results };
-        })
-      );
-
+      const areasWithFields = areas.map(area => ({ ...area, requests: [], results: [] }));
       dispatch(areasActions.setEntities(normalizeAreas(areasWithFields)));
     });
   }, [dispatch, handleAsync]);

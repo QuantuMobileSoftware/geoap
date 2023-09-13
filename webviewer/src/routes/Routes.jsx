@@ -5,7 +5,16 @@ import { useUserActions } from 'state';
 import { ROUTES } from '_constants';
 
 import { Route } from './Route';
-import { PageAuth, PageMain, SingUp, Account, ChangePassword, ModelCatalog } from 'pages';
+import {
+  PageAuth,
+  PageMain,
+  SingUp,
+  Account,
+  ChangePassword,
+  ModelCatalog,
+  Terms,
+  Policy
+} from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
 import { Spinner } from 'components/_shared/Spinner';
 
@@ -32,6 +41,8 @@ export const Routes = () => {
   return (
     <Switch>
       <Route path={ROUTES.MODELS} component={ModelCatalog} isPrivate />
+      <Route path={ROUTES.TERMS} component={Terms} />
+      <Route path={ROUTES.POLICY} component={Policy} />
       <Route path={ROUTES.ACCOUNT} component={Account} isPrivate />
       <Route path={ROUTES.SIGN_UP_CONFIRM} component={SingUp} />
       <Route path={ROUTES.SIGN_UP} component={SingUp} />
