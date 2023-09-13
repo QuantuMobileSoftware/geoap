@@ -1,4 +1,4 @@
 0 0 * * * python -m manage clean_sattelite_cache
 0 5 * * * python -m manage check_trial
-0 0 * * 0 python -m manage sentinel_available_dates
+* * * * * for i in {1..6}; do python -m manage sentinel_available_dates & sleep 10; done
 */5 * * * * python -m manage check_remote_server
