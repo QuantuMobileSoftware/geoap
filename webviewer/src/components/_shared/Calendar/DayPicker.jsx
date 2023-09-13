@@ -38,18 +38,27 @@ export const DayPicker = ({ title, highlightedDates, ...props }) => {
   const calendarRef = useRef(null);
 
   const CalendarContainer = ({ children }) => {
+    const hasFullCoverage =
+      highlightedDates.full_coverage && highlightedDates.full_coverage.length > 0;
+    const hasPartlyCoverage =
+      highlightedDates.partly_coverage && highlightedDates.partly_coverage.length > 0;
+
     return (
       <StyledCalendarContainer>
         <div>{children}</div>
         <ApplyButton variant='primary' onClick={() => calendarRef.current.setOpen(false)}>
           apply
         </ApplyButton>
-        <AvaliableDayNotificationFullCoverage>
-          - means that a satellite image is avaliable for that day.
-        </AvaliableDayNotificationFullCoverage>
-        <AvaliableDayNotificationPartlyCoverage>
-          - means that a satellite image is partly avaliable for that day.
-        </AvaliableDayNotificationPartlyCoverage>
+        {hasFullCoverage && (
+          <AvaliableDayNotificationFullCoverage>
+            - means that a satellite image is available for that day.
+          </AvaliableDayNotificationFullCoverage>
+        )}
+        {hasPartlyCoverage && (
+          <AvaliableDayNotificationPartlyCoverage>
+            - means that a satellite image is partly available for that day.
+          </AvaliableDayNotificationPartlyCoverage>
+        )}
       </StyledCalendarContainer>
     );
   };
