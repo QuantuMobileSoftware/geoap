@@ -1,13 +1,11 @@
-import datetime, os, json, logging
+import logging
 from decimal import Decimal
-import shapely
 
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 from django.conf import settings
-from sentinelhub import CRS, Geometry, DataCollection, SHConfig, SentinelHubCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -49,78 +47,6 @@ class AoI(models.Model):
     @property
     def area_in_sq_km(self) -> Decimal:
         return self.polygon_in_sq_km(self.polygon)
-
-    @staticmethod
-    def get_available_image_dates(polygon):
-        sentinelhub_creds = None
-        file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.SENTINELHUB_IMAGES_CREDS)
-        try:
-            with open(file_path, "r") as f:
-                sentinelhub_creds = json.load(f)
-        except FileNotFoundError:
-            logger.warning(f"File {file_path} not found. Unable to read Sentinel Hub image credentials.")
-            return None
-        except json.JSONDecodeError as ex:
-            logger.warning(f"Error decoding JSON in {file_path}: {ex}")
-            return None
-        except Exception as ex:
-            logger.warning(f"An unexpected error occurred while reading {file_path}: {ex}")
-            return None
-
-        finish_date = datetime.datetime.now()
-        start_date = finish_date - datetime.timedelta(days=settings.SENTINELHUB_IMAGES_PERIOD_IN_DAYS)
-        time_interval = start_date.strftime("%Y-%m-%d"), finish_date.strftime("%Y-%m-%d")
-        cloud = settings.CLOUD_PERCENT_VALUE
-        collections = [{
-            "name": DataCollection.SENTINEL2_L1C,
-            "filter": f"eo:cloud_cover < {cloud}"
-        }, {
-            "name": DataCollection.SENTINEL1_IW,
-            "filter": None
-        }]
-        # todo: check when creds inactive
-        config = SHConfig()
-        config.sh_client_id = sentinelhub_creds.get("client_id", "")
-        config.sh_client_secret = sentinelhub_creds.get("client_secret", "")
-        geometry = Geometry(polygon, CRS.WGS84)
-
-        if config.sh_client_id == "" or config.sh_client_secret == "":
-            logger.warning(f"No client_id or client_secret")
-            return None
-
-        catalog = SentinelHubCatalog(config=config)
-        fields = {"include": ["id", "properties.datetime", "properties.eo:cloud_cover", "geometry"], "exclude": []}
-        result = {}
-
-        for collection in collections:
-            search_iterator = catalog.search(
-                collection=collection["name"],
-                geometry=geometry,
-                time=time_interval,
-                filter=collection["filter"],
-                fields=fields,
-            )
-            full_coverage = []
-            partly_coverage = []
-            base_polygone = shapely.wkt.loads(polygon)
-            for image in search_iterator:
-                if image["geometry"]["crs"]["properties"]["name"] == 'urn:ogc:def:crs:OGC::CRS84':
-                    sentinelhub_polygone = shapely.geometry.Polygon(image["geometry"]["coordinates"][0][0])
-                    if base_polygone.within(sentinelhub_polygone):
-                        full_coverage.append(image['properties']['datetime'][0:10])
-                    else:
-                        partly_coverage.append(image['properties']['datetime'][0:10])
-                else:
-                    logger.warning("Image has another coordinates, not 'urn:ogc:def:crs:OGC::CRS84'")
-
-
-            if full_coverage or partly_coverage:
-                result[collection["name"].collection_type] = {
-                    "full_coverage": list(set(full_coverage)),
-                    "partly_coverage": list(set(partly_coverage)),
-                }
-
-        return result
 
 
 class Component(models.Model):
