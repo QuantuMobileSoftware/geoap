@@ -7,8 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 from django.conf import settings
 
-logger = logging.getLogger(__name__)
-
 
 class AoI(models.Model):
     USER_DEFINED_TYPE = 1
