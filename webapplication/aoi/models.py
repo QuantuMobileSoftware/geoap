@@ -1,4 +1,3 @@
-import logging
 from decimal import Decimal
 
 from django.contrib.gis.db import models
