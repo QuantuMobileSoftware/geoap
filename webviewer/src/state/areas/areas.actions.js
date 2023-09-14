@@ -25,6 +25,16 @@ export const useAreasActions = () => {
     });
   }, [dispatch, handleAsync]);
 
+  const getArea = useCallback(
+    async id => {
+      await handleAsync(async () => {
+        const area = await API.areas.getArea(id);
+        dispatch(areasActions.setEntity(area.data));
+      });
+    },
+    [dispatch, handleAsync]
+  );
+
   const saveAreaRequest = useCallback(
     async (id, request) => {
       await handleAsync(async () => {
@@ -179,6 +189,7 @@ export const useAreasActions = () => {
     isLoading,
     error,
     getAreas,
+    getArea,
     setEntitySize,
     setCurrentArea,
     setSelectedResult,

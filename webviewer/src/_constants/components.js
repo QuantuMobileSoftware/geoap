@@ -29,6 +29,7 @@ export const SHAPE_NAMES = {
 };
 
 export const GET_DATA_INTERVAL = 10000;
+export const GET_AREA_DATA_INTERVAL = 5000;
 
 export const FIELD_VALIDATION = {
   PASSWORD: 'Password must be at least 8 characters',
