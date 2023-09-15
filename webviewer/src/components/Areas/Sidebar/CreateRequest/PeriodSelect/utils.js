@@ -4,18 +4,18 @@ export const SEASONS = {
 };
 
 export const SEASON_DATES = {
-  [SEASONS.summer]: year => ({ start: new Date(year, 5, 1), end: new Date(year, 7, 31) }),
+  [SEASONS.summer]: year => ({ start: new Date(year, 4, 1), end: new Date(year, 7, 31) }),
   [SEASONS.winter]: year => ({
-    start: new Date(year, 11, 1),
+    start: new Date(year, 10, 1),
     end: new Date(year + 1, 1, 28)
   })
 };
 
 export const WINTER_TEXT = year =>
-  `Winter season - applies dates from December ${year} to February ${year + 1}`;
+  `Winter season - applies dates from November ${year} to February ${year + 1}`;
 
 export const SUMMER_TEXT = year =>
-  `Summer season - applies dates from June ${year} to August ${year}`;
+  `Summer season - applies dates from May ${year} to August ${year}`;
 
 export const getSeasonList = startYear => {
   const currentDate = new Date();
