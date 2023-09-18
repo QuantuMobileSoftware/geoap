@@ -18,6 +18,7 @@ class ComponentAdmin(admin.OSMGeoAdmin):
                     'additional_parameter', 'period_required',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk',)
+    exclude = ('sentinel_image_type',)
 
     form = ComponentAdminForm
 
