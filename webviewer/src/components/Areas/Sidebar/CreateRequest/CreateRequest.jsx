@@ -41,7 +41,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
         period_required: layer.period_required,
         date_type: layer.date_type,
         title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`,
-        sentinel_image_type: layer.sentinel_image_type
+        sentinels: layer.sentinels
       })),
     [layers]
   );

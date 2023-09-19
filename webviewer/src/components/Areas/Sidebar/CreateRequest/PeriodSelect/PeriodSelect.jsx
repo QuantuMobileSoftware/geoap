@@ -17,17 +17,8 @@ export const PeriodSelect = props => {
   let highlightedDates = [];
   if (currentArea.sentinel_hub_available_dates) {
     if (
-      notebook.sentinel_image_type === 2 &&
-      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-1')
-    ) {
-      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-1'];
-    } else if (
-      notebook.sentinel_image_type === 3 &&
-      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
-    ) {
-      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-2'];
-    } else if (
-      notebook.sentinel_image_type === 4 &&
+      notebook.sentinels.includes('Sentinel-1') &&
+      notebook.sentinels.includes('Sentinel-2') &&
       currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-1') &&
       currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
     ) {
@@ -51,6 +42,16 @@ export const PeriodSelect = props => {
         full_coverage: intersectionFullCoverage,
         partly_coverage: intersectionPartlyCoverage
       };
+    } else if (
+      notebook.sentinels.includes('Sentinel-1') &&
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-1')
+    ) {
+      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-1'];
+    } else if (
+      notebook.sentinels.includes('Sentinel-2') &&
+      currentArea.sentinel_hub_available_dates.hasOwnProperty('Sentinel-2')
+    ) {
+      highlightedDates = currentArea.sentinel_hub_available_dates['Sentinel-2'];
     }
   }
 
