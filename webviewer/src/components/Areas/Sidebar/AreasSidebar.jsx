@@ -65,7 +65,12 @@ export const AreasSidebar = ({ ...props }) => {
       }, GET_AREA_DATA_INTERVAL);
       return () => clearInterval(intervalId);
     }
-  }, [currentAreaId, currentArea?.sentinel_hub_available_dates_update_time]);
+  }, [
+    currentAreaId,
+    currentArea?.sentinel_hub_available_dates_update_time,
+    currentArea?.id,
+    getArea
+  ]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
