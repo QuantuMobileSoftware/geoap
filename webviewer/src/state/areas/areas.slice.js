@@ -23,6 +23,12 @@ const areasSlice = createSlice({
     setEntities: (state, action) => {
       state.entities = { ...state.entities, ...action.payload };
     },
+    setEntity: (state, action) => {
+      state.entities[action.payload.id] = {
+        ...state.entities[action.payload.id],
+        ...action.payload
+      };
+    },
     setEntitySize: (state, action) => {
       state.entities[action.payload.id].size = action.payload.size;
     },

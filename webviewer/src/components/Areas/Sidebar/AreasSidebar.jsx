@@ -19,7 +19,7 @@ import {
   getSelectedResults
 } from 'state';
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE, GET_AREA_DATA_INTERVAL } from '_constants';
 
 const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, LEGEND } = SIDEBAR_MODE;
 
@@ -30,7 +30,7 @@ export const AreasSidebar = ({ ...props }) => {
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
   const selectedResults = useSelector(getSelectedResults);
-  const { getLayers, deleteSelectedResult } = useAreasActions();
+  const { getLayers, deleteSelectedResult, getArea } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
   const legendLabel = useMemo(() => {
@@ -53,6 +53,24 @@ export const AreasSidebar = ({ ...props }) => {
       deleteSelectedResult();
     }
   }, [sidebarMode, deleteSelectedResult]);
+
+  useEffect(() => {
+    if (
+      currentArea?.id === currentAreaId &&
+      currentArea?.sentinel_hub_available_dates_update_time === null
+    ) {
+      getArea(currentArea.id);
+      const intervalId = setInterval(() => {
+        getArea(currentArea.id);
+      }, GET_AREA_DATA_INTERVAL);
+      return () => clearInterval(intervalId);
+    }
+  }, [
+    currentAreaId,
+    currentArea?.sentinel_hub_available_dates_update_time,
+    currentArea?.id,
+    getArea
+  ]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {

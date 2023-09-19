@@ -20,6 +20,9 @@ class AoI(models.Model):
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
     createdat = models.DateTimeField(default=timezone.now)
     type = models.IntegerField(choices=AREA_TYPE_CHOICES, default=USER_DEFINED_TYPE)
+    sentinel_hub_available_dates = models.JSONField(blank=True, null=True, verbose_name='Available dates from Sentinel Hub')
+    sentinel_hub_available_dates_update_time = models.DateTimeField(default=None, null=True, verbose_name='Sentinel Hub available dates update time')
+
 
     def __str__(self):
         return self.name

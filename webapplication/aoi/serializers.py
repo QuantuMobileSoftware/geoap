@@ -11,7 +11,7 @@ from .models import AoI, Component, Request
 class AoISerializer(serializers.ModelSerializer):
     class Meta:
         model = AoI
-        fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type')
+        fields = ('id', 'user', 'name', 'polygon', 'createdat', 'type', 'sentinel_hub_available_dates', 'sentinel_hub_available_dates_update_time')
         read_only_fields = ['createdat', ]
 
 
@@ -21,7 +21,21 @@ class ComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Component
         fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
-                  'additional_parameter', 'period_required', 'date_type', 'description', 'domains', 'description_picture')
+                  'additional_parameter', 'period_required', 'date_type', 'description', 'domains',
+                  'description_picture')
+
+    def to_representation(self, instance):
+        data = super(ComponentSerializer, self).to_representation(instance)
+
+        flags = []
+        if instance.sentinel1_aws_creds_required:
+            flags.append("Sentinel-1")
+        if instance.sentinel_google_api_key_required:
+            flags.append("Sentinel-2")
+
+        data['sentinels'] = flags
+
+        return data
 
 
 class RequestSerializer(serializers.ModelSerializer):

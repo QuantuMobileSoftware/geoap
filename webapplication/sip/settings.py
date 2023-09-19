@@ -231,6 +231,10 @@ SENTINEL2_GOOGLE_API_KEY = '.secret/google-api-key.json'
 SENTINEL1_AWS_CREDS =  '.secret/sentinel1_aws_creds.json'
 SCIHUB_CREDS = '.secret/scihub_creds.json'
 GEOAP_CREDS = '.secret/geoap_creds.json'
+SENTINELHUB_IMAGES_CREDS = '.secret/sentinelhub_images_creds.json'
+CLOUD_PERCENT_VALUE = 15
+SENTINELHUB_IMAGES_PERIOD_IN_DAYS = 3 * 365
+SENTINELHUB_IMAGES_SHORT_PERIOD_IN_DAYS = 365
 ZOOM_LEVEL_MIN = 10
 ZOOM_LEVEL_MAX = 17
 
@@ -254,6 +258,6 @@ TRIAL_PERIOD_BALANCE = 100
 TRIAL_PERIOD_START_COMMENT = 'Started trial period'
 TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 
-
+SITE_ID = 1
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
