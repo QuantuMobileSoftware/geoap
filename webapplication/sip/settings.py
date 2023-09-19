@@ -258,6 +258,6 @@ TRIAL_PERIOD_BALANCE = 100
 TRIAL_PERIOD_START_COMMENT = 'Started trial period'
 TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 
-
+SITE_ID = 1
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
