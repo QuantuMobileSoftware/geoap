@@ -42,3 +42,18 @@ export const getSeasonList = startYear => {
 
   return seasonList;
 };
+
+export const getYearList = startYear => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const yearList = [];
+
+  for (let year = startYear; year <= currentYear; year++) {
+    yearList.push({
+      value: year,
+      name: `${year}`
+    });
+  }
+
+  return yearList;
+};
