@@ -13,5 +13,4 @@ export const StyledSelect = styled(Select)`
 
 export const StyledDayPicker = styled(DayPicker)`
   margin-bottom: ${em(20)};
-  background-color: red;
 `;
