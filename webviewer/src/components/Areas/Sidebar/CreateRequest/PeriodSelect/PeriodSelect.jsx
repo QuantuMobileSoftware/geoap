@@ -1,6 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { DATE_TYPES } from '_constants';
-import { SEASONS, SEASON_DATES, WINTER_TEXT, SUMMER_TEXT, getSeasonList } from './utils';
+import {
+  SEASONS,
+  SEASON_DATES,
+  WINTER_TEXT,
+  SUMMER_TEXT,
+  getSeasonList,
+  getYearList
+} from './utils';
 import { StyledSelect, StyledDayPicker } from './PeriodSelect.styles';
 
 export const PeriodSelect = props => {
@@ -13,6 +20,7 @@ export const PeriodSelect = props => {
   const MIN_DATE = new Date(START_YEAR, 0, 1);
 
   const seasonList = useMemo(() => getSeasonList(START_YEAR), []);
+  const yearList = useMemo(() => getYearList(START_YEAR), []);
 
   let highlightedDates = [];
   if (currentArea.sentinel_hub_available_dates) {
@@ -75,7 +83,7 @@ export const PeriodSelect = props => {
     case DATE_TYPES.year:
       return (
         <StyledSelect
-          items={START_YEAR}
+          items={yearList}
           onSelect={handleYearChange}
           label='Year'
           value={year}
@@ -108,6 +116,7 @@ export const PeriodSelect = props => {
           onChange={handleDayChange}
           minDate={MIN_DATE}
           maxDate={Date.now()}
+          highlightedDates={highlightedDates}
         />
       );
     default:
