@@ -108,6 +108,7 @@ export const PeriodSelect = props => {
           onChange={handleDayChange}
           minDate={MIN_DATE}
           maxDate={Date.now()}
+          highlightedDates={highlightedDates}
         />
       );
     default:
