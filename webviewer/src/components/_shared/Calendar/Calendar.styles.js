@@ -46,6 +46,7 @@ const AvaliableDayNotification = css`
   width: ${em(300)};
   margin: auto;
   margin-top: ${em(6)};
+  margin-left: 5%;
   clear: both;
   font-family: Poppins;
   font-weight: 400;
@@ -53,7 +54,7 @@ const AvaliableDayNotification = css`
   color: inherit;
   font-weight: 400;
   color: #182b1c;
-  font-size: 0.55rem;
+  font-size: 0.7rem;
 
   &::before {
     content: '';
