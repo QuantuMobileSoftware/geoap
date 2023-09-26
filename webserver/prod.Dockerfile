@@ -24,6 +24,8 @@ COPY ./webviewer /code
 RUN npm install && npm run build
 
 FROM nginx:1.19.3
+ARG MAPBOX_ACCESS_TOKEN
+ENV MAPBOX_ACCESS_TOKEN ${MAPBOX_ACCESS_TOKEN}
 COPY webserver/nginx-prod.conf /etc/nginx/nginx.conf
 COPY webserver/default-prod.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /code/build /usr/share/nginx/html
