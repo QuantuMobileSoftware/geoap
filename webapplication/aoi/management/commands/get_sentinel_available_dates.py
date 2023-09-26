@@ -12,6 +12,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from sentinelhub import CRS, Geometry, DataCollection, SHConfig, SentinelHubCatalog
 from aoi.management.commands._notebook import StoppableThread
+from oauthlib.oauth2.rfc6749.errors import CustomOAuth2Error
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +35,14 @@ class GetAvailableImageDateThread(StoppableThread):
             logger.info(f"Updating aoi with name - {aoi.name}, and id - {aoi.id}")
             aoi_polygon = aoi.polygon.wkt
             sentinel_dates = self.get_available_image_dates(aoi_polygon)
-            aoi.sentinel_hub_available_dates = sentinel_dates
-            aoi.sentinel_hub_available_dates_update_time = timezone.now()
-            aoi.save(update_fields=['sentinel_hub_available_dates', 'sentinel_hub_available_dates_update_time'])
-            logger.info(f"Aoi with name - {aoi.name}, and id - {aoi.id} updated successfully")
+            if sentinel_dates:
+                aoi.sentinel_hub_available_dates = sentinel_dates
+                aoi.sentinel_hub_available_dates_update_time = timezone.now()
+                aoi.save(update_fields=['sentinel_hub_available_dates', 'sentinel_hub_available_dates_update_time'])
+                logger.info(f"Aoi with name - {aoi.name}, and id - {aoi.id} updated successfully")
+            else:
+                logger.warning(f"Aoi with name - {aoi.name}, and id - {aoi.id} failed, no sentinel_dates")
+
         logger.info("Finished to update sentinel images dates")
 
     @staticmethod
@@ -76,7 +81,6 @@ class GetAvailableImageDateThread(StoppableThread):
         if config.sh_client_id == "" or config.sh_client_secret == "":
             logger.warning(f"No client_id or client_secret")
             return None
-
         catalog = SentinelHubCatalog(config=config)
         fields = {"include": ["id", "properties.datetime", "properties.eo:cloud_cover", "geometry"], "exclude": []}
         result = {}
@@ -92,16 +96,22 @@ class GetAvailableImageDateThread(StoppableThread):
             full_coverage = []
             partly_coverage = []
             base_polygone = shapely.wkt.loads(polygon)
-            for image in search_iterator:
-                if image["geometry"]["crs"]["properties"]["name"] == 'urn:ogc:def:crs:OGC::CRS84':
-                    sentinelhub_polygone = shapely.geometry.Polygon(image["geometry"]["coordinates"][0][0])
-                    if base_polygone.within(sentinelhub_polygone):
-                        full_coverage.append(image['properties']['datetime'][0:10])
+            try:
+                for image in search_iterator:
+                    if image["geometry"]["crs"]["properties"]["name"] == 'urn:ogc:def:crs:OGC::CRS84':
+                        sentinelhub_polygone = shapely.geometry.Polygon(image["geometry"]["coordinates"][0][0])
+                        if base_polygone.within(sentinelhub_polygone):
+                            full_coverage.append(image['properties']['datetime'][0:10])
+                        else:
+                            partly_coverage.append(image['properties']['datetime'][0:10])
                     else:
-                        partly_coverage.append(image['properties']['datetime'][0:10])
-                else:
-                    logger.warning("Image has another coordinates, not 'urn:ogc:def:crs:OGC::CRS84'")
-
+                        logger.warning("Image has another coordinates, not 'urn:ogc:def:crs:OGC::CRS84'")
+            except CustomOAuth2Error as ex:
+                logger.warning(f"{ex.error['message']}")
+                return None
+            except Exception as ex:
+                logger.warning(f"An unexpected error occurred: {ex}")
+                return None
             if full_coverage or partly_coverage:
                 result[collection["name"].collection_type] = {
                     "full_coverage": list(set(full_coverage)),
