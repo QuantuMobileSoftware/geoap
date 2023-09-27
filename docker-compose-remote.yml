@@ -14,14 +14,14 @@ services:
     restart: on-failure
 
   webapplication:
-    image: registry.quantumobile.co/portal_soilmate_webapplication
+    image: registry.quantumobile.co/geoap_webapplication
     volumes:
       - ./webapplication:/code
       - ../geoap_data:/data
       - ../geoap_data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - DJANGO_SETTINGS_MODULE=sip.settings-lviv
+      - DJANGO_SETTINGS_MODULE=sip.settings-remote
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
       - POSTGRES_PASSWORD=eiJ2koo6
@@ -33,7 +33,7 @@ services:
     restart: on-failure
 
   webserver:
-    image: registry.quantumobile.co/portal_soilmate_webserver_lviv
+    image: registry.quantumobile.co/geoap_remote_webserver
     volumes:
       - ../geoap_data:/data
     expose:
