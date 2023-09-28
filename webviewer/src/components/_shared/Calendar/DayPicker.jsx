@@ -14,7 +14,7 @@ const renderDayContents = highlightedDates => (day, date) => {
   const fullCoverageDates = highlightedDates.full_coverage || [];
   const partlyCoverageDates = highlightedDates.partly_coverage || [];
 
-  const dateString = date.toISOString().slice(0, 10);
+  const dateString = date.toLocaleDateString('en-CA');
 
   const isFullCoverage = fullCoverageDates.includes(dateString);
   const isPartlyCoverage = partlyCoverageDates.includes(dateString);
