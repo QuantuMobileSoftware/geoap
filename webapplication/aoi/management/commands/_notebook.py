@@ -12,8 +12,6 @@ from user.models import User, Transaction
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
-from aoi.management.commands._k8s_notebook_handler import K8sNotebookHandler
-
 from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
@@ -277,12 +275,3 @@ class PublisherThread(StoppableThread):
         success_requests.update(finished_at=localtime(), success=True)
 
 
-class NotebookK8sThread(StoppableThread):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.notebook_handler = K8sNotebookHandler(settings.K8S_NAME_SPACE)
-
-    def do_stuff(self):
-        # Execution
-        self.notebook_handler.start_notebook_execution()
-        self.notebook_handler.start_component_execution_jobs_supervision()
