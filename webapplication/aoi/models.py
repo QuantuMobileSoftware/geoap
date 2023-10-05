@@ -63,6 +63,7 @@ class Component(models.Model):
     image = models.CharField(max_length=400, verbose_name='Docker Image')
     command = models.CharField(max_length=400, blank=True, null=True, verbose_name="Command")
     description = models.CharField(max_length=400, blank=True, null=True, verbose_name="Description")
+    detail_description_link = models.CharField(max_length=400, blank=True, null=True, verbose_name="Detail description link")
     domains = ArrayField(models.CharField(max_length=15), size=8, blank=True, verbose_name="Domains", null=True)
     description_picture = models.ImageField(upload_to=settings.COMPONENT_DESCRIPTION_PICTURE_MEDIA_PATH, blank=True, null=True, verbose_name="Description picture")
     notebook_path = models.CharField(max_length=200, unique=True, blank=True, null=True,
