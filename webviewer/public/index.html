@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" id="description" content="Geoap" />
     <meta name="msapplication-config" id="msapplication" content="browserconfig.xml" />
+    <meta property="og:title" id="og_title" content="Geoap">
+    <meta property="og:description" id="og_description" content="Geoanalytics as a service">
     <link rel="manifest" id="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- favicon - start -->
@@ -65,6 +67,8 @@
         var pageTitle = document.getElementById('page-title');
         var favicon = document.getElementById('favicon');
         var manifest = document.getElementById('manifest');
+        var og_title = document.getElementById('og_title');
+        var og_description = document.getElementById('og_description');
         var favicon32 = document.getElementById('favicon32');
         var favicon16 = document.getElementById('favicon16');
         var description = document.getElementById('description');
@@ -80,6 +84,8 @@
             favicon32: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
             favicon16: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
             description: 'Agrieos',
+            og_title: 'Agrieos',
+            og_description: 'Geoanalytics as a service',
             appleTouch: '%PUBLIC_URL%/assets/favicon/apple-touch-icon.png',
             maskIcon: '%PUBLIC_URL%/assets/favicon/safari-pinned-tab.svg',
             msapplication: 'browserconfig.xml'
@@ -91,6 +97,8 @@
             favicon32: '%PUBLIC_URL%/assets/favicon/favicon-32x32-soilmate.png', //
             favicon16: '%PUBLIC_URL%/assets/favicon/favicon-16x16-soilmate.png', //
             description: 'SoilMate', //
+            og_title: 'SoilMate',
+            og_description: 'Geoanalytics as a service',
             appleTouch: '%PUBLIC_URL%/assets/favicon/apple-touch-icon-soilmate.png',
             maskIcon: '%PUBLIC_URL%/assets/favicon/safari-pinned-tab-soilmate.svg',
             msapplication: 'browserconfig-soilmate.xml'
@@ -105,6 +113,8 @@
           favicon32.href = mapping.favicon32;
           favicon16.href = mapping.favicon16;
           description.content = mapping.description;
+          og_title.content = mapping.og_title;
+          og_description.content = mapping.og_description;
           appleTouch.href = mapping.appleTouch;
           maskIcon.href = mapping.maskIcon;
           msapplication.content = mapping.msapplication;
