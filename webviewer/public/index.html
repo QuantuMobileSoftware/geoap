@@ -3,10 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title id="page-title">Geoap</title>
     <meta name="description" id="description" content="Geoap" />
+    <meta property="og:title" id="og_title" content="Geoap" />
+    <meta
+      property="og:description"
+      id="og_description"
+      content="Geoanalytics as a service"
+    />
     <meta name="msapplication-config" id="msapplication" content="browserconfig.xml" />
-    <meta property="og:title" id="og_title" content="Geoap">
-    <meta property="og:description" id="og_description" content="Geoanalytics as a service">
     <link rel="manifest" id="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- favicon - start -->
@@ -55,8 +60,6 @@
     crossorigin=""/>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <!-- Leaflet map end -->
-
-    <title id="page-title">Geoap</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -91,18 +94,18 @@
             msapplication: 'browserconfig.xml'
           },
           'portal.soilmate.ai': {
-            title: 'SoilMate', //
-            favicon: '%PUBLIC_URL%/assets/favicon/favicon-soilmate.ico',//
-            manifest: '%PUBLIC_URL%/manifest_soilmate.json', //
-            favicon32: '%PUBLIC_URL%/assets/favicon/favicon-32x32-soilmate.png', //
-            favicon16: '%PUBLIC_URL%/assets/favicon/favicon-16x16-soilmate.png', //
-            description: 'SoilMate', //
+            title: 'SoilMate',
+            favicon: '%PUBLIC_URL%/assets/favicon/favicon-soilmate.ico',
+            manifest: '%PUBLIC_URL%/manifest_soilmate.json',
+            favicon32: '%PUBLIC_URL%/assets/favicon/favicon-32x32-soilmate.png',
+            favicon16: '%PUBLIC_URL%/assets/favicon/favicon-16x16-soilmate.png',
+            description: 'SoilMate',
             og_title: 'SoilMate',
             og_description: 'Geoanalytics as a service',
             appleTouch: '%PUBLIC_URL%/assets/favicon/apple-touch-icon-soilmate.png',
             maskIcon: '%PUBLIC_URL%/assets/favicon/safari-pinned-tab-soilmate.svg',
             msapplication: 'browserconfig-soilmate.xml'
-          },
+          }
         };
 
         if (domainMappings.hasOwnProperty(domain)) {
