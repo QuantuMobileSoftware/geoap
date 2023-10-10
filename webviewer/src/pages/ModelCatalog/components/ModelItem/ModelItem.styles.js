@@ -68,3 +68,7 @@ export const ModelPrice = styled.p`
     background: ${rgba(theme.colors.black, 0.08)};
   `}
 `;
+
+export const ModelLink = styled.a`
+  text-decoration: none;
+`;
