@@ -70,7 +70,5 @@ export const ModelPrice = styled.p`
 `;
 
 export const ModelLink = styled.a`
-  ${({ theme }) => css`
-    text-decoration: none;
-  `}
+  text-decoration: none;
 `;
