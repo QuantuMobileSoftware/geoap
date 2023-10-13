@@ -6,7 +6,7 @@ import { StyledAreasSidebar } from './AreasSidebar.styles';
 import { AreasSidebarToggle } from './Toggle';
 import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
-import { Requests } from './Requests';
+import { Reports } from './Reports';
 import { CreateRequest } from './CreateRequest';
 import { Fields } from './Fields';
 import { CropResults } from './CropResults';
@@ -21,7 +21,7 @@ import {
 import { areasEvents } from '_events';
 import { SIDEBAR_MODE, AOI_TYPE, GET_AREA_DATA_INTERVAL } from '_constants';
 
-const { AREAS, EDIT, REQUESTS, CREATE_REQUEST, FIELDS, LEGEND } = SIDEBAR_MODE;
+const { AREAS, EDIT, REPORTS, CREATE_REQUEST, FIELDS, LEGEND } = SIDEBAR_MODE;
 
 export const AreasSidebar = ({ ...props }) => {
   const rootRef = useRef(null);
@@ -42,7 +42,7 @@ export const AreasSidebar = ({ ...props }) => {
   const sidebarHeaders = {
     [AREAS]: '',
     [EDIT]: `Edit my ${currentArea?.type === AOI_TYPE.AREA ? 'area' : 'field'}`,
-    [REQUESTS]: sidebarMode === REQUESTS ? currentArea.name : '',
+    [REPORTS]: sidebarMode === REPORTS ? currentArea.name : '',
     [CREATE_REQUEST]: 'Create new report',
     [FIELDS]: '',
     [LEGEND]: legendLabel
@@ -97,8 +97,8 @@ export const AreasSidebar = ({ ...props }) => {
         return <AreasList areas={areasList} />;
       case EDIT:
         return <AreasEdit currentArea={currentArea} />;
-      case REQUESTS:
-        return <Requests currentArea={currentArea} />;
+      case REPORTS:
+        return <Reports currentArea={currentArea} />;
       case CREATE_REQUEST:
         return <CreateRequest areas={areas} currentArea={currentArea} />;
       case FIELDS:

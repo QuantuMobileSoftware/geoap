@@ -75,7 +75,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
 
   const handleViewReports = () => {
     setCurrentArea(area.id);
-    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+    setSidebarMode(SIDEBAR_MODE.REPORTS);
   };
 
   const handleDeleteButton = () => {

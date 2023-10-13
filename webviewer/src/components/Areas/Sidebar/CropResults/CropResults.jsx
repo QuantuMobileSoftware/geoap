@@ -12,7 +12,7 @@ export const CropResults = ({ currentArea }) => {
   const { setSidebarMode } = useAreasActions();
   const selectedResults = useSelector(getSelectedResults);
 
-  const handleChangeMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
+  const handleChangeMode = () => setSidebarMode(SIDEBAR_MODE.REPORTS);
 
   const currentResult = selectedResults[selectedResults.length - 1];
   const labels = JSON.parse(currentArea.results.find(r => r.id === currentResult).labels);

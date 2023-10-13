@@ -67,7 +67,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
     };
     setCurrentArea(areaId);
     saveAreaRequest(areaId, request);
-    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+    setSidebarMode(SIDEBAR_MODE.REPORTS);
   };
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setEndDate(null);
   };
 
-  const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REQUESTS);
+  const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REPORTS);
   const handleFieldChange = e => setAdditionalParameterValue(e.target.value);
 
   return (

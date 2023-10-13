@@ -5,7 +5,7 @@ import { rgba } from 'polished';
 
 import { Typography } from 'components/_shared/Typography';
 
-export const RequestListItemText = styled(Typography).attrs({
+export const ReportListItemText = styled(Typography).attrs({
   element: 'h4',
   variant: 'body1'
 })`
@@ -19,14 +19,14 @@ export const RequestListItemText = styled(Typography).attrs({
   `}
 `;
 
-export const RequestListItemDate = styled.div`
+export const ReportListItemDate = styled.div`
   ${({ theme }) => css`
     margin-top: ${rem(4)};
     color: ${theme.colors.nature.n4};
     font-size: ${em(13)};
   `}
 `;
-export const RequestListItemBody = styled.div`
+export const ReportListItemBody = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,23 +37,38 @@ export const RequestListItemBody = styled.div`
   }
 `;
 
-export const RequestListItem = styled.li`
+export const ResultListItem = styled.li`
   ${({ theme, onClick, isActive }) => {
     const mainColor = theme.colors.primary.p1;
     return [
       css`
         ${sidebarListItem};
         background: ${isActive ? rgba(mainColor, 0.2) : theme.colors.nature.n0};
+        padding-left: ${em(42)};
 
         &:hover {
           ${isActive ? '' : `background: ${rgba(mainColor, 0.1)}`};
 
-          ${RequestListItemBody} {
+          ${ReportListItemBody} {
             color: ${theme.colors.primary.p1};
           }
         }
       `,
       onClick && 'cursor: pointer;'
     ];
+  }}
+`;
+
+export const ReportListFolder = styled.li`
+  ${({ theme, isOpen }) => {
+    const mainColor = theme.colors.primary.p1;
+    return css`
+      ${sidebarListItem};
+      background: ${isOpen ? rgba(mainColor, 0.1) : theme.colors.nature.n0};
+      cursor: pointer;
+
+      &:hover {
+        background: ${rgba(mainColor, 0.2)}
+    `;
   }}
 `;

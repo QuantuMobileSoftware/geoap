@@ -30,3 +30,5 @@ export { ReactComponent as Detect } from './Detect.svg';
 export { ReactComponent as Link } from './Link.svg';
 export { ReactComponent as Document } from './Document.svg';
 export { ReactComponent as Eye } from './Eye.svg';
+export { ReactComponent as Folder } from './Folder.svg';
+export { ReactComponent as CheckFolder } from './CheckFolder.svg';

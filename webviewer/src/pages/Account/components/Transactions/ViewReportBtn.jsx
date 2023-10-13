@@ -16,7 +16,7 @@ export const ViewReportBtn = ({ request, areas }) => {
 
     setCurrentArea(currentArea.id);
     if (currentResult) setSelectedResult(currentResult);
-    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+    setSidebarMode(SIDEBAR_MODE.REPORTS);
     history.push(ROUTES.ROOT, { isOpenSidebar: true });
   };
 

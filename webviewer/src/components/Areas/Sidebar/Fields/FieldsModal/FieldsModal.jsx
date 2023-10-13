@@ -58,7 +58,7 @@ export const FieldsModal = ({ closeModal }) => {
   const handleSelectChange = ({ value, result }) => {
     closeModal();
     setCurrentArea(value);
-    setSidebarMode(SIDEBAR_MODE.REQUESTS);
+    setSidebarMode(SIDEBAR_MODE.REPORTS);
     setSelectedResult(result);
   };
 
