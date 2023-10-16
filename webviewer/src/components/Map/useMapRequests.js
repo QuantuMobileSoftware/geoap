@@ -44,7 +44,7 @@ export const useMapRequests = (selectedArea, map) => {
 
   const addNewField = useCallback(
     polygon => {
-      setSidebarMode(SIDEBAR_MODE.REQUESTS);
+      setSidebarMode(SIDEBAR_MODE.REPORTS);
       addNewArea(polygon);
       deleteSelectedResult();
       areasEvents.toggleSidebar(true);

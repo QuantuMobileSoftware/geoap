@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { em, rem, sidebarTopButtons, sidebarBtnMargin } from 'styles';
+import { em, rem, sidebarTopButtons } from 'styles';
 import { Typography } from 'components/_shared/Typography';
 
 import { Icon } from 'components/_shared/Icon';
@@ -13,18 +13,6 @@ export const RequestsSidebarMessage = styled(Typography).attrs({
   ${({ theme }) => css`
     text-align: center;
     padding: ${em([theme.spacing[11], theme.spacing[11], theme.spacing[8]])};
-  `}
-`;
-
-export const ButtonWrapper = styled.div`
-  ${({ theme }) => css`
-    margin-top: ${em(sidebarBtnMargin)};
-    text-align: right;
-    button:first-child {
-      margin-right: ${em(11)};
-      border: ${theme.borders.default(theme.fontSizes[2])};
-      margin-bottom: ${em(11)};
-    }
   `}
 `;
 
@@ -49,7 +37,8 @@ export const ReportTitle = styled.div`
 
 export const StyledSelect = styled(Select)`
   ${({ theme }) => css`
-    max-width: 68%;
+    max-width: 50%;
+    flex-grow: 1;
     & > div {
       border: none;
       color: ${theme.colors.nature.n4};

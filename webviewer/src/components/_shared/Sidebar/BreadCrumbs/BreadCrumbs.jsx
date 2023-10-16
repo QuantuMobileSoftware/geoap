@@ -10,11 +10,11 @@ import {
 import { SIDEBAR_MODE, AOI_TYPE, LEGEND_LABEL } from '_constants';
 import { StyledBreadCrumbs, StyledTitle, StyledDash } from './BreadCrumbs.styles';
 
-const { AREAS, FIELDS, REQUESTS, CREATE_REQUEST, EDIT, LEGEND } = SIDEBAR_MODE;
+const { AREAS, FIELDS, REPORTS, CREATE_REQUEST, EDIT, LEGEND } = SIDEBAR_MODE;
 
 const areas = { title: 'Areas', mode: AREAS };
 const fields = { title: 'Fields', mode: FIELDS };
-const request = { title: 'Reports', mode: REQUESTS };
+const reports = { title: 'Reports', mode: REPORTS };
 const requestSettings = { title: 'New report', mode: CREATE_REQUEST };
 const editArea = { title: 'Editing', mode: EDIT };
 const legend = { title: LEGEND_LABEL, mode: LEGEND };
@@ -30,9 +30,9 @@ export const BreadCrumbs = () => {
   const breadCrumbsTitles = {
     [AREAS]: [areas],
     [FIELDS]: [fields],
-    [REQUESTS]: [root, request],
-    [CREATE_REQUEST]: [root, request, requestSettings],
-    [LEGEND]: [root, request, legend],
+    [REPORTS]: [root, reports],
+    [CREATE_REQUEST]: [root, reports, requestSettings],
+    [LEGEND]: [root, reports, legend],
     [EDIT]: [root, editArea]
   };
 

@@ -23,7 +23,7 @@ export const PageMain = ({ ...props }) => {
   const isShowWelcome = useSelector(welcomeWindowState);
 
   const isOpen = props.history.action === 'PUSH' && props.location.state?.isOpenSidebar;
-  const isShowChart = sidebarMode === SIDEBAR_MODE.REQUESTS && chart.data;
+  const isShowChart = sidebarMode === SIDEBAR_MODE.REPORTS && chart.data;
 
   useEffect(() => {
     getAreas();

@@ -13,7 +13,7 @@ export const SIDEBAR_MODE = {
   EDIT: 'edit_area',
   REPORT: 'area_reports',
   CREATE_REQUEST: 'create_request',
-  REQUESTS: 'requests',
+  REPORTS: 'requests',
   LEGEND: 'labels',
   FIELDS: 'fields'
 };
@@ -54,3 +54,5 @@ export const EMAIL_VARIABLES = {
 export const DATE_TYPES = { year: 1, range: 2, season: 3, day: 4 };
 
 export const STORAGE_WELCOME_KEY = 'hide_welcome';
+
+export const DEFAULT_FOLDER_NAME = 'Demo';
