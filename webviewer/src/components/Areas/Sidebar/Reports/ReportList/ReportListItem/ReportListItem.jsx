@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
 import { Icon } from 'components/_shared/Icon';
 import { ReportListResult } from './ReportListResult';
 import { DEFAULT_FOLDER_NAME } from '_constants';
-import { useAreasActions } from 'state';
+import { useAreasActions, getSelectedResults } from 'state';
 
 import {
   ReportListItemBody,
@@ -12,12 +13,18 @@ import {
   ReportListItemDate
 } from './ReportListItem.styles';
 
-export const ReportListItem = ({ reports, currentArea }) => {
+export const ReportListItem = ({ reports }) => {
   const { deleteSelectedResult } = useAreasActions();
+  const selectedResults = useSelector(getSelectedResults);
   const [isOpen, setIsOpen] = useState(false);
 
   const isShowFolder = reports[0].hasOwnProperty('request');
-  const request = currentArea.requests.find(r => r.id === reports[0].request);
+  const folderName = reports[0].requestName;
+
+  useEffect(() => {
+    const isSelected = reports.some(({ id }) => selectedResults.includes(id));
+    if (isSelected) setIsOpen(true);
+  }, [reports, selectedResults]);
 
   const reportDate = useMemo(() => {
     const { date_from, date_to, start_date, end_date } = reports[0];
@@ -41,10 +48,8 @@ export const ReportListItem = ({ reports, currentArea }) => {
         <ReportListFolder isOpen={isOpen} onClick={handleFolderClick}>
           <Icon>{isOpen ? 'CheckFolder' : 'Folder'}</Icon>
           <ReportListItemBody>
-            <ReportListItemText $hasData={true}>
-              {request?.notebook_name ?? DEFAULT_FOLDER_NAME}
-            </ReportListItemText>
-            {request?.notebook_name && (
+            <ReportListItemText $hasData={true}>{folderName}</ReportListItemText>
+            {folderName !== DEFAULT_FOLDER_NAME && (
               <ReportListItemDate>{reportDate}</ReportListItemDate>
             )}
           </ReportListItemBody>
