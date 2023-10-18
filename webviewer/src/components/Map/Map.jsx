@@ -55,7 +55,6 @@ export const Map = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
   const [drawingShape, setDrawingShape] = useState();
-  const [selectedArea, setSelectedArea] = useState();
 
   const initialAreas = useSelector(selectAreasList);
   const areasObject = useSelector(selectAreas);
@@ -81,6 +80,11 @@ export const Map = () => {
     aoiType === AOI_TYPE.AREA ? 'area' : 'field'
   }?`;
 
+  const selectedArea = useMemo(
+    () => initialAreas.find(area => area.id === currentAreaId),
+    [currentAreaId, initialAreas]
+  );
+
   const filteredAreas = useMemo(() => {
     const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
     return getFilteredAreas(initialAreas, isField ? AOI_TYPE.FIELD : AOI_TYPE.AREA);
@@ -95,23 +99,16 @@ export const Map = () => {
   }, [map]);
 
   useEffect(() => {
-    const polygon = initialAreas.find(area => area.id === currentAreaId);
-    if (polygon && map) {
-      setSelectedArea(polygon);
-    }
-  }, [currentAreaId, map, initialAreas]);
+    if (selectedResults.length || !selectedArea) return;
 
-  useEffect(() => {
-    if (selectedResults.length || !selectedArea) {
-      return;
-    }
     const { center, bounds } = getShapePositions(selectedArea);
     if (isNaN(center.lat)) {
-      map.panTo(bounds._northEast).fitBounds(bounds);
+      map?.panTo(bounds._northEast).fitBounds(bounds);
     } else {
-      map.panTo(center).fitBounds(bounds);
+      map?.panTo(center).fitBounds(bounds);
     }
-  }, [map, selectedResults, selectedArea]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, selectedResults, currentAreaId]);
 
   useMapEvents(map, setIsPopupVisible, setCurrentShape);
   useMapRequests(selectedArea, map);

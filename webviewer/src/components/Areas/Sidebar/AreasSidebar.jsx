@@ -33,6 +33,11 @@ export const AreasSidebar = ({ ...props }) => {
   const { getLayers, deleteSelectedResult, getArea } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
+  const isUpdateArea =
+    currentArea?.id === currentAreaId &&
+    currentArea?.sentinel_hub_available_dates_update_time === null &&
+    sidebarMode !== EDIT;
+
   const legendLabel = useMemo(() => {
     const currentResult = selectedResults[selectedResults.length - 1];
     const label = currentArea?.results?.find(({ id }) => id === currentResult)?.name;
@@ -55,22 +60,14 @@ export const AreasSidebar = ({ ...props }) => {
   }, [sidebarMode, deleteSelectedResult]);
 
   useEffect(() => {
-    if (
-      currentArea?.id === currentAreaId &&
-      currentArea?.sentinel_hub_available_dates_update_time === null
-    ) {
+    if (isUpdateArea) {
       getArea(currentArea.id);
       const intervalId = setInterval(() => {
         getArea(currentArea.id);
       }, GET_AREA_DATA_INTERVAL);
       return () => clearInterval(intervalId);
     }
-  }, [
-    currentAreaId,
-    currentArea?.sentinel_hub_available_dates_update_time,
-    currentArea?.id,
-    getArea
-  ]);
+  }, [currentArea?.id, getArea, isUpdateArea]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {
