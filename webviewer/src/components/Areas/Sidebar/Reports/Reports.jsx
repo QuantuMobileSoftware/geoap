@@ -41,9 +41,9 @@ export const Reports = ({ currentArea }) => {
     return currentArea.results
       .filter(r => !r.to_be_deleted)
       .map(result => {
-        const requestName = result.request
-          ? currentArea.requests.find(r => r.id === result.request).notebook_name
-          : DEFAULT_FOLDER_NAME;
+        const requestName =
+          currentArea.requests.find(r => r.id === result.request)?.notebook_name ??
+          DEFAULT_FOLDER_NAME;
         return { ...result, requestName };
       });
   }, [currentArea.requests, currentArea.results]);
