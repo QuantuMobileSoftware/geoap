@@ -27,7 +27,7 @@ class UserForm(forms.ModelForm):
 class UserAdmin(BaseUserAdmin):
     form = UserForm
     list_display = ('username', 'email', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha', 'receive_news')
-    list_filter = ('receive_news', )
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'receive_news')
     fieldsets = (
         ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key', 'receive_notification')}),
         ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
