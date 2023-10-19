@@ -28,6 +28,7 @@ server {
     location / {
         root   /usr/share/nginx/html;
         try_files $uri /index.html;
+        sub_filter '__OG_TITLE__' 'portal.soilmate.ai';
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
@@ -92,6 +93,7 @@ server {
     location / {
         root   /usr/share/nginx/html;
         try_files $uri /index.html;
+        sub_filter '__OG_TITLE__' 'agrieos.in';
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
