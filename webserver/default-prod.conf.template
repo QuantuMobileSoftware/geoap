@@ -108,7 +108,7 @@ server {
         sub_filter 'Geoanalytics as a service' 'Geoanalytics as a service';
         sub_filter 'browserconfig.xml' 'browserconfig.xml';
         sub_filter 'manifest.json' 'manifest_agrieos.json';
-        sub_filter 'favicon.ico' 'agrieos-logo.ico;
+        sub_filter 'favicon.ico' 'agrieos-logo.ico';
         sub_filter 'apple-touch-icon.png' 'apple-touch-icon.png';
         sub_filter 'favicon-16x16.png' 'agrieos-logo.png';
         sub_filter 'favicon-32x32.png' 'agrieos-logo.png';
