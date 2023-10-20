@@ -38,6 +38,7 @@ server {
         sub_filter 'favicon-16x16.png' 'favicon-16x16-soilmate.png';
         sub_filter 'favicon-32x32.png' 'favicon-32x32-soilmate.png';
         sub_filter 'safari-pinned-tab.svg' 'safari-pinned-tab-soilmate.svg';
+        sub_filter_once off;
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
@@ -112,6 +113,7 @@ server {
         sub_filter 'favicon-16x16.png' 'agrieos-logo.png';
         sub_filter 'favicon-32x32.png' 'agrieos-logo.png';
         sub_filter 'safari-pinned-tab.svg' 'safari-pinned-tab.svg';
+        sub_filter_once off;
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
