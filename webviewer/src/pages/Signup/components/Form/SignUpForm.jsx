@@ -28,7 +28,7 @@ export const SignUpForm = ({ initialValues = {}, setEmail, ...props }) => {
   const [isChecked, setIsChecked] = useState(true);
 
   const onSubmit = async values => {
-    await registerUser({ ...values, receive_news_notification: isChecked });
+    await registerUser({ ...values, receive_news: isChecked });
     setEmail(values.email);
   };
 
