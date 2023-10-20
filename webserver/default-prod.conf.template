@@ -28,7 +28,16 @@ server {
     location / {
         root   /usr/share/nginx/html;
         try_files $uri /index.html;
-        sub_filter '__OG_TITLE__' 'portal.soilmate.ai';
+
+        sub_filter 'Geoap' 'SoilMate';
+        sub_filter 'Geoanalytics as a service' 'Geoanalytics as a service';
+        sub_filter 'browserconfig.xml' 'browserconfig-soilmate.xml';
+        sub_filter 'manifest.json' 'manifest_soilmate.json';
+        sub_filter 'favicon.ico' 'favicon-soilmate.ico';
+        sub_filter 'apple-touch-icon.png' 'apple-touch-icon-soilmate.png';
+        sub_filter 'favicon-16x16.png' 'favicon-16x16-soilmate.png';
+        sub_filter 'favicon-32x32.png' 'favicon-32x32-soilmate.png';
+        sub_filter 'safari-pinned-tab.svg' 'safari-pinned-tab-soilmate.svg';
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
@@ -93,7 +102,16 @@ server {
     location / {
         root   /usr/share/nginx/html;
         try_files $uri /index.html;
-        sub_filter '__OG_TITLE__' 'agrieos.in';
+        
+        sub_filter 'Geoap' 'Agrieos';
+        sub_filter 'Geoanalytics as a service' 'Geoanalytics as a service';
+        sub_filter 'browserconfig.xml' 'browserconfig.xml';
+        sub_filter 'manifest.json' 'manifest_agrieos.json';
+        sub_filter 'favicon.ico' 'agrieos-logo.ico;
+        sub_filter 'apple-touch-icon.png' 'apple-touch-icon.png';
+        sub_filter 'favicon-16x16.png' 'agrieos-logo.png';
+        sub_filter 'favicon-32x32.png' 'agrieos-logo.png';
+        sub_filter 'safari-pinned-tab.svg' 'safari-pinned-tab.svg';
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;

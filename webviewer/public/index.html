@@ -3,42 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title id="page-title">Geoap</title>
-    <meta name="description" id="description" content="Geoap" />
-    <meta property="og:title" id="og_title" content="__OG_TITLE__" />
-    <meta
-      property="og:description"
-      id="og_description"
-      content="Geoanalytics as a service"
-    />
-    <meta name="msapplication-config" id="msapplication" content="browserconfig.xml" />
-    <link rel="manifest" id="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>Geoap</title>
+    <meta property="og:title" content="Geoap" />
+    <meta name="description" content="Geoanalytics as a service" />
+    <meta property="og:description" content="Geoanalytics as a service" />
+    <meta name="msapplication-config" content="browserconfig.xml" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <!-- favicon - start -->
-    <link rel="icon" id="favicon" href="%PUBLIC_URL%/assets/favicon/favicon.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/assets/favicon/favicon.ico" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      id="apple-touch"
       href="%PUBLIC_URL%/assets/favicon/apple-touch-icon.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      id="favicon16"
       href="%PUBLIC_URL%/assets/favicon/favicon-16x16.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      id="favicon32"
       href="%PUBLIC_URL%/assets/favicon/favicon-32x32.png"
     />
     <link
       rel="mask-icon"
-      id="mask-icon"
       href="%PUBLIC_URL%/assets/favicon/safari-pinned-tab.svg"
       color="#5bbad5"
     />
@@ -64,65 +56,5 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <script>
-      (function () {
-        var domain = window.location.hostname;
-        var pageTitle = document.getElementById('page-title');
-        var favicon = document.getElementById('favicon');
-        var manifest = document.getElementById('manifest');
-        var og_title = document.getElementById('og_title');
-        var og_description = document.getElementById('og_description');
-        var favicon32 = document.getElementById('favicon32');
-        var favicon16 = document.getElementById('favicon16');
-        var description = document.getElementById('description');
-        var appleTouch = document.getElementById('apple-touch');
-        var maskIcon = document.getElementById('mask-icon');
-        var msapplication = document.getElementById('msapplication');
-
-        var domainMappings = {
-          'agrieos.in': {
-            title: 'Agrieos',
-            favicon: '%PUBLIC_URL%/assets/favicon/agrieos-logo.ico',
-            manifest: '%PUBLIC_URL%/manifest_agrieos.json',
-            favicon32: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
-            favicon16: '%PUBLIC_URL%/assets/favicon/agrieos-logo.png',
-            description: 'Agrieos',
-            og_title: 'Agrieos',
-            og_description: 'Geoanalytics as a service',
-            appleTouch: '%PUBLIC_URL%/assets/favicon/apple-touch-icon.png',
-            maskIcon: '%PUBLIC_URL%/assets/favicon/safari-pinned-tab.svg',
-            msapplication: 'browserconfig.xml'
-          },
-          'portal.soilmate.ai': {
-            title: 'SoilMate',
-            favicon: '%PUBLIC_URL%/assets/favicon/favicon-soilmate.ico',
-            manifest: '%PUBLIC_URL%/manifest_soilmate.json',
-            favicon32: '%PUBLIC_URL%/assets/favicon/favicon-32x32-soilmate.png',
-            favicon16: '%PUBLIC_URL%/assets/favicon/favicon-16x16-soilmate.png',
-            description: 'SoilMate',
-            og_title: 'SoilMate',
-            og_description: 'Geoanalytics as a service',
-            appleTouch: '%PUBLIC_URL%/assets/favicon/apple-touch-icon-soilmate.png',
-            maskIcon: '%PUBLIC_URL%/assets/favicon/safari-pinned-tab-soilmate.svg',
-            msapplication: 'browserconfig-soilmate.xml'
-          }
-        };
-
-        if (domainMappings.hasOwnProperty(domain)) {
-          var mapping = domainMappings[domain];
-          document.title = mapping.title;
-          favicon.href = mapping.favicon;
-          manifest.href = mapping.manifest;
-          favicon32.href = mapping.favicon32;
-          favicon16.href = mapping.favicon16;
-          description.content = mapping.description;
-          og_title.content = mapping.og_title;
-          og_description.content = mapping.og_description;
-          appleTouch.href = mapping.appleTouch;
-          maskIcon.href = mapping.maskIcon;
-          msapplication.content = mapping.msapplication;
-        }
-      })();
-    </script>
   </body>
 </html>
