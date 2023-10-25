@@ -80,7 +80,7 @@ export const useMapRequests = (selectedArea, map) => {
 
     const addLayerInMap = (layer, selectedLayer) => {
       if (!renderedLayers.some(l => l.id === selectedLayer.id)) {
-        map.addLayer(layer);
+        map?.addLayer(layer);
         setRenderedLayers([...renderedLayers, { id: selectedLayer.id, layer }]);
       }
     };

@@ -1,46 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useAsync } from 'hooks';
-import { API } from 'api';
-import { useAreasActions, selectAreasList } from 'state';
+import React, { useMemo, useState } from 'react';
 import { Spinner } from 'components/_shared/Spinner';
+import { Button } from 'components/_shared/Button';
 import { ViewReportBtn } from './ViewReportBtn';
+import { InfoModal } from './InfoModal';
 import { MonthPicker } from 'components/_shared/Calendar';
 import { getTransactionDate } from 'utils';
+import { useTransactionData } from './hooks';
+
 import {
   TableHeader,
   TableComment,
   TableAmount,
   Filter,
-  ClearFilterBtn
+  ClearFilterBtn,
+  NotebookName
 } from './Transactions.styles';
 
 export const Transactions = () => {
-  const { isLoading, handleAsync } = useAsync();
-  const { getLayers, getAreas } = useAreasActions();
-  const areas = useSelector(selectAreasList);
-  const [transactions, setTransactions] = useState();
   const [isFiltered, setIsFiltered] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-
-  useEffect(() => {
-    handleAsync(async () => {
-      const resp = await API.transactions.getTransactions();
-      if (resp.statusText === 'OK')
-        setTransactions(
-          resp.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        );
-    });
-  }, [handleAsync]);
-
-  useEffect(() => {
-    getLayers();
-  }, [getLayers]);
-
-  useEffect(() => {
-    if (areas.length) return;
-    getAreas();
-  }, [getAreas, areas.length]);
+  const [isShowSize, setIsShowSize] = useState(false);
+  const [modalText, setModalText] = useState(null);
+  const { isLoading, transactions, requests, results, areas } = useTransactionData();
 
   const rowsData = useMemo(() => {
     return isFiltered
@@ -56,6 +37,8 @@ export const Transactions = () => {
     setIsFiltered(true);
   };
   const handleResetFilter = () => setIsFiltered(false);
+  const handleCloseModal = () => setModalText(null);
+  const handleOpenModal = t => setModalText(`${t.comment ?? ''}  ${t.error ?? ''}`);
 
   if (isLoading) return <Spinner />;
 
@@ -84,36 +67,41 @@ export const Transactions = () => {
           <tr>
             <TableHeader>Date</TableHeader>
             <TableHeader>Amount</TableHeader>
+            {isShowSize && <TableHeader>Size</TableHeader>}
             <TableHeader>Status</TableHeader>
-            <TableHeader>Comment</TableHeader>
+            <TableHeader>Request</TableHeader>
           </tr>
           {rowsData?.map(t => {
             const isNegativeAmount = t.amount < 0;
             const date = t.created_at.split('T')[0].replaceAll('-', '.');
             const completeText = t.completed ? 'done' : 'in progress';
+            const isShowViewButton = t.request && !t.error && !t.rolled_back;
             const amount = isNegativeAmount
               ? `- $${Math.abs(t.amount)}`
               : `${t.amount === 0 ? '' : '+'} $${t.amount}`;
-            const area = areas.find(({ requests }) =>
-              requests.some(r => r.id === t.request)
-            );
-            console.log(area);
-            const request = area?.requests.find(r => r.id === t.request);
+            const request = requests[t.request]; // request can be null
+            const area = areas[request?.aoi];
+            if (!isShowSize && area?.size) setIsShowSize(true);
 
             return (
               <tr key={t.id}>
                 <td>{date}</td>
                 <TableAmount negative={isNegativeAmount}>{amount}</TableAmount>
+                {isShowSize && <td>{area?.size ? `${area.size} sq km` : ''}</td>}
                 <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
-                  {t.comment}
-                  {request && `Name: ${request.notebook_name}. `}
+                  {!t.request && t.comment}
+                  {request && (
+                    <NotebookName>Name: ${request.notebook_name}. </NotebookName>
+                  )}
                   {area && `Area: ${area.name}. `}
-                  {t.error && `Error: ${t.error}`}
-                  {t.request && !t.error && (
-                    <ViewReportBtn request={t.request} areas={areas}>
+                  {isShowViewButton && (
+                    <ViewReportBtn area={area} request={t.request} results={results}>
                       View report
                     </ViewReportBtn>
+                  )}
+                  {t.rolled_back && (t.comment || t.error) && (
+                    <Button onClick={() => handleOpenModal(t)}>Info</Button>
                   )}
                 </TableComment>
               </tr>
@@ -121,6 +109,7 @@ export const Transactions = () => {
           })}
         </tbody>
       </table>
+      {modalText && <InfoModal onClose={handleCloseModal} content={modalText} />}
     </div>
   );
 };

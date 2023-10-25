@@ -39,3 +39,10 @@ export const Filter = styled.div`
 export const ClearFilterBtn = styled(Button)`
   margin-left: ${em(40)};
 `;
+
+export const NotebookName = styled.span`
+  ${({ theme }) => `
+    color: ${theme.colors.nature.n5};
+    font-weight: ${theme.fontWeights[1]};
+  `}
+`;
