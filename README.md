@@ -151,3 +151,30 @@ Path to mount volumes with inputs and outputs inside execution job's pods
 
 #### **GPU_CORES_PER_NOTEBOOK**
 Max number of GPU cores as a `nvidia.com/gpu` resource for execution job's pods
+
+
+
+### Pycharm Debug Configuration
+Go to:
+
+PyCharm | Settings | Project | Add Interpreter
+Select  `On Docker Compose`
+
+In Configuration files choose `docker-compose-debug.yml`
+
+In Service choose `webapplication`
+
+In Run/Debug configuration:
+
+Host => `0.0.0.0` Port => `8000`
+
+Environment variables => `PYTHONUNBUFFERED=1;DJANGO_SETTINGS_MODULE=sip.settings_debug`
+
+Docker Compose | Command and options => `up`
+
+In `geoap/webviewer/package.json`  change "proxy": "http://webserver:9000" to "proxy": "http://your_ip_address:8000"
+
+
+
+
+

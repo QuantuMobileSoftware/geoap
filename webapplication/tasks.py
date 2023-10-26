@@ -64,6 +64,20 @@ def run(ctx):
 
     ctx.run('uwsgi --ini uwsgi.ini')
 
+@task
+def run_debug(ctx):
+    init_db(ctx, recreate_db=True)
+    collect_static_element(ctx)
+
+    thread_cron = threading.Thread(target=devcron, args=(ctx,))
+    thread_cron.start()
+
+    thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
+    thread_nb_executor.start()
+
+    thread_nb_executor = threading.Thread(target=run_get_sentinel_available_dates, args=(ctx,))
+    thread_nb_executor.start()
+    ctx.run('python manage.py runserver 0.0.0.0:8000')
 
 @task
 def run_prod(ctx):
