@@ -44,5 +44,10 @@ export const NotebookName = styled.span`
   ${({ theme }) => `
     color: ${theme.colors.nature.n5};
     font-weight: ${theme.fontWeights[1]};
+    padding-right: ${em(10)}
   `}
+`;
+
+export const StyledButton = styled(Button)`
+  font-size: ${em(16)};
 `;

@@ -9,6 +9,8 @@ import { FieldsModal } from './FieldsModal';
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
 import { getSelectedEntitiesId } from 'state';
+import { isStringsMatch } from 'utils';
+
 import {
   SidebarMessage,
   StyledIcon,
@@ -36,18 +38,18 @@ export const Fields = React.memo(({ fields }) => {
       return;
     }
 
-    const foundAreas = fields.filter(area => {
-      return area.name.match(query);
-    });
+    const foundFields = fields.filter(area =>
+      isStringsMatch({ mainString: area.name, substring: query })
+    );
 
-    if (!foundAreas.length) {
+    if (!foundFields.length) {
       setListItems([]);
       setIsAreasNotFound(true);
       return;
     }
 
     setIsAreasNotFound(false);
-    setListItems(foundAreas);
+    setListItems(foundFields);
   };
 
   const handleSearchSubmit = values => {

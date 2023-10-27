@@ -22,6 +22,8 @@ export const SidebarHeading = styled(Typography).attrs({
   variant: 'h2'
 })`
   margin-bottom: ${em(16)};
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const SidebarButtonClose = styled(Button).attrs({
