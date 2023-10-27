@@ -38,7 +38,11 @@ export const AreasListItemSize = styled(Typography).attrs({
 export const AreasListItemName = styled(Typography).attrs({
   element: 'h4',
   variant: 'body1'
-})``;
+})`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: ${em(280)};
+`;
 
 export const AreasListItemBody = styled.div`
   display: flex;

@@ -3,6 +3,15 @@ import { useSelector } from 'react-redux';
 import { isNumber } from 'lodash-es';
 
 import { Checkbox } from 'components/_shared/Checkbox';
+import {
+  useAreasActions,
+  useMapActions,
+  selectCurrentArea,
+  getSelectedEntitiesId
+} from 'state';
+import { getPolygonPositions, getElementBottom } from 'utils/helpers';
+import { areasEvents } from '_events';
+import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
 
 import {
   AreasListItemBody,
@@ -12,12 +21,6 @@ import {
   AreasListItem,
   AreasListItemButton
 } from './AreasListItem.styles';
-
-import { getPolygonPositions, getElementBottom } from 'utils/helpers';
-import { areasEvents } from '_events';
-import { SIDEBAR_MODE, MODAL_TYPE } from '_constants';
-
-import { useAreasActions, useMapActions, selectCurrentArea } from 'state';
 
 const itemSize = 60;
 
@@ -31,14 +34,17 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
   } = useAreasActions();
   const { setLayerOpacity } = useMapActions();
   const currentAreaId = useSelector(selectCurrentArea);
+  const selectedAreas = useSelector(getSelectedEntitiesId);
   const areaRef = useRef(null);
   const [isTopPosition, setIsTopPosition] = useState(false);
+
   const coordinatesArray = getPolygonPositions(area).coordinates[0][0];
   const coordinates = [
     ['X', +coordinatesArray[0].toFixed(1)],
     ['Y', +coordinatesArray[1].toFixed(1)]
   ];
   const hasCoordinates = coordinates.some(([, c]) => c && isNumber(c));
+  const isChecked = selectedAreas.includes(area.id);
 
   useEffect(() => {
     if (area.id === currentAreaId) {
@@ -91,7 +97,7 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
       onClick={handleAreaListItemClick}
       onDoubleClick={handleViewReports}
     >
-      <Checkbox onChange={handleChangeCheckbox} />
+      <Checkbox checked={isChecked} onChange={handleChangeCheckbox} />
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>

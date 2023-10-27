@@ -121,3 +121,8 @@ export const getDomainData = () => {
   const hostName = window.location.hostname;
   return DOMAIN_DICT[hostName] ?? DOMAIN_DICT.default;
 };
+
+export const isStringsMatch = ({ mainString, substring }) => {
+  const escapedQuery = substring.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
+  return mainString.match(new RegExp(escapedQuery, 'gi'));
+};

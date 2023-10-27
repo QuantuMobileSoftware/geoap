@@ -8,6 +8,8 @@ import { Button } from 'components/_shared/Button';
 import { areasEvents } from '_events';
 import { MODAL_TYPE } from '_constants';
 import { getSelectedEntitiesId, selectUser } from 'state';
+import { isStringsMatch } from 'utils';
+
 import {
   AreasSidebarMessage,
   AreasSidebarButton,
@@ -18,12 +20,10 @@ import {
 export const AreasList = React.memo(({ areas }) => {
   const selectedAreas = useSelector(getSelectedEntitiesId);
   const user = useSelector(selectUser);
-  const [isAreasNotFound, setIsAreasNotFound] = useState(false);
-  const [listItems, setListItems] = useState(areas);
+  const [listItems, setListItems] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isUpSortList, setIsUpSortList] = useState(true);
-
-  useEffect(() => setListItems(areas), [areas]);
+  const [searchValue, setSearchValue] = useState(null);
 
   useEffect(() => {
     return areasEvents.onCreateShape(({ json }) => {
@@ -37,41 +37,36 @@ export const AreasList = React.memo(({ areas }) => {
     });
   }, []);
 
-  const resetAreas = () => {
-    setIsAreasNotFound(false);
-    setListItems(areas);
-  };
-
-  const searchAreasByQuery = query => {
-    if (!query) {
-      resetAreas();
-      return;
+  useEffect(() => {
+    if (searchValue) {
+      const filteredAreas = areas.filter(area =>
+        isStringsMatch({ mainString: area.name, substring: searchValue })
+      );
+      setListItems(filteredAreas);
+    } else {
+      setListItems(areas);
+      setSearchValue(null);
     }
+  }, [areas, searchValue]);
 
-    const foundAreas = areas.filter(area => {
-      return area.name.match(query, 'gi');
-    });
+  const sortedListItems = useMemo(() => {
+    if (isUpSortList)
+      return listItems.sort((prev, next) => prev.name.localeCompare(next.name));
 
-    if (!foundAreas.length) {
-      setListItems([]);
-      setIsAreasNotFound(true);
-      return;
-    }
-
-    setIsAreasNotFound(false);
-    setListItems(foundAreas);
-  };
+    return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
+  }, [isUpSortList, listItems]);
 
   const handleSearchSubmit = values => {
-    searchAreasByQuery(values.query);
+    setSearchValue(values.query);
   };
 
   const handleSearchChange = e => {
-    searchAreasByQuery(e.target.value);
+    setSearchValue(e.target.value);
   };
 
   const handleSearchReset = () => {
-    resetAreas();
+    setListItems(areas);
+    setSearchValue(null);
   };
 
   const handleSortChange = useCallback(() => {
@@ -84,13 +79,6 @@ export const AreasList = React.memo(({ areas }) => {
       id: selectedAreas
     });
   }, [selectedAreas]);
-
-  const sortingListItems = useMemo(() => {
-    if (isUpSortList) {
-      return listItems.sort((prev, next) => prev.name.localeCompare(next.name));
-    }
-    return listItems.sort((prev, next) => next.name.localeCompare(prev.name));
-  }, [isUpSortList, listItems]);
 
   return (
     <>
@@ -108,9 +96,11 @@ export const AreasList = React.memo(({ areas }) => {
         {!!selectedAreas.length && <Button onClick={handleDelete} icon='Delete' />}
       </ButtonWrapper>
 
-      <List areas={sortingListItems} />
+      <List areas={sortedListItems} />
 
-      {isAreasNotFound && <AreasSidebarMessage>Areas not found</AreasSidebarMessage>}
+      {searchValue && sortedListItems.length === 0 && (
+        <AreasSidebarMessage>Areas not found</AreasSidebarMessage>
+      )}
 
       {!user.isDemo &&
         (isDrawing ? (

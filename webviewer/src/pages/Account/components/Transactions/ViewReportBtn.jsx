@@ -1,9 +1,10 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { Button } from 'components/_shared/Button';
 import { useAreasActions } from 'state';
 import { ROUTES, SIDEBAR_MODE } from '_constants';
+
+import { StyledButton } from './Transactions.styles';
 
 export const ViewReportBtn = ({ area, request, results }) => {
   const history = useHistory();
@@ -19,5 +20,5 @@ export const ViewReportBtn = ({ area, request, results }) => {
     setSidebarMode(SIDEBAR_MODE.REPORTS);
   };
 
-  return <Button onClick={handleClick}>View report</Button>;
+  return <StyledButton onClick={handleClick}>View report</StyledButton>;
 };

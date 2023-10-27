@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { Spinner } from 'components/_shared/Spinner';
-import { Button } from 'components/_shared/Button';
 import { ViewReportBtn } from './ViewReportBtn';
 import { InfoModal } from './InfoModal';
 import { MonthPicker } from 'components/_shared/Calendar';
@@ -13,7 +12,8 @@ import {
   TableAmount,
   Filter,
   ClearFilterBtn,
-  NotebookName
+  NotebookName,
+  StyledButton
 } from './Transactions.styles';
 
 export const Transactions = () => {
@@ -91,9 +91,7 @@ export const Transactions = () => {
                 <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
                   {!t.request && t.comment}
-                  {request && (
-                    <NotebookName>Name: ${request.notebook_name}. </NotebookName>
-                  )}
+                  {request && <NotebookName>{request.notebook_name}</NotebookName>}
                   {area && `Area: ${area.name}. `}
                   {isShowViewButton && (
                     <ViewReportBtn area={area} request={t.request} results={results}>
@@ -101,7 +99,7 @@ export const Transactions = () => {
                     </ViewReportBtn>
                   )}
                   {t.rolled_back && (t.comment || t.error) && (
-                    <Button onClick={() => handleOpenModal(t)}>Info</Button>
+                    <StyledButton onClick={() => handleOpenModal(t)}>Info</StyledButton>
                   )}
                 </TableComment>
               </tr>
