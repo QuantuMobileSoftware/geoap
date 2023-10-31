@@ -15,7 +15,9 @@ class Command(BaseCommand):
         logger.info("starting to search users with expired trials")
         thirty_days_ago = timezone.now() - timedelta(days=settings.TRIAL_PERIOD_IN_DAYS)
         users_with_expired_trials = User.objects.filter(
-            trial_started_at__isnull=False, trial_started_at__lte=thirty_days_ago
+            trial_started_at__isnull=False,
+            trial_started_at__lte=thirty_days_ago,
+            trial_finished_at__isnull=True,
         )
         logger.info(f"found {len(users_with_expired_trials)} users with expired trials")
         for user in users_with_expired_trials:
