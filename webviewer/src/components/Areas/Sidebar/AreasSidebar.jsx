@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import { StyledAreasSidebar } from './AreasSidebar.styles';
-
 import { AreasSidebarToggle } from './Toggle';
 import { AreasEdit } from './AreasEdit';
 import { AreasList } from './AreasList';
@@ -19,7 +17,8 @@ import {
   getSelectedResults
 } from 'state';
 import { areasEvents } from '_events';
-import { SIDEBAR_MODE, AOI_TYPE, GET_AREA_DATA_INTERVAL } from '_constants';
+import { SIDEBAR_MODE, AOI_TYPE } from '_constants';
+import { StyledAreasSidebar } from './AreasSidebar.styles';
 
 const { AREAS, EDIT, REPORTS, CREATE_REQUEST, FIELDS, LEGEND } = SIDEBAR_MODE;
 
@@ -30,13 +29,9 @@ export const AreasSidebar = ({ ...props }) => {
   const sidebarMode = useSelector(selectSidebarMode);
   const currentAreaId = useSelector(selectCurrentArea);
   const selectedResults = useSelector(getSelectedResults);
-  const { getLayers, deleteSelectedResult, getArea } = useAreasActions();
+  const { getLayers, deleteSelectedResult } = useAreasActions();
 
   const currentArea = areas.find(area => area.id === currentAreaId);
-  const isUpdateArea =
-    currentArea?.id === currentAreaId &&
-    currentArea?.sentinel_hub_available_dates_update_time === null &&
-    sidebarMode !== EDIT;
 
   const legendLabel = useMemo(() => {
     const currentResult = selectedResults[selectedResults.length - 1];
@@ -58,16 +53,6 @@ export const AreasSidebar = ({ ...props }) => {
       deleteSelectedResult();
     }
   }, [sidebarMode, deleteSelectedResult]);
-
-  useEffect(() => {
-    if (isUpdateArea) {
-      getArea(currentArea.id);
-      const intervalId = setInterval(() => {
-        getArea(currentArea.id);
-      }, GET_AREA_DATA_INTERVAL);
-      return () => clearInterval(intervalId);
-    }
-  }, [currentArea?.id, getArea, isUpdateArea]);
 
   useEffect(() => {
     return areasEvents.onToggleSidebar(event => {

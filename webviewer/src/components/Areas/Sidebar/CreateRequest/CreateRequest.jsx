@@ -16,7 +16,7 @@ import {
 } from './CreateRequest.styles';
 
 export const CreateRequest = ({ areas, currentArea }) => {
-  const { setSidebarMode, saveAreaRequest, setCurrentArea } = useAreasActions();
+  const { setSidebarMode, saveAreaRequest, setCurrentArea, getArea } = useAreasActions();
   const currentUser = useSelector(selectUser);
   const layers = useSuccessfulLayers();
 
@@ -26,6 +26,15 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
   const [additionalParameterValue, setAdditionalParameterValue] = useState('');
+
+  const updateAreaData = area => {
+    if (area.sentinel_hub_available_dates_update_time === null) getArea(area.id);
+  };
+
+  useEffect(() => {
+    updateAreaData(currentArea);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectOptionsAreas = useMemo(
     () => areas.map(({ name, id }) => ({ name, value: id })),
@@ -81,7 +90,11 @@ export const CreateRequest = ({ areas, currentArea }) => {
     }
   }, [notebook, startDate, endDate, additionalParameterValue]);
 
-  const handleAreChange = item => setAreaId(item.value);
+  const handleAreChange = item => {
+    setAreaId(item.value);
+    const area = areas.find(({ id }) => id === item.value);
+    updateAreaData(area);
+  };
 
   const handleNoteBookChange = item => {
     setNotebook(item);
@@ -97,7 +110,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
       <SelectsWrapper>
         <StyledSelect
           items={selectOptionsAreas}
-          value={currentArea.id}
+          value={areaId}
           onSelect={handleAreChange}
           label='Choose area'
         />
