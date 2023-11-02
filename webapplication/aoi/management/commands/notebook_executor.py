@@ -4,7 +4,6 @@ import time
 from aoi.management.commands._notebook import (
     NotebookDockerThread, 
     PublisherThread, 
-    NotebookK8sThread
 )
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
