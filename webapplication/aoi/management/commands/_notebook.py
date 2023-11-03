@@ -6,6 +6,7 @@ from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
 
 from django.db import transaction
+from django.apps import apps
 
 from aoi.models import Component, Request, AoI, TransactionErrorMessage
 from user.models import User, Transaction
@@ -25,16 +26,10 @@ logger = logging.getLogger(__name__)
 THREAD_SLEEP = 10
 
 
-def email_notification(request, aoi, status):
-    try:
+def email_notification(request, status):
+    if apps.is_installed("geoap_email_notifications"):
         from geoap_email_notifications.utils import email_notification
         email_notification(request, status)
-    except ModuleNotFoundError:
-        # Error handling
-        logger.info(
-            f"""Your request for AOI '{aoi.name if aoi else request.polygon.wkt}' 
-            and layer '{request.component_name}' is succeeded"""
-        )
 
 
 def clean_container_logs(logs):
@@ -141,7 +136,6 @@ class NotebookDockerThread(StoppableThread):
         for container in exited_containers:
             attrs = Container.container_attrs(container)
             request = Request.objects.get(pk=attrs['pk'])
-            aoi = AoI.objects.filter(id=request.aoi_id).first()
             if attrs['exit_code'] == 0:
                 logger.info(f"Notebook in container {container.name} executed successfully")
                 request.calculated = True
@@ -178,7 +172,7 @@ class NotebookDockerThread(StoppableThread):
                 with transaction.atomic():
                     request_transaction.save(update_fields=("rolled_back", "completed", "error"))
                     request_transaction.user.save(update_fields=("on_hold",))
-                email_notification(request, aoi, "failed")
+                email_notification(request, "failed")
             try:
                 container.remove()
             except:
@@ -211,8 +205,7 @@ class NotebookDockerThread(StoppableThread):
                         request_transaction.save(update_fields=("rolled_back",))
                         request_transaction.user.save(update_fields=("on_hold",))
                         request.save(update_fields=['finished_at'])
-                        aoi = AoI.objects.filter(id=request.aoi_id).first()
-                        email_notification(request, aoi, "failed")
+                        email_notification(request, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 
@@ -243,8 +236,7 @@ class PublisherThread(StoppableThread):
                     request_transaction.save(update_fields=("completed",))
                     request_transaction.user.save(update_fields=("balance", "on_hold"))
 
-                aoi = AoI.objects.filter(id=sr.aoi_id).first()
-                email_notification(sr, aoi,  "succeeded")
+                email_notification(sr, "succeeded")
 
         success_requests.update(finished_at=localtime(), success=True)
 

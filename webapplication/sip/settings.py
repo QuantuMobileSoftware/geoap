@@ -249,15 +249,10 @@ NOTEBOOK_EXECUTOR_MAX_JOBS = int(os.getenv('NOTEBOOK_EXECUTOR_MAX_JOBS', 2))
 NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH = os.getenv('NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH', '/home/jovyan/work')
 GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
-EMAIL_SUBJECT = 'Geoap Notification'
-
 TRIAL_PERIOD_IN_DAYS = 30
 TRIAL_PERIOD_BALANCE = 100
 TRIAL_PERIOD_START_COMMENT = 'Started trial period'
 TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 
 
-DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
