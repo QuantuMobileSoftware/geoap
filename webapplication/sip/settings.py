@@ -59,7 +59,8 @@ INSTALLED_APPS = [
     # Local Apps
     'user',
     'publisher',
-    'aoi'
+    'aoi',
+    # 'user_management'
 ]
 
 REST_FRAMEWORK = {
@@ -252,12 +253,13 @@ GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
 EMAIL_SUBJECT = 'Geoap Notification'
-
-TRIAL_PERIOD_IN_DAYS = 30
-TRIAL_PERIOD_BALANCE = 100
-TRIAL_PERIOD_START_COMMENT = 'Started trial period'
-TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
-
+#remove
+# TRIAL_PERIOD_IN_DAYS = 30
+# TRIAL_PERIOD_BALANCE = 100
+# TRIAL_PERIOD_START_COMMENT = 'Started trial period'
+# TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
+# SITE_ID = 1
+#remove
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
