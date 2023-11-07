@@ -32,44 +32,6 @@ THREAD_SLEEP = 10
 from django.apps import apps
 
 
-
-def success_complete_transaction(success_request):
-    request_transaction = success_request.transactions.first()
-    if request_transaction:
-        request_transaction.completed = True
-        request_transaction.user.on_hold -= abs(request_transaction.amount)
-        request_transaction.user.balance -= abs(request_transaction.amount)
-        with transaction.atomic():
-            request_transaction.save(update_fields=("completed",))
-            request_transaction.user.save(update_fields=("balance", "on_hold"))
-
-def failed_request_transaction(failed_request):
-    from user_management.models import Transaction
-    request_transaction = failed_request.transactions.first()
-    request_transaction.user.on_hold -= abs(request_transaction.amount)
-    request_transaction.rolled_back = True
-
-    request_transaction.completed = True
-    request_transaction.error = Transaction.generate_error(failed_request.user_readable_errors)
-    with transaction.atomic():
-        request_transaction.save(update_fields=("rolled_back", "completed", "error"))
-        request_transaction.user.save(update_fields=("on_hold",))
-
-def user_readable_error(request_with_error):
-    from user_management.models import  TransactionErrorMessage
-    known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
-    errors = []
-    for error in known_errors:
-        if error in request_with_error.error:
-            errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
-    if errors:
-        request_with_error.user_readable_errors = errors
-        request_with_error.save(update_fields=['user_readable_errors'])
-        logger.info("Known error added")
-    else:
-        logger.info("No known error for component error")
-#########
-
 def clean_container_logs(logs):
     # Remove line numbers
     # like from this "00m [38;5;167;01mValueError[39;00m([38;5;124m"[39m[38;5;124mImages not loaded for given AOI."
@@ -235,6 +197,7 @@ class NotebookDockerThread(StoppableThread):
                 request.save(update_fields=['error'])
                 
                 if apps.is_installed("user_management"):
+                    from user_management.utils import user_readable_error, failed_request_transaction
                     user_readable_error(request)
                     failed_request_transaction(request)
                 
@@ -267,6 +230,7 @@ class NotebookDockerThread(StoppableThread):
                         request.save(update_fields=['finished_at'])
 
                         if apps.is_installed("user_management"):
+                            from user_management.utils import failed_request_transaction
                             failed_request_transaction(request)
                         
                         email_notification(request, "failed")
@@ -293,6 +257,7 @@ class PublisherThread(StoppableThread):
         for sr in success_requests:
 
             if apps.is_installed("user_management"):
+                from user_management.utils import success_complete_transaction
                 success_complete_transaction(sr)
             
             email_notification(sr, "succeeded")
