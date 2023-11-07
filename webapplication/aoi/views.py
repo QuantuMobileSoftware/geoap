@@ -16,6 +16,7 @@ from .permissions import AoIIsOwnerPermission
 from user.models import User
 from allauth.account import app_settings
 from allauth.utils import build_absolute_uri
+from django.db import transaction
 
 from django.apps import apps
 
@@ -204,15 +205,27 @@ class RequestListCreateAPIView(ListCreateAPIView):
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
 
         if apps.is_installed("user_management"):
-            from user_management.utils import create_transaction_and_check_money_amount
-            result = create_transaction_and_check_money_amount(request, area, component, serializer)
-            if result.get("error", ""):
-                return Response(as_serializer_error(result['error']), status=status.HTTP_400_BAD_REQUEST)
-            if result.get("request_price", ""):
+            request_price = component.calculate_request_price(
+                user=request.user,
+                area=area
+            )
+            if serializer.validated_data.get("pre_submit"):
                 self.perform_create(serializer)
-                return Response({**serializer.data, "price": result['request_price']}, status=status.HTTP_200_OK)
-        
-        self.perform_create(serializer)
+                return Response({**serializer.data, "price": request_price}, status=status.HTTP_200_OK)
+            actual_balance = request.user.balance - request.user.on_hold
+            if actual_balance < request_price:
+                validation_error = ValidationError(_(f"Your actual balance is {actual_balance}. "
+                                                     f"It’s not enough to run the request. Please replenish the balance. "
+                                                     f"Contact support (support@soilmate.ai)"))
+                return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
+            from user_management.utils import create_transaction
+            with transaction.atomic():
+                self.perform_create(serializer)
+                create_transaction(
+                    user=request.user,
+                    amount=request_price,
+                    request=serializer.instance,
+                )
         if not serializer.instance:
             validation_error = ValidationError(_("Error while creating a report"))
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
