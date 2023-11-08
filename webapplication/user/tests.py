@@ -14,11 +14,9 @@ class UserBase(APITestCase):
     @staticmethod
     def add_users_special_permissions():
         delete_any_result_permission = Permission.objects.get(codename='delete_any_result')
-        view_all_transactions_permission = Permission.objects.get(codename='view_all_transactions')
 
         staff_user = User.objects.get(id=1001)
         staff_user.user_permissions.add(delete_any_result_permission)
-        staff_user.user_permissions.add(view_all_transactions_permission)
     
     @staticmethod
     def add_users_to_groups():
@@ -278,86 +276,3 @@ class AuthTestCase(UserBase):
         response = self.client.post(url, input_data)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(len(mail.outbox), 2)
-
-
-class TransactionTestCase(UserBase):
-    fixtures = (
-        'user/fixtures/user_fixtures.json',
-        'aoi/fixtures/aoi_fixtures.json',
-        'aoi/fixtures/notebook_fixtures.json',
-        'aoi/fixtures/request_fixtures.json',
-        'user/fixtures/transaction_fixtures.json'
-    )
-
-    def test_get_transactions_list_authorized(self):
-        response_data = [
-            {
-                "id": 1002,
-                "user": 1002,
-                "amount": 30,
-                "created_at": "2023-02-15T11:15:11.230000Z",
-                "updated_at": "2023-02-15T11:15:11.230000Z",
-                "request": None,
-                "comment": "",
-                "error": None,
-                "completed": False,
-                "rolled_back": False
-            }
-        ]
-        url = reverse("get_transactions_list")
-        self.client.force_login(self.ex_2_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(len(response.data), len(response_data))
-        self.assertEqual(response.json(), response_data)
-
-    def test_get_transactions_list_authorized_as_admin(self):
-        response_data = [
-            {
-                "id": 1003,
-                "user": 1003,
-                "amount": -8.14,
-                "created_at": "2023-02-15T11:16:21.210000Z",
-                "updated_at": "2023-02-15T11:16:21.210000Z",
-                "request": 1001,
-                "comment": "",
-                "error": None,
-                "completed": True,
-                "rolled_back": False
-            },
-            {
-                "id": 1002,
-                "user": 1002,
-                "amount": 30,
-                "created_at": "2023-02-15T11:15:11.230000Z",
-                "updated_at": "2023-02-15T11:15:11.230000Z",
-                "request": None,
-                "comment": "",
-                "error": None,
-                "completed": False,
-                "rolled_back": False
-            },
-            {
-                "id": 1001,
-                "user": 1001,
-                "amount": -20.42,
-                "created_at": "2023-02-15T11:14:31.140000Z",
-                "updated_at": "2023-02-15T11:14:31.140000Z",
-                "request": 1001,
-                "comment": "",
-                "error": None,
-                "completed": True,
-                "rolled_back": False
-            }
-        ]
-        url = reverse("get_transactions_list")
-        self.client.force_login(self.staff_user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(len(response.data), len(response_data))
-        self.assertEqual(response.json(), response_data)
-
-    def test_get_transactions_list_not_authorized(self):
-        url = reverse("get_transactions_list")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)

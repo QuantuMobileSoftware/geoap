@@ -7,8 +7,10 @@ from threading import Thread, Lock, Event
 
 from django.db import transaction
 
-from aoi.models import Component, Request, AoI, TransactionErrorMessage
-from user.models import User, Transaction
+from aoi.models import Component, Request, AoI
+
+from user.models import User
+
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
@@ -19,10 +21,16 @@ from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.apps import apps
+
 
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+
+
+from django.apps import apps
+
 
 def clean_container_logs(logs):
     # Remove line numbers
@@ -186,28 +194,13 @@ class NotebookDockerThread(StoppableThread):
                     request.error = collected_error[len(collected_error) - error_max_length:]
                 else:
                     request.error = collected_error
-                known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
-                errors = []
-                for error in known_errors:
-                    if error in request.error:
-                        errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
-                if errors:
-                    request.user_readable_errors = errors
-                    request.save(update_fields=['user_readable_errors'])
-                    logger.info("Known error added")
-                else:
-                    logger.info("No known error for component error")
                 request.save(update_fields=['error'])
-
-                request_transaction = request.transactions.first()
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.rolled_back = True
-                request_transaction.completed = True
-                request_transaction.error = Transaction.generate_error(request.user_readable_errors)
-                with transaction.atomic():
-                    request_transaction.save(update_fields=("rolled_back", "completed", "error"))
-                    request_transaction.user.save(update_fields=("on_hold",))
-
+                
+                if apps.is_installed("user_management"):
+                    from user_management.utils import user_readable_error, failed_request_transaction
+                    user_readable_error(request)
+                    failed_request_transaction(request)
+                
                 email_notification(request, "failed")
             try:
                 container.remove()
@@ -233,15 +226,13 @@ class NotebookDockerThread(StoppableThread):
                 logger.exception(f"Request {request.pk}, notebook {request.component.name}:")
                 try:
                     with transaction.atomic():
-                        request_transaction = request.transactions.first()
-                        request_transaction.user.on_hold -= abs(request_transaction.amount)
-                        request_transaction.rolled_back = True
                         request.finished_at = localtime()
-
-                        request_transaction.save(update_fields=("rolled_back",))
-                        request_transaction.user.save(update_fields=("on_hold",))
                         request.save(update_fields=['finished_at'])
 
+                        if apps.is_installed("user_management"):
+                            from user_management.utils import failed_request_transaction
+                            failed_request_transaction(request)
+                        
                         email_notification(request, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
@@ -264,16 +255,12 @@ class PublisherThread(StoppableThread):
         success_requests = Request.objects.filter(calculated=True, success=False)
         logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
         for sr in success_requests:
-            request_transaction = sr.transactions.first()
-            if request_transaction:
-                request_transaction.completed = True
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.user.balance -= abs(request_transaction.amount)
-                with transaction.atomic():
-                    request_transaction.save(update_fields=("completed",))
-                    request_transaction.user.save(update_fields=("balance", "on_hold"))
 
-                email_notification(sr, "succeeded")
+            if apps.is_installed("user_management"):
+                from user_management.utils import success_complete_transaction
+                success_complete_transaction(sr)
+            
+            email_notification(sr, "succeeded")
         success_requests.update(finished_at=localtime(), success=True)
 
 
