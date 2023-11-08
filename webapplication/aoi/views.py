@@ -226,6 +226,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
                     amount=request_price,
                     request=serializer.instance,
                 )
+        else:
+            self.perform_create(serializer)
         if not serializer.instance:
             validation_error = ValidationError(_("Error while creating a report"))
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
