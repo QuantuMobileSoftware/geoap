@@ -27,3 +27,4 @@ class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'component', 'date_from', 'date_to', 'started_at', 'finished_at',
                     'calculated', 'success', 'error', 'additional_parameter', 'user_readable_errors')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
+
