@@ -6,23 +6,33 @@ from abc import abstractmethod, ABC
 from threading import Thread, Lock, Event
 
 from django.db import transaction
+from django.apps import apps
 
-from aoi.models import Component, Request, AoI, TransactionErrorMessage
-from user.models import User, Transaction
+from aoi.models import Component, Request, AoI
+
+from user.models import User
+
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
                                                 ContainerExecutor, )
-from aoi.management.commands._k8s_notebook_handler import K8sNotebookHandler
-
 from django.utils.timezone import localtime
 from django.core import management
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.apps import apps
+
 
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+
+
+def email_notification(request, status):
+    if apps.is_installed("geoap_email_notifications"):
+        from geoap_email_notifications.utils import email_notification
+        email_notification(request, status)
+
 
 def clean_container_logs(logs):
     # Remove line numbers
@@ -38,49 +48,6 @@ def clean_container_logs(logs):
     # Replace multiple spaces
     log_text = re.sub(r'\s+', ' ', log_text)
     return log_text
-
-def send_email_notification(user_mail, email_message, subject):
-    result = 0
-    try:
-        result = send_mail(subject, email_message, None, [user_mail])
-    except Exception as ex:
-        logger.error(f"Error while sending mail: {str(ex)}")
-    if result == 1:
-        logger.info(f"Email sent successfully! for email '{user_mail}'")
-    else:
-        logger.info(f"Failed to send the email for email '{user_mail}'")
-
-def email_notification(request, status):
-    user_data = User.objects.filter(id=request.user_id).first()
-    aoi_name = AoI.objects.filter(id=request.aoi_id).first()
-    if not user_data.receive_notification:
-        logger.info(f"Not sending email for user '{user_data.email}'")
-        return
-
-    message = f"""Your request for AOI '{aoi_name.name if aoi_name else request.polygon.wkt}' and layer '{request.component_name}' is {status}
-    \n\nClick the link below to visit the site:\n{request.request_origin}"""
-    send_email_notification(user_data.email, message, settings.EMAIL_SUBJECT)
-
-    if settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL:
-        system_message=f"""
-        Status: {status.upper()},
-        Error: {', '.join(request.user_readable_errors) if request.user_readable_errors else request.error},
-        Domain: {request.request_origin},
-        
-        AoI Name: {aoi_name.name if aoi_name else None},
-        AoI polygon: {request.polygon.wkt},
-        Component name: {request.component_name},
-        Start date: {request.date_from.strftime("%Y/%m/%d") if request.date_from else None},
-        End date: {request.date_to.strftime("%Y/%m/%d") if request.date_to else None},
-        Additional parameter value: {request.additional_parameter},
-        
-        User name: {user_data.username},
-        User email: {user_data.email}
-        """
-        send_email_notification(settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL, system_message, f"{settings.EMAIL_SUBJECT} - {status.upper()}")
-
-
-
 
 
 class StoppableThread(ABC, Thread):
@@ -186,28 +153,13 @@ class NotebookDockerThread(StoppableThread):
                     request.error = collected_error[len(collected_error) - error_max_length:]
                 else:
                     request.error = collected_error
-                known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
-                errors = []
-                for error in known_errors:
-                    if error in request.error:
-                        errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
-                if errors:
-                    request.user_readable_errors = errors
-                    request.save(update_fields=['user_readable_errors'])
-                    logger.info("Known error added")
-                else:
-                    logger.info("No known error for component error")
                 request.save(update_fields=['error'])
-
-                request_transaction = request.transactions.first()
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.rolled_back = True
-                request_transaction.completed = True
-                request_transaction.error = Transaction.generate_error(request.user_readable_errors)
-                with transaction.atomic():
-                    request_transaction.save(update_fields=("rolled_back", "completed", "error"))
-                    request_transaction.user.save(update_fields=("on_hold",))
-
+                
+                if apps.is_installed("user_management"):
+                    from user_management.utils import user_readable_error, failed_request_transaction
+                    user_readable_error(request)
+                    failed_request_transaction(request)
+                
                 email_notification(request, "failed")
             try:
                 container.remove()
@@ -233,15 +185,13 @@ class NotebookDockerThread(StoppableThread):
                 logger.exception(f"Request {request.pk}, notebook {request.component.name}:")
                 try:
                     with transaction.atomic():
-                        request_transaction = request.transactions.first()
-                        request_transaction.user.on_hold -= abs(request_transaction.amount)
-                        request_transaction.rolled_back = True
                         request.finished_at = localtime()
-
-                        request_transaction.save(update_fields=("rolled_back",))
-                        request_transaction.user.save(update_fields=("on_hold",))
                         request.save(update_fields=['finished_at'])
 
+                        if apps.is_installed("user_management"):
+                            from user_management.utils import failed_request_transaction
+                            failed_request_transaction(request)
+                        
                         email_notification(request, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
@@ -264,25 +214,12 @@ class PublisherThread(StoppableThread):
         success_requests = Request.objects.filter(calculated=True, success=False)
         logger.info(f"Marking requests {[sr.pk for sr in success_requests]} as succeeded")
         for sr in success_requests:
-            request_transaction = sr.transactions.first()
-            if request_transaction:
-                request_transaction.completed = True
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.user.balance -= abs(request_transaction.amount)
-                with transaction.atomic():
-                    request_transaction.save(update_fields=("completed",))
-                    request_transaction.user.save(update_fields=("balance", "on_hold"))
 
-                email_notification(sr, "succeeded")
+            if apps.is_installed("user_management"):
+                from user_management.utils import success_complete_transaction
+                success_complete_transaction(sr)
+            
+            email_notification(sr, "succeeded")
         success_requests.update(finished_at=localtime(), success=True)
 
 
-class NotebookK8sThread(StoppableThread):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.notebook_handler = K8sNotebookHandler(settings.K8S_NAME_SPACE)
-
-    def do_stuff(self):
-        # Execution
-        self.notebook_handler.start_notebook_execution()
-        self.notebook_handler.start_component_execution_jobs_supervision()

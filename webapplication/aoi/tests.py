@@ -9,6 +9,7 @@ from user.models import User
 from .models import AoI, Component, Request
 from .serializers import AoISerializer
 from user.tests import UserBase
+from django.apps import apps
 
 logger = logging.getLogger('root')
 
@@ -587,81 +588,6 @@ class RequestTestCase(UserBase):
     def get_request_list(self):
         url = reverse('aoi:request_list_or_create')
         return self.client.get(url)
-
-    def test_request_price_and_user_balance_calculation(self):
-        self.client.force_login(self.staff_user)
-        target_request_price = Decimal('3685.01')
-        response = self.create_request(self.data_create)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        request_id = response.data.get("id", None)
-        component_id = response.data.get("notebook", None)
-        aoi_id = response.data.get("aoi", None)
-        self.assertIsNotNone(request_id)
-        self.assertIsNotNone(component_id)
-        self.assertIsNotNone(aoi_id)
-
-        request = Request.objects.get(pk=request_id)
-        aoi = AoI.objects.get(pk=aoi_id)
-        component = Component.objects.get(pk=component_id)
-        transaction = request.transactions.first()
-
-        calculated_price = component.calculate_request_price(
-            area=aoi.area_in_sq_km,
-            user=request.user
-        )
-
-        self.assertIsNotNone(transaction)
-        self.assertEqual(calculated_price, target_request_price)
-        self.assertEqual(abs(transaction.amount), target_request_price)
-        self.assertEqual(request.user.on_hold, target_request_price)
-
-    def test_creating_request_error(self):
-        self.client.force_login(self.all_results_no_acl_user)
-        target_response = {
-            "non_field_errors": [
-                f"Your actual balance is {self.all_results_no_acl_user.actual_balance}. "
-                f"It’s not enough to run the request. Please replenish the balance. "
-                f"Contact support (support@soilmate.ai)"
-            ]
-        }
-        data_create = {
-            'user': 1005,
-            'aoi': 1001,
-            'notebook': 1001,
-            'polygon': ''
-        }
-        response = self.create_request(data_create)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, target_response)
-
-    def test_request_price_calculation(self):
-        self.client.force_login(self.staff_user)
-        target_response = {
-            'id': None,
-            'user': 1001,
-            'aoi': 1001,
-            'notebook': 1001,
-            'notebook_name': 'JupyterNotebook_test',
-            'date_from': None,
-            'date_to': None,
-            'started_at': None,
-            'finished_at': None,
-            'error': None,
-            'calculated': False,
-            'success': False,
-            'polygon': 'SRID=4326;POLYGON ((36.01678367017178 50.14982647696019, 36.55073998712133 50.13673931232907, '
-                       '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
-                       '50.14982647696019))',
-            'additional_parameter': None,
-            'price': Decimal('3685.01'),
-            'request_origin': 'http://testserver/',
-            'user_readable_errors': None
-        }
-        data_create = {**self.data_create, 'pre_submit': True}
-
-        response = self.create_request(data_create)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, target_response)
 
     
 class AOIRequestsTestCase(UserBase):

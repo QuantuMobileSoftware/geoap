@@ -1,13 +1,10 @@
-from django.utils import timezone
-from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
-from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 
-from aoi.models import AoI, Request
+from aoi.models import AoI
 
 
 class User(AbstractUser):
@@ -24,10 +21,6 @@ class User(AbstractUser):
     receive_news = models.BooleanField(default=False, verbose_name='Receive News')
 
 
-    class Meta:
-        permissions = (
-            ("can_change_balance", "Can change balance"),
-        )
 
     @property
     def areas_total_ha(self):
@@ -65,60 +58,3 @@ class User(AbstractUser):
         if self.areas_total_ha - old_area_ha + new_area_ha > self.area_limit_ha:
             return False
         return True
-
-    @property
-    def actual_balance(self):
-        return self.balance - self.on_hold
-
-    def finish_trial (self):
-        self.trial_finished_at=timezone.now()
-        self.top_up_balance(-self.balance, settings.TRIAL_PERIOD_FINISH_COMMENT)
-        self.save(update_fields=("trial_finished_at",))
-
-    def start_trial (self):
-        self.top_up_balance(settings.TRIAL_PERIOD_BALANCE, settings.TRIAL_PERIOD_START_COMMENT)
-        self.trial_started_at=timezone.now()
-        self.save(update_fields=("trial_started_at",))
-        
-    def top_up_balance(self, amount, comment):
-        if self.trial_started_at and not self.trial_finished_at:
-            self.finish_trial()
-
-        with transaction.atomic():
-            Transaction.objects.create(
-                user=self,
-                amount=amount,
-                comment=comment,
-                completed=True
-            )
-            self.balance += amount
-        self.save(update_fields=("balance",))
-
-
-class Transaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
-    amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)
-    created_at = models.DateTimeField(_("Created at"), auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(_("Updated at"), auto_now=True)
-    request = models.ForeignKey(Request, on_delete=models.PROTECT, default=None, blank=True, null=True,
-                                related_name="transactions")
-    comment = models.TextField(_("Comment"), blank=True, default="")
-    error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
-    completed = models.BooleanField(_("Completed"), default=False, blank=True, null=True)
-    rolled_back = models.BooleanField(_("Rolled back"), default=False, blank=True, null=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = _("Transaction")
-        verbose_name_plural = _("Transactions")
-        permissions = (
-            ("view_all_transactions", "Can view all transactions"),
-        )
-
-    @staticmethod
-    def generate_error(errors):
-        if errors:
-            return ', '.join([error for error in errors])
-        else:
-            return settings.DEFAULT_TRANSACTION_ERROR
-

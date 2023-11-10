@@ -8,6 +8,7 @@ from dj_rest_auth.views import LoginView, LogoutView, PasswordResetView, Passwor
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.decorators.csrf import csrf_exempt
+from django.apps import apps
 
 from user.views import VerifyEmailView, RegisterView, CustomUserDetailsView
 from .docs_drf_yasg import urlpatterns as doc_urls
@@ -33,9 +34,10 @@ auth_patterns = [
 api_patterns = [
     path('', include("publisher.urls")),
     path('', include("aoi.urls")),
-    path('', include("user.urls")),
-    path('', include(auth_patterns))
+    path('', include(auth_patterns)),
 ]
+if apps.is_installed("user_management"):
+    api_patterns.extend([path('', include("user_management.urls"))])
 api_patterns.extend(doc_urls)
 
 urlpatterns = [

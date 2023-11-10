@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, GEOSException
-from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.serializers import ValidationError, as_serializer_error
@@ -14,9 +13,12 @@ from .models import AoI, Component, Request
 from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
 from .permissions import AoIIsOwnerPermission
-from user.models import User, Transaction
+from user.models import User
 from allauth.account import app_settings
 from allauth.utils import build_absolute_uri
+from django.db import transaction
+
+from django.apps import apps
 
 
 class AoIListCreateAPIView(ListCreateAPIView):
@@ -180,14 +182,6 @@ class RequestListCreateAPIView(ListCreateAPIView):
             area = AoI.polygon_in_sq_km(polygon)
         return area
 
-    def create_transaction(self, user, amount, request):
-        Transaction.objects.create(
-            user=user,
-            amount=-amount,
-            request=request,
-        )
-        user.on_hold += amount
-        user.save(update_fields=("on_hold",))
 
     def create(self, request, *args, **kwargs):
         request_data = request.data.copy()
@@ -210,26 +204,32 @@ class RequestListCreateAPIView(ListCreateAPIView):
                                                  "location is invalid"))
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
 
-        request_price = component.calculate_request_price(
-            user=request.user,
-            area=area
-        )
-        if serializer.validated_data.get("pre_submit"):
-            self.perform_create(serializer)
-            return Response({**serializer.data, "price": request_price}, status=status.HTTP_200_OK)
-        user_actual_balance = request.user.actual_balance
-        if user_actual_balance < request_price:
-            validation_error = ValidationError(_(f"Your actual balance is {request.user.actual_balance}. "
-                                                 f"It’s not enough to run the request. Please replenish the balance. "
-                                                 f"Contact support (support@soilmate.ai)"))
-            return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
-        with transaction.atomic():
-            self.perform_create(serializer)
-            self.create_transaction(
+        if apps.is_installed("user_management"):
+            from user_management.utils import create_transaction, calculate_request_price, get_balance_validation_error
+            from user_management.models import UserTransaction
+            
+            request_price = calculate_request_price(
                 user=request.user,
-                amount=request_price,
-                request=serializer.instance,
+                area=area,
+                basic_price=component.basic_price
             )
+        
+            if serializer.validated_data.get("pre_submit"):
+                self.perform_create(serializer)
+                return Response({**serializer.data, "price": request_price}, status=status.HTTP_200_OK)
+            
+            if UserTransaction.actual_balance(request.user) < request_price:
+                return Response(as_serializer_error(get_balance_validation_error(request.user)), status=status.HTTP_400_BAD_REQUEST)
+            
+            with transaction.atomic():
+                self.perform_create(serializer)
+                create_transaction(
+                    user=request.user,
+                    amount=request_price,
+                    request=serializer.instance,
+                )
+        else:
+            self.perform_create(serializer)
         if not serializer.instance:
             validation_error = ValidationError(_("Error while creating a report"))
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
