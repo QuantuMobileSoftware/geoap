@@ -101,12 +101,6 @@ class Component(models.Model):
         verbose_name_plural = 'Components'
         ordering = ['name']
 
-    def calculate_request_price(self, area: Decimal, user) -> Decimal:
-        """
-        Request price = Area (in sq.km, rounded up) * Product basic price * (1-User Personal discount).
-        Format XX.XX
-        """
-        return round(area * self.basic_price * (1 - user.discount), 2)
 
 
 class Request(models.Model):

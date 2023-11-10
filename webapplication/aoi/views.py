@@ -205,20 +205,22 @@ class RequestListCreateAPIView(ListCreateAPIView):
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
 
         if apps.is_installed("user_management"):
-            request_price = component.calculate_request_price(
+            from user_management.utils import create_transaction, calculate_request_price
+            request_price = calculate_request_price(
                 user=request.user,
-                area=area
+                area=area,
+                basic_price=component.basic_price
             )
             if serializer.validated_data.get("pre_submit"):
                 self.perform_create(serializer)
                 return Response({**serializer.data, "price": request_price}, status=status.HTTP_200_OK)
-            actual_balance = request.user.balance - request.user.on_hold
-            if actual_balance < request_price:
-                validation_error = ValidationError(_(f"Your actual balance is {actual_balance}. "
+
+            from user_management.models import UserTransaction
+            if UserTransaction.actual_balance(request.user) < request_price:
+                validation_error = ValidationError(_(f"Your actual balance is {UserTransaction.actual_balance(request.user)}. "
                                                      f"It’s not enough to run the request. Please replenish the balance. "
                                                      f"Contact support (support@soilmate.ai)"))
                 return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
-            from user_management.utils import create_transaction
             with transaction.atomic():
                 self.perform_create(serializer)
                 create_transaction(
