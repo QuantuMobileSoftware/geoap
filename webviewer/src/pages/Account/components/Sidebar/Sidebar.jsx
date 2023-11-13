@@ -11,13 +11,14 @@ const breadcrumbsItems = [
   { link: ROUTES.ROOT, text: 'Home' },
   { text: 'Personal account' }
 ];
+const { REACT_APP_IS_GEOAP_EE_ENABLED } = process.env;
 
 export const Sidebar = props => {
   const { activeTab, setActiveTab } = props;
   const user = useSelector(selectUser);
   const history = useHistory();
   const tabs = useMemo(() => {
-    return user.trial_finished_at
+    return REACT_APP_IS_GEOAP_EE_ENABLED === 'true' && user.trial_finished_at
       ? TABS
       : TABS.filter(({ name }) => name !== TAB_NAMES.transactions);
   }, [user.trial_finished_at]);
