@@ -16,6 +16,7 @@ from .filters import ResultsByACLFilterBackend
 from .permissions import ResultByACLPermission
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
+from publisher.utils import zip_files
 
 
 class FilesView(APIView):
@@ -29,7 +30,13 @@ class FilesView(APIView):
         """
         The parts are then rebuilt by NGINX and used with proxy_pass.
         """
-        file_path = kwargs['file_path']
+        file_paths = request.data
+        if not file_paths:
+            return Response({"detail": "No file paths provided in the request body."}, status=400)
+        if len(file_paths)>1:
+            file_path = zip_files(file_paths)
+        else:
+            file_path = file_paths[0]
         file = f'/file_download/{file_path}'
         response = HttpResponse()
         response['Content-Disposition'] = 'inline'
