@@ -11,9 +11,6 @@ def zip_files(paths):
         settings.DEFAULT_DOWNLOAD_ZIP_NAME
     )
 
-    if os.path.exists(output_zip_path):
-        os.remove(output_zip_path)
-
     with zipfile.ZipFile(output_zip_path, 'w') as zipf:
         for file_path in paths:
             zipf.write(os.path.join(settings.RESULTS_FOLDER, file_path), os.path.basename(file_path))
