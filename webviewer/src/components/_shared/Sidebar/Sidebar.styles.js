@@ -40,7 +40,7 @@ export const SidebarButtonClose = styled(Button).attrs({
   `}
 `;
 export const BasicSidebar = styled(Paper).attrs({ padding: 1 })`
-  width: ${rem(300)};
+  width: ${rem(320)};
   height: 100%;
   border-radius: 0;
 `;
