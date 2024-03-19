@@ -117,8 +117,8 @@ export const selectCurrentRequests = createSelector(
 export const selectCurrentResults = createSelector(
   selectAreasList,
   selectCurrentArea,
-  (areas, areaID) => {
-    return areas.filter(({ id }) => id === areaID)[0].results;
+  (areas, areaId) => {
+    return areas.find(({ id }) => id === areaId)?.results;
   }
 );
 

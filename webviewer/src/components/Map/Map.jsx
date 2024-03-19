@@ -21,7 +21,6 @@ import { StyledMapContainer, MapHolder } from './Map.styles';
 
 import {
   selectAreasList,
-  selectAreas,
   selectCurrentArea,
   useAreasActions,
   selectSidebarMode,
@@ -50,14 +49,13 @@ const getFilteredAreas = (areas, type) => areas.filter(area => area.type === typ
 
 const { REACT_APP_IS_MAPBOX_AVAILABLE } = process.env;
 
-export const Map = () => {
+export const Map = ({ selectedArea, currentResult }) => {
   const [map, setMap] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [currentShape, setCurrentShape] = useState();
   const [drawingShape, setDrawingShape] = useState();
 
   const initialAreas = useSelector(selectAreasList);
-  const areasObject = useSelector(selectAreas);
   const currentAreaId = useSelector(selectCurrentArea);
   const sidebarMode = useSelector(selectSidebarMode);
   const isLoading = useSelector(getLoading);
@@ -65,25 +63,12 @@ export const Map = () => {
   const { addNewArea, setCurrentArea, setSidebarMode, deleteSelectedResult } =
     useAreasActions();
 
-  const currentResult = useMemo(() => {
-    if (currentAreaId && !!selectedResults.length) {
-      return areasObject[currentAreaId].results[
-        selectedResults[selectedResults.length - 1]
-      ];
-    }
-  }, [selectedResults, areasObject, currentAreaId]);
-
   const isShowRange = selectedResults.length;
   const aoiType = sidebarMode === FIELDS ? AOI_TYPE.FIELD : AOI_TYPE.AREA;
   const areaData = useAreaData(currentShape, aoiType);
   const PopupHeaderText = `Are you sure with this ${
     aoiType === AOI_TYPE.AREA ? 'area' : 'field'
   }?`;
-
-  const selectedArea = useMemo(
-    () => initialAreas.find(area => area.id === currentAreaId),
-    [currentAreaId, initialAreas]
-  );
 
   const filteredAreas = useMemo(() => {
     const isField = sidebarMode === FIELDS || selectedArea?.type === AOI_TYPE.FIELD;
