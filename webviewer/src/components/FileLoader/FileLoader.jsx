@@ -2,8 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { isEmpty } from 'lodash-es';
 import { API } from 'api';
 import { Button } from 'components/_shared/Button';
+import { LoadProgress } from './LoadProgress';
 import { selectCurrentResults } from 'state';
 import {
   StyledFileLoader,
@@ -17,6 +19,7 @@ const getFileFormat = path => path.split('.').pop();
 
 export const FileLoader = ({ selectedIdResults, top }) => {
   const allAreaResults = useSelector(selectCurrentResults);
+  const [downloadProgress, setDownloadProgress] = useState({});
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedResults = useMemo(
@@ -28,13 +31,16 @@ export const FileLoader = ({ selectedIdResults, top }) => {
 
   const handleDownloadFiles = async () => {
     const zip = new JSZip();
-    const promises = selectedResults.map(async ({ filepath, name }) => {
-      const response = await API.files.getFile(filepath);
+    const promises = selectedResults.map(async ({ filepath, name, id }) => {
+      const response = await API.files.getFile(filepath, progress => {
+        setDownloadProgress(state => ({ ...state, [id]: { ...progress, name } }));
+      });
       zip.file(`${name}.${getFileFormat(filepath)}`, response);
     });
     await Promise.all(promises);
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     saveAs(zipBlob, 'results.zip');
+    setDownloadProgress({});
   };
 
   return (
@@ -50,9 +56,14 @@ export const FileLoader = ({ selectedIdResults, top }) => {
         <FileLoaderContent>
           <Title>File type</Title>
           <FormatList>{filesFormat.join(', ')}</FormatList>
-          <DownloadButton onClick={handleDownloadFiles}>
-            Download {buttonText}
-          </DownloadButton>
+          {Object.entries(downloadProgress).map(([id, progress]) => (
+            <LoadProgress progress={progress} key={id} />
+          ))}
+          {isEmpty(downloadProgress) && (
+            <DownloadButton onClick={handleDownloadFiles}>
+              Download {buttonText}
+            </DownloadButton>
+          )}
         </FileLoaderContent>
       )}
     </StyledFileLoader>
