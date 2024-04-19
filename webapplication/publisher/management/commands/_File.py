@@ -4,11 +4,13 @@ import json
 import shutil
 from typing import Optional
 import geopandas
+import gpxpy
 import pyproj
 import rasterio
 import rasterio.features
 import rasterio.warp
 from pathlib import Path
+import geojson
 
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
@@ -17,7 +19,7 @@ from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 
-from shapely import Polygon
+from shapely import Polygon, Point
 from shapely.ops import transform
 from shapely.geometry import box
 from django.conf import settings
@@ -40,6 +42,8 @@ class FileFactory(object):
             return Geojson(path, self.basedir, request)
         elif path_lower.endswith(('.tif', '.tiff')):
             return Geotif(path, self.basedir, request)
+        elif path_lower.endswith('.gpx'):
+            return GPXFile(path, self.basedir, request)
         else:
             return
 
@@ -348,3 +352,128 @@ class Geotif(File):
                 pass
         except OSError as e:
             logger.error(f"Error delete {delete_path} tile: {e.strerror}")
+
+
+class GPXFile(File):
+
+    def create_geojson_from_gpx_file(self, file_path):
+        with open(file_path, 'r') as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+
+            waypoints_stones = []
+            for waypoint in gpx.waypoints:
+                waypoints_stones.append(Point(waypoint.latitude, waypoint.longitude))
+
+            features = []
+            for point in waypoints_stones:
+                feature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": (point.x, point.y)
+                    },
+                    "properties": {}
+                }
+                features.append(feature)
+
+            feature_collection = {
+                "type": "FeatureCollection",
+                "features": features
+            }
+            res_path = f'{os.path.dirname(self.path)}/output.geojson'
+            with open(res_path, 'w') as f:
+                geojson.dump(feature_collection, f)
+        return res_path
+
+    def parse_gpx_file(self, file_path):
+        with open(file_path, 'r') as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+
+            waypoints_stones = []
+            for waypoint in gpx.waypoints:
+                waypoints_stones.append(Point(waypoint.latitude, waypoint.longitude))
+
+            route_points = []
+            for route in gpx.routes:
+                for point in route.points:
+                    route_points.append((point.latitude, point.longitude))
+
+            route_polygon = Polygon(route_points)
+            return route_polygon
+
+    def rel_url(self):
+        # todo: later change to another type
+        return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
+
+    def layer_type(self):
+        # todo: later change to another type
+        return Result.MVT
+
+    def get_styles_url(self):
+        return
+
+    def read_file(self):
+        return
+
+    def bounding_polygon(self):
+        return GEOSGeometry(f"{self.parse_gpx_file(self.path)}", srid=4326)
+
+    def create_mvt_style(self, df, output_path):
+        def get_color(row):
+            if row and isinstance(row, dict) and 'color' in dict(row).keys():
+                return row['color']
+
+        if 'style' not in df.columns:
+            return
+        colors_list = df['style'].apply(get_color).dropna().unique().tolist()
+        if len(colors_list) > 0:
+            style_dict = dict(version=1, name='default_style', layers=[])
+
+            for i, color in enumerate(colors_list):
+                layer = {
+                    "id": f"id{i}",
+                    "type": "fill",
+                    "source-layer": "default",
+                    "filter": [
+                        "==",
+                        "style",
+                        '{"color":"%(color)s"}' % {"color": color}
+                    ],
+                    "paint": {
+                        "fill-color": color,
+                        "fill-opacity": 0.75
+                    }
+                }
+                style_dict['layers'].append(layer)
+
+            with open(output_path, "w") as outfile:
+                json.dump(style_dict, outfile)
+                logger.info(f"Styles for tiles saved in: {output_path}")
+            return self.get_styles_url()
+        return
+
+    def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
+        # todo: generate geojson, create tiles, remove geojson
+        pass
+
+    def as_dict(self):
+        dict_ = dict(filepath=self.filepath(),
+                     modifiedat=self.modifiedat(),
+                     layer_type=self.layer_type(),
+                     rel_url=self.rel_url(),
+                     bounding_polygon=self.bounding_polygon(),
+                     name=Path(self.path).stem,
+                     start_date=None,
+                     end_date=None,
+                     request=self.request,
+                     released=True if self.request else False,
+                     labels=self.labels,
+                     colormap=self.colormap)
+
+        if self.start_date:
+            dict_['start_date'] = self.start_date
+        if self.end_date:
+            dict_['end_date'] = self.end_date
+        if self.style_url:
+            dict_['styles_url'] = self.style_url
+        return dict_

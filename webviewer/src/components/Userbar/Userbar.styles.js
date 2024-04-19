@@ -7,7 +7,9 @@ import { FormField } from 'components/_shared/Form';
 import { Image } from 'components/_shared/Image';
 import { Menu, MenuDropdown } from 'components/_shared/Menu';
 
-export const UserbarMenu = styled(Menu)``;
+export const UserbarMenu = styled(Menu)`
+  z-index: ${({ theme }) => theme.zIndexes[2]};
+`;
 
 export const UserbarName = styled(Typography).attrs({ variant: 'body2' })``;
 

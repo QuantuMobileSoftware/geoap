@@ -16,6 +16,7 @@ django-waffle==3.0.0
 psycopg2==2.8.5
 invoke==1.4.1
 docker==4.4.4
+gpxpy==1.6.2
 
 # geo libs
 rasterio==1.1.8
