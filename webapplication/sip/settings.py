@@ -261,3 +261,5 @@ TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
+
+DEFAULT_DOWNLOAD_ZIP_NAME = 'download.zip'
