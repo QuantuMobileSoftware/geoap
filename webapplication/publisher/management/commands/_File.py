@@ -388,17 +388,19 @@ class GPXFile(File):
     def parse_gpx_file(self, file_path):
         with open(file_path, 'r') as gpx_file:
             gpx = gpxpy.parse(gpx_file)
-
             waypoints_stones = []
             for waypoint in gpx.waypoints:
-                waypoints_stones.append(Point(waypoint.latitude, waypoint.longitude))
+                waypoints_stones.append(
+                    Point(waypoint.longitude, waypoint.latitude))
 
-            route_points = []
+            x = []
+            y = []
             for route in gpx.routes:
                 for point in route.points:
-                    route_points.append((point.latitude, point.longitude))
+                    x.append(point.longitude)
+                    y.append(point.latitude)
 
-            route_polygon = Polygon(route_points)
+            route_polygon = Polygon(zip(x, y))
             return route_polygon
 
     def rel_url(self):
