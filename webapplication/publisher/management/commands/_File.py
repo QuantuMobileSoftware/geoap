@@ -19,7 +19,7 @@ from dateutil import parser as timestamp_parser
 from subprocess import Popen, PIPE, TimeoutExpired
 from datetime import datetime
 
-from shapely import Polygon, Point
+from shapely import Polygon, Point, geometry
 from shapely.ops import transform
 from shapely.geometry import box
 from django.conf import settings
@@ -399,9 +399,13 @@ class GPXFile(File):
                 for point in route.points:
                     x.append(point.longitude)
                     y.append(point.latitude)
-
-            route_polygon = Polygon(zip(x, y))
-            return route_polygon
+            if x and y:
+                route_polygon = Polygon(zip(x, y))
+                return route_polygon
+            else:
+                route_polygon = geometry.Polygon(
+                    [[p.x, p.y] for p in waypoints_stones]).convex_hull
+                return route_polygon
 
     def rel_url(self):
         # todo: later change to another type
