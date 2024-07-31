@@ -84,6 +84,8 @@ class Component(models.Model):
     date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
     geoap_creds_required = models.BooleanField(default=False,
                                                            verbose_name='Geoap creds is required')
+    google_bucket_input_data = models.BooleanField(default=False,
+                                               verbose_name='Google bucket input data')
 
     def __str__(self):
         return self.name

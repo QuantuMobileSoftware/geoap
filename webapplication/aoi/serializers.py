@@ -22,7 +22,7 @@ class ComponentSerializer(serializers.ModelSerializer):
         model = Component
         fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
                   'additional_parameter', 'period_required', 'date_type', 'description', 'domains',
-                  'description_picture', 'detail_description_link')
+                  'description_picture', 'detail_description_link', 'google_bucket_input_data')
 
     def to_representation(self, instance):
         data = super(ComponentSerializer, self).to_representation(instance)
