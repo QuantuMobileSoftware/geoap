@@ -11,6 +11,7 @@ import rasterio.features
 import rasterio.warp
 from pathlib import Path
 import geojson
+import uuid
 
 from osgeo import gdal, gdalconst, osr
 from tempfile import NamedTemporaryFile
@@ -22,6 +23,7 @@ from datetime import datetime
 from shapely import Polygon, Point, geometry
 from shapely.ops import transform
 from shapely.geometry import box
+from shapely.geometry.polygon import orient
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils import timezone
@@ -356,31 +358,36 @@ class Geotif(File):
 
 class GPXFile(File):
 
+    def __init__(self, path, basedir, request: Optional[Request] = None):
+        super().__init__(path, basedir, request)
+        self.df = None
+
     def create_geojson_from_gpx_file(self, file_path):
         with open(file_path, 'r') as gpx_file:
             gpx = gpxpy.parse(gpx_file)
-
-            waypoints_stones = []
-            for waypoint in gpx.waypoints:
-                waypoints_stones.append(Point(waypoint.latitude, waypoint.longitude))
-
             features = []
-            for point in waypoints_stones:
+            for waypoint in gpx.waypoints:
+                point = Point(waypoint.longitude, waypoint.latitude)
+                polygon = point.buffer(0.00002)
+                polygon = orient(polygon, sign=1.0)
+
                 feature = {
                     "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": (point.x, point.y)
-                    },
-                    "properties": {}
+                    "geometry": {"type": "Polygon", "coordinates": [
+                        list(polygon.exterior.coords)]},
+                    "properties": {
+                        "style": {"color": "#e80e27", "stroke": "#e80e27",
+                                  "stroke-width": 2}},
                 }
                 features.append(feature)
 
-            feature_collection = {
-                "type": "FeatureCollection",
-                "features": features
-            }
-            res_path = f'{os.path.dirname(self.path)}/output.geojson'
+                if not features:
+                    raise ValueError("No waypoints found in the GPX file.")
+
+            feature_collection = {"type": "FeatureCollection",
+                                  "features": features}
+            temp_uuid = uuid.uuid4().hex
+            res_path = f'{os.path.dirname(self.path)}/{temp_uuid}.geojson'
             with open(res_path, 'w') as f:
                 geojson.dump(feature_collection, f)
         return res_path
@@ -401,18 +408,16 @@ class GPXFile(File):
                     y.append(point.latitude)
             if x and y:
                 route_polygon = Polygon(zip(x, y))
-                return route_polygon
             else:
                 route_polygon = geometry.Polygon(
                     [[p.x, p.y] for p in waypoints_stones]).convex_hull
-                return route_polygon
+            route_polygon = orient(route_polygon, sign=1.0)
+            return route_polygon
 
     def rel_url(self):
-        # todo: later change to another type
         return f"/tiles/{os.path.splitext(super().filepath())[0]}" + "/{z}/{x}/{y}.pbf"
 
     def layer_type(self):
-        # todo: later change to another type
         return Result.MVT
 
     def get_styles_url(self):
@@ -459,8 +464,37 @@ class GPXFile(File):
         return
 
     def generate_tiles(self, tiles_folder, timeout=settings.MAX_TIMEOUT_FOR_TILE_CREATION_SECONDS):
-        # todo: generate geojson, create tiles, remove geojson
-        pass
+        new_path = self.create_geojson_from_gpx_file(self.path)
+        print(new_path)
+        save_path = os.path.join(tiles_folder,
+                                 os.path.splitext(self.filepath())[0])
+        logger.info(f"Generating tiles for {new_path}")
+        os.makedirs(save_path, exist_ok=True)
+        shutil.rmtree(save_path)
+        command = ["tippecanoe",
+                   "-l", "default",
+                   "--no-feature-limit",
+                   "--no-tile-size-limit",
+                   "--exclude-all",
+                   f"--minimum-zoom={settings.ZOOM_LEVEL_MIN}",
+                   f"--maximum-zoom={settings.ZOOM_LEVEL_MAX}",
+                   "--no-tile-compression",
+                   "--include=style",
+                   "--include=data",
+                   "--include=layout",
+                   "--include=label",
+                   "--output-to-directory",
+                   save_path,
+                   new_path,
+                   ]
+        self.run_process(command, timeout)
+        self.df = geopandas.read_file(new_path)
+        self.style_url = self.create_mvt_style(
+            self.df,
+            f'{save_path}/style.json'
+        )
+        os.remove(new_path)
+
 
     def as_dict(self):
         dict_ = dict(filepath=self.filepath(),
