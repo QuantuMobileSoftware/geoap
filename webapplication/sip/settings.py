@@ -231,6 +231,7 @@ SENTINEL2_GOOGLE_API_KEY = '.secret/google-api-key.json'
 SENTINEL1_AWS_CREDS =  '.secret/sentinel1_aws_creds.json'
 SCIHUB_CREDS = '.secret/scihub_creds.json'
 GEOAP_CREDS = '.secret/geoap_creds.json'
+OPERATIONS_SERVICE_CREDS = '.secret/operations_service_credentials.json'
 SENTINELHUB_IMAGES_CREDS = '.secret/sentinelhub_images_creds.json'
 CLOUD_PERCENT_VALUE = 15
 SENTINELHUB_IMAGES_PERIOD_IN_DAYS = 3 * 365

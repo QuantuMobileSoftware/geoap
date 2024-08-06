@@ -22,6 +22,8 @@ class User(AbstractUser):
     is_trial_end_notified = models.BooleanField(default=False, verbose_name='Is trial end notified')
     receive_notification = models.BooleanField(default=True, verbose_name='Receive Notification')
     receive_news = models.BooleanField(default=False, verbose_name='Receive News')
+    stone_google_folder = models.CharField(max_length=64, verbose_name='Google bucket folder for stone detection', null=True, default=None, blank=True)
+
 
 
     class Meta:

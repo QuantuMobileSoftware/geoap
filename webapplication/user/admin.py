@@ -36,6 +36,7 @@ class UserAdmin(BaseUserAdmin):
         ('User permissions', {'fields': ('user_permissions', )}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Email notification', {'fields': ('receive_news', )}),
+        ('Stone Detection', {'fields': ('stone_google_folder', )}),
     )
     readonly_fields = ('balance',)
     add_fieldsets = (

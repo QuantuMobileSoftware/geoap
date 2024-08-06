@@ -17,6 +17,7 @@ psycopg2==2.8.5
 invoke==1.4.1
 docker==4.4.4
 gpxpy==1.6.2
+google-cloud-storage==2.18.0
 
 # geo libs
 rasterio==1.1.8

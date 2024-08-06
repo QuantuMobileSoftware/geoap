@@ -1,8 +1,10 @@
+import os
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.http import Http404
+from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -12,13 +14,12 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from dj_rest_auth.views import UserDetailsView
 
-from user.models import Transaction
+from user.models import Transaction, User
 from aoi.models import Component
 from django.db.models import Q
-from user.serializers import TransactionSerializer
+from user.serializers import TransactionSerializer, UserSerializer
 from waffle import switch_is_active
-
-
+from google.cloud import storage
 
 class RegisterView(BasicRegisterView):
     def perform_create(self, serializer):
@@ -71,3 +72,28 @@ class TransactionListAPIView(ListAPIView):
         if self.request.user.has_perm("user.view_all_transactions"):
             return queryset
         return queryset.filter(user=self.request.user)
+
+
+class GoogleBucketFolderAPIView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        google_bucket_folder_path = self.request.user.stone_google_folder
+        if google_bucket_folder_path:
+            storage_client = storage.Client.from_service_account_json(
+                os.path.join(settings.PERSISTENT_STORAGE_PATH,
+                             settings.OPERATIONS_SERVICE_CREDS))
+            bucket = storage_client.bucket(google_bucket_folder_path)
+            if bucket.exists():
+                blobs = storage_client.list_blobs(google_bucket_folder_path)
+                results = [blob.name for blob in blobs if blob.name.endswith("/")]
+                if results:
+                    return Response(results)
+                else:
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
