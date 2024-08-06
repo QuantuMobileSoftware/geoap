@@ -489,10 +489,6 @@ class GPXFile(File):
                    ]
         self.run_process(command, timeout)
         self.df = geopandas.read_file(new_path)
-        self.style_url = self.create_mvt_style(
-            self.df,
-            f'{save_path}/style.json'
-        )
         os.remove(new_path)
 
 
