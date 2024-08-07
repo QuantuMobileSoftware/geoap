@@ -143,6 +143,8 @@ export const useMapRequests = (selectedArea, map) => {
               if (properties.style.fill === undefined) {
                 properties.style.fill = true;
               }
+              // Set radius for styling, must be > 10
+              properties.style.radius = 12;
               return properties.style;
             }
           },
