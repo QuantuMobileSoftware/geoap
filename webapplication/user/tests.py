@@ -137,6 +137,7 @@ class AuthTestCase(UserBase):
             'is_trial_end_notified': False,
             'receive_notification': True,
             'server_for_calculation_is_needed': False,
+            'stone_google_folder': None
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
@@ -178,6 +179,7 @@ class AuthTestCase(UserBase):
             'trial_finished_at': None,
             'is_trial_end_notified': False,
             'receive_notification': True,
+            'stone_google_folder': None
         }
         url = reverse("rest_user_details")
         response = self.client.patch(url, input_data)
@@ -212,6 +214,7 @@ class AuthTestCase(UserBase):
             'trial_finished_at': None,
             'is_trial_end_notified': False,
             'receive_notification': True,
+            'stone_google_folder': None
         }
         url = reverse("rest_user_details")
         response = self.client.put(url, input_data)
