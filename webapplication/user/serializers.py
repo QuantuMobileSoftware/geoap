@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('pk', 'username', 'email', 'first_name', 'last_name', 'area_limit_ha', 'planet_api_key', 'balance',
-                  'on_hold', 'discount', 'trial_started_at', 'trial_finished_at', 'is_trial_end_notified', 'receive_notification',)
+                  'on_hold', 'discount', 'trial_started_at', 'trial_finished_at', 'is_trial_end_notified', 'receive_notification', 'stone_google_folder',)
         read_only_fields = ('email', 'area_limit_ha', 'balance', 'on_hold', 'discount', 'trial_started_at', 'trial_finished_at')
 
 
