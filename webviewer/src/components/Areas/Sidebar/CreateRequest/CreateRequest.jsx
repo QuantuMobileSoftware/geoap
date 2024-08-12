@@ -1,10 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useSuccessfulLayers } from 'hooks';
 import { Button } from 'components/_shared/Button';
 import { AdditionalField } from './AdditionalField';
 import { PeriodSelect } from './PeriodSelect';
 import { SIDEBAR_MODE } from '_constants';
+import { StoneOptions } from './StoneOptions';
 import { useAreasActions, selectUser } from 'state';
 import { convertDate, hasSelectedNotebook } from './utils';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -23,6 +24,10 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [notebook, setNotebook] = useState({});
+  const [stoneOptions, setStoneOptions] = useState({
+    folder: '',
+    size: ''
+  });
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
   const [additionalParameterValue, setAdditionalParameterValue] = useState('');
@@ -50,14 +55,16 @@ export const CreateRequest = ({ areas, currentArea }) => {
         period_required: layer.period_required,
         date_type: layer.date_type,
         title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`,
-        sentinels: layer.sentinels
+        sentinels: layer.sentinels,
+        google_bucket_input_data: layer.google_bucket_input_data
       })),
     [layers]
   );
 
   const handleSaveRequest = () => {
-    const additionalParameter = additionalParameterValue
-      ? { additional_parameter: additionalParameterValue }
+    const additionalValue = additionalParameterValue || stoneOptions.folder;
+    const additionalParameter = additionalValue
+      ? { additional_parameter: additionalValue }
       : {};
     const dateRange = notebook.period_required
       ? {
@@ -82,13 +89,15 @@ export const CreateRequest = ({ areas, currentArea }) => {
   useEffect(() => {
     const canSave =
       (!notebook.period_required || (startDate && endDate)) &&
-      (!notebook.additional_parameter || !!additionalParameterValue);
+      (!notebook.additional_parameter || !!additionalParameterValue) &&
+      (!notebook.google_bucket_input_data ||
+        (!!stoneOptions.folder && !!stoneOptions.size));
     if (hasSelectedNotebook(notebook) && canSave) {
       setCanSaveRequest(true);
     } else {
       setCanSaveRequest(false);
     }
-  }, [notebook, startDate, endDate, additionalParameterValue]);
+  }, [notebook, startDate, endDate, additionalParameterValue, stoneOptions]);
 
   const handleAreChange = item => {
     setAreaId(item.value);
@@ -100,7 +109,19 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setNotebook(item);
     setStartDate(null);
     setEndDate(null);
+    setStoneOptions({
+      folder: '',
+      size: ''
+    });
   };
+
+  const handleStoneFolderChange = useCallback(folder => {
+    setStoneOptions(prev => ({ ...prev, folder: folder.value }));
+  }, []);
+
+  const handleStoneSizeChange = useCallback(size => {
+    setStoneOptions(prev => ({ ...prev, size: size.value }));
+  }, []);
 
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REPORTS);
   const handleFieldChange = e => setAdditionalParameterValue(e.target.value);
@@ -119,7 +140,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
           onSelect={handleNoteBookChange}
           label='Select layers'
         />
-        {notebook.period_required && (
+        {notebook.period_required && !notebook.google_bucket_input_data && (
           <PeriodSelect
             notebook={notebook}
             startDate={startDate}
@@ -127,6 +148,12 @@ export const CreateRequest = ({ areas, currentArea }) => {
             setStartDate={setStartDate}
             setEndDate={setEndDate}
             currentArea={currentArea}
+          />
+        )}
+        {notebook.google_bucket_input_data && (
+          <StoneOptions
+            handleStoneFolderChange={handleStoneFolderChange}
+            handleStoneSizeChange={handleStoneSizeChange}
           />
         )}
         <AdditionalField
