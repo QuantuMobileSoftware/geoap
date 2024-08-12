@@ -185,6 +185,27 @@ export const useAreasActions = () => {
     [dispatch]
   );
 
+  const getStoneLayers = useCallback(async () => {
+    await handleAsync(async () => {
+      try {
+        const resp = await API.areas.getStoneLayer();
+        dispatch(
+          areasActions.setStoneOptionsLayer({
+            data: resp.data,
+            status: resp.status
+          })
+        );
+      } catch (error) {
+        dispatch(
+          areasActions.setStoneOptionsLayer({
+            data: [],
+            status: error.status
+          })
+        );
+      }
+    });
+  }, [dispatch, handleAsync]);
+
   return {
     isLoading,
     error,
@@ -206,6 +227,7 @@ export const useAreasActions = () => {
     saveAreaRequest,
     resetAreasState,
     addNewArea,
-    deleteNewArea
+    deleteNewArea,
+    getStoneLayers
   };
 };

@@ -10,7 +10,11 @@ const AREAS_INITIAL_STATE = {
   selectedResults: [],
   mode: SIDEBAR_MODE.AREAS,
   layers: [],
-  isLoading: false
+  isLoading: false,
+  stoneOptionsLayer: {
+    data: [],
+    status: null
+  }
 };
 
 const areasSlice = createSlice({
@@ -78,6 +82,12 @@ const areasSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
+    },
+    setStoneOptionsLayer: (state, action) => {
+      state.stoneOptionsLayer = {
+        data: action.payload.data,
+        status: action.payload.status
+      };
     }
   }
 });
@@ -89,6 +99,7 @@ export const selectCurrentArea = state => state.areas.current;
 export const getSelectedResults = state => state.areas.selectedResults;
 export const selectSidebarMode = state => state.areas.mode;
 export const getSelectedEntitiesId = state => state.areas.selectedEntitiesId;
+export const getStoneOptionsLayer = state => state.areas.stoneOptionsLayer;
 
 export const selectAreasList = createSelector(selectAreas, areas => {
   return Object.values(areas).map(area => ({
