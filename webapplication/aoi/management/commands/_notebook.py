@@ -73,6 +73,7 @@ def email_notification(request, status):
         Start date: {request.date_from.strftime("%Y/%m/%d") if request.date_from else None},
         End date: {request.date_to.strftime("%Y/%m/%d") if request.date_to else None},
         Additional parameter value: {request.additional_parameter},
+        Additional parameter2 value: {request.additional_parameter2},
         
         User name: {user_data.username},
         User email: {user_data.email}

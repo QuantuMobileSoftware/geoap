@@ -21,7 +21,7 @@ class ComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Component
         fields = ('id', 'name', 'basic_price', 'image', 'path', 'kernel_name', 'run_validation', 'success',
-                  'additional_parameter', 'period_required', 'date_type', 'description', 'domains',
+                  'additional_parameter', 'additional_parameter2', 'period_required', 'date_type', 'description', 'domains',
                   'description_picture', 'detail_description_link', 'google_bucket_input_data')
 
     def to_representation(self, instance):
@@ -72,4 +72,4 @@ class RequestSerializer(serializers.ModelSerializer):
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
-                  'additional_parameter', 'pre_submit', 'request_origin', 'user_readable_errors')
+                  'additional_parameter', 'additional_parameter2', 'pre_submit', 'request_origin', 'user_readable_errors')
