@@ -11,7 +11,7 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
 
   const selectStoneOptionsLayer = useMemo(
     () =>
-      data.map(folder => ({
+      (data || []).map(folder => ({
         name: folder,
         value: folder,
         title: folder
@@ -20,15 +20,26 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
   );
 
   useEffect(() => {
-    getStoneLayers();
-  }, [getStoneLayers]);
+    if (user.stone_google_folder) {
+      getStoneLayers();
+    }
+  }, [getStoneLayers, user.stone_google_folder]);
 
   if (isLoading) return <Preloader />;
+
+  if (!user.stone_google_folder) {
+    return (
+      <LabelWrapper>
+        <Label>Google bucket not added, please contact us</Label>
+      </LabelWrapper>
+    );
+  }
+
   switch (status) {
     case 404:
       return (
         <LabelWrapper>
-          <Label>Google bucket not added, please contact us</Label>
+          <Label>Google bucket added, but not correct, please contact us</Label>
         </LabelWrapper>
       );
     case 204:
