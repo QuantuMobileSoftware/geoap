@@ -13,6 +13,9 @@ if __name__ == "__main__":
     additional_parameter_name = os.getenv("ADDITIONAL_PARAMETER_NAME", "")
     if additional_parameter_name:
         additional_parameter_value = os.getenv(additional_parameter_name)
+    additional_parameter2_name = os.getenv("ADDITIONAL_PARAMETER2_NAME", "")
+    if additional_parameter2_name:
+        additional_parameter2_value = os.getenv(additional_parameter2_name)
 
     geoapp_client = GeoappClient(geoap_creds)
     component_id = geoapp_client.get_component_id(component_name)
@@ -27,6 +30,8 @@ if __name__ == "__main__":
     }
     if additional_parameter_name:
         data["additional_parameter"] = additional_parameter_value
+    if additional_parameter2_name:
+        data["additional_parameter2"] = additional_parameter2_value
 
     request = geoapp_client.create_request(data=data)
     is_success, error_message = geoapp_client.wait_for_request_success_finish(
