@@ -117,10 +117,12 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setStartDate(null);
     setEndDate(null);
   };
-
-  const handleStoneFolderChange = useCallback(folder => {
-    setAdditionalParameterValue(folder.value);
-  }, []);
+  const handleStoneFolderChange = useCallback(
+    folder => {
+      setAdditionalParameterValue(currentUser.stone_google_folder + '/' + folder.value);
+    },
+    [currentUser.stone_google_folder]
+  );
 
   const handleStoneSizeChange = useCallback(size => {
     setSecondAdditionalParameterValue(size.value);
