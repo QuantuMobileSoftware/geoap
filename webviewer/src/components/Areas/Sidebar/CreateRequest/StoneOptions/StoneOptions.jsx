@@ -64,16 +64,20 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
           <StyledSelect
             items={[
               {
-                name: 'Big',
-                value: 'Big'
+                name: '15-20 sm',
+                value: '15-20 sm'
               },
               {
-                name: 'Medium',
-                value: 'Medium'
+                name: '25-35 sm',
+                value: '25-35 sm'
               },
               {
-                name: 'Small',
-                value: 'Small'
+                name: '45+ sm',
+                value: '45+ sm'
+              },
+              {
+                name: 'Full type',
+                value: 'Full type'
               }
             ]}
             placeholder='Select stone size'
