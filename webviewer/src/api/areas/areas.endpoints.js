@@ -7,6 +7,7 @@ const allResults = '/results';
 const field = id => `results/${id}/field`;
 const request = '/request';
 const layers = '/notebook';
+const stoneLayer = '/google_bucket_folder';
 
 export const areasEndpoints = {
   root,
@@ -17,5 +18,6 @@ export const areasEndpoints = {
   allResults,
   layers,
   request,
-  field
+  field,
+  stoneLayer
 };

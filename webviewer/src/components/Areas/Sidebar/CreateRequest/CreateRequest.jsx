@@ -1,10 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useSuccessfulLayers } from 'hooks';
 import { Button } from 'components/_shared/Button';
 import { AdditionalField } from './AdditionalField';
 import { PeriodSelect } from './PeriodSelect';
 import { SIDEBAR_MODE } from '_constants';
+import { StoneOptions } from './StoneOptions';
 import { useAreasActions, selectUser } from 'state';
 import { convertDate, hasSelectedNotebook } from './utils';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -26,6 +27,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const [areaId, setAreaId] = useState(currentArea.id);
   const [canSaveRequest, setCanSaveRequest] = useState(false);
   const [additionalParameterValue, setAdditionalParameterValue] = useState('');
+  const [secondAdditionalParameterValue, setSecondAdditionalParameterValue] =
+    useState('');
 
   const updateAreaData = area => {
     if (area.sentinel_hub_available_dates_update_time === null) getArea(area.id);
@@ -47,10 +50,12 @@ export const CreateRequest = ({ areas, currentArea }) => {
         name: layer.name,
         value: layer.id,
         additional_parameter: layer.additional_parameter,
+        additional_parameter2: layer.additional_parameter2,
         period_required: layer.period_required,
         date_type: layer.date_type,
         title: `Price ${layer.basic_price || 0} $ per 1 sq. km.`,
-        sentinels: layer.sentinels
+        sentinels: layer.sentinels,
+        google_bucket_input_data: layer.google_bucket_input_data
       })),
     [layers]
   );
@@ -58,6 +63,9 @@ export const CreateRequest = ({ areas, currentArea }) => {
   const handleSaveRequest = () => {
     const additionalParameter = additionalParameterValue
       ? { additional_parameter: additionalParameterValue }
+      : {};
+    const secondAdditionalParameter = secondAdditionalParameterValue
+      ? { additional_parameter2: secondAdditionalParameterValue }
       : {};
     const dateRange = notebook.period_required
       ? {
@@ -72,7 +80,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
       user: currentUser.pk,
       polygon: '', // required filed in BE but can be empty if send aoi id
       ...dateRange,
-      ...additionalParameter
+      ...additionalParameter,
+      ...secondAdditionalParameter
     };
     setCurrentArea(areaId);
     saveAreaRequest(areaId, request);
@@ -82,13 +91,20 @@ export const CreateRequest = ({ areas, currentArea }) => {
   useEffect(() => {
     const canSave =
       (!notebook.period_required || (startDate && endDate)) &&
-      (!notebook.additional_parameter || !!additionalParameterValue);
+      (!notebook.additional_parameter || !!additionalParameterValue) &&
+      (!notebook.additional_parameter2 || !!secondAdditionalParameterValue);
     if (hasSelectedNotebook(notebook) && canSave) {
       setCanSaveRequest(true);
     } else {
       setCanSaveRequest(false);
     }
-  }, [notebook, startDate, endDate, additionalParameterValue]);
+  }, [
+    notebook,
+    startDate,
+    endDate,
+    additionalParameterValue,
+    secondAdditionalParameterValue
+  ]);
 
   const handleAreChange = item => {
     setAreaId(item.value);
@@ -102,8 +118,17 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setEndDate(null);
   };
 
+  const handleStoneFolderChange = useCallback(folder => {
+    setAdditionalParameterValue(folder.value);
+  }, []);
+
+  const handleStoneSizeChange = useCallback(size => {
+    setSecondAdditionalParameterValue(size.value);
+  }, []);
+
   const handleChangeSidebarMode = () => setSidebarMode(SIDEBAR_MODE.REPORTS);
   const handleFieldChange = e => setAdditionalParameterValue(e.target.value);
+  const handleSecondFieldChange = e => setSecondAdditionalParameterValue(e.target.value);
 
   return (
     <Wrapper>
@@ -119,7 +144,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
           onSelect={handleNoteBookChange}
           label='Select layers'
         />
-        {notebook.period_required && (
+        {notebook.period_required && !notebook.google_bucket_input_data && (
           <PeriodSelect
             notebook={notebook}
             startDate={startDate}
@@ -129,10 +154,23 @@ export const CreateRequest = ({ areas, currentArea }) => {
             currentArea={currentArea}
           />
         )}
+        {notebook.google_bucket_input_data && (
+          <StoneOptions
+            handleStoneFolderChange={handleStoneFolderChange}
+            handleStoneSizeChange={handleStoneSizeChange}
+          />
+        )}
         <AdditionalField
           label={notebook.additional_parameter}
           value={additionalParameterValue}
           onChange={handleFieldChange}
+          isHidden={!!notebook.google_bucket_input_data}
+        />
+        <AdditionalField
+          label={notebook.additional_parameter2}
+          value={secondAdditionalParameterValue}
+          onChange={handleSecondFieldChange}
+          isHidden={!!notebook.google_bucket_input_data}
         />
       </SelectsWrapper>
       <ButtonWrapper>

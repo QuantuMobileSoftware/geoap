@@ -3,6 +3,7 @@ import { em, rem } from 'styles';
 import { InputText } from 'components/_shared/Input';
 
 export const InputWrapper = styled.div`
+  display: ${({ isHidden }) => (isHidden ? 'none' : 'block')};
   margin-top: ${em(20)};
 `;
 

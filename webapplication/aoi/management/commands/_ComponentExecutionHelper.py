@@ -68,6 +68,13 @@ class ComponentExecutionHelper():
                     'ADDITIONAL_PARAMETER_NAME': request.component.additional_parameter
                 }
             )
+        if request.component.additional_parameter2:
+            env_update.update(
+                {
+                    request.component.additional_parameter2:request.additional_parameter2,
+                    'ADDITIONAL_PARAMETER2_NAME': request.component.additional_parameter2
+                }
+            )
         env_variables.update(env_update)
         return env_variables
     
@@ -92,6 +99,11 @@ class ComponentExecutionHelper():
                 command.extend(
                     "--parameter_name",
                     component.additional_parameter
+                )
+            if component.additional_parameter2:
+                command.extend(
+                    "--parameter_name",
+                    component.additional_parameter2
                 )
         elif component.command:
             command = json.loads(component.command)    

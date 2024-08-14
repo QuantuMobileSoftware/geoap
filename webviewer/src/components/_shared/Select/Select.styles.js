@@ -8,7 +8,7 @@ import { Icon } from 'components/_shared/Icon';
 
 export const SelectDropdown = styled(Dropdown)`
   min-width: 100%;
-  max-height: ${rem(200)};
+  max-height: ${rem(150)};
   top: ${rem(43)};
   left: 0;
   padding: 0;

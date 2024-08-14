@@ -15,7 +15,7 @@ class AoIAdmin(admin.OSMGeoAdmin):
 @admin.register(Component)
 class ComponentAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'name', 'basic_price', 'image', 'notebook_path', 'kernel_name', 'run_validation', 'success',
-                    'additional_parameter', 'period_required',)
+                    'additional_parameter', 'additional_parameter', 'period_required',)
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk',)
 
@@ -25,7 +25,7 @@ class ComponentAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'component', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', 'additional_parameter', 'user_readable_errors')
+                    'calculated', 'success', 'error', 'additional_parameter', 'additional_parameter', 'user_readable_errors')
     readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
 
 

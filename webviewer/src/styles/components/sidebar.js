@@ -18,7 +18,7 @@ export const scrollbar = ({ theme }) => css`
 
 export const sidebarList = ({ theme }) => css`
   padding-top: ${rem(theme.spacing[2])};
-  max-height: calc(100vh - 400px);
+  max-height: calc(100vh - 300px);
   overflow-y: auto;
   ${scrollbar}
 `;
