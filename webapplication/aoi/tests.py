@@ -500,6 +500,7 @@ class RequestTestCase(UserBase):
                        '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
                        '50.14982647696019))',
             'additional_parameter': None,
+            'additional_parameter2': None,
             'request_origin': 'http://testserver/',
             'user_readable_errors': None
         }
@@ -653,6 +654,7 @@ class RequestTestCase(UserBase):
                        '36.55073998712133 49.42479755639633, 36.02725340187668 49.41171039176521, 36.01678367017178 '
                        '50.14982647696019))',
             'additional_parameter': None,
+            'additional_parameter2': None,
             'price': Decimal('3685.01'),
             'request_origin': 'http://testserver/',
             'user_readable_errors': None
