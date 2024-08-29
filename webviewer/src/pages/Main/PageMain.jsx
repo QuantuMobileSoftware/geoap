@@ -15,7 +15,6 @@ import { Map } from 'components/Map';
 import { Chart } from 'components/Chart';
 import { Spinner } from 'components/_shared/Spinner';
 import { WelcomeWindow } from 'components/WelcomeWindow';
-import { FileLoader } from 'components/FileLoader';
 import { SIDEBAR_MODE, STORAGE_WELCOME_KEY } from '_constants';
 import { PageMainContainer, StyledPageMain } from './PageMain.styles';
 
@@ -63,12 +62,6 @@ export const PageMain = ({ ...props }) => {
         />
         {isShowChart && <Chart chartData={chart} />}
         {isShowWelcome && <WelcomeWindow onClose={handleCloseWelcome} />}
-        {selectedResults.length > 0 && (
-          <FileLoader
-            selectedIdResults={selectedResults}
-            top={!isShowChart && !currentResult?.colormap}
-          />
-        )}
       </PageMainContainer>
     </StyledPageMain>
   );
