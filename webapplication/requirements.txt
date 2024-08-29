@@ -12,6 +12,7 @@ Pillow==9.5.0
 urllib3==1.26.15
 sentinelhub==3.8.4
 django-waffle==3.0.0
+django-countries==7.6.1
 
 psycopg2==2.8.5
 invoke==1.4.1

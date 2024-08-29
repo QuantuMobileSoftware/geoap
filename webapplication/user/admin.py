@@ -29,7 +29,10 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'is_staff', 'is_active', 'is_superuser', 'area_limit_ha', 'receive_news')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'receive_news')
     fieldsets = (
-        ('Personal', {'fields': ('username', 'first_name', 'last_name', 'email', 'area_limit_ha', 'planet_api_key', 'receive_notification')}),
+        ('Personal', {'fields': ('username', 'first_name', 'last_name',
+                                 'email', 'area_limit_ha', 'planet_api_key',
+                                 'receive_notification', 'units_of_measurement',
+                                 'country')}),
         ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
         ('Top up', {'fields': ('top_up_balance', 'top_up_comment')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', )}),
