@@ -6,6 +6,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
+from django_countries.fields import CountryField
 
 from aoi.models import AoI, Request
 
@@ -34,7 +35,7 @@ class User(AbstractUser):
         choices=UNITS_CHOICES,
         default='km',
     )
-
+    country = CountryField(default='US')
 
     class Meta:
         permissions = (
