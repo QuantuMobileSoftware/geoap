@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-import { rem, em } from 'styles';
+import { rem, em, scrollbar } from 'styles';
 
 import { Button, ButtonIcon } from '../Button';
 import { Paper } from '../Paper';
@@ -55,6 +55,7 @@ export const StyledSidebar = styled(BasicSidebar)`
       flex-direction: column;
       overflow-y: auto;
       z-index: ${theme.zIndexes[1]};
+      ${scrollbar}
     `,
     !withUnmountToggle &&
       css`
