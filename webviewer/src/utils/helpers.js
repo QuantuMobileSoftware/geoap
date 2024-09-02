@@ -61,6 +61,18 @@ export const getShapePositionsString = layer => {
   }
 };
 
+export const parseWKTToLatLngs = wktString => {
+  const cleanedWKT = wktString.replace(/^SRID=\d+;/, '');
+  const wkt = new Wkt.Wkt();
+
+  wkt.read(cleanedWKT);
+
+  const geoJson = wkt.toJson();
+  const coordinates = geoJson.coordinates[0].map(([lng, lat]) => ({ lat, lng }));
+
+  return coordinates;
+};
+
 export const getCentroid = arr => {
   const pts = arr;
 
