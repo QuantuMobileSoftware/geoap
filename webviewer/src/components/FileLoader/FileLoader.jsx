@@ -4,30 +4,23 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { isEmpty } from 'lodash-es';
 import { API } from 'api';
-import { Button } from 'components/_shared/Button';
 import { LoadProgress } from './LoadProgress';
 import { selectCurrentResults } from 'state';
-import {
-  StyledFileLoader,
-  FileLoaderContent,
-  Title,
-  FormatList,
-  DownloadButton
-} from './FileLoader.styles';
+import { StyledFileLoader, StyledButton } from './FileLoader.styles';
 
 const getFileFormat = path => path.split('.').pop();
 
-export const FileLoader = ({ selectedIdResults, top }) => {
+export const FileLoader = ({ selectedIdResults }) => {
   const allAreaResults = useSelector(selectCurrentResults);
   const [downloadProgress, setDownloadProgress] = useState({});
-  const [isOpen, setIsOpen] = useState(false);
 
   const selectedResults = useMemo(
     () => allAreaResults.filter(({ id }) => selectedIdResults.some(item => item === id)),
     [allAreaResults, selectedIdResults]
   );
-  const filesFormat = selectedResults.map(result => getFileFormat(result.filepath));
-  const buttonText = selectedResults.length > 1 ? 'files' : 'file';
+  // const filesFormat = selectedResults.map(result => getFileFormat(result.filepath));
+  const buttonText =
+    selectedResults.length > 1 ? selectedResults.length + 'files' : '1 file';
 
   const handleDownloadFiles = async () => {
     const zip = new JSZip();
@@ -40,32 +33,22 @@ export const FileLoader = ({ selectedIdResults, top }) => {
     await Promise.all(promises);
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     saveAs(zipBlob, 'results.zip');
-    setDownloadProgress({});
+    setTimeout(() => {
+      setDownloadProgress({});
+    }, 6000);
   };
 
   return (
-    <StyledFileLoader top={top}>
-      <Button
-        icon={isOpen ? 'ExpandUp' : 'ExpandDown'}
-        variant='secondary'
-        onClick={() => setIsOpen(!isOpen)}
+    <StyledFileLoader>
+      <StyledButton
+        onClick={handleDownloadFiles}
+        variant={isEmpty(downloadProgress) ? 'primary' : 'secondary'}
       >
-        Download
-      </Button>
-      {isOpen && (
-        <FileLoaderContent>
-          <Title>File type</Title>
-          <FormatList>{filesFormat.join(', ')}</FormatList>
-          {Object.entries(downloadProgress).map(([id, progress]) => (
-            <LoadProgress progress={progress} key={id} />
-          ))}
-          {isEmpty(downloadProgress) && (
-            <DownloadButton onClick={handleDownloadFiles}>
-              Download {buttonText}
-            </DownloadButton>
-          )}
-        </FileLoaderContent>
-      )}
+        {Object.entries(downloadProgress).map(([id, progress]) => (
+          <LoadProgress progress={progress} key={id} />
+        ))}
+        {isEmpty(downloadProgress) && `Download ${buttonText}`}
+      </StyledButton>
     </StyledFileLoader>
   );
 };

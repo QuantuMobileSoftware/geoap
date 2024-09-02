@@ -32,3 +32,4 @@ export { ReactComponent as Document } from './Document.svg';
 export { ReactComponent as Eye } from './Eye.svg';
 export { ReactComponent as Folder } from './Folder.svg';
 export { ReactComponent as CheckFolder } from './CheckFolder.svg';
+export { ReactComponent as Done } from './Done.svg';
