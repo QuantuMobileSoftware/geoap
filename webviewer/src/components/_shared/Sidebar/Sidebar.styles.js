@@ -22,7 +22,7 @@ export const SidebarHeading = styled(Typography).attrs({
   variant: 'h2'
 })`
   margin-bottom: ${em(16)};
-  overflow: hidden;
+  overflow: clip;
   text-overflow: ellipsis;
 `;
 
@@ -41,7 +41,7 @@ export const SidebarButtonClose = styled(Button).attrs({
 `;
 export const BasicSidebar = styled(Paper).attrs({ padding: 1 })`
   width: ${rem(320)};
-  height: 100%;
+  height: calc(100vh - 44px);
   border-radius: 0;
 `;
 
@@ -53,6 +53,7 @@ export const StyledSidebar = styled(BasicSidebar)`
       left: 0;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
       z-index: ${theme.zIndexes[1]};
     `,
     !withUnmountToggle &&

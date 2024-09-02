@@ -20,7 +20,7 @@ export const FileLoader = ({ selectedIdResults }) => {
   );
   // const filesFormat = selectedResults.map(result => getFileFormat(result.filepath));
   const buttonText =
-    selectedResults.length > 1 ? selectedResults.length + 'files' : '1 file';
+    selectedResults.length > 1 ? selectedResults.length + ' ' + 'files' : '1 file';
 
   const handleDownloadFiles = async () => {
     const zip = new JSZip();
