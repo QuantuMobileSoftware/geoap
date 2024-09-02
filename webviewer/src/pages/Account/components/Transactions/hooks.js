@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { selectAreasList } from 'state';
 import { API } from 'api';
 import { areasEvents } from '_events';
 import { DEFAULT_ERROR } from '_constants';
+import { getSquareKilometers, parseWKTToLatLngs } from 'utils';
+import L from 'leaflet';
 
 export const useTransactionData = () => {
-  const areas = useSelector(selectAreasList);
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState({});
 
@@ -17,12 +16,19 @@ export const useTransactionData = () => {
       API.transactions.getTransactions(),
       API.areas.getAllRequests(),
       API.areas.getAllResults(),
-      ...(areas.length ? [Promise.resolve({ data: areas })] : [API.areas.getAreas()])
+      API.areas.getAreas()
     ])
       .then(([transactions, requests, results, areas]) => {
         const reduceCb = (acc, current) => ({ ...acc, [current.id]: current });
+
+        const areasWithSizes = areas.data.map(area => {
+          const coordinates = parseWKTToLatLngs(area.polygon);
+          const size = L.GeometryUtil.geodesicArea(coordinates);
+          const sizeToKm = getSquareKilometers(size);
+          return { ...area, size: sizeToKm };
+        });
         const requestsObject = requests.data.reduce(reduceCb, {});
-        const areasObject = areas.data.reduce(reduceCb, {});
+        const areasObject = areasWithSizes.reduce(reduceCb, {});
 
         setData({
           transactions: transactions.data,
@@ -33,7 +39,7 @@ export const useTransactionData = () => {
       })
       .catch(() => areasEvents.toggleErrorModal(DEFAULT_ERROR))
       .finally(() => setIsLoading(false));
-  }, [areas]);
+  }, []);
 
   data.isLoading = isLoading;
   return data;
