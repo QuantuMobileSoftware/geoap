@@ -22,7 +22,13 @@ class AoI(models.Model):
     type = models.IntegerField(choices=AREA_TYPE_CHOICES, default=USER_DEFINED_TYPE)
     sentinel_hub_available_dates = models.JSONField(blank=True, null=True, verbose_name='Available dates from Sentinel Hub')
     sentinel_hub_available_dates_update_time = models.DateTimeField(default=None, null=True, verbose_name='Sentinel Hub available dates update time')
+    square_in_km = models.FloatField(default=0, verbose_name='AoI square in km')
 
+    def save(self, *args, **kwargs):
+        if self.polygon:
+            transformed_polygon = self.polygon.transform(6933, clone=True)
+            self.square_in_km = round((transformed_polygon.area / 1_000_000), 8)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

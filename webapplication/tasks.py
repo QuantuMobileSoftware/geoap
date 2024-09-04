@@ -59,8 +59,8 @@ def run(ctx):
     thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
     thread_nb_executor.start()
 
-    thread_nb_executor = threading.Thread(target=run_get_sentinel_available_dates, args=(ctx,))
-    thread_nb_executor.start()
+    # thread_nb_executor = threading.Thread(target=run_get_sentinel_available_dates, args=(ctx,))
+    # thread_nb_executor.start()
 
     ctx.run('uwsgi --ini uwsgi.ini')
 
@@ -76,8 +76,9 @@ def run_prod(ctx):
     thread_nb_executor = threading.Thread(target=run_notebook_executor, args=(ctx,))
     thread_nb_executor.start()
 
-    thread_nb_executor = threading.Thread(target=run_get_sentinel_available_dates, args=(ctx,))
-    thread_nb_executor.start()
+    # not in use, need credentials
+    # thread_nb_executor = threading.Thread(target=run_get_sentinel_available_dates, args=(ctx,))
+    # thread_nb_executor.start()
 
     ctx.run('uwsgi --ini uwsgi.ini')
 
