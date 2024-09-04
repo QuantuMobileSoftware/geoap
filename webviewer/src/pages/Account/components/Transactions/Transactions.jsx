@@ -3,7 +3,7 @@ import { Spinner } from 'components/_shared/Spinner';
 import { ViewReportBtn } from './ViewReportBtn';
 import { InfoModal } from './InfoModal';
 import { MonthPicker } from 'components/_shared/Calendar';
-import { getTransactionDate } from 'utils';
+import { formatSquareKilometers, getTransactionDate } from 'utils';
 import { useTransactionData } from './hooks';
 
 import {
@@ -81,13 +81,19 @@ export const Transactions = () => {
               : `${t.amount === 0 ? '' : '+'} $${t.amount}`;
             const request = requests[t.request]; // request can be null
             const area = areas[request?.aoi];
-            if (!isShowSize && area?.size) setIsShowSize(true);
+            if (!isShowSize && area?.square_in_km) setIsShowSize(true);
 
             return (
               <tr key={t.id}>
                 <td>{date}</td>
                 <TableAmount negative={isNegativeAmount}>{amount}</TableAmount>
-                {isShowSize && <td>{area?.size ? `${area.size} sq km` : ''}</td>}
+                {isShowSize && (
+                  <td>
+                    {area?.square_in_km
+                      ? `${formatSquareKilometers(area.square_in_km)} sq km`
+                      : ''}
+                  </td>
+                )}
                 <td>{t.rolled_back ? 'rolled back' : completeText}</td>
                 <TableComment>
                   {!t.request && t.comment}
