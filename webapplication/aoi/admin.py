@@ -8,7 +8,7 @@ class AoIAdmin(admin.OSMGeoAdmin):
     list_display = ('user', 'name', 'polygon', 'createdat', 'type')
     search_fields = ('name', 'type')
     fieldsets = (('fieldsets_name', {
-        'fields': ('user', 'name', 'polygon', 'type')
+        'fields': ('user', 'name', 'polygon', 'type', 'square_in_km')
     }),)
 
 
