@@ -1,7 +1,7 @@
 import docker
 import logging
 import os
-import json
+from docker.types import DeviceRequest
 
 from typing import Optional
 from dateutil import parser as timestamp_parser
@@ -70,8 +70,10 @@ class Container:
                 detach=True,
                 user="root")
         if self.component.run_on_gpu:
+            # Todo: check in other pipelines
             containers_params["runtime"] = "nvidia"
-
+            device_request = DeviceRequest(count=-1, capabilities=[['gpu']])
+            containers_params['device_requests'] = [device_request]
         client.containers.run(**containers_params)
 
     def get_volumes(self, client: docker.DockerClient):
