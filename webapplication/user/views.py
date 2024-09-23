@@ -86,7 +86,17 @@ class GoogleBucketFolderAPIView(APIView):
             bucket = storage_client.bucket(google_bucket_folder_path)
             if bucket.exists():
                 blobs = storage_client.list_blobs(google_bucket_folder_path)
-                results = [blob.name for blob in blobs if blob.name.endswith("/")]
+                paths = [blob.name for blob in blobs]
+                results = []
+                for path in paths:
+                    if path.endswith("/"):
+                        if path not in results:
+                            results.append(path)
+                    else:
+                        filepath = f'{"/".join(path.split("/")[:-1])}/'
+                        if filepath not in results:
+                            results.append(filepath)
+
                 if results:
                     return Response(results)
                 else:
