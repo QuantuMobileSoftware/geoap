@@ -9,6 +9,19 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
   const { data, status } = useSelector(getStoneOptionsLayer);
   const user = useSelector(selectUser);
 
+  const start = 15; // Starting value
+  const end = 40; // Ending value
+  const step = 5; // Step value
+
+  const rangeArray = [];
+
+  for (let i = start; i <= end; i += step) {
+    rangeArray.push({
+      name: `${i}cm+`,
+      value: i
+    });
+  }
+
   const selectStoneOptionsLayer = useMemo(
     () =>
       (data || []).map(folder => ({
@@ -62,24 +75,7 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
             label='Input list'
           />
           <StyledSelect
-            items={[
-              {
-                name: '15-20 sm',
-                value: '15-20 sm'
-              },
-              {
-                name: '25-35 sm',
-                value: '25-35 sm'
-              },
-              {
-                name: '45+ sm',
-                value: '45+ sm'
-              },
-              {
-                name: 'Full type',
-                value: 'Full type'
-              }
-            ]}
+            items={rangeArray}
             placeholder='Select stone size'
             onSelect={handleStoneSizeChange}
             label='Size list'
