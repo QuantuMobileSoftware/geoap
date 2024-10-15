@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import shutil
+import random
 from typing import Optional
 import geopandas
 import gpxpy
@@ -392,6 +393,11 @@ class GPXFile(File):
                 geojson.dump(feature_collection, f)
         return res_path
 
+    def generate_random_point(self, base_point, offset_range=0.00001):
+        random_offset_x = random.uniform(-offset_range, offset_range)
+        random_offset_y = random.uniform(-offset_range, offset_range)
+        return Point(base_point.x + random_offset_x, base_point.y + random_offset_y)
+
     def parse_gpx_file(self, file_path):
         with open(file_path, 'r') as gpx_file:
             gpx = gpxpy.parse(gpx_file)
@@ -409,8 +415,13 @@ class GPXFile(File):
             if x and y:
                 route_polygon = Polygon(zip(x, y))
             else:
+                min_points_for_route_polygon = 3  # A linearring requires at least 4 coordinates.
+                if len(waypoints_stones) < min_points_for_route_polygon:
+                    for _ in range(min_points_for_route_polygon-len(waypoints_stones)):
+                        new_point = self.generate_random_point(waypoints_stones[0])
+                        waypoints_stones.append(new_point)
                 route_polygon = geometry.Polygon(
-                    [[p.x, p.y] for p in waypoints_stones]).convex_hull
+                        [[p.x, p.y] for p in waypoints_stones]).convex_hull
             route_polygon = orient(route_polygon, sign=1.0)
             return route_polygon
 
