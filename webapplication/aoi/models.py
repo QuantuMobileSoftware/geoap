@@ -77,7 +77,7 @@ class Component(models.Model):
     kernel_name = models.CharField(max_length=200, null=True, blank=True, verbose_name='Kernel name')
     run_validation = models.BooleanField(default=False, verbose_name='Run validation')
     success = models.BooleanField(default=False, verbose_name='Validation succeeded')
-    additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
+    additional_parameter = models.CharField(max_length=100, null=True, blank=True, verbose_name='Additional parameter')
     additional_parameter2 = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter2')
     run_on_gpu = models.BooleanField(default=True, verbose_name='Whether GPU is needed for a component to run')
     period_required = models.BooleanField(default=True, verbose_name='Start and end dates are required')
