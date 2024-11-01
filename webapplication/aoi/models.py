@@ -134,7 +134,7 @@ class Request(models.Model):
     error = models.CharField(max_length=400, blank=True, null=True, verbose_name='Error')
     user_readable_errors = ArrayField(models.CharField(max_length=250), blank=True, null=True, verbose_name='User-readable errors')
     polygon = models.PolygonField(spatial_index=True, verbose_name='Polygon')
-    additional_parameter = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter')
+    additional_parameter = models.CharField(max_length=100, null=True, blank=True, verbose_name='Additional parameter')
     additional_parameter2 = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter2')
     request_origin = models.CharField(max_length=50, default="https://portal.soilmate.ai/", verbose_name='Request origin')
 
