@@ -74,6 +74,7 @@ class Container:
             containers_params["runtime"] = "nvidia"
             device_request = DeviceRequest(count=-1, capabilities=[['gpu']])
             containers_params['device_requests'] = [device_request]
+            containers_params['shm_size'] = '16g'
         client.containers.run(**containers_params)
 
     def get_volumes(self, client: docker.DockerClient):
