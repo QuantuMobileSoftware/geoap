@@ -17,8 +17,8 @@ services:
     image: registry.quantumobile.co/geoap_webapplication
     volumes:
       - ./webapplication:/code
-      - ../geoap_data:/data
-      - ../geoap_data/media:/media
+      - /mnt/NAS/Soilmate/geoap_data:/data
+      - /mnt/NAS/Soilmate/geoap_data/media:/media
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DJANGO_SETTINGS_MODULE=sip.settings-remote
@@ -35,7 +35,7 @@ services:
   webserver:
     image: registry.quantumobile.co/geoap_remote_webserver
     volumes:
-      - ../geoap_data:/data
+      - /mnt/NAS/Soilmate/geoap_data:/data
     expose:
       - 8080
     ports:
