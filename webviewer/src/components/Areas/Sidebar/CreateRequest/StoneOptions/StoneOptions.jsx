@@ -1,13 +1,61 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { getStoneOptionsLayer, selectUser, useAreasActions } from 'state';
 import { useSelector } from 'react-redux';
 import { Preloader } from 'components/_shared/Preloader';
-import { Label, LabelWrapper, StyledSelect } from './StoneOptions.styles';
+import {
+  Label,
+  LabelWrapper,
+  StyledSelect,
+  DropdownContainer,
+  StyledInput,
+  DropdownList,
+  DropdownItem
+} from './StoneOptions.styles';
 
 export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange }) => {
   const { getStoneLayers, isLoading } = useAreasActions();
   const { data, status } = useSelector(getStoneOptionsLayer);
   const user = useSelector(selectUser);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const filteredOptions = useMemo(() => {
+    return (data || [])
+      .filter(folder => folder.toLowerCase().includes(searchTerm.toLowerCase()))
+      .map(folder => ({
+        name: folder,
+        value: folder,
+        title: folder
+      }));
+  }, [data, searchTerm]);
+
+  const handleSelect = selected => {
+    setSearchTerm(selected.value);
+    setIsOpen(false);
+    handleStoneFolderChange(selected);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = event => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectStoneOptionsLayer = useMemo(
+    () =>
+      (data || []).map(folder => ({
+        name: folder,
+        value: folder,
+        title: folder
+      })),
+    [data]
+  );
 
   const start = 15; // Starting value
   const end = 40; // Ending value
@@ -21,16 +69,6 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
       value: i
     });
   }
-
-  const selectStoneOptionsLayer = useMemo(
-    () =>
-      (data || []).map(folder => ({
-        name: folder,
-        value: folder,
-        title: folder
-      })),
-    [data]
-  );
 
   useEffect(() => {
     if (user.stone_google_folder) {
@@ -68,12 +106,30 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
             <Label>Folder name</Label>
             <Label>{`[${user.stone_google_folder}]`}</Label>
           </LabelWrapper>
-          <StyledSelect
-            items={selectStoneOptionsLayer}
-            placeholder='Select folder data'
-            onSelect={handleStoneFolderChange}
-            label='Input list'
-          />
+
+          <DropdownContainer ref={dropdownRef}>
+            <Label>Folder path</Label>
+            <StyledInput
+              type='text'
+              placeholder='Type to search or click to select...'
+              value={searchTerm}
+              onChange={e => {
+                setSearchTerm(e.target.value);
+                setIsOpen(true);
+              }}
+              onFocus={() => setIsOpen(true)}
+            />
+
+            {isOpen && filteredOptions.length > 0 && (
+              <DropdownList>
+                {filteredOptions.map(option => (
+                  <DropdownItem key={option.value} onClick={() => handleSelect(option)}>
+                    {option.name}
+                  </DropdownItem>
+                ))}
+              </DropdownList>
+            )}
+          </DropdownContainer>
           <StyledSelect
             items={rangeArray}
             placeholder='Select stone size'
