@@ -9,8 +9,8 @@ from flat_json_widget.widgets import FlatJsonWidget
 @admin.register(Result)
 class ResultAdmin(admin.OSMGeoAdmin):
 
-    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released')
-    list_filter = ('layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', )
+    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released', 'validated')
+    list_filter = ('layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', 'validated')
     search_fields = ('filepath', 'name', 'description', 'options')
     readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'request', 'styles_url', 'labels', 'colormap')
 
@@ -20,7 +20,8 @@ class ResultAdmin(admin.OSMGeoAdmin):
                        'labels')
         }),
         ('Fill by Data Scientist', {
-            'fields': ('name', 'options', 'description', 'start_date', 'end_date', 'released', 'to_be_deleted', )
+            'fields': (
+            'name', 'options', 'description', 'start_date', 'end_date', 'released', 'to_be_deleted', 'validated')
         }),
     )
 
@@ -33,6 +34,6 @@ class ResultAdmin(admin.OSMGeoAdmin):
 
 @admin.register(ACL)
 class ACLAdmin(admin.OSMGeoAdmin):
-    list_display = ('user', 'restrict_projects_to', )
-    list_filter = ('user', 'restrict_projects_to', )
-    search_fields = ('restrict_projects_to', )
+    list_display = ('user', 'restrict_projects_to',)
+    list_filter = ('user', 'restrict_projects_to',)
+    search_fields = ('restrict_projects_to',)

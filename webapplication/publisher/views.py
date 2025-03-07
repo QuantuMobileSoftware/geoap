@@ -1,8 +1,11 @@
+import gpxpy, os
+import gpxpy.gpx
 import geopandas as gpd
 from shapely.geometry import Point
 from pathlib import Path
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -37,6 +40,53 @@ class FilesView(APIView):
         response['X-Accel-Redirect'] = file
         del response['Content-Type']
         return response
+
+
+class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = ResultSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Result.objects.all()
+    pagination_class = None
+    http_method_names = ["get", "patch"]
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}"), "r") as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+
+        gpx_data = {}
+
+        for i, waypoint in enumerate(gpx.waypoints):
+            gpx_data[waypoint.description] = {
+                "lat": str(waypoint.latitude),
+                "lon": str(waypoint.longitude),
+                "status": str(waypoint.comment),
+            }
+        return Response(gpx_data, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        gpx = gpxpy.gpx.GPX()
+
+        for desc, coords in request.data.items():
+            waypoint = gpxpy.gpx.GPXWaypoint(
+                latitude=float(coords["lat"]),
+                longitude=float(coords["lon"])
+            )
+            waypoint.description = desc
+            waypoint.comment = "validated"
+            gpx.waypoints.append(waypoint)
+
+        with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, "results/stone_data/output.gpx"), "w", encoding="utf-8") as f:
+            f.write(gpx.to_xml())
+
+        serializer = self.get_serializer(instance, data={"validated": True}, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class ResultListAPIView(ListAPIView):
