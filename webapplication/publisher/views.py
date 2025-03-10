@@ -1,6 +1,7 @@
 import gpxpy, os
 import gpxpy.gpx
 import geopandas as gpd
+import shutil
 from shapely.geometry import Point
 from pathlib import Path
 from rest_framework.views import APIView
@@ -56,7 +57,6 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
             gpx = gpxpy.parse(gpx_file)
 
         gpx_data = {}
-
         for i, waypoint in enumerate(gpx.waypoints):
             gpx_data[waypoint.description] = {
                 "lat": str(waypoint.latitude),
@@ -68,24 +68,40 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        gpx = gpxpy.gpx.GPX()
+        file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}")
+        original_filepath = file_path.replace('.gpx', '_original.gpx')
 
-        for desc, coords in request.data.items():
-            waypoint = gpxpy.gpx.GPXWaypoint(
-                latitude=float(coords["lat"]),
-                longitude=float(coords["lon"])
-            )
-            waypoint.description = desc
-            waypoint.comment = "validated"
-            gpx.waypoints.append(waypoint)
+        if not os.path.exists(original_filepath):
+            shutil.copy(file_path, original_filepath)
 
-        with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, "results/stone_data/output.gpx"), "w", encoding="utf-8") as f:
-            f.write(gpx.to_xml())
+        with open(file_path, "r") as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+        for desc, data in request.data.items():
+            comment = data["status"]
 
-        serializer = self.get_serializer(instance, data={"validated": True}, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            matching_waypoints = [
+                wp for wp in gpx.waypoints if wp.description == desc
+            ]
+            if comment == "validated":
+                matching_waypoints[0].comment = comment
+            elif comment == "removed":
+                gpx.waypoints = [wp for wp in gpx.waypoints if wp.name != desc]
+
+        with open(file_path, "w") as gpx_file:
+            gpx_file.write(gpx.to_xml())
+
+        if all(wp.comment == "validated" for wp in gpx.waypoints):
+            instance.validated = True
+            instance.save()
+
+        gpx_data = {}
+        for i, waypoint in enumerate(gpx.waypoints):
+            gpx_data[waypoint.description] = {
+                "lat": str(waypoint.latitude),
+                "lon": str(waypoint.longitude),
+                "status": str(waypoint.comment),
+            }
+        return Response(gpx_data, status=status.HTTP_200_OK)
 
 
 

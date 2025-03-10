@@ -99,6 +99,8 @@ class Command(BaseCommand):
 
         logger.info(f"Updating or creating files...")
         for file in files:
+            if "_original.gpx" in file.filepath():
+                continue
             file_dict = file.as_dict()
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
