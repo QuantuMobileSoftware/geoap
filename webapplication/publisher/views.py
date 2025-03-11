@@ -18,6 +18,7 @@ from .models import Result
 from .serializers import ResultSerializer, PointSerializer
 from .filters import ResultsByACLFilterBackend
 from .permissions import ResultByACLPermission
+from .utils import gpx_to_json_format
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
 
@@ -56,14 +57,7 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
         with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}"), "r") as gpx_file:
             gpx = gpxpy.parse(gpx_file)
 
-        gpx_data = {}
-        for i, waypoint in enumerate(gpx.waypoints):
-            gpx_data[waypoint.description] = {
-                "lat": str(waypoint.latitude),
-                "lon": str(waypoint.longitude),
-                "status": str(waypoint.comment),
-            }
-        return Response(gpx_data, status=status.HTTP_200_OK)
+        return Response(gpx_to_json_format(gpx), status=status.HTTP_200_OK)
 
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -76,33 +70,23 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
 
         with open(file_path, "r") as gpx_file:
             gpx = gpxpy.parse(gpx_file)
-        for desc, data in request.data.items():
-            comment = data["status"]
 
+        for desc, data in request.data.items():
             matching_waypoints = [
                 wp for wp in gpx.waypoints if wp.description == desc
             ]
-            if comment == "validated":
-                matching_waypoints[0].comment = comment
-            elif comment == "removed":
-                gpx.waypoints = [wp for wp in gpx.waypoints if wp.name != desc]
+            if matching_waypoints:
+                matching_waypoints[0].comment = data["status"]
+
+        if all(wp.comment for wp in gpx.waypoints):
+            gpx.waypoints = [wp for wp in gpx.waypoints if wp.comment != "removed"]
+            instance.validated = True
+            instance.save()
 
         with open(file_path, "w") as gpx_file:
             gpx_file.write(gpx.to_xml())
 
-        if all(wp.comment == "validated" for wp in gpx.waypoints):
-            instance.validated = True
-            instance.save()
-
-        gpx_data = {}
-        for i, waypoint in enumerate(gpx.waypoints):
-            gpx_data[waypoint.description] = {
-                "lat": str(waypoint.latitude),
-                "lon": str(waypoint.longitude),
-                "status": str(waypoint.comment),
-            }
-        return Response(gpx_data, status=status.HTTP_200_OK)
-
+        return Response(gpx_to_json_format(gpx), status=status.HTTP_200_OK)
 
 
 class ResultListAPIView(ListAPIView):
