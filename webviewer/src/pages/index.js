@@ -6,3 +6,4 @@ export * from './ChangePassword';
 export * from './ModelCatalog';
 export * from './Terms';
 export * from './Policy';
+export * from './StoneValidation';

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { ButtonIcon, ButtonBody, StyledButton } from './Button.styles';
+import { ButtonIcon, ButtonBody, StyledButton, StyledLink } from './Button.styles';
 
 export const Button = forwardRef(
   (
@@ -9,8 +9,10 @@ export const Button = forwardRef(
   ) => {
     const hasChildren = !!children;
 
+    const Tag = props.to ? StyledLink : StyledButton;
+
     return (
-      <StyledButton
+      <Tag
         {...props}
         ref={ref}
         hasChildren={hasChildren}
@@ -21,7 +23,7 @@ export const Button = forwardRef(
       >
         {icon && <ButtonIcon>{icon}</ButtonIcon>}
         {children && <ButtonBody>{children}</ButtonBody>}
-      </StyledButton>
+      </Tag>
     );
   }
 );

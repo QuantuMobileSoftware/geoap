@@ -1,22 +1,12 @@
 import styled, { css } from 'styled-components';
-
-import { VIEWPORT_PADDING } from '_constants';
-
 import { rem } from 'styles';
 
-import { StyledUserbar } from 'components/Userbar';
-
-export const StyledHeader = styled.header`
+export const Notification = styled.div`
   ${({ theme }) => css`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: ${theme.colors.nature.n0};
-    box-shadow: ${theme.shadows()[0]};
-    padding: ${rem([theme.spacing[3], VIEWPORT_PADDING])};
-
-    ${StyledUserbar} {
-      margin-left: ${rem(theme.spacing[9])};
-    }
+    font-size: ${rem(12)};
+    text-align: center;
+    color: ${theme.colors.danger};
+    padding: ${rem(5)};
+    background: ${theme.colors.nature.n1};
   `}
 `;

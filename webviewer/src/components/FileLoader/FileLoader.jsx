@@ -39,7 +39,7 @@ export const FileLoader = ({ selectedIdResults }) => {
   };
 
   return (
-    <StyledFileLoader>
+    <StyledFileLoader fullWidth={selectedResults.length !== 1}>
       <StyledButton
         onClick={handleDownloadFiles}
         variant={isEmpty(downloadProgress) ? 'primary' : 'secondary'}

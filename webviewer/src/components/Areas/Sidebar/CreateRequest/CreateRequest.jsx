@@ -160,6 +160,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
           <StoneOptions
             handleStoneFolderChange={handleStoneFolderChange}
             handleStoneSizeChange={handleStoneSizeChange}
+            isShowSizeList={notebook.additional_parameter2}
           />
         )}
         <AdditionalField

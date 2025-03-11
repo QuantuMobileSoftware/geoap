@@ -13,7 +13,8 @@ import {
   ChangePassword,
   ModelCatalog,
   Terms,
-  Policy
+  Policy,
+  StoneValidation
 } from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
 import { Spinner } from 'components/_shared/Spinner';
@@ -49,6 +50,7 @@ export const Routes = () => {
       <Route path={ROUTES.AUTH} component={PageAuth} />
       <Route path={ROUTES.FORGOT_PASSWORD} component={ForgotPassword} />
       <Route path={ROUTES.CONFIRM_PASSWORD} component={ChangePassword} />
+      <Route isPrivate path={ROUTES.STONE_VALIDATION} component={StoneValidation} />
       <Route isPrivate path={ROUTES.RESET_PASSWORD} component={ChangePassword} />
       <Route isPrivate path={ROUTES.ROOT} component={PageMain} />
     </Switch>
