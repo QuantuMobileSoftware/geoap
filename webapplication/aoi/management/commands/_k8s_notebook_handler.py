@@ -136,7 +136,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         component_volume = client.V1Volume(
             name='component-volume',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
-                claim_name='sip-data-pvc'
+                claim_name='geoap-data-pvc'
             )
         )
         component_volume_mount = client.V1VolumeMount(
