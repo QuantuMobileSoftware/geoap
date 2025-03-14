@@ -51,15 +51,15 @@ export const StoneOptions = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectStoneOptionsLayer = useMemo(
-    () =>
-      (data || []).map(folder => ({
-        name: folder,
-        value: folder,
-        title: folder
-      })),
-    [data]
-  );
+  // const selectStoneOptionsLayer = useMemo(
+  //   () =>
+  //     (data || []).map(folder => ({
+  //       name: folder,
+  //       value: folder,
+  //       title: folder
+  //     })),
+  //   [data]
+  // );
 
   const start = 15; // Starting value
   const end = 40; // Ending value
