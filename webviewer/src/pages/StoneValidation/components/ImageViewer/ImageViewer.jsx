@@ -1,12 +1,24 @@
 import React, { useEffect } from 'react';
 import { Button } from 'components/_shared/Button';
-import { Container, ButtonsWrap, DangerButton } from './ImageViewer.styles';
+import {
+  Container,
+  ButtonsWrap,
+  DangerButton,
+  StyledButton,
+  BottomContainer,
+  ImgPath,
+  CopyWrap,
+  StatusText
+} from './ImageViewer.styles';
+import { STONE_STATUS } from 'pages/StoneValidation/constants';
 
 const keyboardKeys = {
   left: 'ArrowLeft',
   right: 'ArrowRight',
   up: 'ArrowUp',
-  down: 'ArrowDown'
+  down: 'ArrowDown',
+  KeyC: 'KeyC',
+  KeyR: 'KeyR'
 };
 
 export const ImageViewer = ({
@@ -16,19 +28,24 @@ export const ImageViewer = ({
   onConfirm,
   onReject,
   disablePrev,
-  disableNext
+  disableNext,
+  status,
+  imagePath,
+  loading
 }) => {
   useEffect(() => {
     const handleKeyDown = e => {
-      if (!Object.values(keyboardKeys).includes(e.key)) return;
+      if (!Object.values(keyboardKeys).includes(e.code)) return;
 
       const events = {
         [keyboardKeys.left]: onPrev,
         [keyboardKeys.right]: onNext,
-        [keyboardKeys.up]: onConfirm,
-        [keyboardKeys.down]: onReject
+        [keyboardKeys.up]: onPrev,
+        [keyboardKeys.down]: onNext,
+        [keyboardKeys.KeyC]: onConfirm,
+        [keyboardKeys.KeyR]: onReject
       };
-      events[e.key]();
+      events[e.code]();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -41,6 +58,7 @@ export const ImageViewer = ({
   return (
     <Container>
       <img width='100%' src={src} alt='Stone image' />
+
       <ButtonsWrap>
         <Button
           variant='secondary'
@@ -48,10 +66,20 @@ export const ImageViewer = ({
           disabled={disablePrev}
           icon='ExpandLeft'
         ></Button>
-        <Button variant='primary' onClick={onConfirm} icon='ExpandUp'>
+        <StyledButton
+          variant='primary'
+          onClick={onConfirm}
+          disabled={loading}
+          title='Shift + C'
+        >
           Confirm
-        </Button>
-        <DangerButton variant='danger' onClick={onReject} icon='ExpandDown'>
+        </StyledButton>
+        <DangerButton
+          variant='danger'
+          onClick={onReject}
+          disabled={loading}
+          title='Shift + R'
+        >
           Reject
         </DangerButton>
         <Button
@@ -61,6 +89,17 @@ export const ImageViewer = ({
           icon='ExpandRight'
         ></Button>
       </ButtonsWrap>
+      <BottomContainer>
+        <CopyWrap>
+          <Button variant='secondary' onClick={() => navigator.clipboard.writeText(src)}>
+            Copy path
+          </Button>
+          <ImgPath>...{imagePath}</ImgPath>
+        </CopyWrap>
+        {status !== STONE_STATUS.unverified && (
+          <StatusText verified={status === STONE_STATUS.hasStones}>{status}</StatusText>
+        )}
+      </BottomContainer>
     </Container>
   );
 };

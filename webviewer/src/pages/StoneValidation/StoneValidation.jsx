@@ -1,116 +1,143 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { getSelectedResults, selectCurrentResults } from 'state';
 import { filesEndpoints } from 'api/files';
-import { Page } from 'components/_shared/Page';
+import { Header as PageHeader } from 'components/Header';
+import { Spinner } from 'components/_shared/Spinner';
 import { API } from 'api';
 import { ROUTES } from '_constants';
-import { Button } from 'components/_shared/Button';
-import { ImageViewer } from './components';
-import { Icon } from 'components/_shared/Icon';
-import {
-  Container,
-  StoneTableWrap,
-  TableHeader,
-  TableRow
-} from './StoneValidation.styles';
+import { ImageViewer, Header, ImageList } from './components';
+import { STONE_STATUS } from './constants';
+import { Container } from './StoneValidation.styles';
 
-export const StoneValidation = ({ ...props }) => {
+const paginationDefault = { offset: 0, page: 0 };
+
+export const StoneValidation = () => {
   const allAreaResults = useSelector(selectCurrentResults);
   const selectedResults = useSelector(getSelectedResults);
   const history = useHistory();
   const [images, setImages] = useState([]);
   const [currentImg, setCurrentImg] = useState();
-  const countRef = useRef(currentImg); // eventlistener can't se currentImg changing
+  const [filter, setFilter] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState(paginationDefault);
+  const imgDataRef = useRef({ image: currentImg }); // eventlistener can't se currentImg changing
 
   const result = allAreaResults?.find(({ id }) => id === selectedResults[0]);
 
+  const filteredImages = useMemo(() => {
+    if (!filter) return images;
+    return images.filter(([, data]) => data.status === filter);
+  }, [filter, images]);
+
+  const validatedImages = useMemo(
+    () => images.filter(([, data]) => data.status !== STONE_STATUS.unverified).length,
+    [images]
+  );
+
+  // pagination
+  const itemsPerPage = 30;
+  const endOffset = pagination.offset + itemsPerPage;
+  const currentImages = filteredImages.slice(pagination.offset, endOffset);
+  const handlePageClick = event => {
+    const newOffset = (event.selected * itemsPerPage) % filteredImages.length;
+    setPagination({ page: event.selected, offset: newOffset });
+    setCurrentImg(0);
+  };
+
+  const imagePath =
+    currentImg === undefined
+      ? ''
+      : `${result?.filepath.split('/')[0]}/${currentImages[currentImg][0]}`;
+
   useEffect(() => {
     if (!result) {
-      history.push(ROUTES.ROOT, { isOpenSidebar: true });
+      history.push(ROUTES.ROOT);
       return;
     }
     async function fetchData() {
       const response = await API.files.getStoneImages(result.id);
-      setImages(Object.entries(response));
+      setImages(
+        Object.entries(response).map(([path, data], i) => [path, { ...data, id: i }])
+      );
+      setCurrentImg(0);
     }
     fetchData();
   }, [result, history]);
 
-  const getImagePath =
-    currentImg === undefined
-      ? ''
-      : `${result?.filepath.split('/')[0]}/${images[currentImg][0]}`;
-
   useEffect(() => {
-    countRef.current = currentImg;
-  }, [currentImg]);
+    imgDataRef.current.image = currentImg;
+    imgDataRef.current.currentImages = currentImages;
+  }, [currentImg, currentImages]);
 
   const handlePrev = () => {
-    if (countRef.current > 0) {
-      setCurrentImg(countRef.current - 1);
+    if (imgDataRef.current.image > 0) {
+      setCurrentImg(imgDataRef.current.image - 1);
     }
   };
 
   const handleNext = () => {
-    if (countRef.current < images.length - 1) {
-      setCurrentImg(countRef.current + 1);
+    const { image, currentImages } = imgDataRef.current;
+    if (image < currentImages.length - 1) {
+      setCurrentImg(imgDataRef.current.image + 1);
     }
   };
 
   const handleValidateImage = async status => {
-    const [path, data] = images[countRef.current];
+    setLoading(true);
+    const [path, data] = imgDataRef.current.currentImages[imgDataRef.current.image];
     const imageData = { [path]: { ...data, status } };
-    const resp = await API.files.patchStoneImages(result.id, imageData);
-    setImages(Object.entries(resp));
+    API.files
+      .patchStoneImages(result.id, imageData)
+      .then(resp =>
+        setImages(
+          Object.entries(resp).map(([path, data], i) => [path, { ...data, id: i }])
+        )
+      )
+      .finally(() => setLoading(false));
   };
 
+  const handleChangeFilter = ({ value }) => {
+    setFilter(value);
+    setPagination(paginationDefault);
+    setCurrentImg(0);
+  };
+
+  if (images.length === 0) return <Spinner />;
+
   return (
-    <Page {...props}>
+    <div>
+      <PageHeader />
+      <Header
+        onChangeFilter={handleChangeFilter}
+        progressData={{ all: images.length, completed: validatedImages }}
+      />
       <Container>
-        <StoneTableWrap>
-          <table>
-            <tbody>
-              <TableRow>
-                <TableHeader>#</TableHeader>
-                <TableHeader>Verified</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-              {images.map(([path, data], i) => (
-                <TableRow key={path} isActive={i === currentImg}>
-                  <td>{i}</td>
-                  <td>
-                    {data.status === 'None' ? (
-                      <Icon color='gray'>Cross</Icon>
-                    ) : (
-                      <Icon color='green'>Check</Icon>
-                    )}
-                  </td>
-                  <td>{data.status === 'None' ? 'unverified' : data.status}</td>
-                  <td>
-                    <Button variant='secondary' onClick={() => setCurrentImg(i)}>
-                      Validate
-                    </Button>
-                  </td>
-                </TableRow>
-              ))}
-            </tbody>
-          </table>
-        </StoneTableWrap>
+        <ImageList
+          images={currentImages}
+          currentImg={currentImg}
+          setCurrentImg={setCurrentImg}
+          onPageChange={handlePageClick}
+          pageCount={Math.ceil(filteredImages.length / itemsPerPage)}
+          currentPage={pagination.page}
+        />
+
         {currentImg !== undefined && (
           <ImageViewer
-            src={`/api${filesEndpoints.results}/${getImagePath}`}
+            src={`/api${filesEndpoints.results}/${imagePath}`}
             onPrev={handlePrev}
             onNext={handleNext}
-            onConfirm={() => handleValidateImage('validated')}
-            onReject={() => handleValidateImage('removed')}
+            onConfirm={() => handleValidateImage(STONE_STATUS.hasStones)}
+            onReject={() => handleValidateImage(STONE_STATUS.noStones)}
             disablePrev={currentImg === 0}
-            disableNext={currentImg === images.length - 1}
+            disableNext={currentImg === currentImages.length - 1}
+            status={currentImages[currentImg][1].status}
+            imagePath={currentImages[currentImg][0]}
+            loading={loading}
           />
         )}
       </Container>
-    </Page>
+    </div>
   );
 };
