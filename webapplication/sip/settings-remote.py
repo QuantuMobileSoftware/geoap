@@ -1,6 +1,6 @@
 from sip.settings import *
 
-ALLOWED_HOSTS = ['10.8.0.8', '34.58.24.41']
+ALLOWED_HOSTS = ['10.8.0.8', '35.208.15.192']
 ZOOM_LEVEL_MAX = 14
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
