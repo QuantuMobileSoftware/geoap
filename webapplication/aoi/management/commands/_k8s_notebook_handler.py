@@ -162,6 +162,9 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(
                 labels=labels,
+                annotations={
+                    "gke-gcsfuse/volumes": "true"
+                }
             ),
             spec=client.V1PodSpec(
                 containers=[container, ],
@@ -173,6 +176,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
                     },
                 ],
                 node_selector={"cloud.google.com/gke-accelerator": "nvidia-tesla-t4"} if require_gpu else {},
+                service_account_name='kuber.service.account',
             ),
         )
         spec = client.V1JobSpec(
