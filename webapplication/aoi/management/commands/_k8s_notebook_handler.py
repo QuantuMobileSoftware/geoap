@@ -10,6 +10,7 @@ from kubernetes.client.rest import ApiException
 from aoi.models import Component, Request
 from aoi.management.commands.executor import NotebookExecutor
 from aoi.management.commands._ComponentExecutionHelper import ComponentExecutionHelper
+from aoi.management.commands._notebook import clean_container_logs
 
 from django.conf import settings
 from django.utils.timezone import localtime
@@ -172,8 +173,8 @@ class K8sNotebookHandler(ComponentExecutionHelper):
                 run_as_user=0
             ),
             volume_mounts=volume_mounts,
-            # image_pull_policy='Always',
-            image_pull_policy='IfNotPresent',
+            image_pull_policy='Always',
+            # image_pull_policy='IfNotPresent',
             resources=gpu_resources if require_gpu else None
         )
         template = client.V1PodTemplateSpec(
@@ -353,19 +354,31 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             self.delete_job(job)
 
         if job.status.conditions is not None and job.status.conditions[0].type == 'Failed':
+            logger.error("Job.status.conditions: 'Failed'")
             request = Request.objects.get(id=job_labels['request_id'])
             if job.status.conditions[0].message:
-                request.error = job.status.conditions[0].message
+                collected_error = clean_container_logs(job.status.conditions[0].message)
+                error_max_length = 350
+                if len(collected_error) > error_max_length:
+                    request.error = collected_error[len(collected_error) - error_max_length:]
+                else:
+                    request.error = collected_error
             request.save()
             self.delete_job(job)
 
         if job.status.failed in (1, 2):
+            logger.error("Job.status.failed")
             pod_result = self.get_results_from_pods(pod_label_selector)
             request = Request.objects.get(id=job_labels['request_id'])
             request.finished_at = pod_result['finished_at']
             if pod_result['reason'] == 'Error':
-                request.error = pod_result['pod_log']
-                logger.error(f"Job Error: {pod_result['pod_log']}")
+                collected_error = clean_container_logs(pod_result['pod_log'])
+                error_max_length = 350
+                if len(collected_error) > error_max_length:
+                    request.error = collected_error[len(collected_error) - error_max_length:]
+                else:
+                    request.error = collected_error
+                logger.error(f"Job Error: {collected_error}")
             request.save()
             self.delete_job(job)
 
