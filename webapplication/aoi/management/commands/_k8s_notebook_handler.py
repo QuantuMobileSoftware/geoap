@@ -1,4 +1,4 @@
-import logging
+import logging, re
 import os
 import shutil
 import hashlib
@@ -10,12 +10,20 @@ from kubernetes.client.rest import ApiException
 from aoi.models import Component, Request
 from aoi.management.commands.executor import NotebookExecutor
 from aoi.management.commands._ComponentExecutionHelper import ComponentExecutionHelper
-from aoi.management.commands._notebook import clean_container_logs
 
 from django.conf import settings
 from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
+
+def clean_container_logs(logs):
+    log_lines = logs.split('\n')
+    log_lines = [re.sub(r'^\s*\d+\s*', '', line) for line in log_lines]
+
+    log_text = ''.join(log_lines)
+    log_text = re.sub(r'\x1b\[[0-9;]*m', '', log_text)
+    log_text = re.sub(r'\s+', ' ', log_text)
+    return log_text
 
 
 class K8sNotebookHandler(ComponentExecutionHelper):
