@@ -136,7 +136,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         component_volume = client.V1Volume(
             name='component-volume',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
-                claim_name='sip-data-pvc'
+                claim_name='geoap-data-pvc'
             )
         )
         component_volume_mount = client.V1VolumeMount(
@@ -162,7 +162,9 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(
                 labels=labels,
-
+                annotations={
+                    "gke-gcsfuse/volumes": "true"
+                }
             ),
             spec=client.V1PodSpec(
                 containers=[container, ],
@@ -173,6 +175,8 @@ class K8sNotebookHandler(ComponentExecutionHelper):
                         'name': settings.IMAGE_PULL_SECRETS,
                     },
                 ],
+                node_selector={"cloud.google.com/gke-accelerator": "nvidia-tesla-t4"} if require_gpu else {},
+                service_account_name='kuber.service.account',
             ),
         )
         spec = client.V1JobSpec(
