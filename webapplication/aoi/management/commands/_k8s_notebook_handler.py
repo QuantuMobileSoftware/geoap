@@ -379,7 +379,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             logger.error("Job.status.failed")
             pod_result = self.get_results_from_pods(pod_label_selector)
             request = Request.objects.get(id=job_labels['request_id'])
-            request.finished_at = pod_result['finished_at']
+            request.finished_at = localtime()
             if pod_result['reason'] == 'Error':
                 collected_error = clean_container_logs(pod_result['pod_log'])
                 error_max_length = 350
