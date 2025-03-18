@@ -144,6 +144,25 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             mount_path=settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH,
             read_only=False
         )
+        volumes = [component_volume]
+        volume_mounts = [component_volume_mount]
+        if require_gpu:
+            shm_volume = client.V1Volume(
+                name="dshm",
+                empty_dir=client.V1EmptyDirVolumeSource(
+                    medium="Memory",
+                    size_limit="14Gi"
+                )
+            )
+            shm_volume_mount = client.V1VolumeMount(
+                name="dshm",
+                mount_path="/dev/shm"
+            )
+            volumes.append(shm_volume)
+            volume_mounts.append(shm_volume_mount)
+
+
+
         container = client.V1Container(
             name=name,
             image=image,
@@ -152,9 +171,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             security_context=client.V1SecurityContext(
                 run_as_user=0
             ),
-            volume_mounts=[
-                component_volume_mount,
-            ],
+            volume_mounts=volume_mounts,
             # image_pull_policy='Always',
             image_pull_policy='IfNotPresent',
             resources=gpu_resources if require_gpu else None
@@ -168,7 +185,7 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             ),
             spec=client.V1PodSpec(
                 containers=[container, ],
-                volumes=[component_volume, ],
+                volumes=volumes,
                 restart_policy="Never",
                 image_pull_secrets=[
                     {
