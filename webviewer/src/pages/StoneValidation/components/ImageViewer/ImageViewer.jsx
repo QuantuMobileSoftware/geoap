@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from 'components/_shared/Button';
 import {
   Container,
@@ -8,7 +8,8 @@ import {
   BottomContainer,
   ImgPath,
   CopyWrap,
-  StatusText
+  StatusText,
+  ImageLoader
 } from './ImageViewer.styles';
 import { STONE_STATUS } from 'pages/StoneValidation/constants';
 
@@ -30,9 +31,23 @@ export const ImageViewer = ({
   disablePrev,
   disableNext,
   status,
-  imagePath,
   loading
 }) => {
+  const [imgLoading, setImgLoading] = useState(true);
+
+  useEffect(() => {
+    setImgLoading(true);
+    // Safari make image loading function first and then useEffect
+    const img = new Image();
+    img.src = src;
+    if (img.complete) {
+      setImgLoading(false);
+    } else {
+      img.onload = () => setImgLoading(false);
+      img.onerror = () => setImgLoading(false);
+    }
+  }, [src]);
+
   useEffect(() => {
     const handleKeyDown = e => {
       if (!Object.values(keyboardKeys).includes(e.code)) return;
@@ -57,8 +72,18 @@ export const ImageViewer = ({
 
   return (
     <Container>
-      <img width='100%' src={src} alt='Stone image' />
-
+      <img
+        width='100%'
+        src={src}
+        alt='Stone image'
+        onLoad={() => setImgLoading(false)}
+        onError={() => setImgLoading(false)}
+      />
+      {imgLoading && (
+        <ImageLoader>
+          <span>Loading image...</span>
+        </ImageLoader>
+      )}
       <ButtonsWrap>
         <Button
           variant='secondary'
@@ -94,7 +119,7 @@ export const ImageViewer = ({
           <Button variant='secondary' onClick={() => navigator.clipboard.writeText(src)}>
             Copy path
           </Button>
-          <ImgPath>...{imagePath}</ImgPath>
+          <ImgPath title={src}>.../{src.split('/').pop()}</ImgPath>
         </CopyWrap>
         {status !== STONE_STATUS.unverified && (
           <StatusText verified={status === STONE_STATUS.hasStones}>{status}</StatusText>

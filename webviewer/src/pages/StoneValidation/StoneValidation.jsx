@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { getSelectedResults, selectCurrentResults } from 'state';
-import { filesEndpoints } from 'api/files';
 import { Header as PageHeader } from 'components/Header';
 import { Spinner } from 'components/_shared/Spinner';
 import { API } from 'api';
@@ -45,11 +44,6 @@ export const StoneValidation = () => {
     setPagination({ page: event.selected, offset: newOffset });
     setCurrentImg(0);
   };
-
-  const imagePath =
-    currentImg === undefined
-      ? ''
-      : `${result?.filepath.split('/')[0]}/${currentImages[currentImg][0]}`;
 
   useEffect(() => {
     if (!result) {
@@ -125,7 +119,7 @@ export const StoneValidation = () => {
 
         {currentImg !== undefined && (
           <ImageViewer
-            src={`/api${filesEndpoints.results}/${imagePath}`}
+            src={currentImages[currentImg][0]}
             onPrev={handlePrev}
             onNext={handleNext}
             onConfirm={() => handleValidateImage(STONE_STATUS.hasStones)}
@@ -133,7 +127,6 @@ export const StoneValidation = () => {
             disablePrev={currentImg === 0}
             disableNext={currentImg === currentImages.length - 1}
             status={currentImages[currentImg][1].status}
-            imagePath={currentImages[currentImg][0]}
             loading={loading}
           />
         )}

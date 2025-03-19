@@ -3,6 +3,7 @@ import styled, { css } from 'styled-components';
 import { em, rem } from 'styles';
 import { Button } from 'components/_shared/Button';
 import { shouldForwardProp } from 'utils';
+import { rgba } from 'polished';
 
 const containerMargin = 10;
 
@@ -11,6 +12,7 @@ export const Container = styled(Paper)`
   overflow-y: auto;
   max-height: calc(100% - ${containerMargin * 2}px);
   width: 70%;
+  position: relative;
   buttons {
     outline: none;
   }
@@ -24,10 +26,27 @@ export const CopyWrap = styled.div`
 
 export const ImgPath = styled.span`
   display: inline-block;
-  width: 120px;
+  width: 200px;
   text-overflow: ellipsis;
   overflow: hidden;
   color: ${({ theme }) => theme.colors.nature.n3};
+`;
+
+export const ImageLoader = styled.div`
+  ${({ theme }) => css`
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background: ${rgba(theme.colors.nature.n1, 0.8)};
+    text-align: center;
+    color: ${theme.colors.primary.p1};
+    span {
+      margin: auto;
+    }
+  `}
 `;
 
 export const BottomContainer = styled.div`
