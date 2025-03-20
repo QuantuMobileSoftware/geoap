@@ -9,7 +9,7 @@ export const StyledIcon = styled.span.withConfig({ shouldForwardProp })`
   max-width: 100%;
 
   svg {
-    color: inherit;
+    color: ${({ color }) => color ?? 'inherit'};
     width: inherit;
     height: inherit;
 

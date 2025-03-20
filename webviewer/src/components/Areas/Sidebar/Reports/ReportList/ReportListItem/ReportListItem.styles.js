@@ -37,6 +37,17 @@ export const ReportListItemBody = styled.div`
   }
 `;
 
+export const ReportStatus = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: ${em(8)};
+  font-size: ${rem(10)};
+  svg {
+    width: ${rem(9)};
+  }
+`;
+
 export const ResultListItem = styled.li`
   ${({ theme, onClick, isActive }) => {
     const mainColor = theme.colors.primary.p1;

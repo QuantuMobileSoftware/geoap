@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Checkbox } from 'components/_shared/Checkbox';
 import { Preloader } from 'components/_shared/Preloader';
+import { Icon } from 'components/_shared/Icon';
 import { SIDEBAR_MODE, NO_DATA } from '_constants';
 import { useAreasActions, getSelectedResults } from 'state';
 
@@ -9,7 +10,8 @@ import {
   ReportListItemBody,
   ReportListItemText,
   ResultListItem,
-  ReportListItemDate
+  ReportListItemDate,
+  ReportStatus
 } from './ReportListItem.styles';
 
 export const ReportListResult = ({ report = {}, reportDate }) => {
@@ -35,7 +37,7 @@ export const ReportListResult = ({ report = {}, reportDate }) => {
 
   const isActive = selectedResults.some(item => item === report.id);
   const isResult = report.hasOwnProperty('request');
-  const { name, layer_type, notebook_name } = report;
+  const { name, layer_type, notebook_name, validated } = report;
   const hasData = !name?.includes(NO_DATA);
   const reportName = isResult ? name || layer_type : notebook_name;
 
@@ -45,6 +47,12 @@ export const ReportListResult = ({ report = {}, reportDate }) => {
       <ReportListItemBody>
         <ReportListItemText $hasData={hasData}>{reportName}</ReportListItemText>
         <ReportListItemDate>{reportDate}</ReportListItemDate>
+        {validated && (
+          <ReportStatus>
+            <span>Validated</span>
+            <Icon>Check</Icon>
+          </ReportStatus>
+        )}
       </ReportListItemBody>
       {!isResult && <Preloader />}
     </ResultListItem>

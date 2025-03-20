@@ -12,4 +12,14 @@ const getFile = async (path, onProgress) => {
   return resp.data;
 };
 
-export const fileRequests = { getFile };
+const getStoneImages = async resultId => {
+  const resp = await axiosInstance.get(filesEndpoints.stoneImages(resultId));
+  return resp.data;
+};
+
+const patchStoneImages = async (resultId, data) => {
+  const resp = await axiosInstance.patch(filesEndpoints.stoneImages(resultId), data);
+  return resp.data;
+};
+
+export const fileRequests = { getFile, getStoneImages, patchStoneImages };

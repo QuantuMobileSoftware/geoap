@@ -6,6 +6,7 @@ const ACCOUNT = `${ROOT}account`;
 const MODELS = `${ROOT}models`;
 const TERMS = `${ROOT}terms`;
 const POLICY = `${ROOT}policy`;
+const STONE_VALIDATION = `${ROOT}stone-validation/:id`;
 
 const PASSWORD_ROOT = `${ROOT}password`;
 const RESET_PASSWORD = `${PASSWORD_ROOT}/reset`;
@@ -23,5 +24,6 @@ export const ROUTES = {
   FORGOT_PASSWORD,
   CONFIRM_PASSWORD,
   TERMS,
-  POLICY
+  POLICY,
+  STONE_VALIDATION
 };

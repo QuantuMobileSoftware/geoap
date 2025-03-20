@@ -1,8 +1,12 @@
+import gpxpy, os
+import gpxpy.gpx
 import geopandas as gpd
+import shutil
 from shapely.geometry import Point
 from pathlib import Path
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -14,6 +18,7 @@ from .models import Result
 from .serializers import ResultSerializer, PointSerializer
 from .filters import ResultsByACLFilterBackend
 from .permissions import ResultByACLPermission
+from .utils import gpx_to_json_format
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
 
@@ -37,6 +42,51 @@ class FilesView(APIView):
         response['X-Accel-Redirect'] = file
         del response['Content-Type']
         return response
+
+
+class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = ResultSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Result.objects.all()
+    pagination_class = None
+    http_method_names = ["get", "patch"]
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}"), "r") as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+
+        return Response(gpx_to_json_format(gpx), status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}")
+        original_filepath = file_path.replace('.gpx', '_original.gpx')
+
+        if not os.path.exists(original_filepath):
+            shutil.copy(file_path, original_filepath)
+
+        with open(file_path, "r") as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+
+        for desc, data in request.data.items():
+            matching_waypoints = [
+                wp for wp in gpx.waypoints if wp.description == desc
+            ]
+            if matching_waypoints:
+                matching_waypoints[0].comment = data["status"]
+
+        if all(wp.comment for wp in gpx.waypoints):
+            gpx.waypoints = [wp for wp in gpx.waypoints if wp.comment != "removed"]
+            instance.validated = True
+            instance.save()
+
+        with open(file_path, "w") as gpx_file:
+            gpx_file.write(gpx.to_xml())
+
+        return Response(gpx_to_json_format(gpx), status=status.HTTP_200_OK)
 
 
 class ResultListAPIView(ListAPIView):

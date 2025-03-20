@@ -12,7 +12,11 @@ import {
   DropdownItem
 } from './StoneOptions.styles';
 
-export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange }) => {
+export const StoneOptions = ({
+  handleStoneFolderChange,
+  handleStoneSizeChange,
+  isShowSizeList
+}) => {
   const { getStoneLayers, isLoading } = useAreasActions();
   const { data, status } = useSelector(getStoneOptionsLayer);
   const user = useSelector(selectUser);
@@ -47,15 +51,15 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectStoneOptionsLayer = useMemo(
-    () =>
-      (data || []).map(folder => ({
-        name: folder,
-        value: folder,
-        title: folder
-      })),
-    [data]
-  );
+  // const selectStoneOptionsLayer = useMemo(
+  //   () =>
+  //     (data || []).map(folder => ({
+  //       name: folder,
+  //       value: folder,
+  //       title: folder
+  //     })),
+  //   [data]
+  // );
 
   const start = 15; // Starting value
   const end = 40; // Ending value
@@ -130,12 +134,14 @@ export const StoneOptions = ({ handleStoneFolderChange, handleStoneSizeChange })
               </DropdownList>
             )}
           </DropdownContainer>
-          <StyledSelect
-            items={rangeArray}
-            placeholder='Select stone size'
-            onSelect={handleStoneSizeChange}
-            label='Size list'
-          />
+          {isShowSizeList && (
+            <StyledSelect
+              items={rangeArray}
+              placeholder='Select stone size'
+              onSelect={handleStoneSizeChange}
+              label='Size list'
+            />
+          )}
         </>
       );
   }

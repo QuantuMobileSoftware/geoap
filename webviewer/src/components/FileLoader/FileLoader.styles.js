@@ -1,12 +1,13 @@
 import styled, { css } from 'styled-components';
 import { em } from 'styles';
-
+import { shouldForwardProp } from 'utils';
 import { Button } from 'components/_shared/Button';
 
-export const StyledFileLoader = styled.div`
-  ${({ theme }) => css`
-    width: 100%;
+export const StyledFileLoader = styled.div.withConfig({ shouldForwardProp })`
+  ${({ theme, fullWidth }) => css`
+    width: ${fullWidth ? '100%' : 'auto'};
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
     z-index: ${theme.zIndexes[1]};

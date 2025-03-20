@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import { rgba } from 'polished';
+import { Link } from '../Link';
 
 import { em, rem } from 'styles';
 import { shouldForwardProp } from 'utils';
@@ -100,51 +101,63 @@ const buttonVariantTypeStyles = {
   `
 };
 
-export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
-  ${({ theme, hasChildren, variant, variantType, icon, disabled, fullWidth }) => {
-    const fontSize = theme.fontSizes[2];
+const getButtonStyles = ({
+  theme,
+  hasChildren,
+  variant,
+  variantType,
+  icon,
+  disabled,
+  fullWidth
+}) => {
+  const fontSize = theme.fontSizes[2];
 
-    return [
-      css`
-        appearance: none;
-        font-family: ${theme.fonts.primary};
-        font-size: ${rem(fontSize)};
-        font-weight: ${theme.fontWeights[1]};
-        color: ${theme.colors.nature.n5};
-        text-align: center;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        background: none;
-        transition: ${theme.transitions.fast};
+  return [
+    css`
+      appearance: none;
+      font-family: ${theme.fonts.primary};
+      font-size: ${rem(fontSize)};
+      font-weight: ${theme.fontWeights[1]};
+      color: ${theme.colors.nature.n5};
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      transition: ${theme.transitions.fast};
 
-        &:hover {
-          cursor: pointer;
+      &:hover {
+        cursor: pointer;
+      }
+
+      ${ButtonIcon} {
+        + ${ButtonBody} {
+          margin-left: ${em(theme.spacing[2], fontSize)};
         }
-
-        ${ButtonIcon} {
-          + ${ButtonBody} {
-            margin-left: ${em(theme.spacing[2], fontSize)};
-          }
+      }
+    `,
+    icon && !hasChildren && `padding: ${em(4, fontSize)};`,
+    variant && buttonVariantStyles({ variant, fontSize }),
+    !variant &&
+      css`
+        &:hover {
+          color: ${theme.colors.primary.p1};
         }
       `,
-      icon && !hasChildren && `padding: ${em(4, fontSize)};`,
-      variant && buttonVariantStyles({ variant, fontSize }),
-      !variant &&
-        css`
-          &:hover {
-            color: ${theme.colors.primary.p1};
-          }
-        `,
-      variantType && buttonVariantTypeStyles[variantType],
-      disabled && buttonDisabledStyle,
-      fullWidth &&
-        css`
-           {
-            width: 100%;
-          }
-        `
-    ];
-  }};
+    variantType && buttonVariantTypeStyles[variantType],
+    disabled && buttonDisabledStyle,
+    fullWidth &&
+      css`
+        width: 100%;
+      `
+  ];
+};
+
+export const StyledButton = styled.button.withConfig({ shouldForwardProp })`
+  ${getButtonStyles};
+`;
+
+export const StyledLink = styled(Link).withConfig({ shouldForwardProp })`
+  ${getButtonStyles};
 `;

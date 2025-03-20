@@ -14,5 +14,6 @@ export const NOT_FORWARD_PROPS = [
   'variant',
   'variantType',
   'withUnmountToggle',
-  'fullWidth'
+  'fullWidth',
+  'verified'
 ];

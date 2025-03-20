@@ -39,6 +39,7 @@ class Result(models.Model):
     start_date = models.DateField(blank=True, null=True, verbose_name='Start date')
     end_date = models.DateField(blank=True, null=True, verbose_name='End date')
     name = models.CharField(max_length=200, blank=True, default='', verbose_name='Layer name')
+    validated = models.BooleanField(default=False, verbose_name='Validated')
 
     def __str__(self):
         return self.filepath
