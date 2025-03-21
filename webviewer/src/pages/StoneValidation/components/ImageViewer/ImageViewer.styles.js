@@ -8,13 +8,25 @@ import { rgba } from 'polished';
 const containerMargin = 10;
 
 export const Container = styled(Paper)`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   margin: ${containerMargin}px auto;
-  overflow-y: auto;
   max-height: calc(100% - ${containerMargin * 2}px);
+  height: 100%;
   width: 70%;
   position: relative;
+  overflow-y: auto;
   buttons {
     outline: none;
+  }
+`;
+
+export const ImgWrap = styled.div.withConfig({ shouldForwardProp })`
+  max-width: 100%;
+  overflow: auto;
+  img {
+    width: ${({ fullWidth }) => (fullWidth ? 'auto' : '100%')};
   }
 `;
 
@@ -49,11 +61,15 @@ export const ImageLoader = styled.div`
   `}
 `;
 
+export const Footer = styled.div`
+  /* border: 1px solid; */
+`;
+
 export const BottomContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: ${rem(14)};
+  font-size: ${rem(12)};
 `;
 
 export const ButtonsWrap = styled.div`
@@ -86,7 +102,8 @@ export const DangerButton = styled(StyledButton)`
 export const StatusText = styled(Paper).withConfig({ shouldForwardProp })`
   ${({ theme, verified }) => css`
     color: ${verified ? theme.colors.primary.p2 : theme.colors.danger};
-    padding: ${em(10)};
+    padding: ${em(8)} ${em(16)};
+
     &:first-letter {
       text-transform: uppercase;
     }

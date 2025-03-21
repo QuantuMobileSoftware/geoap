@@ -6,6 +6,7 @@ import { HeaderContainer, Progress, StyledSelect, ProgressWrap } from './Header.
 import { Button } from 'components/_shared/Button';
 
 export const Header = ({ onChangeFilter, progressData }) => {
+  const { completed, total } = progressData;
   const history = useHistory();
 
   const handleBackClick = () => {
@@ -20,7 +21,7 @@ export const Header = ({ onChangeFilter, progressData }) => {
     ];
   };
 
-  const progress = Math.round((progressData.completed / progressData.all) * 100);
+  const progress = total ? Math.round((completed / total) * 100) : 0;
 
   return (
     <HeaderContainer>
@@ -33,7 +34,7 @@ export const Header = ({ onChangeFilter, progressData }) => {
         <div>
           <span>Progress: {progress}%</span>
           <span>
-            {progressData.completed}/{progressData.all}
+            {completed}/{total}
           </span>
         </div>
         <Progress size={progress}>

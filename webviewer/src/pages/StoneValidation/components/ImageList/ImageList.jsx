@@ -3,7 +3,13 @@ import ReactPaginate from 'react-paginate';
 import { STONE_STATUS_TITLES } from '../../constants';
 import { Icon } from 'components/_shared/Icon';
 
-import { Pagination, StoneTableWrap, TableHeader, TableRow } from './ImageList.styles';
+import {
+  Pagination,
+  Container,
+  TableHeader,
+  TableRow,
+  TableWrap
+} from './ImageList.styles';
 
 export const ImageList = ({
   images,
@@ -24,48 +30,51 @@ export const ImageList = ({
   };
 
   return (
-    <StoneTableWrap>
-      <table>
-        <tbody>
-          <tr>
-            <TableHeader>#</TableHeader>
-            <TableHeader>Validated</TableHeader>
-            <TableHeader>Status</TableHeader>
-          </tr>
-          {images.map(([path, data], i) => (
-            <TableRow
-              key={path}
-              isActive={i === currentImg}
-              onClick={() => setCurrentImg(i)}
-              ref={i === 0 ? wrapperRef : null}
-            >
-              <td>{data.id + 1}</td>
-              <td>
-                {data.status === 'None' ? (
-                  <Icon color='gray'>Cross</Icon>
-                ) : (
-                  <Icon color='green'>Check</Icon>
-                )}
-              </td>
-              <td>{STONE_STATUS_TITLES[data.status]}</td>
-            </TableRow>
-          ))}
-        </tbody>
-      </table>
-      <Pagination>
-        <ReactPaginate
-          breakLabel='...'
-          nextLabel='>'
-          onPageChange={handlePageChange}
-          pageRangeDisplayed={3}
-          marginPagesDisplayed={2}
-          pageCount={pageCount}
-          previousLabel='<'
-          renderOnZeroPageCount={null}
-          onPageActive={e => console.log(e)}
-          forcePage={currentPage}
-        />
-      </Pagination>
-    </StoneTableWrap>
+    <Container>
+      <TableWrap>
+        <table>
+          <tbody>
+            <tr>
+              <TableHeader>#</TableHeader>
+              <TableHeader>Validated</TableHeader>
+              <TableHeader>Status</TableHeader>
+            </tr>
+            {images.map(([path, data], i) => (
+              <TableRow
+                key={path}
+                isActive={i === currentImg}
+                onClick={() => setCurrentImg(i)}
+                ref={i === 0 ? wrapperRef : null}
+              >
+                <td>{data.id + 1}</td>
+                <td>
+                  {data.status === 'None' ? (
+                    <Icon color='gray'>Cross</Icon>
+                  ) : (
+                    <Icon color='green'>Check</Icon>
+                  )}
+                </td>
+                <td>{STONE_STATUS_TITLES[data.status]}</td>
+              </TableRow>
+            ))}
+          </tbody>
+        </table>
+      </TableWrap>
+      {images.length > 0 && (
+        <Pagination>
+          <ReactPaginate
+            breakLabel='...'
+            nextLabel='>'
+            onPageChange={handlePageChange}
+            pageRangeDisplayed={3}
+            marginPagesDisplayed={2}
+            pageCount={pageCount}
+            previousLabel='<'
+            renderOnZeroPageCount={null}
+            forcePage={currentPage}
+          />
+        </Pagination>
+      )}
+    </Container>
   );
 };
