@@ -10,7 +10,6 @@ import {
   CopyWrap,
   StatusText,
   ImageLoader,
-  Footer,
   ImgWrap
 } from './ImageViewer.styles';
 import { STONE_STATUS } from 'pages/StoneValidation/constants';
@@ -90,7 +89,7 @@ export const ImageViewer = ({
           <span>Loading image...</span>
         </ImageLoader>
       )}
-      <Footer>
+      <div>
         <ButtonsWrap>
           <Button
             variant='secondary'
@@ -144,7 +143,7 @@ export const ImageViewer = ({
             <StatusText verified={status === STONE_STATUS.hasStones}>{status}</StatusText>
           )}
         </BottomContainer>
-      </Footer>
+      </div>
     </Container>
   );
 };
