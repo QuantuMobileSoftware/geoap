@@ -1,7 +1,10 @@
 import styled, { css } from 'styled-components';
 import { em, rem } from 'styles';
 
-export const StoneTableWrap = styled.div`
+export const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   height: 100%;
   overflow-y: auto;
   flex-shrink: 0;
@@ -18,6 +21,10 @@ export const StoneTableWrap = styled.div`
     padding: 10px 20px;
     text-align: left;
   }
+`;
+
+export const TableWrap = styled.div`
+  overflow-y: auto;
 `;
 
 export const TableHeader = styled.th`
@@ -50,8 +57,6 @@ export const TableRow = styled.tr`
 
 export const Pagination = styled.div`
   ${({ theme }) => css`
-    position: sticky;
-    bottom: -10px;
     background: ${theme.colors.primary.p1};
     color: ${theme.colors.primary.p4};
     ul {
