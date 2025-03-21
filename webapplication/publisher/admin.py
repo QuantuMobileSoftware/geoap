@@ -8,11 +8,13 @@ from flat_json_widget.widgets import FlatJsonWidget
 
 @admin.register(Result)
 class ResultAdmin(admin.OSMGeoAdmin):
-
-    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released', 'validated')
-    list_filter = ('layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', 'validated')
+    list_display = ('filepath', 'name', 'layer_type', 'modifiedat', 'start_date', 'end_date', 'released', 'validated',
+                    'validation_start_date', 'validation_end_date')
+    list_filter = (
+        'layer_type', ('start_date', DateRangeFilter), ('end_date', DateRangeFilter), 'released', 'validated')
     search_fields = ('filepath', 'name', 'description', 'options')
-    readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'request', 'styles_url', 'labels', 'colormap')
+    readonly_fields = ('filepath', 'layer_type', 'modifiedat', 'rel_url', 'request', 'styles_url', 'labels', 'colormap',
+                       'validation_start_date', 'validation_end_date')
 
     fieldsets = (
         ('Fill by Publisher', {
@@ -21,7 +23,8 @@ class ResultAdmin(admin.OSMGeoAdmin):
         }),
         ('Fill by Data Scientist', {
             'fields': (
-            'name', 'options', 'description', 'start_date', 'end_date', 'released', 'to_be_deleted', 'validated')
+                'name', 'options', 'description', 'start_date', 'end_date', 'released', 'to_be_deleted', 'validated',
+                'validation_start_date', 'validation_end_date')
         }),
     )
 

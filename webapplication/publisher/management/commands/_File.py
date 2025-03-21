@@ -532,10 +532,13 @@ class GPXFile(File):
 
     def as_dict(self):
         name = Path(self.path).stem
-        with open(self.path, 'r') as gpx_file:
-            gpx = gpxpy.parse(gpx_file)
-            if not gpx.waypoints:
-                name = 'No stones'
+        try:
+            with open(self.path, 'r') as gpx_file:
+                gpx = gpxpy.parse(gpx_file)
+                if not gpx.waypoints:
+                    name = 'No stones'
+        except Exception as e:
+            pass
         dict_ = dict(filepath=self.filepath(),
                      modifiedat=self.modifiedat(),
                      layer_type=self.layer_type(),
