@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+import re
 import shutil
 import random
 from typing import Optional
@@ -384,6 +385,25 @@ class GPXFile(File):
 
                 if not features:
                     raise ValueError("No waypoints found in the GPX file.")
+            if not features:
+                match = re.search(r"request_(\d+)", file_path)
+                if match:
+                    request = Request.objects.get(id=match.group(1))
+                    polygon_coords = list(request.aoi.polygon.coords[0])  # Extract the first element if it's nested
+                    polygon = Polygon(polygon_coords).exterior.coords
+                    features.append({
+                        "type": "Feature",
+                        "geometry": {"type": "Polygon",
+                                     "coordinates": [
+                                         list(polygon)
+                                     ]},
+                        "properties": {
+                            "label": "No stones",
+                            "style": {
+                                "color": "red"
+                            }
+                        }
+                    })
 
             feature_collection = {"type": "FeatureCollection",
                                   "features": features}
@@ -414,6 +434,13 @@ class GPXFile(File):
                     y.append(point.latitude)
             if x and y:
                 route_polygon = Polygon(zip(x, y))
+            if not (x and y):
+                match = re.search(r"request_(\d+)", file_path)
+                if match:
+                    request = Request.objects.get(id=match.group(1))
+                    return request.aoi.polygon
+                else:
+                    return None
             else:
                 min_points_for_route_polygon = 3  # A linearring requires at least 4 coordinates.
                 if len(waypoints_stones) < min_points_for_route_polygon:
@@ -504,12 +531,17 @@ class GPXFile(File):
 
 
     def as_dict(self):
+        name = Path(self.path).stem
+        with open(self.path, 'r') as gpx_file:
+            gpx = gpxpy.parse(gpx_file)
+            if not gpx.waypoints:
+                name = 'No stones'
         dict_ = dict(filepath=self.filepath(),
                      modifiedat=self.modifiedat(),
                      layer_type=self.layer_type(),
                      rel_url=self.rel_url(),
                      bounding_polygon=self.bounding_polygon(),
-                     name=Path(self.path).stem,
+                     name=name,
                      start_date=None,
                      end_date=None,
                      request=self.request,
