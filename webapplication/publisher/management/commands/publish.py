@@ -107,11 +107,10 @@ class Command(BaseCommand):
             logger.info(f"Started: Working with... {file.filepath()}")
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
+                result = result[0]
                 logger.info(f"we have results in db {result}")
                 logger.info(f"result modifiedat: {result.modifiedat}")
                 logger.info(f"file modifiedat: {file.modifiedat()}")
-
-                result = result[0]
                 if result.modifiedat < file.modifiedat():
                     file.read_file()
                     file.delete_tiles(self.tiles_folder)
