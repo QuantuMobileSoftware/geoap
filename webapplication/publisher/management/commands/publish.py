@@ -13,8 +13,8 @@ from publisher.management.commands._File import FileFactory
 from publisher.models import Result
 from aoi.models import Request
 
-
 logger = logging.getLogger(__name__)
+
 
 def instance_already_running(label='default'):
     """
@@ -32,6 +32,7 @@ def instance_already_running(label='default'):
 
     return already_running
 
+
 class Command(BaseCommand):
     help = 'Publisher polls results folder every 60 sec and updates results table'
 
@@ -45,32 +46,27 @@ class Command(BaseCommand):
 
     def scan(self):
         files = self._read()
-        logger.info("started _update_or_create")
+
         self._update_or_create(files)
-        logger.info("finished _update_or_create")
-        logger.info("started _clean")
         self._clean(files)
-        logger.info("finished _clean")
-        logger.info("started _delete")
         self._delete()
-        logger.info("finished _delete")
-    
+
     def _get_active_requests_ids(self) -> List[int]:
         """Return a list of folders, affiliated with active requests"""
         active_requests_ids = Request.objects.filter(started_at__isnull=False) \
-                                            .filter(finished_at__isnull=True) \
-                                            .filter(calculated=False) \
-                                            .values_list('id', flat=True)
+            .filter(finished_at__isnull=True) \
+            .filter(calculated=False) \
+            .values_list('id', flat=True)
         return active_requests_ids
-    
-    def _get_request_id_from_path(self, path:str) -> Optional[int]:
+
+    def _get_request_id_from_path(self, path: str) -> Optional[int]:
         id_regex = re.compile("(?<=request_)\d+")
         try:
             request_id = int(id_regex.search(path).group())
         except AttributeError:
             request_id = None
         return request_id
-    
+
     def _read(self):
         """Scan result folder of given request and read files
         Returns:
@@ -83,7 +79,7 @@ class Command(BaseCommand):
         for dirpath, dirs, filenames in os.walk(self.results_folder):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
             request_id = self._get_request_id_from_path(dirpath)
-            if request_id in active_requests_ids : continue
+            if request_id in active_requests_ids: continue
             request = Request.objects.filter(pk=request_id).first()
             for file in filenames:
                 path = os.path.abspath(os.path.join(dirpath, file))
@@ -103,27 +99,24 @@ class Command(BaseCommand):
             files (List[File]): List of files to check
         """
 
-        logger.info(f"Updating or creating files...")
+        logger.info(f"Started: Updating or creating files...")
         for file in files:
             if "_original.gpx" in file.filepath():
                 continue
             file_dict = file.as_dict()
-            logger.info(f"Working with... {file.filepath()}")
+            logger.info(f"Started: Working with... {file.filepath()}")
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
-                logger.info(f"... {len(result) > 0}")
+                logger.info(f"we have results in db {result}")
+                logger.info(f"result modifiedat: {result.modifiedat}")
+                logger.info(f"file modifiedat: {file.modifiedat()}")
+
                 result = result[0]
-                logger.info(f"... {result}")
                 if result.modifiedat < file.modifiedat():
-                    logger.info(f"... result.modifiedat < file.modifiedat() {result.modifiedat < file.modifiedat()}")
                     file.read_file()
-                    logger.info(f"... read_file()")
                     file.delete_tiles(self.tiles_folder)
-                    logger.info(f"... delete_tiles")
                     file.generate_tiles(self.tiles_folder)
-                    logger.info(f"... generate_tiles")
                     file_dict = file.as_dict()
-                    logger.info(f"... as_dict")
                     try:
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
@@ -131,19 +124,19 @@ class Command(BaseCommand):
                         logger.error(f'Error when updating Result from file_dict = {file_dict}\n {str(ex)}')
                         continue
             else:
-                logger.info(f"... {len(result) > 0}")
+                logger.info(f"we don't have results in db {result}")
                 file.read_file()
-                logger.info(f"... read_file()")
                 file.generate_tiles(self.tiles_folder)
-                logger.info(f"... generate_tiles()")
                 file_dict = file.as_dict()
-                logger.info(f"... file.as_dict()()")
                 try:
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
                 except Exception as ex:
                     logger.error(f'Error when creating Result from file_dict = {file_dict}\n {str(ex)}')
                     continue
+            logger.info(f"Finished: Working with... {file.filepath()}")
+            logger.info(f"Files: {[file.filepath() for file in files]}")
+        logger.info(f"Finished: Updating or creating files...")
 
     def _clean(self, files):
         """"Delete tiles from tiles folder and Results from DB
@@ -151,7 +144,7 @@ class Command(BaseCommand):
         Args:
             files (List[File]): list of files - results of current request iteration
         """
-
+        logger.info(f"Started: cleaning files...")
         filepaths = [file.filepath() for file in files]
         to_delete = Result.objects.exclude(filepath__in=filepaths)
 
@@ -168,14 +161,15 @@ class Command(BaseCommand):
             logger.info("Deleting tiles finished")
 
             to_delete.delete()
-            
+
         except Exception as ex:
             logger.error(f"Error deleting: {str(ex)}")
-        logger.info(f"Deleting finished")
+        logger.info(f"Finished: cleaning files...")
 
     def _delete(self):
         """Delete results&titles of all results, marked as to_be_deleted"""
 
+        logger.info(f"Started: deleting files...")
         to_delete = Result.objects.filter(to_be_deleted=True)
         try:
             for result in to_delete:
@@ -193,4 +187,4 @@ class Command(BaseCommand):
 
         except OSError as ex:
             logger.error(f"Error deleting: {str(ex)}")
-        logger.info(f"Deleting results files finished")
+        logger.info(f"Finished: deleting files...")
