@@ -45,9 +45,15 @@ class Command(BaseCommand):
 
     def scan(self):
         files = self._read()
+        logger.info("started _update_or_create")
         self._update_or_create(files)
+        logger.info("finished _update_or_create")
+        logger.info("started _clean")
         self._clean(files)
+        logger.info("finished _clean")
+        logger.info("started _delete")
         self._delete()
+        logger.info("finished _delete")
     
     def _get_active_requests_ids(self) -> List[int]:
         """Return a list of folders, affiliated with active requests"""
@@ -105,12 +111,18 @@ class Command(BaseCommand):
             logger.info(f"Working with... {file.filepath()}")
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
+                logger.info(f"... {len(result) > 0}")
                 result = result[0]
+                logger.info(f"... {result}")
                 if result.modifiedat < file.modifiedat():
                     file.read_file()
+                    logger.info(f"... read_file()")
                     file.delete_tiles(self.tiles_folder)
+                    logger.info(f"... delete_tiles")
                     file.generate_tiles(self.tiles_folder)
+                    logger.info(f"... generate_tiles")
                     file_dict = file.as_dict()
+                    logger.info(f"... as_dict")
                     try:
                         Result.objects.filter(id=result.id).update(**file_dict)
                         logger.info(f"Object {file_dict['filepath']} was UPDATED")
@@ -118,9 +130,13 @@ class Command(BaseCommand):
                         logger.error(f'Error when updating Result from file_dict = {file_dict}\n {str(ex)}')
                         continue
             else:
+                logger.info(f"... {len(result) > 0}")
                 file.read_file()
+                logger.info(f"... read_file()")
                 file.generate_tiles(self.tiles_folder)
+                logger.info(f"... generate_tiles()")
                 file_dict = file.as_dict()
+                logger.info(f"... file.as_dict()()")
                 try:
                     Result.objects.create(**file_dict)
                     logger.info(f"Object {file_dict['filepath']} was CREATED")
