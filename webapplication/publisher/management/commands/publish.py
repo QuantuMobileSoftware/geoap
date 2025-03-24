@@ -103,8 +103,8 @@ class Command(BaseCommand):
 
         logger.info(f"Started: Updating or creating files...")
         for file in tqdm(files):
-            file_dict = file.as_dict()
             logger.info(f"Started: Working with... {file.filepath()}")
+            file_dict = file.as_dict()
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
                 result = result[0]
