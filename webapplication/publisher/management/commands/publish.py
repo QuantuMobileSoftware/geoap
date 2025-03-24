@@ -79,6 +79,7 @@ class Command(BaseCommand):
         active_requests_ids = self._get_active_requests_ids()
         for dirpath, dirs, filenames in os.walk(self.results_folder):
             dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            filenames = [f for f in filenames if not f.endswith("_original.gpx")]
             request_id = self._get_request_id_from_path(dirpath)
             if request_id in active_requests_ids: continue
             request = Request.objects.filter(pk=request_id).first()
@@ -102,8 +103,6 @@ class Command(BaseCommand):
 
         logger.info(f"Started: Updating or creating files...")
         for file in tqdm(files):
-            if "_original.gpx" in file.filepath():
-                continue
             file_dict = file.as_dict()
             logger.info(f"Started: Working with... {file.filepath()}")
             result = Result.objects.filter(filepath=file.filepath())
