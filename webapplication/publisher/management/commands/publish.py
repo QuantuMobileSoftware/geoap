@@ -102,6 +102,7 @@ class Command(BaseCommand):
             if "_original.gpx" in file.filepath():
                 continue
             file_dict = file.as_dict()
+            logger.info(f"Working with... {file.filepath()}")
             result = Result.objects.filter(filepath=file.filepath())
             if len(result) > 0:
                 result = result[0]
