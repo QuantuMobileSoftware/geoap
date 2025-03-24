@@ -115,6 +115,7 @@ class Command(BaseCommand):
                 result = result[0]
                 logger.info(f"... {result}")
                 if result.modifiedat < file.modifiedat():
+                    logger.info(f"... result.modifiedat < file.modifiedat() {result.modifiedat < file.modifiedat()}")
                     file.read_file()
                     logger.info(f"... read_file()")
                     file.delete_tiles(self.tiles_folder)
