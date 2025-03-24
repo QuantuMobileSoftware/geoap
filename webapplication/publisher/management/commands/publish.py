@@ -12,6 +12,7 @@ from django.conf import settings
 from publisher.management.commands._File import FileFactory
 from publisher.models import Result
 from aoi.models import Request
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ class Command(BaseCommand):
         """
 
         logger.info(f"Started: Updating or creating files...")
-        for file in files:
+        for file in tqdm(files):
             if "_original.gpx" in file.filepath():
                 continue
             file_dict = file.as_dict()
@@ -134,7 +135,6 @@ class Command(BaseCommand):
                     logger.error(f'Error when creating Result from file_dict = {file_dict}\n {str(ex)}')
                     continue
             logger.info(f"Finished: Working with... {file.filepath()}")
-            logger.info(f"Files: {[file.filepath() for file in files]}")
         logger.info(f"Finished: Updating or creating files...")
 
     def _clean(self, files):
