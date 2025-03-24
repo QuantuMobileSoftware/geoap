@@ -21,6 +21,7 @@ from .permissions import ResultByACLPermission
 from .utils import gpx_to_json_format
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
+from django.utils import timezone
 
 
 class FilesView(APIView):
@@ -62,6 +63,10 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
 
+        if not instance.validation_start_date:
+            instance.validation_start_date = timezone.now()
+            instance.save()
+
         file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}")
         original_filepath = file_path.replace('.gpx', '_original.gpx')
 
@@ -81,7 +86,9 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
         if all(wp.comment for wp in gpx.waypoints):
             gpx.waypoints = [wp for wp in gpx.waypoints if wp.comment != "removed"]
             instance.validated = True
+            instance.validation_end_date = timezone.now()
             instance.save()
+            # send Email notification
 
         with open(file_path, "w") as gpx_file:
             gpx_file.write(gpx.to_xml())
