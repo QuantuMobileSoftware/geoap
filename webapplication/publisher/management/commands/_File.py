@@ -389,7 +389,7 @@ class GPXFile(File):
                 match = re.search(r"request_(\d+)", file_path)
                 if match:
                     request = Request.objects.get(id=match.group(1))
-                    polygon_coords = list(request.aoi.polygon.coords[0])  # Extract the first element if it's nested
+                    polygon_coords = list(request.polygon.coords[0])  # Extract the first element if it's nested
                     polygon = Polygon(polygon_coords).exterior.coords
                     features.append({
                         "type": "Feature",
@@ -438,7 +438,7 @@ class GPXFile(File):
                 match = re.search(r"request_(\d+)", file_path)
                 if match:
                     request = Request.objects.get(id=match.group(1))
-                    return request.aoi.polygon
+                    return request.polygon
                 else:
                     return None
             else:
