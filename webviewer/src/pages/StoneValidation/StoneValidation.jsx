@@ -97,6 +97,7 @@ export const StoneValidation = () => {
         if ((filter && filter !== status) || respList.length < images.length) {
           setCurrentImg(0); // when last element disappear(filtered or deleted on BE)
         }
+        if (isEmpty(resp)) setIsEmptyResult(true);
         setImages(respList.map(([path, data], i) => [path, { ...data, id: i }]));
       })
       .finally(() => setLoading(false));
