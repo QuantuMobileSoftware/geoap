@@ -139,7 +139,14 @@ class K8sNotebookHandler(ComponentExecutionHelper):
         """
 
         gpu_resources = client.V1ResourceRequirements(
-            limits={
+            requests = {
+                "cpu": "4000m",
+                "memory": "15Gi",
+                "nvidia.com/gpu": str(settings.GPU_CORES_PER_NOTEBOOK)
+            },
+            limits = {
+                "cpu": "4000m",
+                "memory": "15Gi",
                 "nvidia.com/gpu": str(settings.GPU_CORES_PER_NOTEBOOK)
             }
         )
@@ -170,8 +177,6 @@ class K8sNotebookHandler(ComponentExecutionHelper):
             )
             volumes.append(shm_volume)
             volume_mounts.append(shm_volume_mount)
-
-
 
         container = client.V1Container(
             name=name,
