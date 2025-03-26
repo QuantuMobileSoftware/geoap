@@ -92,7 +92,7 @@ class GeoappClient:
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
         max_retries = 3
-        retry_delay = 20
+        retry_delay = 60
 
         for attempt in range(1, max_retries + 1):
             paths = []
