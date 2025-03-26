@@ -91,18 +91,30 @@ class GeoappClient:
 
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
-        paths = []
-        response = self.http.request(
-            "GET", url, fields={"request_id": created_request_id}
-        )
-        curr_request = json.loads(response.data.decode())
-        for result in curr_request:
-            paths.append(result.get("filepath"))
-        if paths:
-            self.log.info(f"Pull results collected num of files: {len(paths)}")
-            return paths
-        else:
-            raise Exception("no result files generated after script run")
+        max_retries = 3
+        retry_delay = 20
+
+        for attempt in range(1, max_retries + 1):
+            paths = []
+            response = self.http.request(
+                "GET", url, fields={"request_id": created_request_id}
+            )
+            curr_request = json.loads(response.data.decode())
+
+            for result in curr_request:
+                paths.append(result.get("filepath"))
+
+            if paths:
+                self.log.info(f"Pull results collected num of files: {len(paths)}")
+                return paths
+            else:
+                if attempt < max_retries:
+                    self.log.warning(
+                        f"No result files generated, retrying {attempt}/{max_retries} in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    self.log.error("No result files generated after all retries")
+                    raise Exception("no result files generated after script run")
 
     def download_stream_and_save_results(self, result_path, dir_path):
         url = self.api_endpoint + f"results/{result_path}"
