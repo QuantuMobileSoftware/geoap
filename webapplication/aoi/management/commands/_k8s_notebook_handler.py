@@ -140,8 +140,8 @@ class K8sNotebookHandler(ComponentExecutionHelper):
 
         gpu_resources = client.V1ResourceRequirements(
             requests = {
-                "cpu": "4000m",
-                "memory": "15Gi",
+                "cpu": "2000m",
+                "memory": "12Gi",
                 "nvidia.com/gpu": str(settings.GPU_CORES_PER_NOTEBOOK)
             },
             limits = {
