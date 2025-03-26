@@ -78,10 +78,16 @@ class GeoappClient:
             response = self.http.request("GET", url)
             curr_request = json.loads(response.data.decode())
             if curr_request.get("finished_at"):
-                if curr_request.get("calculated"):
-                    return True, ""
-                else:
+                if not curr_request.get("calculated"):
                     return False, curr_request.get("error")
+                else:
+                    if curr_request.get("success"):
+                        self.log.info(
+                            f"Request status: calculated - {curr_request.get('calculated')}, success - {curr_request.get('success')}")
+                        return True, ""
+                    else:
+                        self.log.info("Request status: calculated, waiting for result")
+                        time.sleep(60)
             else:
                 self.log.info(
                     f"Not calculated: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}"
@@ -92,7 +98,7 @@ class GeoappClient:
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
         max_retries = 3
-        retry_delay = 20
+        retry_delay = 60
 
         for attempt in range(1, max_retries + 1):
             paths = []
@@ -128,7 +134,7 @@ class GeoappClient:
 
         self.log.info(f"Started writing result {result_path}")
         req = self.http.request("GET", url, preload_content=False)
-        if req.status != 200: 
+        if req.status != 200:
             raise Exception(f"Writing result error - status code {req.status}")
         try:
             with open(data_path, "wb") as f:
