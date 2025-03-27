@@ -443,7 +443,14 @@ class GPXFile(File):
                     return None
             else:
                 min_points_for_route_polygon = 3  # A linearring requires at least 4 coordinates.
-                if len(waypoints_stones) < min_points_for_route_polygon:
+                if not waypoints_stones:
+                    match = re.search(r"request_(\d+)", file_path)
+                    if match:
+                        request = Request.objects.get(id=match.group(1))
+                        return request.polygon
+                    else:
+                        return None
+                elif len(waypoints_stones) < min_points_for_route_polygon:
                     for _ in range(min_points_for_route_polygon-len(waypoints_stones)):
                         new_point = self.generate_random_point(waypoints_stones[0])
                         waypoints_stones.append(new_point)
