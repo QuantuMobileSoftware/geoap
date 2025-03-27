@@ -23,7 +23,7 @@ export const ImageList = ({
 
   useEffect(() => {
     wrapperRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [currentPage]);
+  }, [currentImg]);
 
   const handlePageChange = event => {
     onPageChange?.(event);
@@ -44,7 +44,7 @@ export const ImageList = ({
                 key={path}
                 isActive={i === currentImg}
                 onClick={() => setCurrentImg(i)}
-                ref={i === 0 ? wrapperRef : null}
+                ref={currentImg === i ? wrapperRef : null}
               >
                 <td>{data.id + 1}</td>
                 <td>

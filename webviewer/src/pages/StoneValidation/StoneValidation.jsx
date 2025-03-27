@@ -23,7 +23,6 @@ export const StoneValidation = () => {
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState(paginationDefault);
-  const imgDataRef = useRef({ image: currentImg }); // eventlistener can't se currentImg changing
 
   const result = allAreaResults?.find(({ id }) => id === selectedResults[0]);
 
@@ -40,11 +39,16 @@ export const StoneValidation = () => {
   // pagination
   const itemsPerPage = 30;
   const endOffset = pagination.offset + itemsPerPage;
+  const pageCount = Math.ceil(filteredImages.length / itemsPerPage);
   const currentImages = filteredImages.slice(pagination.offset, endOffset);
-  const handlePageClick = event => {
+  const isFirstImage = currentImg === 0 && pagination.page === 0;
+  const isLastImage =
+    pagination.page + 1 === pageCount && currentImg === currentImages.length - 1;
+
+  const handlePageClick = (event, currentImg = 0) => {
     const newOffset = (event.selected * itemsPerPage) % filteredImages.length;
     setPagination({ page: event.selected, offset: newOffset });
-    setCurrentImg(0);
+    setCurrentImg(currentImg);
   };
 
   useEffect(() => {
@@ -68,27 +72,27 @@ export const StoneValidation = () => {
     fetchData();
   }, [result, history]);
 
-  useEffect(() => {
-    imgDataRef.current.image = currentImg;
-    imgDataRef.current.currentImages = currentImages;
-  }, [currentImg, currentImages]);
-
   const handlePrev = () => {
-    if (imgDataRef.current.image > 0) {
-      setCurrentImg(imgDataRef.current.image - 1);
+    if (isFirstImage) return;
+    if (currentImg === 0) {
+      handlePageClick({ selected: pagination.page - 1 }, itemsPerPage - 1);
+    } else {
+      setCurrentImg(prev => prev - 1);
     }
   };
 
   const handleNext = () => {
-    const { image, currentImages } = imgDataRef.current;
-    if (image < currentImages.length - 1) {
-      setCurrentImg(imgDataRef.current.image + 1);
+    if (isLastImage) return;
+    if (currentImg === currentImages.length - 1) {
+      handlePageClick({ selected: pagination.page + 1 });
+    } else {
+      setCurrentImg(prev => prev + 1);
     }
   };
 
   const handleValidateImage = async status => {
     setLoading(true);
-    const [path, data] = imgDataRef.current.currentImages[imgDataRef.current.image];
+    const [path, data] = currentImages[currentImg];
     const imageData = { [path]: { ...data, status } };
     API.files
       .patchStoneImages(result.id, imageData)
@@ -122,24 +126,27 @@ export const StoneValidation = () => {
         <NoDataText>No data</NoDataText>
       ) : (
         <Container>
-          <ImageList
-            images={currentImages}
-            currentImg={currentImg}
-            setCurrentImg={setCurrentImg}
-            onPageChange={handlePageClick}
-            pageCount={Math.ceil(filteredImages.length / itemsPerPage)}
-            currentPage={pagination.page}
-          />
-
-          {currentImg !== undefined && currentImages.length > 0 && (
+          {currentImages.length === 0 ? (
+            <NoDataText>Items not found</NoDataText>
+          ) : (
+            <ImageList
+              images={currentImages}
+              currentImg={currentImg}
+              setCurrentImg={setCurrentImg}
+              onPageChange={handlePageClick}
+              pageCount={pageCount}
+              currentPage={pagination.page}
+            />
+          )}
+          {currentImages[currentImg] && (
             <ImageViewer
               src={currentImages[currentImg][0]}
               onPrev={handlePrev}
               onNext={handleNext}
               onConfirm={() => handleValidateImage(STONE_STATUS.hasStones)}
               onReject={() => handleValidateImage(STONE_STATUS.noStones)}
-              disablePrev={currentImg === 0}
-              disableNext={currentImg === currentImages.length - 1}
+              disablePrev={isFirstImage}
+              disableNext={isLastImage}
               status={currentImages[currentImg][1].status}
               loading={loading}
             />

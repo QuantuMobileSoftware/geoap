@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from 'components/_shared/Button';
+import { STONE_STATUS } from 'pages/StoneValidation/constants';
 import {
   Container,
   ButtonsWrap,
@@ -12,7 +13,6 @@ import {
   ImageLoader,
   ImgWrap
 } from './ImageViewer.styles';
-import { STONE_STATUS } from 'pages/StoneValidation/constants';
 
 const keyboardKeys = {
   left: 'ArrowLeft',
@@ -37,9 +37,13 @@ export const ImageViewer = ({
 }) => {
   const [imgLoading, setImgLoading] = useState(true);
   const [isFullImg, setIsFullImg] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const imgRef = useRef();
 
   useEffect(() => {
     setImgLoading(true);
+    setIsFullImg(false);
+    imgRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     // Safari make image loading function first and then useEffect
     const img = new Image();
     img.src = src;
@@ -71,8 +75,14 @@ export const ImageViewer = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onPrev, onNext, onConfirm, onReject]);
+
+  const handleCopy = () => {
+    if (isCopied) return;
+    navigator.clipboard.writeText(src);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 1000);
+  };
 
   return (
     <Container padding='1'>
@@ -82,6 +92,7 @@ export const ImageViewer = ({
           alt='Stone image'
           onLoad={() => setImgLoading(false)}
           onError={() => setImgLoading(false)}
+          ref={imgRef}
         />
       </ImgWrap>
       {imgLoading && (
@@ -101,7 +112,7 @@ export const ImageViewer = ({
             variant='primary'
             onClick={onConfirm}
             disabled={loading}
-            title='Shift + C'
+            title='C - to confirm'
           >
             Confirm
           </StyledButton>
@@ -110,7 +121,7 @@ export const ImageViewer = ({
             onClick={() => setIsFullImg(!isFullImg)}
             disabled={loading}
             icon='Search'
-            title='Shift + Z'
+            title='Z - to zoom'
           >
             Zoom {isFullImg ? 'out' : 'in'}
           </StyledButton>
@@ -118,7 +129,7 @@ export const ImageViewer = ({
             variant='danger'
             onClick={onReject}
             disabled={loading}
-            title='Shift + R'
+            title='R - to reject'
           >
             Reject
           </DangerButton>
@@ -133,9 +144,10 @@ export const ImageViewer = ({
           <CopyWrap>
             <Button
               variant='secondary'
-              onClick={() => navigator.clipboard.writeText(src)}
+              onClick={handleCopy}
+              icon={isCopied ? 'Done' : ''}
             >
-              Copy path
+              {isCopied ? 'Copied' : 'Copy path'}
             </Button>
             <ImgPath title={src}>.../{src.split('/').pop()}</ImgPath>
           </CopyWrap>

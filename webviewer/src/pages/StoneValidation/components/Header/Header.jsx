@@ -21,7 +21,7 @@ export const Header = ({ onChangeFilter, progressData }) => {
     ];
   };
 
-  const progress = total ? Math.round((completed / total) * 100) : 0;
+  const progress = total ? Math.floor((completed / total) * 100) : 0;
 
   return (
     <HeaderContainer>
