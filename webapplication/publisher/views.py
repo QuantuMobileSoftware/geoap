@@ -22,6 +22,7 @@ from .utils import gpx_to_json_format
 from user.permissions import ModelPermissions
 from user.authentication import TokenAuthenticationWithQueryString
 from django.utils import timezone
+from aoi.management.commands._notebook import  send_email_notification
 
 
 class FilesView(APIView):
@@ -85,11 +86,17 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
 
         if all(wp.comment for wp in gpx.waypoints):
             gpx.waypoints = [wp for wp in gpx.waypoints if wp.comment != "removed"]
-            instance.validated = True
-            instance.validation_end_date = timezone.now()
-            instance.save()
-            # send Email notification
 
+            if not instance.validated:
+                instance.validated = True
+                instance.validation_end_date = timezone.now()
+                instance.save()
+                if instance.request.user.email and instance.request.aoi.name:
+                    send_email_notification(
+                        instance.request.user.email,
+                        f"Validation for AOI: '{instance.request.aoi.name}', finished",
+                        f"Result Validation Succeeded"
+                    )
         with open(file_path, "w") as gpx_file:
             gpx_file.write(gpx.to_xml())
 
