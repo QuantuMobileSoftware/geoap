@@ -61,12 +61,19 @@ export const CreateRequest = ({ areas, currentArea }) => {
   );
 
   const handleSaveRequest = () => {
-    const additionalParameter = additionalParameterValue
-      ? { additional_parameter: additionalParameterValue }
-      : {};
-    const secondAdditionalParameter = secondAdditionalParameterValue
-      ? { additional_parameter2: secondAdditionalParameterValue }
-      : {};
+    const request = {
+      aoi: areaId,
+      notebook: notebook.value,
+      user: currentUser.pk,
+      polygon: '' // required filed in BE but can be empty if send aoi id
+    };
+    if (additionalParameterValue) {
+      const slash = additionalParameterValue.startsWith('/') ? '' : '/';
+      request.additional_parameter = `${currentUser.stone_google_folder}${slash}${additionalParameterValue}`;
+    }
+    if (secondAdditionalParameterValue)
+      request.additional_parameter2 = secondAdditionalParameterValue;
+
     const dateRange = notebook.period_required
       ? {
           date_from: convertDate(startDate),
@@ -74,17 +81,8 @@ export const CreateRequest = ({ areas, currentArea }) => {
         }
       : {};
 
-    const request = {
-      aoi: areaId,
-      notebook: notebook.value,
-      user: currentUser.pk,
-      polygon: '', // required filed in BE but can be empty if send aoi id
-      ...dateRange,
-      ...additionalParameter,
-      ...secondAdditionalParameter
-    };
     setCurrentArea(areaId);
-    saveAreaRequest(areaId, request);
+    saveAreaRequest(areaId, { ...request, ...dateRange });
     setSidebarMode(SIDEBAR_MODE.REPORTS);
   };
 
@@ -117,13 +115,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
     setStartDate(null);
     setEndDate(null);
   };
-  const handleStoneFolderChange = useCallback(
-    folder => {
-      setAdditionalParameterValue(currentUser.stone_google_folder + '/' + folder.value);
-    },
-    [currentUser.stone_google_folder]
-  );
-
+  const handleStoneFolderChange = value => setAdditionalParameterValue(value);
   const handleStoneSizeChange = useCallback(size => {
     setSecondAdditionalParameterValue(size.value);
   }, []);
@@ -186,7 +178,7 @@ export const CreateRequest = ({ areas, currentArea }) => {
           Back to list
         </Button>
         <Button variant='primary' disabled={!canSaveRequest} onClick={handleSaveRequest}>
-          Save changes
+          Start processing
         </Button>
       </ButtonWrapper>
     </Wrapper>

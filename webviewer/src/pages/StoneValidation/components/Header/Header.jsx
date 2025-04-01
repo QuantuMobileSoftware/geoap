@@ -2,12 +2,24 @@ import React from 'react';
 import { ROUTES } from '_constants';
 import { useHistory } from 'react-router-dom';
 import { STONE_STATUS_TITLES } from 'pages/StoneValidation/constants';
-import { HeaderContainer, Progress, StyledSelect, ProgressWrap } from './Header.styles';
+import {
+  HeaderContainer,
+  Progress,
+  StyledSelect,
+  ProgressWrap,
+  MiddleContainer,
+  Breadcrumbs
+} from './Header.styles';
 import { Button } from 'components/_shared/Button';
+import { useSelector } from 'react-redux';
+import { selectCurrentArea, selectAreasList } from 'state';
 
-export const Header = ({ onChangeFilter, progressData }) => {
+export const Header = ({ onChangeFilter, progressData, resultName }) => {
+  const currentAreaId = useSelector(selectCurrentArea);
+  const initialAreas = useSelector(selectAreasList);
   const { completed, total } = progressData;
   const history = useHistory();
+  const currentArea = initialAreas.find(({ id }) => id === currentAreaId);
 
   const handleBackClick = () => {
     history.push(ROUTES.ROOT, { isOpenSidebar: true });
@@ -30,17 +42,23 @@ export const Header = ({ onChangeFilter, progressData }) => {
         onSelect={onChangeFilter}
         placeholder='Select filter'
       />
-      <ProgressWrap>
+      <MiddleContainer>
         <div>
-          <span>Progress: {progress}%</span>
-          <span>
-            {completed}/{total}
-          </span>
+          <ProgressWrap>
+            <span>Progress: {progress}%</span>
+            <span>
+              {completed}/{total}
+            </span>
+          </ProgressWrap>
+          <Progress size={progress}>
+            <div />
+          </Progress>
         </div>
-        <Progress size={progress}>
-          <div />
-        </Progress>
-      </ProgressWrap>
+        <Breadcrumbs>
+          <span onClick={handleBackClick}>{currentArea.name}</span> /{' '}
+          <span onClick={handleBackClick}>report</span> / <span>{resultName}</span>
+        </Breadcrumbs>
+      </MiddleContainer>
       <Button variant='secondary' icon='ArrowInCircle' onClick={handleBackClick}>
         Back
       </Button>

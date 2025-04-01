@@ -37,7 +37,7 @@ export const StoneOptions = ({
   const handleSelect = selected => {
     setSearchTerm(selected.value);
     setIsOpen(false);
-    handleStoneFolderChange(selected);
+    handleStoneFolderChange(selected.value);
   };
 
   useEffect(() => {
@@ -50,16 +50,6 @@ export const StoneOptions = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // const selectStoneOptionsLayer = useMemo(
-  //   () =>
-  //     (data || []).map(folder => ({
-  //       name: folder,
-  //       value: folder,
-  //       title: folder
-  //     })),
-  //   [data]
-  // );
 
   const start = 15; // Starting value
   const end = 40; // Ending value
@@ -115,15 +105,14 @@ export const StoneOptions = ({
             <Label>Folder path</Label>
             <StyledInput
               type='text'
-              placeholder='Type to search or click to select...'
+              placeholder='Type to search and click to select...'
               value={searchTerm}
               onChange={e => {
                 setSearchTerm(e.target.value);
-                setIsOpen(true);
+                handleStoneFolderChange('');
               }}
               onFocus={() => setIsOpen(true)}
             />
-
             {isOpen && filteredOptions.length > 0 && (
               <DropdownList>
                 {filteredOptions.map(option => (
