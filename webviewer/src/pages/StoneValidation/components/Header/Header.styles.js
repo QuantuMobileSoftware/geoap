@@ -24,13 +24,27 @@ export const StyledSelect = styled(Select)`
   `}
 `;
 
-export const ProgressWrap = styled.div`
+export const MiddleContainer = styled.div`
   width: 50%;
   font-size: ${em(12)};
-  & > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+`;
+
+export const ProgressWrap = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const Breadcrumbs = styled.div`
+  margin-top: ${em(6)};
+  span:first-child {
+    font-weight: bold;
+  }
+  & > span:not(:last-child) {
+    cursor: pointer;
+    &:hover {
+      color: ${({ theme }) => theme.colors.nature.n2};
+    }
   }
 `;
 

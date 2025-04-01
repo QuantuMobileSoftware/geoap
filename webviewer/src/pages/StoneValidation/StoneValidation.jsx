@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isEmpty } from 'lodash-es';
@@ -121,6 +121,7 @@ export const StoneValidation = () => {
       <Header
         onChangeFilter={handleChangeFilter}
         progressData={{ total: images.length, completed: validatedImages }}
+        resultName={result.name}
       />
       {isEmptyResult ? (
         <NoDataText>No data</NoDataText>

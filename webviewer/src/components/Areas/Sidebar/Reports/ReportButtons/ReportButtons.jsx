@@ -55,7 +55,7 @@ export const ReportButtons = ({ currentArea }) => {
         padding={50}
         onClick={handleChangeMode(areaMode)}
       >
-        Cancel
+        Back
       </StyledButton>
       {!user.isDemo && (
         <StyledButton
