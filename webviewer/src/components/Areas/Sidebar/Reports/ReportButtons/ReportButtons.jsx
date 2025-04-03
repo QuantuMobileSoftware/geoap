@@ -45,7 +45,7 @@ export const ReportButtons = ({ currentArea }) => {
               Validate
             </StyledButton>
           )}
-          <FileLoader selectedIdResults={selectedResults} />
+          <FileLoader selectedIdResults={selectedResults} areaName={currentArea.name} />
         </>
       )}
       <StyledButton
