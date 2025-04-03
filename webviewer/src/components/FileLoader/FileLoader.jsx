@@ -10,7 +10,7 @@ import { StyledFileLoader, StyledButton } from './FileLoader.styles';
 
 const getFileFormat = path => path.split('.').pop();
 
-export const FileLoader = ({ selectedIdResults }) => {
+export const FileLoader = ({ selectedIdResults, areaName }) => {
   const allAreaResults = useSelector(selectCurrentResults);
   const [downloadProgress, setDownloadProgress] = useState({});
 
@@ -32,7 +32,7 @@ export const FileLoader = ({ selectedIdResults }) => {
     });
     await Promise.all(promises);
     const zipBlob = await zip.generateAsync({ type: 'blob' });
-    saveAs(zipBlob, 'results.zip');
+    saveAs(zipBlob, `${areaName || 'results'}.zip`);
     setTimeout(() => {
       setDownloadProgress({});
     }, 6000);
