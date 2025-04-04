@@ -41,7 +41,7 @@ class Command(BaseCommand):
         }
 
         for request in customer_requests:
-            customer_key = customer_requests[0].user.username
+            customer_key = request.user.username
 
             request_data = {
                 "id": request.id,
@@ -56,11 +56,7 @@ class Command(BaseCommand):
                 request_data["error"] = request.error if request.error else "Unknown error"
                 info["requests_by_customer"][customer_key]["unsuccessful_requests"].append(request_data)
 
-        # Convert defaultdict back to regular dict
         info["requests_by_customer"] = dict(info["requests_by_customer"])
-
-        # aoi_name = instance.request.aoi.name
-        # now = datetime.now().strftime("%Y-%m-%d")
 
         summary_lines = [
             f"Total Requests: {info['total_requests']}",
@@ -86,12 +82,13 @@ class Command(BaseCommand):
                     f"    - ID: {req['id']}, Component: {req['component']}, Date: {req['date']}"
                 )
                 summary_lines.append(
-                    f"      Error: {req['error'][:300]}{'...' if len(req['error']) > 300 else ''}")
+                    f"      Error: {'...' if len(req['error']) > 300 else ''}{req['error'][-300:]}"
+                )
 
         message = "\n".join(summary_lines)
 
         send_email_notification(
-            "svyrydovartem@gmail.com",#settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL,
+            "a.svyrydov@quantumobile.com",#settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL,
             message,
             f"Week report"
         )
