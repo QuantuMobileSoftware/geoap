@@ -102,7 +102,9 @@ class Command(BaseCommand):
         """
 
         logger.info(f"Started: Updating or creating files...")
-        for file in files:
+        sorted_files = sorted(files, key=lambda file: file.modifiedat(), reverse=True)
+        for file in sorted_files:
+
             logger.info(f"Started: Working with... {file.filepath()}")
             file_dict = file.as_dict()
             result = Result.objects.filter(filepath=file.filepath())
