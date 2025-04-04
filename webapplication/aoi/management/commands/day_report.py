@@ -59,9 +59,9 @@ class Command(BaseCommand):
             f"Total Requests: {info['total_requests']}",
             f"Successful Requests: {info['successful_requests']}",
             f"Unsuccessful Requests: {info['unsuccessful_requests']}",
-            "",
-            "Requests by Customer:"
         ]
+        if info['requests_by_customer']:
+            summary_lines.append(f"\n• Requests by Customer:")
 
         for customer, data in info['requests_by_customer'].items():
             summary_lines.append(f"\n• Customer: {customer}")
