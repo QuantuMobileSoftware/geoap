@@ -22,13 +22,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("starting week report")
 
-        start_date = (datetime.today() - timedelta(days=7)).strftime("%Y-%m-%d")
-        end_date = datetime.today().strftime("%Y-%m-%d")
+        run_date = datetime.today().strftime("%Y-%m-%d")
+        run_date = timezone.make_aware(datetime.strptime(run_date, "%Y-%m-%d"))
 
-        start_date = timezone.make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
-        end_date = timezone.make_aware(datetime.strptime(end_date, "%Y-%m-%d"))
-
-        customer_requests = Request.objects.filter(started_at__range=(start_date, end_date))
+        customer_requests = Request.objects.filter(started_at__range=(run_date, run_date))
 
         info = {
             "total_requests": len(customer_requests),
