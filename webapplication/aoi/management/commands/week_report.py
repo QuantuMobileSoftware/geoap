@@ -25,9 +25,6 @@ class Command(BaseCommand):
         start_date = (datetime.today() - timedelta(days=7)).strftime("%Y-%m-%d")
         end_date = datetime.today().strftime("%Y-%m-%d")
 
-        start_date = "2025-03-04"
-        end_date = "2025-03-11"
-
         start_date = timezone.make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
         end_date = timezone.make_aware(datetime.strptime(end_date, "%Y-%m-%d"))
 
