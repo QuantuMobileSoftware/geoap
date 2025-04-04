@@ -88,7 +88,7 @@ class Command(BaseCommand):
         message = "\n".join(summary_lines)
 
         send_email_notification(
-            "a.svyrydov@quantumobile.com",#settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL,
+            settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL,
             message,
             f"Week report"
         )
