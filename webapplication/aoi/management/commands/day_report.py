@@ -22,10 +22,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("starting week report")
 
-        run_date = datetime.today().strftime("%Y-%m-%d")
-        run_date = timezone.make_aware(datetime.strptime(run_date, "%Y-%m-%d"))
-
-        customer_requests = Request.objects.filter(started_at__range=(run_date, run_date))
+        customer_requests = Request.objects.filter(started_at__gte=timezone.now() - timedelta(hours=24))
 
         info = {
             "total_requests": len(customer_requests),
