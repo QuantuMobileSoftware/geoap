@@ -46,9 +46,9 @@ server {
     location ~ ^/tiles/(.*)$ {
         rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
 
-        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
-        add_header Pragma "no-cache";
-        add_header Expires 0;
+        add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' always;
+        add_header Pragma 'no-cache' always;
+        add_header Expires -1;
     }
 
     location /api {
