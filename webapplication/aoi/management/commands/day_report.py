@@ -84,7 +84,7 @@ class Command(BaseCommand):
         send_email_notification(
             settings.DEFAULT_SYSTEM_NOTIFICATION_EMAIL,
             message,
-            f"Week report"
+            f"Daily report"
         )
 
 
