@@ -42,7 +42,16 @@ server {
     }
 
     rewrite ^/results/(.*)$ /api/files/results/$1 last;
-    rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+    location ~* \.pbf$ {
+        rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
+    location ^/tiles/ {
+        rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+    }
 
     location /api {
         uwsgi_pass  webapplication;
