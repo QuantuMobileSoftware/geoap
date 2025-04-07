@@ -41,6 +41,7 @@ class FilesView(APIView):
         response = HttpResponse()
         response['Content-Disposition'] = 'inline'
         response['Accept-Ranges'] = 'bytes'
+        response['Cache-Control'] = 'no-store, no-cache'
         response['X-Accel-Redirect'] = file
         del response['Content-Type']
         return response
