@@ -44,7 +44,10 @@ export const Reports = ({ currentArea }) => {
         const requestName =
           currentArea.requests.find(r => r.id === result.request)?.notebook_name ??
           DEFAULT_FOLDER_NAME;
-        return { ...result, requestName };
+        const requestPath =
+          currentArea.requests.find(r => r.id === result.request)?.additional_parameter ??
+          '';
+        return { ...result, requestName, requestPath };
       });
   }, [currentArea.requests, currentArea.results]);
 

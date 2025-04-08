@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import { Icon } from 'components/_shared/Icon';
 import { ReportListResult } from './ReportListResult';
-import { DEFAULT_FOLDER_NAME } from '_constants';
+import { DEFAULT_FOLDER_NAME, STONES_FOLDER_NAME } from '_constants';
 import { useAreasActions, getSelectedResults } from 'state';
 
 import {
@@ -20,6 +20,7 @@ export const ReportListItem = ({ reports }) => {
 
   const isShowFolder = reports[0].hasOwnProperty('request');
   const folderName = reports[0].requestName;
+  const requestPath = reports[0].requestPath;
 
   useEffect(() => {
     const isSelected = reports.some(({ id }) => selectedResults.includes(id));
@@ -49,6 +50,9 @@ export const ReportListItem = ({ reports }) => {
           <Icon>{isOpen ? 'CheckFolder' : 'Folder'}</Icon>
           <ReportListItemBody>
             <ReportListItemText $hasData={true}>{folderName}</ReportListItemText>
+            {folderName !== STONES_FOLDER_NAME && (
+              <ReportListItemDate $hasData={true}>{requestPath}</ReportListItemDate>
+            )}
             {folderName !== DEFAULT_FOLDER_NAME && (
               <ReportListItemDate>{reportDate}</ReportListItemDate>
             )}
