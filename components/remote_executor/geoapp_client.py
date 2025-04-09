@@ -100,23 +100,35 @@ class GeoappClient:
         max_retries = 3
         retry_delay = 60
 
-        for attempt in range(1, max_retries + 1):
-            paths = []
+        def fetch_paths():
             response = self.http.request(
                 "GET", url, fields={"request_id": created_request_id}
             )
             curr_request = json.loads(response.data.decode())
+            return [result.get("filepath") for result in curr_request]
 
-            for result in curr_request:
-                paths.append(result.get("filepath"))
+        for attempt in range(1, max_retries + 1):
+            paths = fetch_paths()
 
             if paths:
-                self.log.info(f"Pull results collected num of files: {len(paths)}")
-                return paths
+                self.log.info(f"Initial pull: collected {len(paths)} files. Waiting 60 seconds for potential more...")
+                time.sleep(retry_delay)
+                paths_check = fetch_paths()
+
+                if len(paths_check) == len(paths):
+                    self.log.info("No new files appeared after waiting. Proceeding...")
+                    return paths_check
+                else:
+                    self.log.info("New files detected. Waiting one more minute...")
+                    time.sleep(retry_delay)
+                    final_paths = fetch_paths()
+                    self.log.info(f"Final pull: collected {len(final_paths)} files.")
+                    return final_paths
             else:
                 if attempt < max_retries:
                     self.log.warning(
-                        f"No result files generated, retrying {attempt}/{max_retries} in {retry_delay} seconds...")
+                        f"No result files generated, retrying {attempt}/{max_retries} in {retry_delay} seconds..."
+                    )
                     time.sleep(retry_delay)
                 else:
                     self.log.error("No result files generated after all retries")
