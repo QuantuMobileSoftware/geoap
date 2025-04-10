@@ -15,7 +15,7 @@ class AoIAdmin(admin.OSMGeoAdmin):
 @admin.register(Component)
 class ComponentAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'name', 'basic_price', 'image', 'notebook_path', 'kernel_name', 'run_validation', 'success',
-                    'additional_parameter', 'additional_parameter', 'period_required',)
+                    'additional_parameter', 'additional_parameter', 'period_required','average_calculation_time_per_km2')
     search_fields = ('name', 'image', 'path', 'kernel_name', 'run_validation', 'success', )
     readonly_fields = ('pk',)
 

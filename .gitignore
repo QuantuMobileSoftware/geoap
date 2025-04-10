@@ -2,5 +2,6 @@
 .devcontainer
 node_modules
 __pycache__
+components/test_component
 
 .DS_Store

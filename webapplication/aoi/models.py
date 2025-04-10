@@ -93,6 +93,8 @@ class Component(models.Model):
                                                            verbose_name='Geoap creds is required')
     google_bucket_input_data = models.BooleanField(default=False,
                                                verbose_name='Google bucket input data')
+    average_calculation_time_per_km2 = models.IntegerField(default=0,
+                                                           verbose_name='Average calculation time per m2 in seconds')
 
     def __str__(self):
         return self.name
@@ -137,6 +139,7 @@ class Request(models.Model):
     additional_parameter = models.CharField(max_length=100, null=True, blank=True, verbose_name='Additional parameter')
     additional_parameter2 = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter2')
     request_origin = models.CharField(max_length=50, default="https://portal.soilmate.ai/", verbose_name='Request origin')
+    estimated_finish_time = models.DateTimeField(blank=True, null=True, verbose_name='Estimated finish time')
 
     @property
     def component_name(self):

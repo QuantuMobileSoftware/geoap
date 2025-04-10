@@ -4,6 +4,10 @@ Aoi serializer module.
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from datetime import datetime, timedelta
+from django.utils import timezone
+
+
 
 from .models import AoI, Component, Request
 
@@ -47,6 +51,10 @@ class RequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if validated_data.get("aoi"):
             validated_data.update({'polygon': validated_data["aoi"].polygon})
+            calculation_time = validated_data.get("component").average_calculation_time_per_km2 * validated_data[
+                "aoi"].square_in_km
+            estimated_finish_time = timezone.now() + timedelta(seconds=calculation_time)
+            validated_data.update({'estimated_finish_time': estimated_finish_time})
         if validated_data.pop('pre_submit'):
             return Request(**validated_data)
         return Request.objects.create(**validated_data)
@@ -67,6 +75,15 @@ class RequestSerializer(serializers.ModelSerializer):
                     {'date_to': f"The field is required for '{attrs['component'].name}' component"})
             raise serializers.ValidationError(exception_details)
         return super().validate(attrs)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.estimated_finish_time:
+            current_time = datetime.now(timezone.utc)
+            data['remaining_time'] = (instance.estimated_finish_time - current_time).total_seconds()
+        else:
+            data['remaining_time'] = None
+        return data
 
     class Meta:
         model = Request
