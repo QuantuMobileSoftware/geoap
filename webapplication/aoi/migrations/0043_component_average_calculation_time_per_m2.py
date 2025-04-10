@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='component',
             name='average_calculation_time_per_km2',
-            field=models.IntegerField(default=0, verbose_name='Average calculation time per m2 in seconds'),
+            field=models.IntegerField(default=0, verbose_name='Average calculation time per km2 in seconds'),
         ),
     ]

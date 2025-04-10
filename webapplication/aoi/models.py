@@ -94,7 +94,7 @@ class Component(models.Model):
     google_bucket_input_data = models.BooleanField(default=False,
                                                verbose_name='Google bucket input data')
     average_calculation_time_per_km2 = models.IntegerField(default=0,
-                                                           verbose_name='Average calculation time per m2 in seconds')
+                                                           verbose_name='Average calculation time per km2 in seconds')
 
     def __str__(self):
         return self.name
