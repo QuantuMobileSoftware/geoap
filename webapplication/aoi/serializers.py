@@ -80,7 +80,8 @@ class RequestSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if instance.estimated_finish_time:
             current_time = datetime.now(timezone.utc)
-            data['remaining_time'] = (instance.estimated_finish_time - current_time).total_seconds()
+            remaining_time = (instance.estimated_finish_time - current_time).total_seconds()
+            data['remaining_time'] = remaining_time if remaining_time > 0 else None
         else:
             data['remaining_time'] = None
         return data
