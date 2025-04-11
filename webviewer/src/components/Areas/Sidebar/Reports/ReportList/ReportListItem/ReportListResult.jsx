@@ -74,7 +74,7 @@ export const ReportListResult = ({ report = {}, reportDate }) => {
       {!isResult && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <Preloader />
-          {report.remaining_time > 0 && (
+          {report.remaining_time != null && report.remaining_time > 0 && (
             <EstimatedTime>{formatRemainingTime(report.remaining_time)}</EstimatedTime>
           )}
         </div>
