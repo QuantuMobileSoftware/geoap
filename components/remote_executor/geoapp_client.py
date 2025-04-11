@@ -9,8 +9,6 @@ from datetime import datetime, timezone, timedelta
 RETRY_INTERVAL = 2880  # num of intervals -> every minute
 RETRY_LIMIT_SECONDS = 172800.0  # 2 days in seconds
 REQUEST_TIMEOUT = 10
-base_url = "https://portal.soilmate.ai"
-token = ""
 
 
 class GeoappClient:
