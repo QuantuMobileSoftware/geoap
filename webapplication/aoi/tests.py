@@ -502,7 +502,8 @@ class RequestTestCase(UserBase):
             'additional_parameter': None,
             'additional_parameter2': None,
             'request_origin': 'http://testserver/',
-            'user_readable_errors': None
+            'user_readable_errors': None,
+            'remaining_time': None,
         }
         self.client.force_authenticate(user=self.staff_user)
         response = self.create_request(self.data_polygon_create)
@@ -657,7 +658,8 @@ class RequestTestCase(UserBase):
             'additional_parameter2': None,
             'price': Decimal('3685.01'),
             'request_origin': 'http://testserver/',
-            'user_readable_errors': None
+            'user_readable_errors': None,
+            'remaining_time': None,
         }
         data_create = {**self.data_create, 'pre_submit': True}
 

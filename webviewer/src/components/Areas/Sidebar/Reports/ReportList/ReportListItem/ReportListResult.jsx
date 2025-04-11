@@ -11,7 +11,8 @@ import {
   ReportListItemText,
   ResultListItem,
   ReportListItemDate,
-  ReportStatus
+  ReportStatus,
+  EstimatedTime
 } from './ReportListItem.styles';
 
 export const ReportListResult = ({ report = {}, reportDate }) => {
@@ -41,6 +42,22 @@ export const ReportListResult = ({ report = {}, reportDate }) => {
   const hasData = !name?.includes(NO_DATA);
   const reportName = isResult ? name || layer_type : notebook_name;
 
+  const formatRemainingTime = seconds => {
+    if (!seconds || seconds <= 0) return null;
+
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hrs >= 1 && mins >= 1) return `nearly ${hrs}h ${mins}m`;
+    if (hrs >= 1) return `about ${hrs}h`;
+    if (mins >= 10) return `about ${mins} minutes`;
+    if (mins >= 2) return `less than ${mins + 1} minutes`;
+    if (mins === 1) return `about 1 minute`;
+    if (secs >= 30) return `less than a minute`;
+    return `a few seconds`;
+  };
+
   return (
     <ResultListItem isActive={isActive} onClick={handleRequestClick}>
       {isResult && <Checkbox checked={isChecked} />}
@@ -54,7 +71,14 @@ export const ReportListResult = ({ report = {}, reportDate }) => {
           </ReportStatus>
         )}
       </ReportListItemBody>
-      {!isResult && <Preloader />}
+      {!isResult && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <Preloader />
+          {report.remaining_time != null && report.remaining_time > 0 && (
+            <EstimatedTime>{formatRemainingTime(report.remaining_time)}</EstimatedTime>
+          )}
+        </div>
+      )}
     </ResultListItem>
   );
 };

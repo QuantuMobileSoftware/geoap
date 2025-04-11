@@ -83,3 +83,11 @@ export const ReportListFolder = styled.li`
     `;
   }}
 `;
+
+export const EstimatedTime = styled.div`
+  ${({ theme }) => css`
+    margin-top: ${rem(3)};
+    color: ${theme.colors.nature.n4};
+    font-size: ${em(10)};
+  `}
+`;
