@@ -13,7 +13,7 @@ from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, Component, Request
 from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
-from .permissions import AoIIsOwnerPermission
+from .permissions import AoIIsOwnerPermission, IsAdminUserOverride
 from user.models import User, Transaction
 from allauth.account import app_settings
 from allauth.utils import build_absolute_uri
@@ -246,7 +246,7 @@ class RequestRetrieveUpdateAPIView(RetrieveUpdateAPIView):
                     'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameter'.
     Returns: RequestModel fields.
     """
-    permission_classes = (ModelPermissions, IsOwnerPermission)
+    permission_classes = (IsAdminUserOverride | (ModelPermissions & IsOwnerPermission),)
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
     http_method_names = ("get", "patch")
