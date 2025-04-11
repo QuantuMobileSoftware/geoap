@@ -48,6 +48,8 @@ class RequestSerializer(serializers.ModelSerializer):
     notebook = serializers.PrimaryKeyRelatedField(source='component', many=False, queryset=Component.objects,
                                                   label="Component id")
 
+    finished_in = serializers.DurationField(write_only=True, required=False)
+
     def create(self, validated_data):
         if validated_data.get("aoi"):
             validated_data.update({'polygon': validated_data["aoi"].polygon})
@@ -65,6 +67,10 @@ class RequestSerializer(serializers.ModelSerializer):
         - If chosen notebook that require period then date_from and date_to in request 
         are  required as well      
         """
+        request = self.context.get("request")
+        if request and request.method == "PATCH":
+            return super().validate(attrs)
+
         if attrs['component'].period_required and (not 'date_from' in attrs or not 'date_to' in attrs):
             exception_details = {}
             if not 'date_from' in attrs:
@@ -75,6 +81,14 @@ class RequestSerializer(serializers.ModelSerializer):
                     {'date_to': f"The field is required for '{attrs['component'].name}' component"})
             raise serializers.ValidationError(exception_details)
         return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        finished_in = validated_data.pop("finished_in", None)
+        if finished_in:
+            instance.estimated_finish_time = timezone.now() + finished_in
+            instance.save()
+        return instance
+
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -90,4 +104,5 @@ class RequestSerializer(serializers.ModelSerializer):
         model = Request
         fields = ('id', 'user', 'aoi', 'notebook', 'notebook_name',
                   'date_from', 'date_to', 'started_at', 'finished_at', 'error', 'calculated', 'success', 'polygon',
-                  'additional_parameter', 'additional_parameter2', 'pre_submit', 'request_origin', 'user_readable_errors')
+                  'additional_parameter', 'additional_parameter2', 'pre_submit', 'request_origin',
+                  'user_readable_errors', 'estimated_finish_time', 'finished_in')
