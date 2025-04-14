@@ -97,8 +97,8 @@ class GeoappClient:
 
     def pull_results(self, created_request_id):
         url = self.api_endpoint + "api/results"
-        max_retries = 3
-        retry_delay = 60
+        max_retries = 10
+        retry_delay = 60  # in seconds
 
         def fetch_paths():
             response = self.http.request(
@@ -107,32 +107,28 @@ class GeoappClient:
             curr_request = json.loads(response.data.decode())
             return [result.get("filepath") for result in curr_request]
 
-        for attempt in range(1, max_retries + 1):
+        paths = fetch_paths()
+        while not paths:
+            self.log.info("No files yet. Retrying in 60 seconds...")
+            time.sleep(retry_delay)
             paths = fetch_paths()
 
-            if paths:
-                self.log.info(f"Initial pull: collected {len(paths)} files. Waiting 60 seconds for potential more...")
-                time.sleep(retry_delay)
-                paths_check = fetch_paths()
+        self.log.info(f"Initial pull: collected {len(paths)} files. Waiting for potential new files...")
 
-                if len(paths_check) == len(paths):
-                    self.log.info("No new files appeared after waiting. Proceeding...")
-                    return paths_check
-                else:
-                    self.log.info("New files detected. Waiting one more minute...")
-                    time.sleep(retry_delay)
-                    final_paths = fetch_paths()
-                    self.log.info(f"Final pull: collected {len(final_paths)} files.")
-                    return final_paths
+        for attempt in range(1, max_retries + 1):
+            time.sleep(retry_delay)
+            new_paths = fetch_paths()
+
+            if len(new_paths) == len(paths):
+                self.log.info("No new files appeared after waiting. Proceeding...")
+                return new_paths
             else:
-                if attempt < max_retries:
-                    self.log.warning(
-                        f"No result files generated, retrying {attempt}/{max_retries} in {retry_delay} seconds..."
-                    )
-                    time.sleep(retry_delay)
-                else:
-                    self.log.error("No result files generated after all retries")
-                    raise Exception("no result files generated after script run")
+                self.log.info(f"New files detected (attempt {attempt}). Updating list and retrying...")
+                paths = new_paths
+
+        self.log.warning(f"Max retries reached. Returning latest collected {len(paths)} files.")
+        return paths
+
 
     def download_stream_and_save_results(self, result_path, dir_path):
         url = self.api_endpoint + f"results/{result_path}"
