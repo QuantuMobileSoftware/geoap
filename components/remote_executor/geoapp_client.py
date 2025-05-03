@@ -4,6 +4,7 @@ import logging
 import time
 import os
 from urllib3.util.retry import Retry
+from datetime import datetime, timezone, timedelta
 
 RETRY_INTERVAL = 2880  # num of intervals -> every minute
 RETRY_LIMIT_SECONDS = 172800.0  # 2 days in seconds
@@ -33,8 +34,28 @@ class GeoappClient:
         )
 
         self.api_endpoint = geoap_creds_data["API_ENDPOINT"]
+        self.main_domain = geoap_creds_data["MAIN_DOMAIN"]
+        self.main_key = geoap_creds_data["MAIN_KEY"]
         self.http = http
         self.log = log
+
+    def update_estimated_finish_time(self, duration):
+        request_id = os.getenv('REQUEST_ID', 980)
+        try:
+            response = self.http.request(
+                "PATCH",
+                f"{self.main_domain}/api/request/{request_id}",
+                body=json.dumps({"finished_in": duration}),
+                headers={
+                    "Authorization": f"Token {self.main_key}",
+                    "Content-Type": "application/json"
+                })
+            if response.status == 200:
+                self.log.info(f"Request with time update sent, duration: {duration}, request_id: {request_id}")
+            else:
+                self.log.info(f"Request with time update failed, {response.status}")
+        except urllib3.exceptions.RequestError as e:
+            self.log.info(f"Request failed: {e}")
 
     def get_component_id(self, name):
         url = self.api_endpoint + "api/notebook"
@@ -77,6 +98,12 @@ class GeoappClient:
         while time.time() < start_time + RETRY_LIMIT_SECONDS:
             response = self.http.request("GET", url)
             curr_request = json.loads(response.data.decode())
+            if curr_request.get("estimated_finish_time"):
+                self.log.info(f"Estimated finish time: {curr_request.get('estimated_finish_time')}")
+                estimated_finish_dt = datetime.fromisoformat(curr_request.get("estimated_finish_time")
+                                                             .rstrip("Z")).replace(tzinfo=timezone.utc)
+                duration = (estimated_finish_dt - datetime.now(timezone.utc)).total_seconds()
+                self.update_estimated_finish_time(str(timedelta(seconds=duration)))
             if curr_request.get("finished_at"):
                 if not curr_request.get("calculated"):
                     return False, curr_request.get("error")
