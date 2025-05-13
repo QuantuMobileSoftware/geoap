@@ -102,7 +102,7 @@ export const getSquareKilometers = meters => {
   return round(kilometers, roundPrecision);
 };
 
-export const formatSquareKilometers = kms => round(kms, kms < 1 ? 2 : 0);
+export const formatSquareKilometers = kms => round(kms, 4);
 
 const DOMAIN_DICT = {
   'agrieos.in': {
