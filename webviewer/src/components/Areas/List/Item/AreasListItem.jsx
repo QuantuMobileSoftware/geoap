@@ -21,6 +21,7 @@ import {
   AreasListItem,
   AreasListItemButton
 } from './AreasListItem.styles';
+import round from 'lodash/round';
 
 const itemSize = 60;
 
@@ -101,8 +102,8 @@ export const ListItem = ({ area = {}, areaAmount, parent, ...props }) => {
 
       <AreasListItemBody>
         <AreasListItemName>{area.name}</AreasListItemName>
-        {area.hasOwnProperty('size') && (
-          <AreasListItemSize>Size: {area.size} km2</AreasListItemSize>
+        {area.hasOwnProperty('square_in_km') && (
+          <AreasListItemSize>Size: {round(area.square_in_km, 3)} km2</AreasListItemSize>
         )}
       </AreasListItemBody>
 
