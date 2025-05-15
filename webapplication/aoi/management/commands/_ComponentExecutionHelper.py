@@ -59,7 +59,8 @@ class ComponentExecutionHelper():
             })
         if request.component.geoap_creds_required:
                 env_update.update({
-                'GEOAP_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS)
+                'GEOAP_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS),
+                'GEOAP_CREDS_KYIV':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS_KYIV)
             })
         if request.component.additional_parameter:
             env_update.update(
