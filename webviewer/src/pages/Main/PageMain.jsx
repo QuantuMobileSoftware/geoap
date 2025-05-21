@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   useAreasActions,
   useInterfaceActions,
@@ -8,7 +8,8 @@ import {
   welcomeWindowState,
   getSelectedResults,
   selectCurrentArea,
-  selectAreasList
+  selectAreasList,
+  chartActions
 } from 'state';
 import { AreasSidebar } from 'components/Areas';
 import { Map } from 'components/Map';
@@ -17,6 +18,7 @@ import { Spinner } from 'components/_shared/Spinner';
 import { WelcomeWindow } from 'components/WelcomeWindow';
 import { SIDEBAR_MODE, STORAGE_WELCOME_KEY } from '_constants';
 import { PageMainContainer, StyledPageMain } from './PageMain.styles';
+// import { selectChartData, chartActions } from './chart.slice';
 
 export const PageMain = ({ ...props }) => {
   const { getAreas, isLoading } = useAreasActions();
@@ -48,6 +50,8 @@ export const PageMain = ({ ...props }) => {
     hideWelcomeWindow(false);
     if (isHide) localStorage.setItem(STORAGE_WELCOME_KEY, isHide);
   };
+  const dispatch = useDispatch();
+  const handleChartClose = () => dispatch(chartActions.clearChart());
 
   if (isLoading) return <Spinner />;
 
@@ -60,7 +64,7 @@ export const PageMain = ({ ...props }) => {
           currentArea={selectedArea}
           currentResult={currentResult}
         />
-        {isShowChart && <Chart chartData={chart} />}
+        {isShowChart && <Chart chartData={chart} onClose={handleChartClose} />}
         {isShowWelcome && <WelcomeWindow onClose={handleCloseWelcome} />}
       </PageMainContainer>
     </StyledPageMain>

@@ -10,6 +10,7 @@ export const useChartActions = () => {
     data => dispatch(chartActions.setChartData(data)),
     [dispatch]
   );
+  const clearChart = useCallback(() => dispatch(chartActions.clearChart()), [dispatch]);
 
-  return { setChartData };
+  return { setChartData, clearChart };
 };

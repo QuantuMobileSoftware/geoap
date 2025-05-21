@@ -24,7 +24,7 @@ import { getPolygonPositions, getNewAreaNumber } from 'utils';
 
 export const useMapRequests = (selectedArea, map) => {
   const { addNewArea, deleteSelectedResult, setSidebarMode } = useAreasActions();
-  const { setChartData } = useChartActions();
+  const { setChartData, clearChart } = useChartActions();
   const results = useSelector(getSelectedResults);
   const opacity = useSelector(getLayerOpacity);
   const currentUser = useSelector(selectUser);
@@ -65,6 +65,10 @@ export const useMapRequests = (selectedArea, map) => {
       }
     });
 
+    if (selectedResults.length === 0) {
+      clearChart();
+    }
+
     if (selectedResults.length < renderedLayers.length) {
       const deletedLayers = [];
       const filteredLayers = renderedLayers.filter(rendered => {
@@ -93,13 +97,15 @@ export const useMapRequests = (selectedArea, map) => {
       if (selectedLayer.layer_type === 'GEOJSON') {
         layer = L.geoJSON(undefined, {
           style: feature => {
-            layerStyle = feature.properties.style;
             return feature.properties.style;
           },
           onEachFeature: (feature, layer) => {
+            layer.defaultStyle = feature.properties.style;
             layer.addEventListener('click', () => {
               if (selectedLeafletLayer != null && selectedLeafletLayer.setStyle) {
-                selectedLeafletLayer.setStyle(layerStyle ?? SHAPE_OPTIONS);
+                selectedLeafletLayer.setStyle(
+                  selectedLeafletLayer.defaultStyle ?? SHAPE_OPTIONS
+                );
               }
               selectedLeafletLayer = layer;
               // if (feature.properties.label !== NO_DATA) { // TODO: add later with other design
@@ -186,7 +192,8 @@ export const useMapRequests = (selectedArea, map) => {
     prevRenderedLayers,
     createField,
     addNewField,
-    setChartData
+    setChartData,
+    clearChart
   ]);
 
   useEffect(() => {
