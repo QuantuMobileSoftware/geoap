@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.serializers import ValidationError, as_serializer_error
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
@@ -13,7 +13,7 @@ from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, Component, Request
 from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
-from .permissions import AoIIsOwnerPermission
+from .permissions import AoIIsOwnerPermission, IsAdminUserOverride
 from user.models import User, Transaction
 from allauth.account import app_settings
 from allauth.utils import build_absolute_uri
@@ -237,7 +237,7 @@ class RequestListCreateAPIView(ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
     
-class RequestRetrieveAPIView(RetrieveAPIView):
+class RequestRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     """
     Reads Request fields.
     Accepts: GET method.
@@ -246,10 +246,10 @@ class RequestRetrieveAPIView(RetrieveAPIView):
                     'finished_at', 'error', 'calculated', 'success', 'polygon', 'additional_parameter'.
     Returns: RequestModel fields.
     """
-    permission_classes = (ModelPermissions, IsOwnerPermission)
+    permission_classes = (IsAdminUserOverride | (ModelPermissions & IsOwnerPermission),)
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
-    http_method_names = ("get", )
+    http_method_names = ("get", "patch")
     
     
 class AOIRequestListAPIView(ListAPIView):
