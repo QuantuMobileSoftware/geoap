@@ -1,4 +1,5 @@
 const ROOT = '/';
+const UPLOAD = `${ROOT}upload`;
 const AUTH = `${ROOT}auth`;
 const SIGN_UP = `${ROOT}signup`;
 const SIGN_UP_CONFIRM = `${ROOT}signup/account-confirm-email/:id`;
@@ -15,6 +16,7 @@ const CONFIRM_PASSWORD = `${PASSWORD_ROOT}/reset/confirm/:uid/:token`;
 
 export const ROUTES = {
   ROOT,
+  UPLOAD,
   AUTH,
   SIGN_UP,
   SIGN_UP_CONFIRM,

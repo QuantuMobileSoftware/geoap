@@ -227,6 +227,7 @@ CELL_EXECUTION_TIMEOUT = 60 * 60 * 24
 NOTEBOOK_EXECUTION_TIMEOUT = 60 * 60 * 36
 
 PERSISTENT_STORAGE_PATH = '/data'
+STONES_STORAGE_BUCKET = 'stones_storage'
 SENTINEL2_GOOGLE_API_KEY = '.secret/google-api-key.json'
 SENTINEL1_AWS_CREDS =  '.secret/sentinel1_aws_creds.json'
 SCIHUB_CREDS = '.secret/scihub_creds.json'

@@ -33,6 +33,9 @@ export const Menu = () => {
       <MenuItem>
         <MenuLink to={ROUTES.MODELS}>Geo models</MenuLink>
       </MenuItem>
+      <MenuItem>
+        <MenuLink to={ROUTES.UPLOAD}>Upload</MenuLink>
+      </MenuItem>
       <MenuItem onClick={handleOpenContactUs}>Contact us</MenuItem>
     </StyledMenu>
   );
