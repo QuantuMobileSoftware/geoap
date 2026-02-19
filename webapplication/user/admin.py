@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 
-from user.models import User, Transaction
+from user.models import User, Transaction, UploadMissions
 
 
 class UserForm(forms.ModelForm):
@@ -57,6 +57,13 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(UploadMissions)
+class UploadMissionsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'gcs_path', 'status', 'created_at', 'trajectory_request')
+    list_filter = ('status',)
+    readonly_fields = ('created_at',)
 
 
 @admin.register(Transaction)

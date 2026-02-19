@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group
 from django.http import Http404
 from rest_framework import status
 from django.utils.translation import gettext_lazy as _
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
@@ -16,10 +16,10 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from dj_rest_auth.views import UserDetailsView
 
-from user.models import Transaction, User
-from aoi.models import Component
+from user.models import Transaction, User, UploadMissions
+from aoi.models import Component, Request
 from django.db.models import Q
-from user.serializers import TransactionSerializer, UserSerializer
+from user.serializers import TransactionSerializer, UserSerializer, UploadMissionsSerializer
 from waffle import switch_is_active
 from google.cloud import storage
 
@@ -188,5 +188,52 @@ class GenerateResumableUploadURLAPIView(APIView):
             {"upload_url": resumable_url, "session_folder": session_folder},
             status=status.HTTP_200_OK,
         )
+
+
+class UploadMissionsListCreateAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UploadMissionsSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return UploadMissions.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        session_folder = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        serializer.save(
+            user=self.request.user,
+            status=UploadMissions.STATUS_IN_PROGRESS,
+            gcs_path=session_folder,
+        )
+
+
+class UploadMissionsUpdateAPIView(UpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UploadMissionsSerializer
+    http_method_names = ['patch']
+
+    def get_queryset(self):
+        return UploadMissions.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.status == UploadMissions.STATUS_COMPLETED:
+            component_name = getattr(settings, 'TRAJECTORY_GRID_PREVIEW_COMPONENT_NAME', None)
+            if component_name:
+                try:
+                    component = Component.objects.get(name=component_name)
+                    trajectory_request = Request.objects.create(
+                        user=self.request.user,
+                        component=component,
+                        aoi=None,
+                        polygon=None,
+                        additional_parameter=instance.gcs_path,
+                    )
+                    instance.trajectory_request = trajectory_request
+                    instance.save(update_fields=['trajectory_request'])
+                except Component.DoesNotExist:
+                    logger.warning(
+                        f"Component '{component_name}' not found; trajectory request not created."
+                    )
 
 

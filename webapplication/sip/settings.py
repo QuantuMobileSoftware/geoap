@@ -234,6 +234,7 @@ SCIHUB_CREDS = '.secret/scihub_creds.json'
 GEOAP_CREDS = '.secret/geoap_creds.json'
 GEOAP_CREDS_KYIV = '.secret/geoap_creds_kyiv.json'
 OPERATIONS_SERVICE_CREDS = '.secret/operations_service_credentials.json'
+GOOGLE_CLOUD_UPLOAD_ORIGIN = 'http://localhost:3000'
 SENTINELHUB_IMAGES_CREDS = '.secret/sentinelhub_images_creds.json'
 CLOUD_PERCENT_VALUE = 15
 SENTINELHUB_IMAGES_PERIOD_IN_DAYS = 3 * 365
@@ -264,3 +265,5 @@ TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
+
+TRAJECTORY_GRID_PREVIEW_COMPONENT_NAME = 'Trajectory Grid Preview'

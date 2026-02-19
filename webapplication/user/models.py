@@ -108,6 +108,27 @@ class User(AbstractUser):
         self.save(update_fields=("balance",))
 
 
+class UploadMissions(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_IN_PROGRESS, 'In Progress'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='upload_missions')
+    gcs_path = models.CharField(max_length=500, blank=True, verbose_name='GCS session folder')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    trajectory_request = models.ForeignKey(
+        'aoi.Request', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Trajectory Grid Preview request'
+    )
+
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
     amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)
