@@ -35,9 +35,6 @@ export const Menu = () => {
       <MenuItem>
         <MenuLink to={ROUTES.MODELS}>Geo models</MenuLink>
       </MenuItem>
-      <MenuItem>
-        <MenuLink to={ROUTES.UPLOAD}>Upload</MenuLink>
-      </MenuItem>
       {!!user?.stone_google_folder && (
         <MenuItem>
           <MenuLink to={ROUTES.UPLOAD_MISSIONS}>Upload data</MenuLink>

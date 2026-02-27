@@ -26,10 +26,22 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class UploadMissionsSerializer(serializers.ModelSerializer):
+    trajectory_status = serializers.SerializerMethodField()
+
     class Meta:
         model = UploadMissions
-        fields = ('id', 'gcs_path', 'status', 'created_at', 'trajectory_request')
+        fields = ('id', 'gcs_path', 'status', 'created_at', 'trajectory_request', 'trajectory_status', 'uploaded_files')
         read_only_fields = ('id', 'created_at', 'trajectory_request')
+
+    def get_trajectory_status(self, obj):
+        if not obj.trajectory_request_id:
+            return None
+        req = obj.trajectory_request
+        return {
+            'id': req.id,
+            'calculated': req.calculated,
+            'success': req.success,
+        }
 
 
 class PasswordResetSerializer(DefaultPasswordResetSerializer):

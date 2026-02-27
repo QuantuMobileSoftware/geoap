@@ -123,6 +123,7 @@ class UploadMissions(models.Model):
     gcs_path = models.CharField(max_length=500, blank=True, verbose_name='GCS session folder')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
+    uploaded_files = models.JSONField(default=list, blank=True, verbose_name='Uploaded files')
     trajectory_request = models.ForeignKey(
         'aoi.Request', null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name='Trajectory Grid Preview request'

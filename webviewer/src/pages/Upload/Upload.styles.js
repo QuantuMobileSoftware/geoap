@@ -228,3 +228,72 @@ export const StatusMessage = styled.p`
     color: ${$success ? theme.colors.primary.p1 : theme.colors.danger};
   `}
 `;
+
+export const SuccessOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const SuccessCard = styled.div`
+  ${({ theme }) => css`
+    background: ${theme.colors.nature.n0};
+    border-radius: ${em(16)};
+    padding: ${em(40)} ${em(48)};
+    max-width: ${em(420)};
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+  `}
+`;
+
+export const SuccessIconWrap = styled.div`
+  ${({ theme }) => css`
+    font-size: ${em(52)};
+    color: ${theme.colors.primary.p1};
+    margin-bottom: ${em(12)};
+    line-height: 1;
+  `}
+`;
+
+export const SuccessTitle = styled.h2`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'h2' })};
+    color: ${theme.colors.nature.n5};
+    margin: 0 0 ${em(8)};
+  `}
+`;
+
+export const SuccessText = styled.p`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    color: ${theme.colors.nature.n3};
+    margin: 0 0 ${em(24)};
+  `}
+`;
+
+export const SuccessActions = styled.div`
+  display: flex;
+  gap: ${em(12)};
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+export const SuccessButton = styled(Button)`
+  ${({ theme, $secondary }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    padding: ${em(8)} ${em(22)};
+    border-radius: 20px;
+    font-size: ${em(14)};
+    background: ${$secondary ? theme.colors.nature.n2 : theme.colors.primary.p1};
+    color: ${$secondary ? theme.colors.nature.n5 : theme.colors.nature.n0};
+    &:hover {
+      background: ${$secondary ? theme.colors.nature.n3 : theme.colors.primary.p2};
+      color: ${theme.colors.nature.n0};
+    }
+  `}
+`;

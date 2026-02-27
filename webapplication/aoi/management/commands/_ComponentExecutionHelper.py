@@ -21,8 +21,9 @@ class ComponentExecutionHelper():
         env_variables = {
             'REQUEST_ID':str(request.pk),
             'COMPONENT_NAME':request.component_name,
-            'AOI':request.polygon.wkt,
         }
+        if request.polygon:
+            env_variables['AOI'] = request.polygon.wkt
         env_update = {
             'OUTPUT_FOLDER':os.path.join(
                 settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, 

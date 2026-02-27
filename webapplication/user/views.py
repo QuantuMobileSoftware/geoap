@@ -142,9 +142,7 @@ class GenerateResumableUploadURLAPIView(APIView):
     }
 
     def get(self, request, *args, **kwargs):
-        user_folder = request.user.stone_google_folder
-        if not user_folder:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        user_folder = request.user.username
 
         file_name = request.query_params.get("file_name")
         file_type = request.query_params.get("file_type")
@@ -164,13 +162,15 @@ class GenerateResumableUploadURLAPIView(APIView):
             )
 
         if not session_folder:
-            session_folder = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            now = datetime.now()
+            session_folder = f"{now.strftime('%Y')}/{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
+        unit_folder = "unit_1"
         type_folder = self.UPLOAD_TYPE_FOLDERS[upload_type]
         if type_folder:
-            blob_path = os.path.join(user_folder, session_folder, type_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, type_folder, file_name)
         else:
-            blob_path = os.path.join(user_folder, session_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
 
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
@@ -199,11 +199,14 @@ class UploadMissionsListCreateAPIView(ListCreateAPIView):
         return UploadMissions.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        session_folder = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now = datetime.now()
+        session_folder = now.strftime("%Y-%m-%d_%H-%M-%S")
+        year = now.strftime("%Y")
+        gcs_path = f"{year}/{session_folder}"
         serializer.save(
             user=self.request.user,
             status=UploadMissions.STATUS_IN_PROGRESS,
-            gcs_path=session_folder,
+            gcs_path=gcs_path,
         )
 
 
@@ -222,12 +225,17 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
             if component_name:
                 try:
                     component = Component.objects.get(name=component_name)
+                    full_gcs_path = (
+                        f"{settings.STONES_STORAGE_BUCKET}"
+                        f"/{self.request.user.username}"
+                        f"/{instance.gcs_path}/"
+                    )
                     trajectory_request = Request.objects.create(
                         user=self.request.user,
                         component=component,
                         aoi=None,
                         polygon=None,
-                        additional_parameter=instance.gcs_path,
+                        additional_parameter=full_gcs_path,
                     )
                     instance.trajectory_request = trajectory_request
                     instance.save(update_fields=['trajectory_request'])
