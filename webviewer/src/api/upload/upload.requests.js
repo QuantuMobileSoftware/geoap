@@ -15,5 +15,19 @@ const getMissions = () => axiosInstance.get(uploadEndpoints.uploadMissions);
 const createMission = () => axiosInstance.post(uploadEndpoints.uploadMissions);
 const updateMission = (id, data) =>
   axiosInstance.patch(`${uploadEndpoints.uploadMissions}${id}/`, data);
+const getDownloadURL = (fileName, uploadType, sessionFolder) =>
+  axiosInstance.get(uploadEndpoints.generateDownloadUrl, {
+    params: {
+      file_name: fileName,
+      upload_type: uploadType,
+      session_folder: sessionFolder
+    }
+  });
 
-export const uploadRequests = { getUploadURL, getMissions, createMission, updateMission };
+export const uploadRequests = {
+  getUploadURL,
+  getMissions,
+  createMission,
+  updateMission,
+  getDownloadURL
+};

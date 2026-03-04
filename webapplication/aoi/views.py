@@ -13,6 +13,7 @@ from publisher.filters import ResultsByACLFilterBackend
 from .models import AoI, Component, Request
 from .serializers import AoISerializer, ComponentSerializer, RequestSerializer
 from user.permissions import ModelPermissions, IsOwnerPermission
+from django.db.models import Q
 from .permissions import AoIIsOwnerPermission
 from user.models import User, Transaction
 from allauth.account import app_settings
@@ -269,5 +270,7 @@ class AOIRequestListAPIView(ListAPIView):
 
     def get_queryset(self):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
-        qs = self.queryset.filter(aoi=area_of_interest.id)
+        qs = self.queryset.filter(
+            Q(aoi=area_of_interest) | Q(aoi=None, user=self.request.user)
+        )
         return qs

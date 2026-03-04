@@ -110,7 +110,7 @@ export const RemoveButton = styled.button`
 `;
 
 export const AddFileLabel = styled.label`
-  ${({ theme }) => css`
+  ${({ theme, $disabled }) => css`
     ${typographyStyle({ theme, variant: 'body2' })};
     display: inline-flex;
     align-items: center;
@@ -127,6 +127,13 @@ export const AddFileLabel = styled.label`
       background: ${theme.colors.primary.p4};
       color: ${theme.colors.nature.n5};
     }
+
+    ${$disabled &&
+    css`
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    `}
   `}
 `;
 

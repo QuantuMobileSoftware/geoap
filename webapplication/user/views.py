@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
 from django.conf import settings
@@ -24,6 +24,14 @@ from waffle import switch_is_active
 from google.cloud import storage
 
 logger = logging.getLogger(__name__)
+
+UPLOAD_TYPE_FOLDERS = {
+    "data_video": "DCIM",
+    "log": "GPS_LOG",
+    "calibration_video": None,
+}
+UPLOAD_UNIT_FOLDER = "unit_1"
+
 
 class RegisterView(BasicRegisterView):
     def perform_create(self, serializer):
@@ -81,6 +89,8 @@ class TransactionListAPIView(ListAPIView):
 class GoogleBucketFolderAPIView(APIView):
     permission_classes = (IsAuthenticated, )
 
+    EXCLUDED_FOLDER_NAMES = {'DCIM', 'GPS_LOG'}
+
     def get(self, request, *args, **kwargs):
         google_bucket_folder_path = self.request.user.stone_google_folder
         if google_bucket_folder_path:
@@ -89,16 +99,19 @@ class GoogleBucketFolderAPIView(APIView):
                              settings.OPERATIONS_SERVICE_CREDS))
             bucket = storage_client.bucket(google_bucket_folder_path)
             if bucket.exists():
-                blobs = storage_client.list_blobs(google_bucket_folder_path)
+                user_prefix = f"{self.request.user.username}/"
+                blobs = storage_client.list_blobs(google_bucket_folder_path, prefix=user_prefix)
                 paths = [blob.name for blob in blobs]
                 results = []
                 for path in paths:
                     if path.endswith("/"):
-                        if path not in results:
+                        folder_name = path.rstrip('/').split('/')[-1]
+                        if folder_name not in self.EXCLUDED_FOLDER_NAMES and path not in results:
                             results.append(path)
                     else:
                         filepath = f'{"/".join(path.split("/")[:-1])}/'
-                        if filepath not in results:
+                        folder_name = filepath.rstrip('/').split('/')[-1]
+                        if folder_name not in self.EXCLUDED_FOLDER_NAMES and filepath not in results:
                             results.append(filepath)
 
                 if results:
@@ -134,13 +147,6 @@ class GenerateResumableUploadURLAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     http_method_names = ["get"]
 
-    # None means the file goes directly into the session folder (no subfolder)
-    UPLOAD_TYPE_FOLDERS = {
-        "data_video": "DCIM",
-        "log": "GPS_LOG",
-        "calibration_video": None,
-    }
-
     def get(self, request, *args, **kwargs):
         user_folder = request.user.username
 
@@ -155,9 +161,9 @@ class GenerateResumableUploadURLAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if upload_type not in self.UPLOAD_TYPE_FOLDERS:
+        if upload_type not in UPLOAD_TYPE_FOLDERS:
             return Response(
-                {"detail": f"upload_type must be one of: {', '.join(self.UPLOAD_TYPE_FOLDERS)}"},
+                {"detail": f"upload_type must be one of: {', '.join(UPLOAD_TYPE_FOLDERS)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -165,12 +171,11 @@ class GenerateResumableUploadURLAPIView(APIView):
             now = datetime.now()
             session_folder = f"{now.strftime('%Y')}/{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
-        unit_folder = "unit_1"
-        type_folder = self.UPLOAD_TYPE_FOLDERS[upload_type]
+        type_folder = UPLOAD_TYPE_FOLDERS[upload_type]
         if type_folder:
-            blob_path = os.path.join(user_folder, session_folder, unit_folder, type_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, type_folder, file_name)
         else:
-            blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, file_name)
 
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
@@ -188,6 +193,61 @@ class GenerateResumableUploadURLAPIView(APIView):
             {"upload_url": resumable_url, "session_folder": session_folder},
             status=status.HTTP_200_OK,
         )
+
+
+class GenerateDownloadURLAPIView(APIView):
+    """
+    Generate a short-lived GCS signed download URL for a previously uploaded file.
+    Accepts: GET method.
+
+    Required query params:
+        'file_name'      — name of the file
+        'upload_type'    — one of: 'data_video', 'calibration_video', 'log'
+        'session_folder' — the gcs_path value stored on the mission (e.g. '2024/2024-01-01_12-00-00')
+
+    Returns: {'download_url': ...}
+    """
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        file_name = request.query_params.get("file_name")
+        upload_type = request.query_params.get("upload_type")
+        session_folder = request.query_params.get("session_folder")
+
+        if not file_name or not upload_type or not session_folder:
+            return Response(
+                {"detail": "file_name, upload_type, and session_folder are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if upload_type not in UPLOAD_TYPE_FOLDERS:
+            return Response(
+                {"detail": f"upload_type must be one of: {', '.join(UPLOAD_TYPE_FOLDERS)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user_folder = request.user.username
+        type_folder = UPLOAD_TYPE_FOLDERS[upload_type]
+        if type_folder:
+            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, type_folder, file_name)
+        else:
+            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, file_name)
+
+        storage_client = storage.Client.from_service_account_json(
+            os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+        )
+        bucket = storage_client.bucket(settings.STONES_STORAGE_BUCKET)
+        blob = bucket.blob(blob_path)
+        download_url = blob.generate_signed_url(
+            expiration=timedelta(hours=1),
+            method="GET",
+            version="v4",
+        )
+        logger.info(
+            f"Download URL generated for user={request.user.id}, upload_type={upload_type}, file={blob_path}"
+        )
+        return Response({"download_url": download_url}, status=status.HTTP_200_OK)
 
 
 class UploadMissionsListCreateAPIView(ListCreateAPIView):

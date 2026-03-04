@@ -276,43 +276,117 @@ export const ListProgressBarText = styled.span`
   `}
 `;
 
-// ========== UPLOADED FILES LIST ==========
+// ========== STATUS CHIPS ==========
 
-export const UploadedFilesList = styled.div`
+export const StatusGroup = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: ${em(4)};
-  margin-top: ${em(6)};
+  align-items: center;
+  gap: ${em(6)};
+  flex-wrap: wrap;
 `;
 
-export const UploadedFilesGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${em(2)};
-`;
+export const StatusChip = styled.div`
+  ${({ theme, $status }) => css`
+    display: inline-flex;
+    align-items: center;
+    gap: ${em(4)};
+    padding: ${em(3)} ${em(10)};
+    border-radius: ${em(20)};
+    font-size: ${em(12)};
+    font-weight: 500;
+    white-space: nowrap;
 
-export const UploadedFilesGroupTitle = styled.span`
-  ${({ theme }) => css`
-    ${typographyStyle({ theme, variant: 'body2' })};
-    font-size: ${em(11)};
-    font-weight: 600;
-    color: ${theme.colors.nature.n3};
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    ${($status === 'completed' || $status === 'traj_done') &&
+    css`
+      background: ${theme.colors.primary.p4};
+      color: ${theme.colors.primary.p1};
+      border: 1px solid ${theme.colors.primary.p2};
+    `}
+
+    ${($status === 'in_progress' || $status === 'processing') &&
+    css`
+      background: #fff8e1;
+      color: #b45309;
+      border: 1px solid #fcd34d;
+    `}
+
+    ${($status === 'failed' || $status === 'traj_failed') &&
+    css`
+      background: #fef2f2;
+      color: ${theme.colors.danger};
+      border: 1px solid ${theme.colors.danger};
+    `}
+
+    ${($status === 'pending' || !$status) &&
+    css`
+      background: ${theme.colors.nature.n1};
+      color: ${theme.colors.nature.n3};
+      border: 1px solid ${theme.colors.nature.n2};
+    `}
   `}
 `;
 
-export const UploadedFileEntry = styled.span`
+// ========== MISSION FILE LIST (expanded details) ==========
+
+export const MissionFileList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${em(4)};
+  margin-top: ${em(10)};
+`;
+
+export const MissionFileRow = styled.div`
+  ${({ theme }) => css`
+    display: flex;
+    align-items: center;
+    gap: ${em(10)};
+    padding: ${em(6)} ${em(10)};
+    background: ${theme.colors.nature.n1};
+    border-radius: ${em(6)};
+    border: 1px solid ${theme.colors.nature.n2};
+  `}
+`;
+
+export const MissionFileName = styled.span`
   ${({ theme }) => css`
     ${typographyStyle({ theme, variant: 'body2' })};
-    font-size: ${em(12)};
+    font-size: ${em(13)};
     color: ${theme.colors.nature.n5};
-    padding-left: ${em(8)};
+    flex: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 400px;
-    display: block;
+    min-width: 0;
+  `}
+`;
+
+export const MissionFileSize = styled.span`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    font-size: ${em(12)};
+    color: ${theme.colors.nature.n3};
+    white-space: nowrap;
+    min-width: ${em(90)};
+    text-align: right;
+    flex-shrink: 0;
+  `}
+`;
+
+export const DownloadButton = styled.button`
+  ${({ theme }) => css`
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: ${em(4)};
+    color: ${theme.colors.primary.p1};
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+    &:hover {
+      background: ${theme.colors.primary.p4};
+    }
   `}
 `;
 

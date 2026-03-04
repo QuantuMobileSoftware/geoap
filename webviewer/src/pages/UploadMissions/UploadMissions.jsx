@@ -54,13 +54,16 @@ import {
   SuccessButton,
   StatusMessage,
   EmptyState,
-  UploadedFilesList,
-  UploadedFilesGroup,
-  UploadedFilesGroupTitle,
-  UploadedFileEntry
+  MissionFileList,
+  MissionFileRow,
+  MissionFileName,
+  MissionFileSize,
+  DownloadButton,
+  StatusGroup,
+  StatusChip
 } from './UploadMissions.styles';
 
-const TABS = { LIST: 'Upload list', NEW: 'Uploads' };
+const TABS = { LIST: 'Upload list', NEW: 'New Upload' };
 
 const breadcrumbsItems = [{ link: ROUTES.ROOT, text: 'Home' }, { text: 'Upload data' }];
 
@@ -76,7 +79,7 @@ const mkFileItem = file => ({ file, progress: 0, uploading: false });
 
 const STATUS_LABELS = {
   pending: 'Pending',
-  in_progress: 'Uploading…',
+  in_progress: 'Uploading',
   completed: 'Done',
   failed: 'Failed'
 };
@@ -99,6 +102,12 @@ const getTrajectoryInfo = ts => {
     : { status: 'traj_failed', label: 'Failed' };
 };
 
+// Returns true when a mission still needs live status updates.
+// Keep polling while upload is running OR trajectory hasn't succeeded yet
+// (covers both the "processing" and "failed→retry" cases).
+const needsPolling = m =>
+  m.status === 'in_progress' || (m.trajectory_status && !m.trajectory_status.success);
+
 export const UploadMissions = () => {
   const [selectedTab, setSelectedTab] = useState(TABS.LIST);
 
@@ -116,6 +125,10 @@ export const UploadMissions = () => {
   const [uploadError, setUploadError] = useState(null);
   const xhrRefs = useRef({});
   const missionIdRef = useRef(null);
+  const getMissionsRef = useRef(null);
+
+  // ── Live upload progress (shown in the list while uploading) ──────
+  const [liveUpload, setLiveUpload] = useState(null);
 
   const totalBytes =
     dcimFiles.reduce((s, f) => s + f.file.size, 0) +
@@ -132,13 +145,68 @@ export const UploadMissions = () => {
     setMissionsError(null);
     API.upload
       .getMissions()
-      .then(({ data }) => setMissions(data.map(m => ({ ...m, showDetails: false }))))
+      .then(({ data }) => {
+        // Any in_progress mission that doesn't belong to the current session is
+        // orphaned (upload was killed by a page reload / navigation). Mark it failed.
+        const currentId = missionIdRef.current;
+        data.forEach(m => {
+          if (m.status === 'in_progress' && m.id !== currentId) {
+            API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
+          }
+        });
+
+        setMissions(prev => {
+          const detailsMap = Object.fromEntries(prev.map(m => [m.id, m.showDetails]));
+          return data.map(m => ({
+            ...m,
+            // Show failed immediately in UI without waiting for the patch response
+            status:
+              m.status === 'in_progress' && m.id !== currentId ? 'failed' : m.status,
+            showDetails: detailsMap[m.id] ?? false
+          }));
+        });
+      })
       .catch(() => setMissionsError('Failed to load missions.'))
       .finally(() => setMissionsLoading(false));
   };
+  getMissionsRef.current = getMissions;
 
   useEffect(() => {
     getMissions();
+  }, []);
+
+  // ── Auto-poll while any mission needs live updates ────────────────
+  const needsLiveUpdates = missions.some(needsPolling);
+  useEffect(() => {
+    if (!needsLiveUpdates) return;
+    const id = setInterval(() => getMissionsRef.current(), 10000);
+    return () => clearInterval(id);
+  }, [needsLiveUpdates]);
+
+  // ── Mark upload as failed when navigating away mid-upload ─────────
+  useEffect(() => {
+    const handleBeforeUnload = e => {
+      if (missionIdRef.current) {
+        e.preventDefault();
+        e.returnValue =
+          'Upload in progress. If you leave, the upload will be marked as failed.';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // On component unmount (in-app navigation) mark upload as failed
+  useEffect(() => {
+    return () => {
+      if (missionIdRef.current) {
+        Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
+        API.upload
+          .updateMission(missionIdRef.current, { status: 'failed' })
+          .catch(() => {});
+        missionIdRef.current = null;
+      }
+    };
   }, []);
 
   // ── Mission list helpers ──────────────────────────────────────────
@@ -151,6 +219,7 @@ export const UploadMissions = () => {
 
   // ── Upload helpers ────────────────────────────────────────────────
 
+  // onProgress(percent, loadedBytes)
   const uploadFileXHR = (uploadUrl, file, onProgress) =>
     new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -158,7 +227,8 @@ export const UploadMissions = () => {
       xhr.open('PUT', uploadUrl, true);
       xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
       xhr.upload.onprogress = e => {
-        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        if (e.lengthComputable)
+          onProgress(Math.round((e.loaded / e.total) * 100), e.loaded);
       };
       xhr.onload = () =>
         xhr.status >= 200 && xhr.status < 300
@@ -180,6 +250,8 @@ export const UploadMissions = () => {
       missionId = mission.id;
       missionIdRef.current = missionId;
       sessionFolder = mission.gcs_path;
+      setLiveUpload({ missionId, createdAt: new Date().toISOString(), progress: 0 });
+      setSelectedTab(TABS.LIST);
     } catch {
       setUploadError('Failed to start upload. Please try again.');
       setUploading(false);
@@ -221,8 +293,12 @@ export const UploadMissions = () => {
         : [])
     ];
 
+    const totalBytesAll = queue.reduce((s, item) => s + item.fileItem.file.size, 0);
+    let totalBytesLoaded = 0;
+
     try {
       for (const item of queue) {
+        const bytesBeforeThisFile = totalBytesLoaded;
         item.markProgress(0, true);
         const { data } = await API.upload.getUploadURL(
           item.fileItem.file.name,
@@ -230,31 +306,59 @@ export const UploadMissions = () => {
           item.type,
           sessionFolder
         );
-        await uploadFileXHR(data.upload_url, item.fileItem.file, percent =>
-          item.markProgress(percent, true)
-        );
+        await uploadFileXHR(data.upload_url, item.fileItem.file, (percent, loaded) => {
+          item.markProgress(percent, true);
+          if (totalBytesAll > 0) {
+            const overall = Math.round(
+              ((bytesBeforeThisFile + loaded) / totalBytesAll) * 100
+            );
+            setLiveUpload(prev => (prev ? { ...prev, progress: overall } : null));
+          }
+        });
+        totalBytesLoaded += item.fileItem.file.size;
         item.markProgress(100, false);
       }
+
       const uploadedFiles = [
-        ...dcimFiles.map(f => ({ name: f.file.name, type: UPLOAD_TYPES.DATA_VIDEO })),
-        ...gpsFiles.map(f => ({ name: f.file.name, type: UPLOAD_TYPES.LOG })),
+        ...dcimFiles.map(f => ({
+          name: f.file.name,
+          type: UPLOAD_TYPES.DATA_VIDEO,
+          size: f.file.size
+        })),
+        ...gpsFiles.map(f => ({
+          name: f.file.name,
+          type: UPLOAD_TYPES.LOG,
+          size: f.file.size
+        })),
         ...(calibFile
-          ? [{ name: calibFile.file.name, type: UPLOAD_TYPES.CALIBRATION }]
+          ? [
+              {
+                name: calibFile.file.name,
+                type: UPLOAD_TYPES.CALIBRATION,
+                size: calibFile.file.size
+              }
+            ]
           : [])
       ];
       await API.upload.updateMission(missionId, {
         status: 'completed',
         uploaded_files: uploadedFiles
       });
+      missionIdRef.current = null;
       setDcimFiles([]);
       setGpsFiles([]);
       setCalibFile(null);
+      setLiveUpload(null);
       getMissions();
       setShowSuccess(true);
     } catch {
-      if (missionId) {
-        API.upload.updateMission(missionId, { status: 'failed' }).catch(() => {});
+      if (missionIdRef.current) {
+        API.upload
+          .updateMission(missionIdRef.current, { status: 'failed' })
+          .catch(() => {});
+        missionIdRef.current = null;
       }
+      setLiveUpload(null);
       setUploadError('Upload failed. Please try again.');
     } finally {
       setUploading(false);
@@ -266,6 +370,7 @@ export const UploadMissions = () => {
     Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
     xhrRefs.current = {};
     setUploading(false);
+    setLiveUpload(null);
     setDcimFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
     setGpsFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
     setCalibFile(prev => (prev ? { ...prev, progress: 0, uploading: false } : null));
@@ -301,6 +406,15 @@ export const UploadMissions = () => {
     e.target.value = '';
   };
 
+  const handleDownload = async (fileName, fileType, gcsPath) => {
+    try {
+      const { data } = await API.upload.getDownloadURL(fileName, fileType, gcsPath);
+      window.open(data.download_url, '_blank');
+    } catch {
+      // silently ignore
+    }
+  };
+
   const renderFileRow = (item, onRemove) => {
     const sizeMB = parseFloat(toMB(item.file.size));
     return (
@@ -333,72 +447,103 @@ export const UploadMissions = () => {
 
   // ── Tab renders ───────────────────────────────────────────────────
 
-  const FILE_TYPE_LABELS = {
-    [UPLOAD_TYPES.DATA_VIDEO]: 'DCIM Videos',
-    [UPLOAD_TYPES.LOG]: 'GPS Logs',
-    [UPLOAD_TYPES.CALIBRATION]: 'Calibration'
-  };
-
-  const renderUploadedFiles = files => {
-    if (!files || files.length === 0) return null;
-    const groups = {};
-    files.forEach(f => {
-      const label = FILE_TYPE_LABELS[f.type] || f.type;
-      if (!groups[label]) groups[label] = [];
-      groups[label].push(f.name);
-    });
-    return (
-      <UploadedFilesList>
-        {Object.entries(groups).map(([label, names]) => (
-          <UploadedFilesGroup key={label}>
-            <UploadedFilesGroupTitle>{label}</UploadedFilesGroupTitle>
-            {names.map(name => (
-              <UploadedFileEntry key={name}>{name}</UploadedFileEntry>
-            ))}
-          </UploadedFilesGroup>
-        ))}
-      </UploadedFilesList>
-    );
-  };
-
   const renderMissionList = () => (
     <MissionsWrapper>
       <MissionListHeader>
         <ListTitle>Upload list</ListTitle>
       </MissionListHeader>
+
+      {uploadError && (
+        <StatusMessage style={{ marginBottom: 12 }}>
+          {uploadError}{' '}
+          <button
+            onClick={() => {
+              setUploadError(null);
+              setSelectedTab(TABS.NEW);
+            }}
+            style={{
+              marginLeft: 8,
+              cursor: 'pointer',
+              border: 'none',
+              background: 'none',
+              textDecoration: 'underline',
+              color: 'inherit',
+              fontSize: 'inherit'
+            }}
+          >
+            Try again
+          </button>
+        </StatusMessage>
+      )}
+
       <MissionsContainer>
+        {/* Live upload entry while uploading in background */}
+        {uploading && liveUpload && (
+          <MissionItemBlock key='live-upload'>
+            <MissionItem>
+              <HelpText fontSize={15}>{formatDate(liveUpload.createdAt)}</HelpText>
+              <MissionItemInfo>
+                <ListProgressBarItem>
+                  <ListProgressBarContainer title='Uploading…'>
+                    <ListProgressBarFill $width={liveUpload.progress} />
+                    <ListProgressBarText>{liveUpload.progress}%</ListProgressBarText>
+                  </ListProgressBarContainer>
+                </ListProgressBarItem>
+                <CancelButton
+                  onClick={cancelUpload}
+                  style={{ padding: '2px 10px', fontSize: 12 }}
+                >
+                  Cancel
+                </CancelButton>
+              </MissionItemInfo>
+            </MissionItem>
+          </MissionItemBlock>
+        )}
+
         {missionsLoading && <EmptyState>Loading…</EmptyState>}
         {missionsError && <EmptyState>{missionsError}</EmptyState>}
-        {!missionsLoading && !missionsError && missions.length === 0 && (
-          <EmptyState>
-            No uploads yet. Switch to &ldquo;Uploads&rdquo; to get started.
-          </EmptyState>
-        )}
+        {!missionsLoading &&
+          !missionsError &&
+          missions.length === 0 &&
+          !(uploading && liveUpload) && (
+            <EmptyState>
+              No uploads yet. Switch to &ldquo;New Upload&rdquo; to get started.
+            </EmptyState>
+          )}
+
         {missions.map(mission => {
           const trajInfo = getTrajectoryInfo(mission.trajectory_status);
+          const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
           return (
             <MissionItemBlock key={mission.id}>
+              {/* ── Collapsed row ── */}
               <MissionItem>
                 <HelpText fontSize={15}>{formatDate(mission.created_at)}</HelpText>
                 <MissionItemInfo>
-                  <ListProgressBarItem>
-                    <ListProgressBarContainer title={`Upload status: ${mission.status}`}>
-                      <ListProgressBarFill $status={mission.status} />
-                      <ListProgressBarText>
-                        {STATUS_LABELS[mission.status] || mission.status}
-                      </ListProgressBarText>
-                    </ListProgressBarContainer>
-                  </ListProgressBarItem>
-                  {mission.trajectory_status && (
-                    <ListProgressBarItem title={`Preview: ${trajInfo.label}`}>
-                      <ListProgressBarContainer>
-                        <ListProgressBarFill $status={trajInfo.status} />
-                        <ListProgressBarText>{trajInfo.label}</ListProgressBarText>
-                      </ListProgressBarContainer>
-                    </ListProgressBarItem>
-                  )}
+                  <StatusGroup>
+                    <StatusChip
+                      $status={mission.status}
+                      title={`Upload: ${STATUS_LABELS[mission.status] || mission.status}`}
+                    >
+                      <Icon width={11} height={11}>
+                        Upload
+                      </Icon>
+                      {STATUS_LABELS[mission.status] || mission.status}
+                    </StatusChip>
+                    {mission.trajectory_status && (
+                      <StatusChip
+                        $status={trajInfo.status}
+                        title={`Preview: ${trajInfo.label}`}
+                      >
+                        <Icon width={11} height={11}>
+                          Image
+                        </Icon>
+                        {trajInfo.label}
+                      </StatusChip>
+                    )}
+                  </StatusGroup>
                   <ToggleButton
-                    title='Show / hide details'
+                    title='Show / hide session details'
                     onClick={() => toggleDetails(mission.id)}
                   >
                     <Icon width={20} height={20}>
@@ -408,27 +553,40 @@ export const UploadMissions = () => {
                 </MissionItemInfo>
               </MissionItem>
 
+              {/* ── Expanded: session metadata + file list ── */}
               {mission.showDetails && (
-                <MissionDateInfo>
-                  <HelpText fontSize={13}>
-                    Session:&nbsp;<strong>{mission.gcs_path}</strong>
-                  </HelpText>
-                  <HelpText fontSize={13}>
-                    Uploaded:&nbsp;{formatDate(mission.created_at)}
-                  </HelpText>
-                  <HelpText fontSize={13}>
-                    Upload status:&nbsp;{STATUS_LABELS[mission.status] || mission.status}
-                  </HelpText>
-                  <HelpText fontSize={13}>Preview:&nbsp;{trajInfo.label}</HelpText>
-                  {mission.uploaded_files && mission.uploaded_files.length > 0 && (
-                    <>
-                      <HelpText fontSize={13} style={{ marginTop: 6 }}>
-                        Files:
-                      </HelpText>
-                      {renderUploadedFiles(mission.uploaded_files)}
-                    </>
+                <>
+                  <MissionDateInfo>
+                    <HelpText fontSize={13}>
+                      Session:&nbsp;<strong>{mission.gcs_path}</strong>
+                    </HelpText>
+                    <HelpText fontSize={13}>
+                      Uploaded:&nbsp;{formatDate(mission.created_at)}
+                    </HelpText>
+                  </MissionDateInfo>
+                  {hasFiles && (
+                    <MissionFileList>
+                      {mission.uploaded_files.map(f => (
+                        <MissionFileRow key={f.name}>
+                          <MissionFileName title={f.name}>{f.name}</MissionFileName>
+                          {f.size != null && (
+                            <MissionFileSize>{toMB(f.size)} MB</MissionFileSize>
+                          )}
+                          <DownloadButton
+                            title='Download file'
+                            onClick={() =>
+                              handleDownload(f.name, f.type, mission.gcs_path)
+                            }
+                          >
+                            <Icon width={16} height={16}>
+                              Download
+                            </Icon>
+                          </DownloadButton>
+                        </MissionFileRow>
+                      ))}
+                    </MissionFileList>
                   )}
-                </MissionDateInfo>
+                </>
               )}
             </MissionItemBlock>
           );
@@ -440,9 +598,9 @@ export const UploadMissions = () => {
   const renderNewUpload = () => (
     <UploadFormWrapper>
       <SectionsGrid>
-        {/* DCIM Videos */}
+        {/* Videos */}
         <SectionCard>
-          <SectionTitle>DCIM Videos</SectionTitle>
+          <SectionTitle>Videos</SectionTitle>
           {dcimFiles.length === 0 ? (
             <UploadInfo>No videos added yet</UploadInfo>
           ) : (
@@ -454,7 +612,7 @@ export const UploadMissions = () => {
               )}
             </FileList>
           )}
-          <AddFileLabel htmlFor='dcim-input'>
+          <AddFileLabel htmlFor='dcim-input' $disabled={uploading}>
             <Icon>Plus</Icon> Add Videos
           </AddFileLabel>
           <input
@@ -482,7 +640,7 @@ export const UploadMissions = () => {
               )}
             </FileList>
           )}
-          <AddFileLabel htmlFor='gps-input'>
+          <AddFileLabel htmlFor='gps-input' $disabled={uploading}>
             <Icon>Plus</Icon> Add Log Files
           </AddFileLabel>
           <input
@@ -504,7 +662,7 @@ export const UploadMissions = () => {
           ) : (
             <FileList>{renderFileRow(calibFile, () => setCalibFile(null))}</FileList>
           )}
-          <AddFileLabel htmlFor='calib-input'>
+          <AddFileLabel htmlFor='calib-input' $disabled={uploading}>
             <Icon>Plus</Icon> {calibFile ? 'Replace Video' : 'Add Video'}
           </AddFileLabel>
           <input
