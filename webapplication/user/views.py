@@ -180,7 +180,7 @@ class GenerateResumableUploadURLAPIView(APIView):
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
         )
-        bucket = storage_client.bucket(settings.STONES_STORAGE_BUCKET)
+        bucket = storage_client.bucket(request.user.stone_google_folder)
         blob = bucket.blob(blob_path)
         resumable_url = blob.create_resumable_upload_session(
             content_type=file_type,
@@ -237,7 +237,7 @@ class GenerateDownloadURLAPIView(APIView):
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
         )
-        bucket = storage_client.bucket(settings.STONES_STORAGE_BUCKET)
+        bucket = storage_client.bucket(request.user.stone_google_folder)
         blob = bucket.blob(blob_path)
         download_url = blob.generate_signed_url(
             expiration=timedelta(hours=1),
@@ -286,7 +286,7 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
                 try:
                     component = Component.objects.get(name=component_name)
                     full_gcs_path = (
-                        f"{settings.STONES_STORAGE_BUCKET}"
+                        f"{self.request.user.stone_google_folder}"
                         f"/{self.request.user.username}"
                         f"/{instance.gcs_path}/"
                     )
