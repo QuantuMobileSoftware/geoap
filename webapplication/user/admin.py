@@ -40,6 +40,7 @@ class UserAdmin(BaseUserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Email notification', {'fields': ('receive_news', )}),
         ('Stone Detection', {'fields': ('stone_google_folder', )}),
+        ('Upload', {'fields': ('default_upload_component', )}),
     )
     readonly_fields = ('balance',)
     add_fieldsets = (
@@ -61,9 +62,10 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(UploadMissions)
 class UploadMissionsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'gcs_path', 'status', 'created_at', 'trajectory_request')
+    list_display = ('id', 'user', 'gcs_path', 'status', 'created_at', 'component', 'trajectory_request')
     list_filter = ('status',)
     readonly_fields = ('created_at',)
+    raw_id_fields = ('component',)
 
 
 @admin.register(Transaction)

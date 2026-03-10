@@ -27,10 +27,11 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class UploadMissionsSerializer(serializers.ModelSerializer):
     trajectory_status = serializers.SerializerMethodField()
+    component_name = serializers.CharField(source='component.name', read_only=True)
 
     class Meta:
         model = UploadMissions
-        fields = ('id', 'gcs_path', 'status', 'created_at', 'trajectory_request', 'trajectory_status', 'uploaded_files')
+        fields = ('id', 'gcs_path', 'status', 'created_at', 'component', 'component_name', 'trajectory_request', 'trajectory_status', 'uploaded_files')
         read_only_fields = ('id', 'created_at', 'trajectory_request')
 
     def get_trajectory_status(self, obj):

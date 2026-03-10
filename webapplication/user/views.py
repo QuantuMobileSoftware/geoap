@@ -20,17 +20,11 @@ from user.models import Transaction, User, UploadMissions
 from aoi.models import Component, Request
 from django.db.models import Q
 from user.serializers import TransactionSerializer, UserSerializer, UploadMissionsSerializer
+from user.upload_utils import get_upload_config
 from waffle import switch_is_active
 from google.cloud import storage
 
 logger = logging.getLogger(__name__)
-
-UPLOAD_TYPE_FOLDERS = {
-    "data_video": "DCIM",
-    "log": "GPS_LOG",
-    "calibration_video": None,
-}
-UPLOAD_UNIT_FOLDER = "unit_1"
 
 
 class RegisterView(BasicRegisterView):
@@ -89,9 +83,8 @@ class TransactionListAPIView(ListAPIView):
 class GoogleBucketFolderAPIView(APIView):
     permission_classes = (IsAuthenticated, )
 
-    EXCLUDED_FOLDER_NAMES = {'DCIM', 'GPS_LOG'}
-
     def get(self, request, *args, **kwargs):
+        excluded = set(get_upload_config(request.user.default_upload_component).get('exclude', []))
         google_bucket_folder_path = self.request.user.stone_google_folder
         if google_bucket_folder_path:
             storage_client = storage.Client.from_service_account_json(
@@ -106,12 +99,12 @@ class GoogleBucketFolderAPIView(APIView):
                 for path in paths:
                     if path.endswith("/"):
                         folder_name = path.rstrip('/').split('/')[-1]
-                        if folder_name not in self.EXCLUDED_FOLDER_NAMES and path not in results:
+                        if folder_name not in excluded and path not in results:
                             results.append(path)
                     else:
                         filepath = f'{"/".join(path.split("/")[:-1])}/'
                         folder_name = filepath.rstrip('/').split('/')[-1]
-                        if folder_name not in self.EXCLUDED_FOLDER_NAMES and filepath not in results:
+                        if folder_name not in excluded and filepath not in results:
                             results.append(filepath)
 
                 if results:
@@ -161,9 +154,18 @@ class GenerateResumableUploadURLAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if upload_type not in UPLOAD_TYPE_FOLDERS:
+        mission = UploadMissions.objects.filter(
+            user=request.user, gcs_path=session_folder
+        ).select_related('component').first() if session_folder else None
+        component = (mission and mission.component) or request.user.default_upload_component
+
+        upload_cfg = get_upload_config(component)
+        upload_folders = upload_cfg['upload']
+        unit_folder = upload_cfg['unit_folder']
+
+        if upload_type not in upload_folders:
             return Response(
-                {"detail": f"upload_type must be one of: {', '.join(UPLOAD_TYPE_FOLDERS)}"},
+                {"detail": f"upload_type must be one of: {', '.join(upload_folders)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -171,11 +173,11 @@ class GenerateResumableUploadURLAPIView(APIView):
             now = datetime.now()
             session_folder = f"{now.strftime('%Y')}/{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
-        type_folder = UPLOAD_TYPE_FOLDERS[upload_type]
+        type_folder = upload_folders[upload_type]
         if type_folder:
-            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, type_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, type_folder, file_name)
         else:
-            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
 
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
@@ -221,18 +223,27 @@ class GenerateDownloadURLAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if upload_type not in UPLOAD_TYPE_FOLDERS:
+        mission = UploadMissions.objects.filter(
+            user=request.user, gcs_path=session_folder
+        ).select_related('component').first()
+        component = (mission and mission.component) or request.user.default_upload_component
+
+        upload_cfg = get_upload_config(component)
+        upload_folders = upload_cfg['upload']
+        unit_folder = upload_cfg['unit_folder']
+
+        if upload_type not in upload_folders:
             return Response(
-                {"detail": f"upload_type must be one of: {', '.join(UPLOAD_TYPE_FOLDERS)}"},
+                {"detail": f"upload_type must be one of: {', '.join(upload_folders)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         user_folder = request.user.username
-        type_folder = UPLOAD_TYPE_FOLDERS[upload_type]
+        type_folder = upload_folders[upload_type]
         if type_folder:
-            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, type_folder, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, type_folder, file_name)
         else:
-            blob_path = os.path.join(user_folder, session_folder, UPLOAD_UNIT_FOLDER, file_name)
+            blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
 
         storage_client = storage.Client.from_service_account_json(
             os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
@@ -263,10 +274,12 @@ class UploadMissionsListCreateAPIView(ListCreateAPIView):
         session_folder = now.strftime("%Y-%m-%d_%H-%M-%S")
         year = now.strftime("%Y")
         gcs_path = f"{year}/{session_folder}"
+        component = serializer.validated_data.get('component') or self.request.user.default_upload_component
         serializer.save(
             user=self.request.user,
             status=UploadMissions.STATUS_IN_PROGRESS,
             gcs_path=gcs_path,
+            component=component,
         )
 
 
@@ -280,28 +293,20 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        if instance.status == UploadMissions.STATUS_COMPLETED:
-            component_name = getattr(settings, 'TRAJECTORY_GRID_PREVIEW_COMPONENT_NAME', None)
-            if component_name:
-                try:
-                    component = Component.objects.get(name=component_name)
-                    full_gcs_path = (
-                        f"{self.request.user.stone_google_folder}"
-                        f"/{self.request.user.username}"
-                        f"/{instance.gcs_path}/"
-                    )
-                    trajectory_request = Request.objects.create(
-                        user=self.request.user,
-                        component=component,
-                        aoi=None,
-                        polygon=None,
-                        additional_parameter=full_gcs_path,
-                    )
-                    instance.trajectory_request = trajectory_request
-                    instance.save(update_fields=['trajectory_request'])
-                except Component.DoesNotExist:
-                    logger.warning(
-                        f"Component '{component_name}' not found; trajectory request not created."
-                    )
+        if instance.status == UploadMissions.STATUS_COMPLETED and instance.component and not instance.trajectory_request_id:
+            full_gcs_path = (
+                f"{self.request.user.stone_google_folder}"
+                f"/{self.request.user.username}"
+                f"/{instance.gcs_path}/"
+            )
+            trajectory_request = Request.objects.create(
+                user=self.request.user,
+                component=instance.component,
+                aoi=None,
+                polygon=None,
+                additional_parameter=full_gcs_path,
+            )
+            instance.trajectory_request = trajectory_request
+            instance.save(update_fields=['trajectory_request'])
 
 

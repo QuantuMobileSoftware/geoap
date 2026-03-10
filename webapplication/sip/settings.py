@@ -265,4 +265,3 @@ TRIAL_PERIOD_FINISH_COMMENT = 'Finished trial period'
 DEFAULT_SYSTEM_NOTIFICATION_EMAIL = ""
 DEFAULT_TRANSACTION_ERROR = "Something went wrong, please contact us"
 
-TRAJECTORY_GRID_PREVIEW_COMPONENT_NAME = 'Trajectory Grid Preview'

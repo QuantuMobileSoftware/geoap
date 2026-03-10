@@ -1,0 +1,9 @@
+{
+  "upload": {
+    "data_video": "DCIM",
+    "log": "GPS_LOG",
+    "calibration_video": null
+  },
+  "unit_folder": "unit",
+  "exclude": ["DCIM", "GPS_LOG"]
+}

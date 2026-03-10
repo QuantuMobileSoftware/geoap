@@ -84,6 +84,20 @@ const STATUS_LABELS = {
   failed: 'Failed'
 };
 
+const formatTimeLeft = (startTime, bytesLoaded, totalBytes) => {
+  if (!startTime || bytesLoaded <= 0 || totalBytes <= 0) return null;
+  const elapsed = (Date.now() - startTime) / 1000;
+  if (elapsed < 2) return null;
+  const speed = bytesLoaded / elapsed;
+  const remaining = totalBytes - bytesLoaded;
+  if (remaining <= 0) return null;
+  const secs = Math.round(remaining / speed);
+  if (secs < 60) return `~${secs}s left`;
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return s > 0 ? `~${m}m ${s}s left` : `~${m}m left`;
+};
+
 const formatDate = iso => {
   const d = new Date(iso);
   return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1)
@@ -250,7 +264,13 @@ export const UploadMissions = () => {
       missionId = mission.id;
       missionIdRef.current = missionId;
       sessionFolder = mission.gcs_path;
-      setLiveUpload({ missionId, createdAt: new Date().toISOString(), progress: 0 });
+      setLiveUpload({
+        missionId,
+        createdAt: new Date().toISOString(),
+        progress: 0,
+        startTime: Date.now(),
+        bytesLoaded: 0
+      });
       setSelectedTab(TABS.LIST);
     } catch {
       setUploadError('Failed to start upload. Please try again.');
@@ -312,7 +332,15 @@ export const UploadMissions = () => {
             const overall = Math.round(
               ((bytesBeforeThisFile + loaded) / totalBytesAll) * 100
             );
-            setLiveUpload(prev => (prev ? { ...prev, progress: overall } : null));
+            setLiveUpload(prev =>
+              prev
+                ? {
+                    ...prev,
+                    progress: overall,
+                    bytesLoaded: bytesBeforeThisFile + loaded
+                  }
+                : null
+            );
           }
         });
         totalBytesLoaded += item.fileItem.file.size;
@@ -484,10 +512,21 @@ export const UploadMissions = () => {
               <HelpText fontSize={15}>{formatDate(liveUpload.createdAt)}</HelpText>
               <MissionItemInfo>
                 <ListProgressBarItem>
-                  <ListProgressBarContainer title='Uploading…'>
-                    <ListProgressBarFill $width={liveUpload.progress} />
-                    <ListProgressBarText>{liveUpload.progress}%</ListProgressBarText>
-                  </ListProgressBarContainer>
+                  {(() => {
+                    const timeLeft = formatTimeLeft(
+                      liveUpload.startTime,
+                      liveUpload.bytesLoaded,
+                      totalBytes
+                    );
+                    return (
+                      <ListProgressBarContainer title='Uploading…'>
+                        <ListProgressBarFill $width={liveUpload.progress} />
+                        <ListProgressBarText>
+                          {liveUpload.progress}%{timeLeft ? ` · ${timeLeft}` : ''}
+                        </ListProgressBarText>
+                      </ListProgressBarContainer>
+                    );
+                  })()}
                 </ListProgressBarItem>
                 <CancelButton
                   onClick={cancelUpload}
@@ -511,86 +550,90 @@ export const UploadMissions = () => {
             </EmptyState>
           )}
 
-        {missions.map(mission => {
-          const trajInfo = getTrajectoryInfo(mission.trajectory_status);
-          const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
-          return (
-            <MissionItemBlock key={mission.id}>
-              {/* ── Collapsed row ── */}
-              <MissionItem>
-                <HelpText fontSize={15}>{formatDate(mission.created_at)}</HelpText>
-                <MissionItemInfo>
-                  <StatusGroup>
-                    <StatusChip
-                      $status={mission.status}
-                      title={`Upload: ${STATUS_LABELS[mission.status] || mission.status}`}
-                    >
-                      <Icon width={11} height={11}>
-                        Upload
-                      </Icon>
-                      {STATUS_LABELS[mission.status] || mission.status}
-                    </StatusChip>
-                    {mission.trajectory_status && (
+        {missions
+          .filter(m => !(uploading && m.id === missionIdRef.current))
+          .map(mission => {
+            const trajInfo = getTrajectoryInfo(mission.trajectory_status);
+            const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
+            return (
+              <MissionItemBlock key={mission.id}>
+                {/* ── Collapsed row ── */}
+                <MissionItem>
+                  <HelpText fontSize={15}>{formatDate(mission.created_at)}</HelpText>
+                  <MissionItemInfo>
+                    <StatusGroup>
                       <StatusChip
-                        $status={trajInfo.status}
-                        title={`Preview: ${trajInfo.label}`}
+                        $status={mission.status}
+                        title={`Upload: ${
+                          STATUS_LABELS[mission.status] || mission.status
+                        }`}
                       >
                         <Icon width={11} height={11}>
-                          Image
+                          Upload
                         </Icon>
-                        {trajInfo.label}
+                        {STATUS_LABELS[mission.status] || mission.status}
                       </StatusChip>
-                    )}
-                  </StatusGroup>
-                  <ToggleButton
-                    title='Show / hide session details'
-                    onClick={() => toggleDetails(mission.id)}
-                  >
-                    <Icon width={20} height={20}>
-                      {mission.showDetails ? 'ExpandUp' : 'ExpandDown'}
-                    </Icon>
-                  </ToggleButton>
-                </MissionItemInfo>
-              </MissionItem>
+                      {mission.trajectory_status && (
+                        <StatusChip
+                          $status={trajInfo.status}
+                          title={`Preview: ${trajInfo.label}`}
+                        >
+                          <Icon width={11} height={11}>
+                            Image
+                          </Icon>
+                          {trajInfo.label}
+                        </StatusChip>
+                      )}
+                    </StatusGroup>
+                    <ToggleButton
+                      title='Show / hide session details'
+                      onClick={() => toggleDetails(mission.id)}
+                    >
+                      <Icon width={20} height={20}>
+                        {mission.showDetails ? 'ExpandUp' : 'ExpandDown'}
+                      </Icon>
+                    </ToggleButton>
+                  </MissionItemInfo>
+                </MissionItem>
 
-              {/* ── Expanded: session metadata + file list ── */}
-              {mission.showDetails && (
-                <>
-                  <MissionDateInfo>
-                    <HelpText fontSize={13}>
-                      Session:&nbsp;<strong>{mission.gcs_path}</strong>
-                    </HelpText>
-                    <HelpText fontSize={13}>
-                      Uploaded:&nbsp;{formatDate(mission.created_at)}
-                    </HelpText>
-                  </MissionDateInfo>
-                  {hasFiles && (
-                    <MissionFileList>
-                      {mission.uploaded_files.map(f => (
-                        <MissionFileRow key={f.name}>
-                          <MissionFileName title={f.name}>{f.name}</MissionFileName>
-                          {f.size != null && (
-                            <MissionFileSize>{toMB(f.size)} MB</MissionFileSize>
-                          )}
-                          <DownloadButton
-                            title='Download file'
-                            onClick={() =>
-                              handleDownload(f.name, f.type, mission.gcs_path)
-                            }
-                          >
-                            <Icon width={16} height={16}>
-                              Download
-                            </Icon>
-                          </DownloadButton>
-                        </MissionFileRow>
-                      ))}
-                    </MissionFileList>
-                  )}
-                </>
-              )}
-            </MissionItemBlock>
-          );
-        })}
+                {/* ── Expanded: session metadata + file list ── */}
+                {mission.showDetails && (
+                  <>
+                    <MissionDateInfo>
+                      <HelpText fontSize={13}>
+                        Session:&nbsp;<strong>{mission.gcs_path}</strong>
+                      </HelpText>
+                      <HelpText fontSize={13}>
+                        Uploaded:&nbsp;{formatDate(mission.created_at)}
+                      </HelpText>
+                    </MissionDateInfo>
+                    {hasFiles && (
+                      <MissionFileList>
+                        {mission.uploaded_files.map(f => (
+                          <MissionFileRow key={f.name}>
+                            <MissionFileName title={f.name}>{f.name}</MissionFileName>
+                            {f.size != null && (
+                              <MissionFileSize>{toMB(f.size)} MB</MissionFileSize>
+                            )}
+                            <DownloadButton
+                              title='Download file'
+                              onClick={() =>
+                                handleDownload(f.name, f.type, mission.gcs_path)
+                              }
+                            >
+                              <Icon width={16} height={16}>
+                                Download
+                              </Icon>
+                            </DownloadButton>
+                          </MissionFileRow>
+                        ))}
+                      </MissionFileList>
+                    )}
+                  </>
+                )}
+              </MissionItemBlock>
+            );
+          })}
       </MissionsContainer>
     </MissionsWrapper>
   );

@@ -29,6 +29,10 @@ class User(AbstractUser):
     receive_notification = models.BooleanField(default=True, verbose_name='Receive Notification')
     receive_news = models.BooleanField(default=False, verbose_name='Receive News')
     stone_google_folder = models.CharField(max_length=64, verbose_name='Google bucket folder for stone detection', null=True, default=None, blank=True)
+    default_upload_component = models.ForeignKey(
+        'aoi.Component', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Default auto-run component after upload'
+    )
 
     units_of_measurement = models.CharField(
         max_length=10,
@@ -124,6 +128,10 @@ class UploadMissions(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     uploaded_files = models.JSONField(default=list, blank=True, verbose_name='Uploaded files')
+    component = models.ForeignKey(
+        'aoi.Component', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Auto-run component after upload'
+    )
     trajectory_request = models.ForeignKey(
         'aoi.Request', null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name='Trajectory Grid Preview request'

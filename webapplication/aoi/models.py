@@ -95,6 +95,7 @@ class Component(models.Model):
                                                verbose_name='Google bucket input data')
     average_calculation_time_per_km2 = models.IntegerField(default=0,
                                                            verbose_name='Average calculation time per km2 in seconds')
+    upload_config = models.JSONField(null=True, blank=True, verbose_name='Upload config')
 
     def __str__(self):
         return self.name

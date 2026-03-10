@@ -268,11 +268,12 @@ export const ListProgressBarText = styled.span`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: ${em(10)};
-    font-weight: 600;
+    font-size: ${em(11)};
+    font-weight: 700;
     pointer-events: none;
     color: ${theme.colors.nature.n5};
     white-space: nowrap;
+    text-shadow: 0 0 4px ${theme.colors.nature.n0}, 0 0 4px ${theme.colors.nature.n0};
   `}
 `;
 
