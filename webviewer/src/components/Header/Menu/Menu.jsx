@@ -1,7 +1,8 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-import { useAreasActions, useInterfaceActions } from 'state';
+import { useAreasActions, useInterfaceActions, selectUser } from 'state';
 import { ROUTES, SIDEBAR_MODE } from '_constants';
 import { areasEvents } from '_events';
 
@@ -11,6 +12,7 @@ export const Menu = () => {
   const history = useHistory();
   const { setSidebarMode } = useAreasActions();
   const { setOpenContactUs } = useInterfaceActions();
+  const user = useSelector(selectUser);
   // TODO: add with subarea
   // const handleOpenFields = () => {
   //   history.push(ROUTES.ROOT, { isOpenSidebar: true });
@@ -33,6 +35,11 @@ export const Menu = () => {
       <MenuItem>
         <MenuLink to={ROUTES.MODELS}>Geo models</MenuLink>
       </MenuItem>
+      {!!user?.stone_google_folder && (
+        <MenuItem>
+          <MenuLink to={ROUTES.UPLOAD_MISSIONS}>Upload data</MenuLink>
+        </MenuItem>
+      )}
       <MenuItem onClick={handleOpenContactUs}>Contact us</MenuItem>
     </StyledMenu>
   );

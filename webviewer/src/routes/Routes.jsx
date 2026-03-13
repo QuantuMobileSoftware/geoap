@@ -14,7 +14,9 @@ import {
   ModelCatalog,
   Terms,
   Policy,
-  StoneValidation
+  StoneValidation,
+  Upload,
+  UploadMissions
 } from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
 import { Spinner } from 'components/_shared/Spinner';
@@ -41,6 +43,8 @@ export const Routes = () => {
 
   return (
     <Switch>
+      <Route path={ROUTES.UPLOAD} component={Upload} isPrivate />
+      <Route path={ROUTES.UPLOAD_MISSIONS} component={UploadMissions} isPrivate />
       <Route path={ROUTES.MODELS} component={ModelCatalog} isPrivate />
       <Route path={ROUTES.TERMS} component={Terms} />
       <Route path={ROUTES.POLICY} component={Policy} />

@@ -57,7 +57,8 @@ def email_notification(request, status):
         logger.info(f"Not sending email for user '{user_data.email}'")
         return
 
-    message = f"""Your request for AOI '{aoi_name.name if aoi_name else request.polygon.wkt}' and layer '{request.component_name}' is {status}
+    aoi_label = aoi_name.name if aoi_name else (request.polygon.wkt if request.polygon else 'N/A')
+    message = f"""Your request for AOI '{aoi_label}' and layer '{request.component_name}' is {status}
     \n\nClick the link below to visit the site:\n{request.request_origin}"""
     send_email_notification(user_data.email, message, settings.EMAIL_SUBJECT)
 
@@ -68,7 +69,7 @@ def email_notification(request, status):
         Domain: {request.request_origin},
         
         AoI Name: {aoi_name.name if aoi_name else None},
-        AoI polygon: {request.polygon.wkt},
+        AoI polygon: {request.polygon.wkt if request.polygon else 'N/A'},
         Component name: {request.component_name},
         Start date: {request.date_from.strftime("%Y/%m/%d") if request.date_from else None},
         End date: {request.date_to.strftime("%Y/%m/%d") if request.date_to else None},
@@ -172,48 +173,53 @@ class NotebookDockerThread(StoppableThread):
         for container in exited_containers:
             attrs = Container.container_attrs(container)
             request = Request.objects.get(pk=attrs['pk'])
-            if attrs['exit_code'] == 0:
-                logger.info(f"Notebook in container {container.name} executed successfully")
-                request.calculated = True
-                request.save(update_fields=['calculated'])
-            else:
-                request.finished_at = localtime()
-                request.save(update_fields=['finished_at'])
-                logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
-                             f"logs: {attrs['logs']}")
-                collected_error = clean_container_logs(attrs['logs'])
-                error_max_length = request._meta.get_field('error').max_length
-                if len(collected_error) > error_max_length:
-                    request.error = collected_error[len(collected_error) - error_max_length:]
-                else:
-                    request.error = collected_error
-                known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
-                errors = []
-                for error in known_errors:
-                    if error in request.error:
-                        errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
-                if errors:
-                    request.user_readable_errors = errors
-                    request.save(update_fields=['user_readable_errors'])
-                    logger.info("Known error added")
-                else:
-                    logger.info("No known error for component error")
-                request.save(update_fields=['error'])
-
-                request_transaction = request.transactions.first()
-                request_transaction.user.on_hold -= abs(request_transaction.amount)
-                request_transaction.rolled_back = True
-                request_transaction.completed = True
-                request_transaction.error = Transaction.generate_error(request.user_readable_errors)
-                with transaction.atomic():
-                    request_transaction.save(update_fields=("rolled_back", "completed", "error"))
-                    request_transaction.user.save(update_fields=("on_hold",))
-
-                email_notification(request, "failed")
             try:
-                container.remove()
-            except:
-                logger.exception(f"Removing container {container.name}")
+                if attrs['exit_code'] == 0:
+                    logger.info(f"Notebook in container {container.name} executed successfully")
+                    request.calculated = True
+                    request.save(update_fields=['calculated'])
+                else:
+                    request.finished_at = localtime()
+                    request.save(update_fields=['finished_at'])
+                    logger.error(f"Execution container: {container.name}: exit code: {attrs['exit_code']},"
+                                 f"logs: {attrs['logs']}")
+                    collected_error = clean_container_logs(attrs['logs'])
+                    error_max_length = request._meta.get_field('error').max_length
+                    if len(collected_error) > error_max_length:
+                        request.error = collected_error[len(collected_error) - error_max_length:]
+                    else:
+                        request.error = collected_error
+                    known_errors = [error.original_component_error for error in TransactionErrorMessage.objects.all()]
+                    errors = []
+                    for error in known_errors:
+                        if error in request.error:
+                            errors.append(TransactionErrorMessage.objects.get(original_component_error=error).user_readable_error)
+                    if errors:
+                        request.user_readable_errors = errors
+                        request.save(update_fields=['user_readable_errors'])
+                        logger.info("Known error added")
+                    else:
+                        logger.info("No known error for component error")
+                    request.save(update_fields=['error'])
+
+                    request_transaction = request.transactions.first()
+                    if request_transaction:
+                        request_transaction.user.on_hold -= abs(request_transaction.amount)
+                        request_transaction.rolled_back = True
+                        request_transaction.completed = True
+                        request_transaction.error = Transaction.generate_error(request.user_readable_errors)
+                        with transaction.atomic():
+                            request_transaction.save(update_fields=("rolled_back", "completed", "error"))
+                            request_transaction.user.save(update_fields=("on_hold",))
+
+                    email_notification(request, "failed")
+            except Exception as ex:
+                logger.exception(f"Processing container {container.name} result: {str(ex)}")
+            finally:
+                try:
+                    container.remove()
+                except:
+                    logger.exception(f"Removing container {container.name}")
 
         running_containers = self.get_running_containers()
 
@@ -233,17 +239,16 @@ class NotebookDockerThread(StoppableThread):
             except:
                 logger.exception(f"Request {request.pk}, notebook {request.component.name}:")
                 try:
-                    with transaction.atomic():
-                        request_transaction = request.transactions.first()
-                        request_transaction.user.on_hold -= abs(request_transaction.amount)
-                        request_transaction.rolled_back = True
-                        request.finished_at = localtime()
-
-                        request_transaction.save(update_fields=("rolled_back",))
-                        request_transaction.user.save(update_fields=("on_hold",))
-                        request.save(update_fields=['finished_at'])
-
-                        email_notification(request, "failed")
+                    request.finished_at = localtime()
+                    request.save(update_fields=['finished_at'])
+                    request_transaction = request.transactions.first()
+                    if request_transaction:
+                        with transaction.atomic():
+                            request_transaction.user.on_hold -= abs(request_transaction.amount)
+                            request_transaction.rolled_back = True
+                            request_transaction.save(update_fields=("rolled_back",))
+                            request_transaction.user.save(update_fields=("on_hold",))
+                    email_notification(request, "failed")
                 except Exception as ex:
                     logger.error(f"Cannot update request {request.pk} in db: {str(ex)}")
 

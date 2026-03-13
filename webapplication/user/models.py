@@ -29,6 +29,10 @@ class User(AbstractUser):
     receive_notification = models.BooleanField(default=True, verbose_name='Receive Notification')
     receive_news = models.BooleanField(default=False, verbose_name='Receive News')
     stone_google_folder = models.CharField(max_length=64, verbose_name='Google bucket folder for stone detection', null=True, default=None, blank=True)
+    default_upload_component = models.ForeignKey(
+        'aoi.Component', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Default auto-run component after upload'
+    )
 
     units_of_measurement = models.CharField(
         max_length=10,
@@ -106,6 +110,32 @@ class User(AbstractUser):
             )
             self.balance += amount
         self.save(update_fields=("balance",))
+
+
+class UploadMissions(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_IN_PROGRESS, 'In Progress'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='upload_missions')
+    gcs_path = models.CharField(max_length=500, blank=True, verbose_name='GCS session folder')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    uploaded_files = models.JSONField(default=list, blank=True, verbose_name='Uploaded files')
+    component = models.ForeignKey(
+        'aoi.Component', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Auto-run component after upload'
+    )
+    trajectory_request = models.ForeignKey(
+        'aoi.Request', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name='Trajectory Grid Preview request'
+    )
 
 
 class Transaction(models.Model):

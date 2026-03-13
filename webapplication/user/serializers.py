@@ -2,7 +2,7 @@ from dj_rest_auth.serializers import PasswordResetSerializer as DefaultPasswordR
 from rest_framework import serializers
 
 from user.forms import PasswordResetForm
-from user.models import User, Transaction
+from user.models import User, Transaction, UploadMissions
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,6 +23,26 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed', 'rolled_back')
         read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed',
                             'rolled_back')
+
+
+class UploadMissionsSerializer(serializers.ModelSerializer):
+    trajectory_status = serializers.SerializerMethodField()
+    component_name = serializers.CharField(source='component.name', read_only=True)
+
+    class Meta:
+        model = UploadMissions
+        fields = ('id', 'gcs_path', 'status', 'created_at', 'component', 'component_name', 'trajectory_request', 'trajectory_status', 'uploaded_files')
+        read_only_fields = ('id', 'created_at', 'trajectory_request')
+
+    def get_trajectory_status(self, obj):
+        if not obj.trajectory_request_id:
+            return None
+        req = obj.trajectory_request
+        return {
+            'id': req.id,
+            'calculated': req.calculated,
+            'success': req.success,
+        }
 
 
 class PasswordResetSerializer(DefaultPasswordResetSerializer):
