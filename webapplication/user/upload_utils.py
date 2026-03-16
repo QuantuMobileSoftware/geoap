@@ -12,4 +12,6 @@ def get_upload_config(component=None):
         for key, value in component.upload_config.items():
             config[key] = value
 
+    config['exclude'] = [folder for folder in config['upload'].values() if folder]
+
     return config

@@ -84,7 +84,6 @@ class GoogleBucketFolderAPIView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, *args, **kwargs):
-        excluded = set(get_upload_config(request.user.default_upload_component).get('exclude', []))
         google_bucket_folder_path = self.request.user.stone_google_folder
         if google_bucket_folder_path:
             storage_client = storage.Client.from_service_account_json(
@@ -97,15 +96,12 @@ class GoogleBucketFolderAPIView(APIView):
                 paths = [blob.name for blob in blobs]
                 results = []
                 for path in paths:
-                    if path.endswith("/"):
-                        folder_name = path.rstrip('/').split('/')[-1]
-                        if folder_name not in excluded and path not in results:
-                            results.append(path)
-                    else:
-                        filepath = f'{"/".join(path.split("/")[:-1])}/'
-                        folder_name = filepath.rstrip('/').split('/')[-1]
-                        if folder_name not in excluded and filepath not in results:
-                            results.append(filepath)
+                    parts = path.rstrip('/').split('/')
+                    # Collect folder paths up to the session level (username/year/session/)
+                    for depth in range(2, min(4, len(parts))):
+                        folder_path = '/'.join(parts[:depth]) + '/'
+                        if folder_path not in results:
+                            results.append(folder_path)
 
                 if results:
                     return Response(results)
@@ -141,6 +137,12 @@ class GenerateResumableUploadURLAPIView(APIView):
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
+        if not request.user.stone_google_folder:
+            return Response(
+                {"detail": "Upload bucket is not configured for this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user_folder = request.user.username
 
         file_name = request.query_params.get("file_name")
@@ -213,6 +215,12 @@ class GenerateDownloadURLAPIView(APIView):
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
+        if not request.user.stone_google_folder:
+            return Response(
+                {"detail": "Upload bucket is not configured for this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         file_name = request.query_params.get("file_name")
         upload_type = request.query_params.get("upload_type")
         session_folder = request.query_params.get("session_folder")
@@ -293,7 +301,12 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        if instance.status == UploadMissions.STATUS_COMPLETED and instance.component and not instance.trajectory_request_id:
+        if (
+            instance.status == UploadMissions.STATUS_COMPLETED
+            and instance.component
+            and self.request.user.stone_google_folder
+            and not instance.trajectory_request_id
+        ):
             full_gcs_path = (
                 f"{self.request.user.stone_google_folder}"
                 f"/{self.request.user.username}"

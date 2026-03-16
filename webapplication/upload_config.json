@@ -4,6 +4,5 @@
     "log": "GPS_LOG",
     "calibration_video": null
   },
-  "unit_folder": "unit",
-  "exclude": ["DCIM", "GPS_LOG"]
+  "unit_folder": "unit"
 }

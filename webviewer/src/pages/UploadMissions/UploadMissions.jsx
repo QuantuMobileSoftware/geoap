@@ -110,17 +110,15 @@ const formatDate = iso => {
 
 const getTrajectoryInfo = ts => {
   if (!ts) return { status: null, label: 'Not started' };
-  if (!ts.calculated) return { status: 'processing', label: 'Processing…' };
-  return ts.success
-    ? { status: 'traj_done', label: 'Ready' }
-    : { status: 'traj_failed', label: 'Failed' };
+  if (ts.success) return { status: 'traj_done', label: 'Ready' };
+  if (ts.calculated) return { status: 'traj_failed', label: 'Failed' };
+  return { status: 'processing', label: 'Processing…' };
 };
 
 // Returns true when a mission still needs live status updates.
-// Keep polling while upload is running OR trajectory hasn't succeeded yet
-// (covers both the "processing" and "failed→retry" cases).
+// Keep polling while upload is running OR trajectory exists but hasn't finished yet.
 const needsPolling = m =>
-  m.status === 'in_progress' || (m.trajectory_status && !m.trajectory_status.success);
+  m.status === 'in_progress' || (m.trajectory_status && !m.trajectory_status.calculated);
 
 export const UploadMissions = () => {
   const [selectedTab, setSelectedTab] = useState(TABS.LIST);

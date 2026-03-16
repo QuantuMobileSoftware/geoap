@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.safestring import mark_safe
 from django.contrib.postgres.fields import ArrayField
 from django.conf import settings
 
@@ -95,7 +96,24 @@ class Component(models.Model):
                                                verbose_name='Google bucket input data')
     average_calculation_time_per_km2 = models.IntegerField(default=0,
                                                            verbose_name='Average calculation time per km2 in seconds')
-    upload_config = models.JSONField(null=True, blank=True, verbose_name='Upload config')
+    upload_config = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name='Upload config',
+        help_text=mark_safe(
+            'Example:<br>'
+            '<pre>'
+            '{\n'
+            '  "unit_folder": "unit",\n'
+            '  "upload": {\n'
+            '    "data_video": "DCIM",\n'
+            '    "log": "GPS_LOG",\n'
+            '    "calibration_video": null\n'
+            '  }\n'
+            '}'
+            '</pre>'
+        )
+    )
 
     def __str__(self):
         return self.name

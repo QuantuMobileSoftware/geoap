@@ -27,7 +27,10 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class UploadMissionsSerializer(serializers.ModelSerializer):
     trajectory_status = serializers.SerializerMethodField()
-    component_name = serializers.CharField(source='component.name', read_only=True)
+    component_name = serializers.SerializerMethodField()
+
+    def get_component_name(self, obj):
+        return obj.component.name if obj.component else None
 
     class Meta:
         model = UploadMissions
