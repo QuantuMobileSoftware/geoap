@@ -48,7 +48,7 @@ class UserBase(APITestCase):
         self.all_results_no_acl_user = User.objects.get(id=1005)
 
 class AuthTestCase(UserBase):
-    fixtures = ("user/fixtures/user_fixtures.json", )
+    fixtures = ("user/fixtures/user_fixtures.json",)
 
     def login_with_credentials(self, login_data):
         url = reverse("rest_login")

@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'dj_rest_auth.registration',
-    'flat_json_widget',
+    'django_json_widget',
     'drf_yasg',
     'rangefilter',
     'waffle',

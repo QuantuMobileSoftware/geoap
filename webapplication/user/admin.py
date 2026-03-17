@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db.models import JSONField
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
-from flat_json_widget.widgets import FlatJsonWidget
+from django_json_widget.widgets import JSONEditorWidget
 
 from user.models import User, Transaction, UploadMissions
 
@@ -69,7 +69,7 @@ class UploadMissionsAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
     raw_id_fields = ('component',)
     formfield_overrides = {
-        JSONField: {'widget': FlatJsonWidget},
+        JSONField: {'widget': JSONEditorWidget},
     }
 
 

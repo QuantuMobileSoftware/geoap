@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 from django.db.models import JSONField
-from flat_json_widget.widgets import FlatJsonWidget
+from django_json_widget.widgets import JSONEditorWidget
 from .models import AoI, Component, Request, TransactionErrorMessage
 from .forms import ComponentAdminForm
 
@@ -23,7 +23,7 @@ class ComponentAdmin(admin.OSMGeoAdmin):
 
     form = ComponentAdminForm
     formfield_overrides = {
-        JSONField: {'widget': FlatJsonWidget},
+        JSONField: {'widget': JSONEditorWidget},
     }
 
 
