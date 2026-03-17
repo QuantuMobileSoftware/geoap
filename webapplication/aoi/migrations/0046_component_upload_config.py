@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='component',
             name='upload_config',
-            field=models.JSONField(blank=True, null=True, verbose_name='Upload config'),
+            field=models.JSONField(blank=True, help_text='Example:<br><pre>{\n  "unit_folder": "unit",\n  "upload": {\n    "data_video": "DCIM",\n    "log": "GPS_LOG",\n    "calibration_video": null\n  }\n}</pre>', null=True, verbose_name='Upload config'),
         ),
     ]

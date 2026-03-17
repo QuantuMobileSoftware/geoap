@@ -161,7 +161,10 @@ class GenerateResumableUploadURLAPIView(APIView):
         ).select_related('component').first() if session_folder else None
         component = (mission and mission.component) or request.user.default_upload_component
 
-        upload_cfg = get_upload_config(component)
+        try:
+            upload_cfg = get_upload_config(component)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         upload_folders = upload_cfg['upload']
         unit_folder = upload_cfg['unit_folder']
 
@@ -236,7 +239,10 @@ class GenerateDownloadURLAPIView(APIView):
         ).select_related('component').first()
         component = (mission and mission.component) or request.user.default_upload_component
 
-        upload_cfg = get_upload_config(component)
+        try:
+            upload_cfg = get_upload_config(component)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         upload_folders = upload_cfg['upload']
         unit_folder = upload_cfg['unit_folder']
 

@@ -660,10 +660,26 @@ class UploadMissionsTestCase(UserBase):
 class GenerateUploadURLTestCase(UserBase):
     fixtures = ('user/fixtures/user_fixtures.json',)
 
+    _DEFAULT_UPLOAD_CONFIG = {
+        'unit_folder': 'unit',
+        'upload': {
+            'data_video': 'DCIM',
+            'log': 'GPS_LOG',
+            'calibration_video': None,
+        }
+    }
+
     def setUp(self):
         super().setUp()
+        from aoi.models import Component
+        component = Component.objects.create(
+            name='Default Upload Component',
+            image='test-image',
+            upload_config=self._DEFAULT_UPLOAD_CONFIG,
+        )
         self.ex_2_user.stone_google_folder = 'test-bucket'
-        self.ex_2_user.save(update_fields=['stone_google_folder'])
+        self.ex_2_user.default_upload_component = component
+        self.ex_2_user.save(update_fields=['stone_google_folder', 'default_upload_component'])
 
     def _mock_gcs(self):
         mock_client = mock.MagicMock()
@@ -808,7 +824,7 @@ class GenerateUploadURLTestCase(UserBase):
     @mock.patch('user.views.storage.Client.from_service_account_json')
     def test_session_folder_not_in_db_falls_back_to_default_component(self, mock_gcs_cls):
         from aoi.models import Component
-        component = Component.objects.create(name='Test Component', image='test-image')
+        component = Component.objects.create(name='Test Component', image='test-image', upload_config=self._DEFAULT_UPLOAD_CONFIG)
         self.ex_2_user.default_upload_component = component
         self.ex_2_user.save(update_fields=['default_upload_component'])
 
@@ -831,10 +847,26 @@ class GenerateUploadURLTestCase(UserBase):
 class GenerateDownloadURLTestCase(UserBase):
     fixtures = ('user/fixtures/user_fixtures.json',)
 
+    _DEFAULT_UPLOAD_CONFIG = {
+        'unit_folder': 'unit',
+        'upload': {
+            'data_video': 'DCIM',
+            'log': 'GPS_LOG',
+            'calibration_video': None,
+        }
+    }
+
     def setUp(self):
         super().setUp()
+        from aoi.models import Component
+        component = Component.objects.create(
+            name='Default Upload Component',
+            image='test-image',
+            upload_config=self._DEFAULT_UPLOAD_CONFIG,
+        )
         self.ex_2_user.stone_google_folder = 'test-bucket'
-        self.ex_2_user.save(update_fields=['stone_google_folder'])
+        self.ex_2_user.default_upload_component = component
+        self.ex_2_user.save(update_fields=['stone_google_folder', 'default_upload_component'])
 
     def test_missing_params_returns_400(self):
         self.client.force_login(self.ex_2_user)
@@ -955,54 +987,49 @@ class GenerateDownloadURLTestCase(UserBase):
 
 class UploadConfigTestCase(APITestCase):
 
-    def test_default_config_loaded(self):
-        config = get_upload_config()
-        self.assertIn('upload', config)
-        self.assertIn('unit_folder', config)
+    def test_no_component_raises_error(self):
+        with self.assertRaises(ValueError):
+            get_upload_config()
+
+    def test_none_component_raises_error(self):
+        with self.assertRaises(ValueError):
+            get_upload_config(None)
+
+    def test_component_with_no_upload_config_raises_error(self):
+        mock_component = mock.MagicMock()
+        mock_component.upload_config = None
+        with self.assertRaises(ValueError):
+            get_upload_config(mock_component)
+
+    def test_component_config_used(self):
+        mock_component = mock.MagicMock()
+        mock_component.upload_config = {
+            'unit_folder': 'unit_1',
+            'upload': {
+                'data_video': 'DCIM',
+                'log': 'GPS_LOG',
+                'calibration_video': None,
+            }
+        }
+        config = get_upload_config(mock_component)
         self.assertEqual(config['upload']['data_video'], 'DCIM')
         self.assertEqual(config['upload']['log'], 'GPS_LOG')
         self.assertIsNone(config['upload']['calibration_video'])
 
     def test_exclude_derived_from_upload_values(self):
-        config = get_upload_config()
-        self.assertIn('DCIM', config['exclude'])
-        self.assertIn('GPS_LOG', config['exclude'])
-        # null calibration_video must not appear in exclude
-        self.assertNotIn(None, config['exclude'])
-
-    def test_component_config_overrides_defaults(self):
         mock_component = mock.MagicMock()
         mock_component.upload_config = {
+            'unit_folder': 'unit_1',
             'upload': {
-                'data_video': 'CUSTOM_FOLDER',
-                'log': 'MY_LOG',
-                'calibration_video': 'CALIB',
+                'data_video': 'DCIM',
+                'log': 'GPS_LOG',
+                'calibration_video': None,
             }
         }
         config = get_upload_config(mock_component)
-        self.assertEqual(config['upload']['data_video'], 'CUSTOM_FOLDER')
-        self.assertEqual(config['upload']['log'], 'MY_LOG')
-        self.assertEqual(config['upload']['calibration_video'], 'CALIB')
-
-    def test_none_component_returns_default(self):
-        config_no_component = get_upload_config(None)
-        config_default = get_upload_config()
-        self.assertEqual(config_no_component, config_default)
-
-    def test_component_with_no_upload_config_returns_default(self):
-        mock_component = mock.MagicMock()
-        mock_component.upload_config = None
-        config = get_upload_config(mock_component)
-        self.assertEqual(config['upload']['data_video'], 'DCIM')
-
-    def test_partial_component_config_preserves_other_defaults(self):
-        mock_component = mock.MagicMock()
-        mock_component.upload_config = {'unit_folder': 'custom_unit'}
-        config = get_upload_config(mock_component)
-        self.assertEqual(config['unit_folder'], 'custom_unit')
-        # Other default keys must still be present
-        self.assertEqual(config['upload']['data_video'], 'DCIM')
         self.assertIn('DCIM', config['exclude'])
+        self.assertIn('GPS_LOG', config['exclude'])
+        self.assertNotIn(None, config['exclude'])
 
 
 class GoogleBucketFolderAPIViewTestCase(UserBase):

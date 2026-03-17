@@ -1,17 +1,11 @@
-import json
-import os
-
-_DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'upload_config.json')
-
-
 def get_upload_config(component=None):
-    with open(_DEFAULT_CONFIG_PATH) as f:
-        config = json.load(f)
+    if not component or not component.upload_config:
+        raise ValueError(
+            "Upload configuration is not set for this component. "
+            "Please configure the 'upload_config' field on the component."
+        )
 
-    if component and component.upload_config:
-        for key, value in component.upload_config.items():
-            config[key] = value
-
-    config['exclude'] = [folder for folder in config['upload'].values() if folder]
+    config = dict(component.upload_config)
+    config['exclude'] = [folder for folder in config.get('upload', {}).values() if folder]
 
     return config
