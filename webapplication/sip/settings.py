@@ -233,7 +233,6 @@ SCIHUB_CREDS = '.secret/scihub_creds.json'
 GEOAP_CREDS = '.secret/geoap_creds.json'
 GEOAP_CREDS_KYIV = '.secret/geoap_creds_kyiv.json'
 OPERATIONS_SERVICE_CREDS = '.secret/operations_service_credentials.json'
-GOOGLE_CLOUD_UPLOAD_ORIGIN = 'http://localhost:3000'
 SENTINELHUB_IMAGES_CREDS = '.secret/sentinelhub_images_creds.json'
 CLOUD_PERCENT_VALUE = 15
 SENTINELHUB_IMAGES_PERIOD_IN_DAYS = 3 * 365
@@ -251,6 +250,8 @@ IMAGE_PULL_SECRETS = os.getenv('IMAGE_PULL_SECRETS', 'regcred')
 NOTEBOOK_EXECUTOR_MAX_JOBS = int(os.getenv('NOTEBOOK_EXECUTOR_MAX_JOBS', 2))
 NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH = os.getenv('NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH', '/home/jovyan/work')
 GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
+
+GOOGLE_CLOUD_UPLOAD_ORIGIN = os.getenv('GOOGLE_CLOUD_UPLOAD_ORIGIN')
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
