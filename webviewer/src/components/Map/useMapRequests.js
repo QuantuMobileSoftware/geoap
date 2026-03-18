@@ -79,7 +79,7 @@ export const useMapRequests = (selectedArea, map) => {
         }
       });
       setRenderedLayers(filteredLayers);
-      deletedLayers.forEach(l => map.removeLayer(l.layer));
+      deletedLayers.forEach(l => map?.removeLayer(l.layer));
     }
 
     const addLayerInMap = (layer, selectedLayer) => {
@@ -178,7 +178,7 @@ export const useMapRequests = (selectedArea, map) => {
       if (lastId) {
         const layer = selectedResults.find(l => l.id === lastId);
         if (layer) {
-          map.fitBounds(
+          map?.fitBounds(
             getPolygonPositions({ polygon: layer.bounding_polygon }).coordinates[0]
           );
         }

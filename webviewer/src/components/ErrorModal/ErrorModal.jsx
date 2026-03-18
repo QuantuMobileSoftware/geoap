@@ -34,7 +34,7 @@ export const ErrorModal = () => {
         catchErrRoutes.some(route => matchPath(location.pathname, route)) &&
         error.status === 400;
 
-      if (error.config?.method === 'get' || isIgnoreError) {
+      if (isIgnoreError) {
         setError(null);
         return;
       }
@@ -53,7 +53,11 @@ export const ErrorModal = () => {
         } else if (error.status >= 500) {
           setErrorText(SERVER_ERROR);
         } else {
-          setErrorText(error.data?.name?.[0] || Object.values(error.data)?.[0][0]);
+          setErrorText(
+            error.data?.detail ||
+              error.data?.name?.[0] ||
+              Object.values(error.data)?.[0][0]
+          );
         }
       }
     });

@@ -3,7 +3,7 @@ from rangefilter.filter import DateRangeFilter
 
 from .models import Result, ACL
 from django.db.models import JSONField
-from flat_json_widget.widgets import FlatJsonWidget
+from django_json_widget.widgets import JSONEditorWidget
 
 
 @admin.register(Result)
@@ -30,7 +30,7 @@ class ResultAdmin(admin.OSMGeoAdmin):
 
     formfield_overrides = {
         JSONField: {
-            'widget': FlatJsonWidget,
+            'widget': JSONEditorWidget,
         },
     }
 
