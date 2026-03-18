@@ -164,7 +164,16 @@ class GenerateResumableUploadURLAPIView(APIView):
         try:
             upload_cfg = get_upload_config(component)
         except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            logger.warning(
+                "Invalid upload configuration for user=%s, component=%s: %s",
+                getattr(request.user, "id", None),
+                getattr(component, "id", None) if component is not None else None,
+                e,
+            )
+            return Response(
+                {"detail": _("Upload configuration is invalid for this account.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         upload_folders = upload_cfg['upload']
         unit_folder = upload_cfg['unit_folder']
 
@@ -242,7 +251,11 @@ class GenerateDownloadURLAPIView(APIView):
         try:
             upload_cfg = get_upload_config(component)
         except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            logger.exception("Failed to get upload config for component %s", component)
+            return Response(
+                {"detail": _("Invalid upload configuration.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         upload_folders = upload_cfg['upload']
         unit_folder = upload_cfg['unit_folder']
 
