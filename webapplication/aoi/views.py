@@ -176,6 +176,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
         aoi = validated_data.get("aoi")
         if aoi:
             area = aoi.area_in_sq_km
+        elif validated_data.get("polygon") is None:
+            area = 0
         else:
             polygon = GEOSGeometry(validated_data.get("polygon"))
             area = AoI.polygon_in_sq_km(polygon)
@@ -206,7 +208,7 @@ class RequestListCreateAPIView(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             area = self.get_area_in_sq_km(serializer.validated_data)
-        except GEOSException:
+        except (GEOSException, TypeError):
             validation_error = ValidationError(_("Sorry, we couldn't process your request because the provided "
                                                  "location is invalid"))
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
