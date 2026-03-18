@@ -6,6 +6,8 @@ ALLOWED_HOSTS.extend(["portal.soilmate.ai", "agrieos.in"])
 
 CSRF_TRUSTED_ORIGINS = ["portal.soilmate.ai", "agrieos.in"]
 
+GOOGLE_CLOUD_UPLOAD_ORIGIN="https://portal.soilmate.ai"
+
 # AOI app, notebook_executor
 NOTEBOOK_EXECUTOR_GPUS = "1"
 HOST_VOLUME_DATA_BASENAME = "sip"

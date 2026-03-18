@@ -251,7 +251,7 @@ NOTEBOOK_EXECUTOR_MAX_JOBS = int(os.getenv('NOTEBOOK_EXECUTOR_MAX_JOBS', 2))
 NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH = os.getenv('NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH', '/home/jovyan/work')
 GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 
-GOOGLE_CLOUD_UPLOAD_ORIGIN = os.getenv('GOOGLE_CLOUD_UPLOAD_ORIGIN')
+GOOGLE_CLOUD_UPLOAD_ORIGIN = 'http://localhost:3000'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@geoap.quantumobile.com'
