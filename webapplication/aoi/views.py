@@ -228,6 +228,8 @@ class RequestListCreateAPIView(ListCreateAPIView):
             return Response(as_serializer_error(validation_error), status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             self.perform_create(serializer)
+            serializer.instance.charged_area_sq_km = float(area)
+            serializer.instance.save(update_fields=["charged_area_sq_km"])
             self.create_transaction(
                 user=request.user,
                 amount=request_price,

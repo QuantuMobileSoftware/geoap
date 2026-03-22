@@ -159,6 +159,8 @@ class Request(models.Model):
     additional_parameter2 = models.CharField(max_length=50, null=True, blank=True, verbose_name='Additional parameter2')
     request_origin = models.CharField(max_length=50, default="https://portal.soilmate.ai/", verbose_name='Request origin')
     estimated_finish_time = models.DateTimeField(blank=True, null=True, verbose_name='Estimated finish time')
+    charged_area_sq_km = models.FloatField(null=True, blank=True, verbose_name='Charged area in sq km')
+    processed_area_sq_km = models.FloatField(null=True, blank=True, verbose_name='Processed area in sq km')
 
     @property
     def component_name(self):
