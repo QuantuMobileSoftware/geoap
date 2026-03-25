@@ -1065,7 +1065,7 @@ class GoogleBucketFolderAPIViewTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
 
     @mock.patch('user.views.storage.Client.from_service_account_json')
-    def test_bucket_not_found_returns_404(self, mock_gcs_cls):
+    def test_bucket_not_found_returns_400(self, mock_gcs_cls):
         mock_client = mock.MagicMock()
         mock_bucket = mock.MagicMock()
         mock_bucket.exists.return_value = False
@@ -1075,7 +1075,7 @@ class GoogleBucketFolderAPIViewTestCase(UserBase):
         self.client.force_login(self.ex_2_user)
         url = reverse('google_bucket_folder')
         response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
     @mock.patch('user.views.storage.Client.from_service_account_json')
     def test_empty_bucket_returns_204(self, mock_gcs_cls):
