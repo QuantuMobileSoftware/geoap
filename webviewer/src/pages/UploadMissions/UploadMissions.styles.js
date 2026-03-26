@@ -85,6 +85,27 @@ export const ListTitle = styled.h2`
   `}
 `;
 
+export const SortButton = styled.button`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    display: inline-flex;
+    align-items: center;
+    gap: ${em(4)};
+    font-size: ${em(13)};
+    padding: ${em(4)} ${em(10)};
+    border: 1px solid ${theme.colors.nature.n2};
+    border-radius: ${em(6)};
+    background: ${theme.colors.nature.n0};
+    color: ${theme.colors.nature.n4};
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    &:hover {
+      background: ${theme.colors.nature.n1};
+      color: ${theme.colors.primary.p1};
+    }
+  `}
+`;
+
 export const MissionsContainer = styled.div`
   ${({ theme }) => css`
     background: ${theme.colors.nature.n0};
