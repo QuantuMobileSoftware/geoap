@@ -54,6 +54,7 @@ import {
   SuccessButton,
   StatusMessage,
   EmptyState,
+  SortButton,
   MissionFileList,
   MissionFileRow,
   MissionFileName,
@@ -129,6 +130,7 @@ export const UploadMissions = () => {
   const [missions, setMissions] = useState([]);
   const [missionsLoading, setMissionsLoading] = useState(false);
   const [missionsError, setMissionsError] = useState(null);
+  const [sortNewest, setSortNewest] = useState(true);
 
   // ── Upload form ───────────────────────────────────────────────────
   const [dcimFiles, setDcimFiles] = useState([]);
@@ -150,7 +152,7 @@ export const UploadMissions = () => {
     (calibFile ? calibFile.file.size : 0);
 
   const canStart =
-    !uploading && !!calibFile && (dcimFiles.length > 0 || gpsFiles.length > 0);
+    !uploading && !!calibFile && dcimFiles.length > 0 && gpsFiles.length > 0;
 
   // ── API ───────────────────────────────────────────────────────────
 
@@ -479,6 +481,12 @@ export const UploadMissions = () => {
     <MissionsWrapper>
       <MissionListHeader>
         <ListTitle>Upload list</ListTitle>
+        <SortButton onClick={() => setSortNewest(prev => !prev)}>
+          <Icon width={14} height={14}>
+            {sortNewest ? 'ExpandDown' : 'ExpandUp'}
+          </Icon>
+          {sortNewest ? 'Newest first' : 'Oldest first'}
+        </SortButton>
       </MissionListHeader>
 
       {uploadError && (
@@ -552,6 +560,12 @@ export const UploadMissions = () => {
 
         {missions
           .filter(m => !(uploading && m.id === missionIdRef.current))
+          .slice()
+          .sort((a, b) =>
+            sortNewest
+              ? new Date(b.created_at) - new Date(a.created_at)
+              : new Date(a.created_at) - new Date(b.created_at)
+          )
           .map(mission => {
             const trajInfo = getTrajectoryInfo(mission.trajectory_status);
             const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
@@ -779,7 +793,13 @@ export const UploadMissions = () => {
               >
                 View uploads
               </SuccessButton>
-              <SuccessButton $secondary onClick={() => setShowSuccess(false)}>
+              <SuccessButton
+                $secondary
+                onClick={() => {
+                  setShowSuccess(false);
+                  setSelectedTab(TABS.NEW);
+                }}
+              >
                 Upload more
               </SuccessButton>
             </SuccessActions>

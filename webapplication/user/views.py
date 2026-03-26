@@ -85,32 +85,45 @@ class GoogleBucketFolderAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         google_bucket_folder_path = self.request.user.stone_google_folder
-        if google_bucket_folder_path:
+        if not google_bucket_folder_path:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        try:
             storage_client = storage.Client.from_service_account_json(
                 os.path.join(settings.PERSISTENT_STORAGE_PATH,
                              settings.OPERATIONS_SERVICE_CREDS))
             bucket = storage_client.bucket(google_bucket_folder_path)
-            if bucket.exists():
-                user_prefix = f"{self.request.user.username}/"
-                blobs = storage_client.list_blobs(google_bucket_folder_path, prefix=user_prefix)
-                paths = [blob.name for blob in blobs]
-                results = []
-                for path in paths:
-                    parts = path.rstrip('/').split('/')
-                    # Collect folder paths up to the session level (username/year/session/)
-                    for depth in range(2, min(4, len(parts))):
-                        folder_path = '/'.join(parts[:depth]) + '/'
-                        if folder_path not in results:
-                            results.append(folder_path)
+            if not bucket.exists():
+                return Response(
+                    {"detail": "Storage bucket not found. Please check the bucket name in your account settings."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            user_prefix = f"{self.request.user.username}/"
+            blobs = storage_client.list_blobs(google_bucket_folder_path, prefix=user_prefix)
+            paths = [blob.name for blob in blobs]
+        except Exception as e:
+            logger.exception(
+                "GCS error listing bucket folders for user=%s, bucket=%s: %s",
+                request.user.id, google_bucket_folder_path, e,
+            )
+            return Response(
+                {"detail": "Storage bucket is not available. Please check the bucket name in your account settings."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-                if results:
-                    return Response(results)
-                else:
-                    return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+        results = []
+        for path in paths:
+            parts = path.rstrip('/').split('/')
+            # Collect folder paths up to the session level (username/year/session/)
+            for depth in range(2, min(4, len(parts))):
+                folder_path = '/'.join(parts[:depth]) + '/'
+                if folder_path not in results:
+                    results.append(folder_path)
+
+        if results:
+            return Response(results)
         else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class GenerateResumableUploadURLAPIView(APIView):
@@ -193,15 +206,25 @@ class GenerateResumableUploadURLAPIView(APIView):
         else:
             blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
 
-        storage_client = storage.Client.from_service_account_json(
-            os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
-        )
-        bucket = storage_client.bucket(request.user.stone_google_folder)
-        blob = bucket.blob(blob_path)
-        resumable_url = blob.create_resumable_upload_session(
-            content_type=file_type,
-            origin=getattr(settings, "GOOGLE_CLOUD_UPLOAD_ORIGIN", None),
-        )
+        try:
+            storage_client = storage.Client.from_service_account_json(
+                os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+            )
+            bucket = storage_client.bucket(request.user.stone_google_folder)
+            blob = bucket.blob(blob_path)
+            resumable_url = blob.create_resumable_upload_session(
+                content_type=file_type,
+                origin=getattr(settings, "GOOGLE_CLOUD_UPLOAD_ORIGIN", None),
+            )
+        except Exception as e:
+            logger.exception(
+                "GCS error generating upload URL for user=%s, bucket=%s: %s",
+                request.user.id, request.user.stone_google_folder, e,
+            )
+            return Response(
+                {"detail": "Storage bucket is not available. Please check the bucket name in your account settings."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         logger.info(
             f"Resumable URL generated for user={request.user.id}, upload_type={upload_type}, file={blob_path}"
         )
@@ -272,16 +295,26 @@ class GenerateDownloadURLAPIView(APIView):
         else:
             blob_path = os.path.join(user_folder, session_folder, unit_folder, file_name)
 
-        storage_client = storage.Client.from_service_account_json(
-            os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
-        )
-        bucket = storage_client.bucket(request.user.stone_google_folder)
-        blob = bucket.blob(blob_path)
-        download_url = blob.generate_signed_url(
-            expiration=timedelta(hours=1),
-            method="GET",
-            version="v4",
-        )
+        try:
+            storage_client = storage.Client.from_service_account_json(
+                os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+            )
+            bucket = storage_client.bucket(request.user.stone_google_folder)
+            blob = bucket.blob(blob_path)
+            download_url = blob.generate_signed_url(
+                expiration=timedelta(hours=1),
+                method="GET",
+                version="v4",
+            )
+        except Exception as e:
+            logger.exception(
+                "GCS error generating download URL for user=%s, bucket=%s: %s",
+                request.user.id, request.user.stone_google_folder, e,
+            )
+            return Response(
+                {"detail": "Storage bucket is not available. Please check the bucket name in your account settings."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         logger.info(
             f"Download URL generated for user={request.user.id}, upload_type={upload_type}, file={blob_path}"
         )
