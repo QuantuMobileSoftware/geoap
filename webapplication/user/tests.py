@@ -843,6 +843,15 @@ class GenerateUploadURLTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data['session_folder'], '2099/2099-01-01_00-00-00')
 
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_gcs_exception_returns_400(self, mock_gcs_cls):
+        mock_gcs_cls.side_effect = Exception("GCS error")
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        response = self.client.get(url, {'file_name': 'video.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
+
 
 class GenerateDownloadURLTestCase(UserBase):
     fixtures = ('user/fixtures/user_fixtures.json',)
@@ -983,6 +992,19 @@ class GenerateDownloadURLTestCase(UserBase):
         blob_path = mock_client.bucket.return_value.blob.call_args[0][0]
         self.assertIn('GPS_LOG', blob_path)
         self.assertIn('gps.log', blob_path)
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_gcs_exception_returns_400(self, mock_gcs_cls):
+        mock_gcs_cls.side_effect = Exception("GCS error")
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_download_url')
+        response = self.client.get(url, {
+            'file_name': 'video.mp4',
+            'upload_type': 'data_video',
+            'session_folder': '2024/2024-01-01_10-00-00',
+        })
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
 
 
 class UploadConfigTestCase(APITestCase):
@@ -1183,3 +1205,12 @@ class GoogleBucketFolderAPIViewTestCase(UserBase):
         url = reverse('google_bucket_folder')
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_gcs_exception_returns_400(self, mock_gcs_cls):
+        mock_gcs_cls.side_effect = Exception("GCS error")
+        self.client.force_login(self.ex_2_user)
+        url = reverse('google_bucket_folder')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
