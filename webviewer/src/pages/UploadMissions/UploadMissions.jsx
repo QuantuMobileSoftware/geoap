@@ -4,6 +4,7 @@ import { Breadcrumbs } from 'components/_shared/Breadcrumbs';
 import { Icon } from 'components/_shared/Icon';
 import { ROUTES } from '_constants';
 import { API } from 'api';
+import { uploadFileChunked } from 'api/upload/uploadChunked';
 import {
   SectionsGrid,
   SectionCard,
@@ -139,7 +140,7 @@ export const UploadMissions = () => {
   const [uploading, setUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const xhrRefs = useRef({});
+  const abortControllerRef = useRef(null);
   const missionIdRef = useRef(null);
   const getMissionsRef = useRef(null);
 
@@ -216,7 +217,8 @@ export const UploadMissions = () => {
   useEffect(() => {
     return () => {
       if (missionIdRef.current) {
-        Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
         API.upload
           .updateMission(missionIdRef.current, { status: 'failed' })
           .catch(() => {});
@@ -235,28 +237,12 @@ export const UploadMissions = () => {
 
   // ── Upload helpers ────────────────────────────────────────────────
 
-  // onProgress(percent, loadedBytes)
-  const uploadFileXHR = (uploadUrl, file, onProgress) =>
-    new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhrRefs.current[file.name] = xhr;
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.upload.onprogress = e => {
-        if (e.lengthComputable)
-          onProgress(Math.round((e.loaded / e.total) * 100), e.loaded);
-      };
-      xhr.onload = () =>
-        xhr.status >= 200 && xhr.status < 300
-          ? resolve()
-          : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
-      xhr.onerror = () => reject(new Error('Network error during upload'));
-      xhr.send(file);
-    });
-
   const handleUpload = async () => {
     setUploading(true);
     setUploadError(null);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     let missionId = null;
     let sessionFolder = null;
@@ -328,23 +314,28 @@ export const UploadMissions = () => {
           item.type,
           sessionFolder
         );
-        await uploadFileXHR(data.upload_url, item.fileItem.file, (percent, loaded) => {
-          item.markProgress(percent, true);
-          if (totalBytesAll > 0) {
-            const overall = Math.round(
-              ((bytesBeforeThisFile + loaded) / totalBytesAll) * 100
-            );
-            setLiveUpload(prev =>
-              prev
-                ? {
-                    ...prev,
-                    progress: overall,
-                    bytesLoaded: bytesBeforeThisFile + loaded
-                  }
-                : null
-            );
-          }
-        });
+        await uploadFileChunked(
+          data.upload_url,
+          item.fileItem.file,
+          (percent, loaded) => {
+            item.markProgress(percent, true);
+            if (totalBytesAll > 0) {
+              const overall = Math.round(
+                ((bytesBeforeThisFile + loaded) / totalBytesAll) * 100
+              );
+              setLiveUpload(prev =>
+                prev
+                  ? {
+                      ...prev,
+                      progress: overall,
+                      bytesLoaded: bytesBeforeThisFile + loaded
+                    }
+                  : null
+              );
+            }
+          },
+          abortController.signal
+        );
         totalBytesLoaded += item.fileItem.file.size;
         item.markProgress(100, false);
       }
@@ -392,13 +383,13 @@ export const UploadMissions = () => {
       setUploadError('Upload failed. Please try again.');
     } finally {
       setUploading(false);
-      xhrRefs.current = {};
+      abortControllerRef.current = null;
     }
   };
 
   const cancelUpload = () => {
-    Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
-    xhrRefs.current = {};
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     setUploading(false);
     setLiveUpload(null);
     setDcimFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));

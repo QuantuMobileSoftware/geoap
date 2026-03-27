@@ -4,6 +4,7 @@ import { Breadcrumbs } from 'components/_shared/Breadcrumbs';
 import { Icon } from 'components/_shared/Icon';
 import { ROUTES } from '_constants';
 import { API } from 'api';
+import { uploadFileChunked } from 'api/upload/uploadChunked';
 import { areasEvents } from '_events';
 import {
   PageContainer,
@@ -43,32 +44,18 @@ export const Upload = () => {
   const [calibFile, setCalibFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(null);
-  const xhrRefs = useRef({});
+  const abortControllerRef = useRef(null);
 
   const totalFiles = dcimFiles.length + gpsFiles.length + (calibFile ? 1 : 0);
-
-  const uploadFileXHR = (uploadUrl, file, onProgress) => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhrRefs.current[file.name] = xhr;
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.upload.onprogress = e => {
-        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-      };
-      xhr.onload = () =>
-        xhr.status >= 200 && xhr.status < 300
-          ? resolve()
-          : reject(new Error(`Upload failed: HTTP ${xhr.status}`));
-      xhr.onerror = () => reject(new Error('Network error during upload'));
-      xhr.send(file);
-    });
-  };
 
   const handleUpload = async () => {
     if (totalFiles === 0) return;
     setUploading(true);
     setSuccess(null);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     let sessionFolder = null;
 
     const queue = [
@@ -114,8 +101,11 @@ export const Upload = () => {
           sessionFolder
         );
         sessionFolder = data.session_folder;
-        await uploadFileXHR(data.upload_url, item.fileItem.file, percent =>
-          item.markProgress(percent, true)
+        await uploadFileChunked(
+          data.upload_url,
+          item.fileItem.file,
+          percent => item.markProgress(percent, true),
+          abortController.signal
         );
         item.markProgress(100, false);
       }
@@ -128,13 +118,13 @@ export const Upload = () => {
       setSuccess(false);
     } finally {
       setUploading(false);
-      xhrRefs.current = {};
+      abortControllerRef.current = null;
     }
   };
 
   const cancelUpload = () => {
-    Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
-    xhrRefs.current = {};
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     setUploading(false);
     setDcimFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
     setGpsFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
