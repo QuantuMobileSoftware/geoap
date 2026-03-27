@@ -1,11 +1,12 @@
 import json
 import logging
 from decimal import Decimal
+from unittest import mock
 
 from rest_framework import status
 from django.urls import reverse
 from django.conf import settings
-from user.models import User
+from user.models import User, Transaction
 from .models import AoI, Component, Request
 from .serializers import AoISerializer
 from user.tests import UserBase
@@ -667,7 +668,85 @@ class RequestTestCase(UserBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, target_response)
 
-    
+    def test_request_stores_charged_area_sq_km(self):
+        self.client.force_login(self.staff_user)
+        response = self.create_request(self.data_create)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        request = Request.objects.get(pk=response.data['id'])
+        self.assertIsNotNone(request.charged_area_sq_km)
+        self.assertGreater(request.charged_area_sq_km, 0)
+
+
+class CreateChangeTransactionTestCase(UserBase):
+    fixtures = ['user/fixtures/user_fixtures.json',
+                'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json',
+                'aoi/fixtures/request_fixtures.json']
+
+    def setUp(self):
+        super().setUp()
+        from aoi.utils import create_change_transaction
+        self.create_change_transaction = create_change_transaction
+        self.request_obj = Request.objects.get(pk=1001)
+        self.request_obj.charged_area_sq_km = 10.0
+        self.request_obj.save(update_fields=['charged_area_sq_km'])
+        self.original_tx = Transaction.objects.create(
+            user=self.staff_user,
+            amount=Decimal('-10.00'),
+            request=self.request_obj,
+            completed=True,
+            rolled_back=False,
+        )
+
+    def _mock_price(self, price):
+        return mock.patch.object(Component, 'calculate_request_price', return_value=Decimal(str(price)))
+
+    def test_saves_processed_area_on_request(self):
+        with self._mock_price('4.00'):
+            self.create_change_transaction(self.request_obj, 5.0)
+        self.request_obj.refresh_from_db()
+        self.assertEqual(self.request_obj.processed_area_sq_km, 5.0)
+
+    def test_creates_refund_when_processed_less_than_charged(self):
+        with self._mock_price('4.00'):
+            change_tx = self.create_change_transaction(self.request_obj, 5.0)
+        self.assertIsNotNone(change_tx)
+        self.assertEqual(change_tx.amount, Decimal('6.00'))
+        self.assertTrue(change_tx.completed)
+
+    def test_updates_user_balance_on_refund(self):
+        initial_balance = self.staff_user.balance
+        with self._mock_price('4.00'):
+            self.create_change_transaction(self.request_obj, 5.0)
+        self.staff_user.refresh_from_db()
+        self.assertEqual(self.staff_user.balance, initial_balance + Decimal('6.00'))
+
+    def test_returns_none_when_no_original_transaction(self):
+        self.original_tx.delete()
+        result = self.create_change_transaction(self.request_obj, 5.0)
+        self.assertIsNone(result)
+
+    def test_returns_none_when_processed_equals_charged(self):
+        result = self.create_change_transaction(self.request_obj, 10.0)
+        self.assertIsNone(result)
+
+    def test_returns_none_when_processed_greater_than_charged(self):
+        result = self.create_change_transaction(self.request_obj, 15.0)
+        self.assertIsNone(result)
+
+    def test_returns_none_when_charged_area_is_none(self):
+        self.request_obj.charged_area_sq_km = None
+        self.request_obj.save(update_fields=['charged_area_sq_km'])
+        result = self.create_change_transaction(self.request_obj, 5.0)
+        self.assertIsNone(result)
+
+    def test_returns_none_when_change_amount_is_zero(self):
+        # actual price equals original price → no refund due
+        with self._mock_price('10.00'):
+            result = self.create_change_transaction(self.request_obj, 5.0)
+        self.assertIsNone(result)
+
+
 class AOIRequestsTestCase(UserBase):
     fixtures = ['user/fixtures/user_fixtures.json',
                 'aoi/fixtures/aoi_fixtures.json',
