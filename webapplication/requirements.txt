@@ -23,7 +23,7 @@ google-cloud-storage==2.18.0
 
 # geo libs
 rasterio==1.1.8
-geopandas==0.8.1
+geopandas==1.1.2
 geojson==2.5.0
 
 # k8s
