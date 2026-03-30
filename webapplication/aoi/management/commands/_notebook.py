@@ -1,5 +1,8 @@
 import docker
+import glob
+import json
 import logging
+import os
 import re
 
 from abc import abstractmethod, ABC
@@ -8,6 +11,7 @@ from threading import Thread, Lock, Event
 from django.db import transaction
 
 from aoi.models import Component, Request, AoI, TransactionErrorMessage
+from aoi.utils import create_change_transaction
 from user.models import User, Transaction
 from aoi.management.commands._Container import (Container,
                                                 ContainerValidator,
@@ -23,6 +27,14 @@ from django.contrib.postgres.fields import ArrayField
 logger = logging.getLogger(__name__)
 
 THREAD_SLEEP = 10
+
+
+def find_area_json(request_pk):
+    """Find Area-*.json file in request result folder."""
+    result_dir = os.path.join(settings.RESULTS_FOLDER, f"request_{request_pk}")
+    matches = glob.glob(os.path.join(result_dir, "Area-*.json"))
+    return matches[0] if matches else None
+
 
 def clean_container_logs(logs):
     # Remove line numbers
@@ -278,6 +290,22 @@ class PublisherThread(StoppableThread):
                 with transaction.atomic():
                     request_transaction.save(update_fields=("completed",))
                     request_transaction.user.save(update_fields=("balance", "on_hold"))
+
+                area_json_path = find_area_json(sr.pk)
+                if area_json_path:
+                    try:
+                        with open(area_json_path) as f:
+                            area_data = json.load(f)
+                        processed_area = area_data.get("total_area_sq_km")
+                        if processed_area is not None:
+                            change_tx = create_change_transaction(sr, processed_area)
+                            if change_tx:
+                                logger.info(
+                                    f"Change transaction {change_tx.pk} created for request {sr.pk}: "
+                                    f"+{change_tx.amount}"
+                                )
+                    except Exception as ex:
+                        logger.error(f"Error processing area change for request {sr.pk}: {str(ex)}")
 
                 email_notification(sr, "succeeded")
         success_requests.update(finished_at=localtime(), success=True)

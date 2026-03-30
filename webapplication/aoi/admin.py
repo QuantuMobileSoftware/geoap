@@ -30,8 +30,9 @@ class ComponentAdmin(admin.OSMGeoAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.OSMGeoAdmin):
     list_display = ('pk', 'user', 'aoi', 'component', 'date_from', 'date_to', 'started_at', 'finished_at',
-                    'calculated', 'success', 'error', 'additional_parameter', 'additional_parameter2', 'user_readable_errors')
-    readonly_fields = ['pk', 'started_at', 'calculated', 'error', ]
+                    'calculated', 'success', 'error', 'additional_parameter', 'additional_parameter2',
+                    'user_readable_errors', 'charged_area_sq_km', 'processed_area_sq_km')
+    readonly_fields = ['pk', 'started_at', 'calculated', 'error', 'charged_area_sq_km', 'processed_area_sq_km']
 
 
 
