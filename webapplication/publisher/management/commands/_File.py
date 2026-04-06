@@ -48,6 +48,8 @@ class FileFactory(object):
             return Geotif(path, self.basedir, request)
         elif path_lower.endswith('.gpx'):
             return GPXFile(path, self.basedir, request)
+        elif os.path.basename(path_lower).startswith('area-') and path_lower.endswith('.json'):
+            return AreaJson(path, self.basedir, request)
         else:
             return
 
@@ -566,3 +568,33 @@ class GPXFile(File):
         if self.style_url:
             dict_['styles_url'] = self.style_url
         return dict_
+
+
+class AreaJson(File):
+    """Handles Area-*.json files produced by components that report processed area.
+    Stored as released=False so it is invisible in the regular UI but returned by
+    /api/results to service accounts with view_unreleased_result permission,
+    allowing the remote executor to download it automatically.
+    """
+
+    def read_file(self):
+        pass
+
+    def layer_type(self):
+        return Result.JSON
+
+    def rel_url(self):
+        return f"/results/{super().filepath()}"
+
+    def get_styles_url(self):
+        return None
+
+    def bounding_polygon(self):
+        if self.request and self.request.polygon:
+            return GEOSGeometry(self.request.polygon.wkt)
+        return None
+
+    def as_dict(self):
+        d = super().as_dict()
+        d['released'] = False
+        return d

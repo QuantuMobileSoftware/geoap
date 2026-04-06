@@ -7,6 +7,8 @@ from user.views import (
     GenerateDownloadURLAPIView,
     UploadMissionsListCreateAPIView,
     UploadMissionsUpdateAPIView,
+    UploadMissionsDeleteAPIView,
+    UploadMissionsRemoveFilesAPIView,
 )
 
 urlpatterns = [
@@ -16,4 +18,6 @@ urlpatterns = [
     path('generate_download_url/', GenerateDownloadURLAPIView.as_view(), name='generate_download_url'),
     path('upload_missions/', UploadMissionsListCreateAPIView.as_view(), name='upload_missions_list'),
     path('upload_missions/<int:pk>/', UploadMissionsUpdateAPIView.as_view(), name='upload_mission_detail'),
+    path('upload_missions/<int:pk>/delete/', UploadMissionsDeleteAPIView.as_view(), name='upload_mission_delete'),
+    path('upload_missions/<int:pk>/remove_files/', UploadMissionsRemoveFilesAPIView.as_view(), name='upload_mission_remove_files'),
 ]

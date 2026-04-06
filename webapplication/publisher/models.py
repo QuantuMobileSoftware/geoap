@@ -12,11 +12,13 @@ class Result(models.Model):
     GEOJSON = 'GEOJSON'
     MVT = 'MVT'
     XYZ = 'XYZ'
+    JSON = 'JSON'
 
     LAYER_TYPE_CHOICES = [
         (GEOJSON, 'GEOJSON'),
         (MVT, 'MVT'),
         (XYZ, 'XYZ'),
+        (JSON, 'JSON'),
     ]
     layer_type = models.CharField(
         max_length=7,
