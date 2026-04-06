@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from typing import Dict, Optional, List
 from aoi.models import Component, Request
 from django.conf import settings
@@ -114,12 +115,9 @@ class ComponentExecutionHelper():
     @staticmethod
     def create_result_folder(request:Request) -> None:
         """Create special folder to store results of request"""
-        os.makedirs(
-            os.path.join(
-                settings.RESULTS_FOLDER,
-                f"request_{request.pk}"
-            ),
-            exist_ok=True
-        )
+        folder = os.path.join(settings.RESULTS_FOLDER, f"request_{request.pk}")
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+        os.makedirs(folder)
 
 

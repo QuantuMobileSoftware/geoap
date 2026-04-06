@@ -520,3 +520,119 @@ export const EmptyState = styled.div`
     text-align: center;
   `}
 `;
+
+export const DeleteMissionButton = styled.button`
+  ${({ theme }) => css`
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: ${em(4)};
+    color: ${theme.colors.danger};
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    &:hover {
+      background: #fef2f2;
+    }
+  `}
+`;
+
+export const FileCheckbox = styled.input.attrs({ type: 'checkbox' })`
+  ${({ theme }) => css`
+    width: ${em(15)};
+    height: ${em(15)};
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: ${theme.colors.primary.p1};
+  `}
+`;
+
+export const RemoveFilesButton = styled.button`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    display: inline-flex;
+    align-items: center;
+    gap: ${em(6)};
+    font-size: ${em(13)};
+    padding: ${em(6)} ${em(14)};
+    border: 1px solid ${theme.colors.danger};
+    border-radius: ${em(6)};
+    background: none;
+    color: ${theme.colors.danger};
+    cursor: pointer;
+    margin-top: ${em(10)};
+    transition: background 0.2s;
+    &:hover {
+      background: #fef2f2;
+    }
+  `}
+`;
+
+export const ConfirmOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const ConfirmCard = styled.div`
+  ${({ theme }) => css`
+    background: ${theme.colors.nature.n0};
+    border-radius: ${em(16)};
+    padding: ${em(32)} ${em(40)};
+    max-width: ${em(400)};
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+  `}
+`;
+
+export const ConfirmTitle = styled.h3`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'h2' })};
+    color: ${theme.colors.nature.n5};
+    margin: 0 0 ${em(10)};
+    font-size: ${em(18)};
+  `}
+`;
+
+export const ConfirmText = styled.p`
+  ${({ theme }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    color: ${theme.colors.nature.n3};
+    margin: 0 0 ${em(24)};
+    font-size: ${em(14)};
+  `}
+`;
+
+export const ConfirmActions = styled.div`
+  display: flex;
+  gap: ${em(12)};
+  justify-content: center;
+`;
+
+export const ConfirmButton = styled.button`
+  ${({ theme, $danger }) => css`
+    ${typographyStyle({ theme, variant: 'body2' })};
+    padding: ${em(8)} ${em(22)};
+    border-radius: ${em(20)};
+    font-size: ${em(14)};
+    border: none;
+    cursor: pointer;
+    background: ${$danger ? theme.colors.danger : theme.colors.nature.n2};
+    color: ${$danger ? theme.colors.nature.n0 : theme.colors.nature.n5};
+    transition: opacity 0.2s;
+    &:hover {
+      opacity: 0.85;
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `}
+`;

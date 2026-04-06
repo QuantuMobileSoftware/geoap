@@ -375,3 +375,143 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
             instance.save(update_fields=['trajectory_request'])
 
 
+class UploadMissionsDeleteAPIView(APIView):
+    """Delete a failed mission and remove its GCS folder contents."""
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, pk, *args, **kwargs):
+        try:
+            mission = UploadMissions.objects.get(pk=pk, user=request.user)
+        except UploadMissions.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if mission.status != UploadMissions.STATUS_FAILED:
+            return Response(
+                {"detail": "Only failed missions can be deleted."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if request.user.stone_google_folder and mission.gcs_path:
+            try:
+                storage_client = storage.Client.from_service_account_json(
+                    os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+                )
+                bucket = storage_client.bucket(request.user.stone_google_folder)
+                prefix = f"{request.user.username}/{mission.gcs_path}/"
+                blobs = list(storage_client.list_blobs(request.user.stone_google_folder, prefix=prefix))
+                if blobs:
+                    bucket.delete_blobs(blobs, on_error=lambda blob: None)
+            except Exception as e:
+                logger.exception(
+                    "GCS error deleting folder for mission=%s, user=%s: %s",
+                    mission.id, request.user.id, e,
+                )
+
+        mission.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UploadMissionsRemoveFilesAPIView(APIView):
+    """Remove specific files from a completed mission and re-run trajectory."""
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            mission = UploadMissions.objects.select_related(
+                'component', 'trajectory_request'
+            ).get(pk=pk, user=request.user)
+        except UploadMissions.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if mission.status != UploadMissions.STATUS_COMPLETED:
+            return Response(
+                {"detail": "Files can only be removed from completed missions."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        files_to_remove = request.data.get('files_to_remove', [])
+        if not files_to_remove or not isinstance(files_to_remove, list):
+            return Response(
+                {"detail": "files_to_remove must be a non-empty list of file names."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        component = mission.component or request.user.default_upload_component
+        try:
+            upload_cfg = get_upload_config(component)
+        except ValueError as e:
+            logger.warning(
+                "Invalid upload config for mission=%s, user=%s: %s",
+                mission.id, request.user.id, e,
+            )
+            return Response(
+                {"detail": "Upload configuration is invalid for this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        upload_folders = upload_cfg['upload']
+        unit_folder = upload_cfg['unit_folder']
+        user_folder = request.user.username
+        uploaded_files = mission.uploaded_files or []
+        file_map = {f['name']: f for f in uploaded_files}
+
+        if request.user.stone_google_folder:
+            try:
+                storage_client = storage.Client.from_service_account_json(
+                    os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+                )
+                bucket = storage_client.bucket(request.user.stone_google_folder)
+                blobs_to_delete = []
+                for file_name in files_to_remove:
+                    file_record = file_map.get(file_name)
+                    if not file_record:
+                        continue
+                    upload_type = file_record.get('type')
+                    type_folder = upload_folders.get(upload_type)
+                    if type_folder:
+                        blob_path = os.path.join(
+                            user_folder, mission.gcs_path, unit_folder, type_folder, file_name
+                        )
+                    else:
+                        blob_path = os.path.join(
+                            user_folder, mission.gcs_path, unit_folder, file_name
+                        )
+                    blobs_to_delete.append(bucket.blob(blob_path))
+                if blobs_to_delete:
+                    bucket.delete_blobs(blobs_to_delete, on_error=lambda blob: None)
+            except Exception as e:
+                logger.exception(
+                    "GCS error removing files for mission=%s, user=%s: %s",
+                    mission.id, request.user.id, e,
+                )
+                return Response(
+                    {"detail": "Failed to delete files from storage."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+        remove_set = set(files_to_remove)
+        mission.uploaded_files = [f for f in uploaded_files if f['name'] not in remove_set]
+
+        mission.trajectory_request = None
+        mission.save(update_fields=['uploaded_files', 'trajectory_request'])
+
+        if component and request.user.stone_google_folder:
+            full_gcs_path = (
+                f"{request.user.stone_google_folder}"
+                f"/{request.user.username}"
+                f"/{mission.gcs_path}/"
+            )
+            trajectory_request = Request.objects.create(
+                user=request.user,
+                component=component,
+                aoi=None,
+                polygon=None,
+                additional_parameter=full_gcs_path,
+            )
+            mission.trajectory_request = trajectory_request
+            mission.save(update_fields=['trajectory_request'])
+
+        serializer = UploadMissionsSerializer(mission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+

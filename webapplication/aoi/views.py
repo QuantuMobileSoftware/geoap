@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.serializers import ValidationError, as_serializer_error
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.generics import get_object_or_404
 from publisher.serializers import ResultSerializer
 from publisher.models import Result
@@ -257,6 +257,28 @@ class RequestRetrieveAPIView(RetrieveAPIView):
     http_method_names = ("get", )
     
     
+class RequestProcessedAreaUpdateView(UpdateAPIView):
+    """
+    Update processed_area_sq_km for a Request.
+    Accepts: PATCH method.
+    Accepted field: 'processed_area_sq_km'.
+    """
+    permission_classes = (ModelPermissions, IsOwnerPermission)
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
+    http_method_names = ("patch",)
+    lookup_url_kwarg = "pk"
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        processed_area = request.data.get("processed_area_sq_km")
+        if processed_area is None:
+            return Response({"error": "processed_area_sq_km is required"}, status=status.HTTP_400_BAD_REQUEST)
+        instance.processed_area_sq_km = float(processed_area)
+        instance.save(update_fields=["processed_area_sq_km"])
+        return Response({"processed_area_sq_km": instance.processed_area_sq_km})
+
+
 class AOIRequestListAPIView(ListAPIView):
     """
     Get list of all Requests that were created for given 'Area Of Interest'

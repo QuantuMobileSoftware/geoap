@@ -15,6 +15,12 @@ const getMissions = () => axiosInstance.get(uploadEndpoints.uploadMissions);
 const createMission = () => axiosInstance.post(uploadEndpoints.uploadMissions);
 const updateMission = (id, data) =>
   axiosInstance.patch(`${uploadEndpoints.uploadMissions}${id}/`, data);
+const deleteMission = id =>
+  axiosInstance.delete(`${uploadEndpoints.uploadMissions}${id}/delete/`);
+const removeMissionFiles = (id, fileNames) =>
+  axiosInstance.post(`${uploadEndpoints.uploadMissions}${id}/remove_files/`, {
+    files_to_remove: fileNames
+  });
 const getDownloadURL = (fileName, uploadType, sessionFolder) =>
   axiosInstance.get(uploadEndpoints.generateDownloadUrl, {
     params: {
@@ -29,5 +35,7 @@ export const uploadRequests = {
   getMissions,
   createMission,
   updateMission,
+  deleteMission,
+  removeMissionFiles,
   getDownloadURL
 };

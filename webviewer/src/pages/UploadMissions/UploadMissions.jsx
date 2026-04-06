@@ -61,7 +61,16 @@ import {
   MissionFileSize,
   DownloadButton,
   StatusGroup,
-  StatusChip
+  StatusChip,
+  DeleteMissionButton,
+  FileCheckbox,
+  RemoveFilesButton,
+  ConfirmOverlay,
+  ConfirmCard,
+  ConfirmTitle,
+  ConfirmText,
+  ConfirmActions,
+  ConfirmButton
 } from './UploadMissions.styles';
 
 const TABS = { LIST: 'Upload list', NEW: 'New Upload' };
@@ -145,6 +154,17 @@ export const UploadMissions = () => {
 
   // ── Live upload progress (shown in the list while uploading) ──────
   const [liveUpload, setLiveUpload] = useState(null);
+
+  // ── Delete / remove-files confirmation modal ──────────────────────
+  // confirmModal = null | { type: 'delete_mission', missionId }
+  //              | { type: 'remove_files', missionId, fileNames }
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [confirmError, setConfirmError] = useState(null);
+
+  // ── Per-mission file selection for completed missions ─────────────
+  // { [missionId]: Set<filename> }
+  const [fileSelections, setFileSelections] = useState({});
 
   const totalBytes =
     dcimFiles.reduce((s, f) => s + f.file.size, 0) +
@@ -231,6 +251,74 @@ export const UploadMissions = () => {
     setMissions(prev =>
       prev.map(m => (m.id === id ? { ...m, showDetails: !m.showDetails } : m))
     );
+  };
+
+  // ── Delete failed mission ─────────────────────────────────────────
+
+  const handleDeleteMission = missionId => {
+    setConfirmError(null);
+    setConfirmModal({ type: 'delete_mission', missionId });
+  };
+
+  const confirmDeleteMission = async () => {
+    const { missionId } = confirmModal;
+    setConfirmLoading(true);
+    setConfirmError(null);
+    try {
+      await API.upload.deleteMission(missionId);
+      setMissions(prev => prev.filter(m => m.id !== missionId));
+      setConfirmModal(null);
+    } catch {
+      setConfirmError('Failed to delete the upload. Please try again.');
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  // ── Remove files from completed mission ───────────────────────────
+
+  const toggleFileSelection = (missionId, fileName) => {
+    setFileSelections(prev => {
+      const current = new Set(prev[missionId] || []);
+      if (current.has(fileName)) {
+        current.delete(fileName);
+      } else {
+        current.add(fileName);
+      }
+      return { ...prev, [missionId]: current };
+    });
+  };
+
+  const handleRemoveFiles = missionId => {
+    const selected = fileSelections[missionId];
+    if (!selected || selected.size === 0) return;
+    setConfirmError(null);
+    setConfirmModal({ type: 'remove_files', missionId, fileNames: [...selected] });
+  };
+
+  const confirmRemoveFiles = async () => {
+    const { missionId, fileNames } = confirmModal;
+    setConfirmLoading(true);
+    setConfirmError(null);
+    try {
+      const { data } = await API.upload.removeMissionFiles(missionId, fileNames);
+      setMissions(prev =>
+        prev.map(m =>
+          m.id === missionId ? { ...m, ...data, showDetails: m.showDetails } : m
+        )
+      );
+      setFileSelections(prev => ({ ...prev, [missionId]: new Set() }));
+      setConfirmModal(null);
+    } catch {
+      setConfirmError('Failed to remove files. Please try again.');
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (confirmModal?.type === 'delete_mission') confirmDeleteMission();
+    else if (confirmModal?.type === 'remove_files') confirmRemoveFiles();
   };
 
   // ── Upload helpers ────────────────────────────────────────────────
@@ -569,6 +657,9 @@ export const UploadMissions = () => {
           .map(mission => {
             const trajInfo = getTrajectoryInfo(mission.trajectory_status);
             const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
+            const isFailed = mission.status === 'failed';
+            const isCompleted = mission.status === 'completed';
+            const selectedFiles = fileSelections[mission.id] || new Set();
             return (
               <MissionItemBlock key={mission.id}>
                 {/* ── Collapsed row ── */}
@@ -599,6 +690,16 @@ export const UploadMissions = () => {
                         </StatusChip>
                       )}
                     </StatusGroup>
+                    {isFailed && (
+                      <DeleteMissionButton
+                        title='Delete this upload and remove its files from storage'
+                        onClick={() => handleDeleteMission(mission.id)}
+                      >
+                        <Icon width={16} height={16}>
+                          Delete
+                        </Icon>
+                      </DeleteMissionButton>
+                    )}
                     <ToggleButton
                       title='Show / hide session details'
                       onClick={() => toggleDetails(mission.id)}
@@ -622,26 +723,46 @@ export const UploadMissions = () => {
                       </HelpText>
                     </MissionDateInfo>
                     {hasFiles && (
-                      <MissionFileList>
-                        {mission.uploaded_files.map(f => (
-                          <MissionFileRow key={f.name}>
-                            <MissionFileName title={f.name}>{f.name}</MissionFileName>
-                            {f.size != null && (
-                              <MissionFileSize>{toMB(f.size)} MB</MissionFileSize>
-                            )}
-                            <DownloadButton
-                              title='Download file'
-                              onClick={() =>
-                                handleDownload(f.name, f.type, mission.gcs_path)
-                              }
-                            >
-                              <Icon width={16} height={16}>
-                                Download
-                              </Icon>
-                            </DownloadButton>
-                          </MissionFileRow>
-                        ))}
-                      </MissionFileList>
+                      <>
+                        <MissionFileList>
+                          {mission.uploaded_files.map(f => (
+                            <MissionFileRow key={f.name}>
+                              {isCompleted && (
+                                <FileCheckbox
+                                  checked={selectedFiles.has(f.name)}
+                                  onChange={() => toggleFileSelection(mission.id, f.name)}
+                                  title='Select to remove'
+                                />
+                              )}
+                              <MissionFileName title={f.name}>{f.name}</MissionFileName>
+                              {f.size != null && (
+                                <MissionFileSize>{toMB(f.size)} MB</MissionFileSize>
+                              )}
+                              <DownloadButton
+                                title='Download file'
+                                onClick={() =>
+                                  handleDownload(f.name, f.type, mission.gcs_path)
+                                }
+                              >
+                                <Icon width={16} height={16}>
+                                  Download
+                                </Icon>
+                              </DownloadButton>
+                            </MissionFileRow>
+                          ))}
+                        </MissionFileList>
+                        {isCompleted && selectedFiles.size > 0 && (
+                          <RemoveFilesButton
+                            onClick={() => handleRemoveFiles(mission.id)}
+                          >
+                            <Icon width={14} height={14}>
+                              Delete
+                            </Icon>
+                            Remove {selectedFiles.size} file
+                            {selectedFiles.size > 1 ? 's' : ''} &amp; re-run trajectory
+                          </RemoveFilesButton>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -777,6 +898,49 @@ export const UploadMissions = () => {
           {selectedTab === TABS.LIST ? renderMissionList() : renderNewUpload()}
         </TabContent>
       </UploadPageContainer>
+
+      {confirmModal && (
+        <ConfirmOverlay>
+          <ConfirmCard>
+            {confirmModal.type === 'delete_mission' ? (
+              <>
+                <ConfirmTitle>Delete upload?</ConfirmTitle>
+                <ConfirmText>
+                  This will remove the session record and delete all uploaded files from
+                  storage. This cannot be undone.
+                </ConfirmText>
+              </>
+            ) : (
+              <>
+                <ConfirmTitle>Remove files &amp; re-run?</ConfirmTitle>
+                <ConfirmText>
+                  {confirmModal.fileNames.length} file
+                  {confirmModal.fileNames.length > 1 ? 's' : ''} will be deleted from
+                  storage and trajectory processing will be restarted. This cannot be
+                  undone.
+                </ConfirmText>
+              </>
+            )}
+            {confirmError && (
+              <StatusMessage style={{ marginBottom: 12 }}>{confirmError}</StatusMessage>
+            )}
+            <ConfirmActions>
+              <ConfirmButton $danger onClick={handleConfirm} disabled={confirmLoading}>
+                {confirmLoading ? 'Processing…' : 'Confirm'}
+              </ConfirmButton>
+              <ConfirmButton
+                onClick={() => {
+                  setConfirmModal(null);
+                  setConfirmError(null);
+                }}
+                disabled={confirmLoading}
+              >
+                Cancel
+              </ConfirmButton>
+            </ConfirmActions>
+          </ConfirmCard>
+        </ConfirmOverlay>
+      )}
 
       {showSuccess && (
         <SuccessOverlay>
