@@ -39,7 +39,7 @@ export const Reports = ({ currentArea }) => {
   // FORMATE RESULTS
   const results = useMemo(() => {
     return currentArea.results
-      .filter(r => !r.to_be_deleted)
+      .filter(r => !r.to_be_deleted && r.layer_type !== 'JSON')
       .map(result => {
         const requestName =
           currentArea.requests.find(r => r.id === result.request)?.notebook_name ??
