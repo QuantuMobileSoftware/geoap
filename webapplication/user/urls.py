@@ -10,6 +10,7 @@ from user.views import (
     UploadMissionsDeleteAPIView,
     UploadMissionsRemoveFilesAPIView,
 )
+from user.stone_device_views import PredictionsAPIView, CoverageAPIView
 
 urlpatterns = [
     path('transactions/', TransactionListAPIView.as_view(), name='get_transactions_list'),
@@ -20,4 +21,6 @@ urlpatterns = [
     path('upload_missions/<int:pk>/', UploadMissionsUpdateAPIView.as_view(), name='upload_mission_detail'),
     path('upload_missions/<int:pk>/delete/', UploadMissionsDeleteAPIView.as_view(), name='upload_mission_delete'),
     path('upload_missions/<int:pk>/remove_files/', UploadMissionsRemoveFilesAPIView.as_view(), name='upload_mission_remove_files'),
+    path('predictions', PredictionsAPIView.as_view(), name='device_predictions'),
+    path('coverage', CoverageAPIView.as_view(), name='device_coverage'),
 ]

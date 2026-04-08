@@ -138,6 +138,57 @@ class UploadMissions(models.Model):
     )
 
 
+class CameraToken(models.Model):
+    token = models.CharField(max_length=64, unique=True, verbose_name='Token')
+    cam_serial_num = models.CharField(max_length=128, verbose_name='Camera serial number')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='camera_tokens', verbose_name='User')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
+
+    class Meta:
+        verbose_name = 'Camera Token'
+        verbose_name_plural = 'Camera Tokens'
+
+    def __str__(self):
+        return f'{self.cam_serial_num} → {self.user.username}'
+
+
+class StonesDetectionChunk(models.Model):
+    TYPE_PREDICTIONS = 'predictions'
+    TYPE_COVERAGE = 'coverage'
+    TYPE_CHOICES = [
+        (TYPE_PREDICTIONS, 'Predictions'),
+        (TYPE_COVERAGE, 'Coverage'),
+    ]
+
+    STATUS_PENDING = 'pending'
+    STATUS_PROCESSING = 'processing'
+    STATUS_DONE = 'done'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_DONE, 'Done'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stones_chunks', verbose_name='User')
+    date = models.DateField(verbose_name='UTC date')
+    chunk = models.IntegerField(verbose_name='Chunk index (0–5)')
+    type = models.CharField(max_length=16, choices=TYPE_CHOICES, verbose_name='Type')
+    gcs_path = models.CharField(max_length=500, verbose_name='GCS base path')
+    processing_start_date = models.DateTimeField(verbose_name='Processing start date (UTC)')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, verbose_name='Status')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
+
+    class Meta:
+        unique_together = ('user', 'date', 'chunk', 'type')
+        verbose_name = 'Stones Detection Chunk'
+        verbose_name_plural = 'Stones Detection Chunks'
+
+    def __str__(self):
+        return f'{self.user.username} / {self.date} / chunk {self.chunk} / {self.type}'
+
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
     amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)
@@ -165,3 +216,5 @@ class Transaction(models.Model):
         else:
             return settings.DEFAULT_TRANSACTION_ERROR
 
+
+curl -X POST http://localhost:8000/api/predictions -H "Authorization: Bearer tokentokentokentiktoken" -H "Content-Type: multipart/form-data; boundary=oakstone-567993672876688217" --data-binary @/home/alien/projects/quantumobile/soilmate/body.bin
