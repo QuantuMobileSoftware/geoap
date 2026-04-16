@@ -87,6 +87,12 @@ const SIZE_WARN_MB = 5000;
 const toMB = bytes => (bytes / 1024 / 1024).toFixed(2);
 const mkFileItem = file => ({ file, progress: 0, uploading: false });
 
+// Returns the name the backend will store for calibration files
+const getCalibDisplayName = file => {
+  const ext = file.name.split('.').pop();
+  return `calibration.${ext}`;
+};
+
 const STATUS_LABELS = {
   pending: 'Pending',
   in_progress: 'Uploading',
@@ -128,9 +134,7 @@ const getTrajectoryInfo = ts => {
 // Returns true when a mission still needs live status updates.
 // Keep polling while upload is running OR trajectory exists but hasn't finished yet.
 const needsPolling = m =>
-  m.status === 'in_progress' ||
-  (m.trajectory_status &&
-    (!m.trajectory_status.calculated || !m.trajectory_status.success));
+  m.status === 'in_progress' || (m.trajectory_status && !m.trajectory_status.calculated);
 
 export const UploadMissions = () => {
   const [selectedTab, setSelectedTab] = useState(TABS.LIST);
@@ -163,7 +167,9 @@ export const UploadMissions = () => {
   const [confirmError, setConfirmError] = useState(null);
 
   // ── Per-mission file selection for completed missions ─────────────
-  // { [missionId]: Set<filename> }
+  // Index-based: { [missionId]: Set<index> }
+  // Using indices so selecting one file never accidentally selects
+  // another file that happens to share the same name.
   const [fileSelections, setFileSelections] = useState({});
 
   const totalBytes =
@@ -184,9 +190,17 @@ export const UploadMissions = () => {
       .then(({ data }) => {
         // Any in_progress mission that doesn't belong to the current session is
         // orphaned (upload was killed by a page reload / navigation). Mark it failed.
+        // Also mark completed missions as failed when their trajectory request failed.
         const currentId = missionIdRef.current;
         data.forEach(m => {
           if (m.status === 'in_progress' && m.id !== currentId) {
+            API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
+          }
+          if (
+            m.status === 'completed' &&
+            m.trajectory_status?.calculated &&
+            !m.trajectory_status?.success
+          ) {
             API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
           }
         });
@@ -197,7 +211,12 @@ export const UploadMissions = () => {
             ...m,
             // Show failed immediately in UI without waiting for the patch response
             status:
-              m.status === 'in_progress' && m.id !== currentId ? 'failed' : m.status,
+              (m.status === 'in_progress' && m.id !== currentId) ||
+              (m.status === 'completed' &&
+                m.trajectory_status?.calculated &&
+                !m.trajectory_status?.success)
+                ? 'failed'
+                : m.status,
             showDetails: detailsMap[m.id] ?? false
           }));
         });
@@ -277,23 +296,34 @@ export const UploadMissions = () => {
 
   // ── Remove files from completed mission ───────────────────────────
 
-  const toggleFileSelection = (missionId, fileName) => {
+  // Toggle file selection by index so that two files with the same name
+  // can be independently selected/deselected.
+  const toggleFileSelection = (missionId, index) => {
     setFileSelections(prev => {
       const current = new Set(prev[missionId] || []);
-      if (current.has(fileName)) {
-        current.delete(fileName);
+      if (current.has(index)) {
+        current.delete(index);
       } else {
-        current.add(fileName);
+        current.add(index);
       }
       return { ...prev, [missionId]: current };
     });
   };
 
   const handleRemoveFiles = missionId => {
-    const selected = fileSelections[missionId];
-    if (!selected || selected.size === 0) return;
+    const selectedIndices = fileSelections[missionId];
+    if (!selectedIndices || selectedIndices.size === 0) return;
+
+    const mission = missions.find(m => m.id === missionId);
+    if (!mission) return;
+
+    // Convert selected indices to file names
+    const fileNames = [...selectedIndices]
+      .map(i => mission.uploaded_files[i]?.name)
+      .filter(Boolean);
+
     setConfirmError(null);
-    setConfirmModal({ type: 'remove_files', missionId, fileNames: [...selected] });
+    setConfirmModal({ type: 'remove_files', missionId, fileNames });
   };
 
   const confirmRemoveFiles = async () => {
@@ -448,10 +478,12 @@ export const UploadMissions = () => {
           type: UPLOAD_TYPES.LOG,
           size: f.file.size
         })),
+        // Use the server-side renamed calibration filename so the stored name
+        // matches the actual GCS object name.
         ...(calibFile
           ? [
               {
-                name: calibFile.file.name,
+                name: getCalibDisplayName(calibFile.file),
                 type: UPLOAD_TYPES.CALIBRATION,
                 size: calibFile.file.size
               }
@@ -484,6 +516,9 @@ export const UploadMissions = () => {
     }
   };
 
+  // Cancel upload: abort all in-flight XHRs, mark the mission as failed,
+  // then delete it (which removes all partially-uploaded GCS files and the
+  // session folder), and finally refresh the mission list.
   const cancelUpload = () => {
     Object.values(xhrRefs.current).forEach(xhr => xhr && xhr.abort());
     xhrRefs.current = {};
@@ -492,11 +527,15 @@ export const UploadMissions = () => {
     setDcimFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
     setGpsFiles(prev => prev.map(f => ({ ...f, progress: 0, uploading: false })));
     setCalibFile(prev => (prev ? { ...prev, progress: 0, uploading: false } : null));
-    if (missionIdRef.current) {
+
+    const id = missionIdRef.current;
+    missionIdRef.current = null;
+    if (id) {
       API.upload
-        .updateMission(missionIdRef.current, { status: 'failed' })
-        .catch(() => {});
-      missionIdRef.current = null;
+        .updateMission(id, { status: 'failed' })
+        .then(() => API.upload.deleteMission(id))
+        .catch(() => {})
+        .finally(() => getMissionsRef.current());
     }
   };
 
@@ -533,11 +572,14 @@ export const UploadMissions = () => {
     }
   };
 
-  const renderFileRow = (item, onRemove) => {
+  // displayName overrides item.file.name in the row (used for calibration
+  // to show the server-renamed filename instead of the original).
+  const renderFileRow = (item, onRemove, displayName) => {
+    const nameToShow = displayName || item.file.name;
     const sizeMB = parseFloat(toMB(item.file.size));
     return (
-      <FileItem key={item.file.name}>
-        <FileName title={item.file.name}>{item.file.name}</FileName>
+      <FileItem key={nameToShow}>
+        <FileName title={nameToShow}>{nameToShow}</FileName>
         <FileItemInfo>
           <FileSize style={sizeMB > SIZE_WARN_MB ? { color: 'red' } : undefined}>
             {sizeMB} MB{sizeMB > SIZE_WARN_MB ? ' (!)' : ''}
@@ -659,7 +701,7 @@ export const UploadMissions = () => {
             const hasFiles = mission.uploaded_files && mission.uploaded_files.length > 0;
             const isFailed = mission.status === 'failed';
             const isCompleted = mission.status === 'completed';
-            const selectedFiles = fileSelections[mission.id] || new Set();
+            const selectedIndices = fileSelections[mission.id] || new Set();
             return (
               <MissionItemBlock key={mission.id}>
                 {/* ── Collapsed row ── */}
@@ -725,12 +767,13 @@ export const UploadMissions = () => {
                     {hasFiles && (
                       <>
                         <MissionFileList>
-                          {mission.uploaded_files.map(f => (
-                            <MissionFileRow key={f.name}>
-                              {isCompleted && (
+                          {mission.uploaded_files.map((f, idx) => (
+                            <MissionFileRow key={idx}>
+                              {/* Only data_video files can be selected for removal */}
+                              {isCompleted && f.type === UPLOAD_TYPES.DATA_VIDEO && (
                                 <FileCheckbox
-                                  checked={selectedFiles.has(f.name)}
-                                  onChange={() => toggleFileSelection(mission.id, f.name)}
+                                  checked={selectedIndices.has(idx)}
+                                  onChange={() => toggleFileSelection(mission.id, idx)}
                                   title='Select to remove'
                                 />
                               )}
@@ -751,15 +794,15 @@ export const UploadMissions = () => {
                             </MissionFileRow>
                           ))}
                         </MissionFileList>
-                        {isCompleted && selectedFiles.size > 0 && (
+                        {isCompleted && selectedIndices.size > 0 && (
                           <RemoveFilesButton
                             onClick={() => handleRemoveFiles(mission.id)}
                           >
                             <Icon width={14} height={14}>
                               Delete
                             </Icon>
-                            Remove {selectedFiles.size} file
-                            {selectedFiles.size > 1 ? 's' : ''} &amp; re-run trajectory
+                            Remove {selectedIndices.size} video
+                            {selectedIndices.size > 1 ? 's' : ''} &amp; re-run trajectory
                           </RemoveFilesButton>
                         )}
                       </>
@@ -775,8 +818,9 @@ export const UploadMissions = () => {
 
   const renderNewUpload = () => (
     <UploadFormWrapper>
-      <SectionsGrid>
-        {/* Videos */}
+      {/* 3-column grid: Data Videos | Calibration | GPS Logs */}
+      <SectionsGrid style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        {/* Data Videos */}
         <SectionCard>
           <SectionTitle>Videos</SectionTitle>
           {dcimFiles.length === 0 ? (
@@ -799,6 +843,33 @@ export const UploadMissions = () => {
             multiple
             accept='.mp4,video/mp4'
             onChange={handleDcimChange}
+            disabled={uploading}
+            style={{ display: 'none' }}
+          />
+        </SectionCard>
+
+        {/* Calibration Video */}
+        <SectionCard>
+          <SectionTitle>Calibration</SectionTitle>
+          {!calibFile ? (
+            <UploadInfo>No calibration video added yet</UploadInfo>
+          ) : (
+            <FileList>
+              {renderFileRow(
+                calibFile,
+                () => setCalibFile(null),
+                getCalibDisplayName(calibFile.file)
+              )}
+            </FileList>
+          )}
+          <AddFileLabel htmlFor='calib-input' $disabled={uploading}>
+            <Icon>Plus</Icon> {calibFile ? 'Replace Video' : 'Add Video'}
+          </AddFileLabel>
+          <input
+            id='calib-input'
+            type='file'
+            accept='.mp4,video/mp4'
+            onChange={handleCalibChange}
             disabled={uploading}
             style={{ display: 'none' }}
           />
@@ -827,27 +898,6 @@ export const UploadMissions = () => {
             multiple
             accept='.log'
             onChange={handleGpsChange}
-            disabled={uploading}
-            style={{ display: 'none' }}
-          />
-        </SectionCard>
-
-        {/* Calibration */}
-        <SectionCard>
-          <SectionTitle>Calibration</SectionTitle>
-          {!calibFile ? (
-            <UploadInfo>No calibration video added yet</UploadInfo>
-          ) : (
-            <FileList>{renderFileRow(calibFile, () => setCalibFile(null))}</FileList>
-          )}
-          <AddFileLabel htmlFor='calib-input' $disabled={uploading}>
-            <Icon>Plus</Icon> {calibFile ? 'Replace Video' : 'Add Video'}
-          </AddFileLabel>
-          <input
-            id='calib-input'
-            type='file'
-            accept='.mp4,video/mp4'
-            onChange={handleCalibChange}
             disabled={uploading}
             style={{ display: 'none' }}
           />
@@ -914,7 +964,7 @@ export const UploadMissions = () => {
               <>
                 <ConfirmTitle>Remove files &amp; re-run?</ConfirmTitle>
                 <ConfirmText>
-                  {confirmModal.fileNames.length} file
+                  {confirmModal.fileNames.length} video
                   {confirmModal.fileNames.length > 1 ? 's' : ''} will be deleted from
                   storage and trajectory processing will be restarted. This cannot be
                   undone.

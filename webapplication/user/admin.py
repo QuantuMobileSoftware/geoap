@@ -75,9 +75,9 @@ class UploadMissionsAdmin(admin.ModelAdmin):
 
 @admin.register(CameraToken)
 class CameraTokenAdmin(admin.ModelAdmin):
-    list_display = ('cam_serial_num', 'user', 'token', 'created_at')
+    list_display = ('cam_serial_num', 'user', 'created_at')
     list_filter = ('user',)
-    search_fields = ('cam_serial_num', 'token', 'user__username')
+    search_fields = ('cam_serial_num', 'user__username')
     readonly_fields = ('created_at',)
     raw_id_fields = ('user',)
 

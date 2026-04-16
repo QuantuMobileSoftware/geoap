@@ -4,21 +4,21 @@ import os
 from datetime import datetime, timezone, timedelta
 
 from django.conf import settings
+from google.cloud import storage
+from google.cloud.exceptions import GoogleCloudError
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from google.cloud import storage
 
-from user.authentication import CameraTokenAuthentication
-from user.models import StonesDetectionChunk
+from user.models import CameraToken, StonesDetectionChunk
+from user.serializers import CoverageMetadataSerializer, PredictionsMetadataSerializer
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_VERSIONS = {'1'}
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-PREDICTIONS_REQUIRED_FIELDS = {'uuid', 'version', 'gprmc', 'model_name', 'predictions', 'time_since_boot_sec'}
-COVERAGE_REQUIRED_FIELDS = {'uuid', 'version', 'gprmc'}
+_gcs_client_instance = None
 
 
 def _current_chunk_info():
@@ -47,20 +47,31 @@ def _get_or_create_chunk(user, chunk_type):
         defaults={
             'gcs_path': gcs_path,
             'processing_start_date': processing_start,
-            'status': StonesDetectionChunk.STATUS_PENDING,
+            'status': StonesDetectionChunk.STATUS_UPLOADING,
         },
     )
     return obj
 
 
 def _gcs_client():
-    creds_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
-    return storage.Client.from_service_account_json(creds_path)
+    global _gcs_client_instance
+    if _gcs_client_instance is None:
+        creds_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, settings.OPERATIONS_SERVICE_CREDS)
+        _gcs_client_instance = storage.Client.from_service_account_json(creds_path)
+    return _gcs_client_instance
+
+
+def _resolve_user_by_serial(serial):
+    """Return the User linked to this camera serial number, or None if not found."""
+    try:
+        return CameraToken.objects.select_related('user').get(cam_serial_num=serial).user
+    except CameraToken.DoesNotExist:
+        return None
 
 
 class PredictionsAPIView(APIView):
-    authentication_classes = [CameraTokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         metadata_file = request.FILES.get('metadata')
@@ -72,6 +83,12 @@ class PredictionsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if image_file.size > MAX_IMAGE_SIZE:
+            return Response(
+                {'detail': f'Image exceeds maximum allowed size of {MAX_IMAGE_SIZE // (1024 * 1024)} MB.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             metadata = json.loads(metadata_file.read())
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -80,43 +97,37 @@ class PredictionsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        version = str(metadata.get('version', ''))
-        if version not in SUPPORTED_VERSIONS:
-            return Response(
-                {'detail': f"Unsupported version '{version}'."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = PredictionsMetadataSerializer(data=metadata)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        missing = PREDICTIONS_REQUIRED_FIELDS - metadata.keys()
-        if missing:
-            return Response(
-                {'detail': f"Missing metadata fields: {', '.join(sorted(missing))}."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = _resolve_user_by_serial(serializer.validated_data['serial'])
+        if user is None:
+            return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if not request.user.stone_google_folder:
+        if not user.stone_google_folder:
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uuid = metadata['uuid']
-        chunk_obj = _get_or_create_chunk(request.user, StonesDetectionChunk.TYPE_PREDICTIONS)
+        uuid = serializer.validated_data['uuid']
+        chunk_obj = _get_or_create_chunk(user, StonesDetectionChunk.TYPE_PREDICTIONS)
         base_path = f'{chunk_obj.gcs_path}{uuid}'
 
         try:
             client = _gcs_client()
-            bucket = client.bucket(request.user.stone_google_folder)
+            bucket = client.bucket(user.stone_google_folder)
             bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
                 image_file.read(), content_type='image/jpeg'
             )
             bucket.blob(f'{base_path}/{uuid}.json').upload_from_string(
                 json.dumps(metadata).encode('utf-8'), content_type='application/json'
             )
-        except Exception:
+        except GoogleCloudError:
             logger.exception(
                 'GCS upload failed for predictions: user=%s, uuid=%s',
-                request.user.id, uuid,
+                user.id, uuid,
             )
             return Response(
                 {'detail': 'Failed to store prediction. Please try again.'},
@@ -127,45 +138,65 @@ class PredictionsAPIView(APIView):
 
 
 class CoverageAPIView(APIView):
-    authentication_classes = [CameraTokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        data = request.data
+        metadata_file = request.FILES.get('metadata')
+        image_file = request.FILES.get('image')
 
-        version = str(data.get('version', ''))
-        if version not in SUPPORTED_VERSIONS:
+        if not metadata_file:
             return Response(
-                {'detail': f"Unsupported version '{version}'."},
+                {'detail': "'metadata' field is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        missing = COVERAGE_REQUIRED_FIELDS - data.keys()
-        if missing:
+        if image_file and image_file.size > MAX_IMAGE_SIZE:
             return Response(
-                {'detail': f"Missing fields: {', '.join(sorted(missing))}."},
+                {'detail': f'Image exceeds maximum allowed size of {MAX_IMAGE_SIZE // (1024 * 1024)} MB.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not request.user.stone_google_folder:
+        try:
+            metadata = json.loads(metadata_file.read())
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return Response(
+                {'detail': 'metadata must be valid JSON.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = CoverageMetadataSerializer(data=metadata)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = _resolve_user_by_serial(serializer.validated_data['serial'])
+        if user is None:
+            return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not user.stone_google_folder:
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uuid = data['uuid']
-        chunk_obj = _get_or_create_chunk(request.user, StonesDetectionChunk.TYPE_COVERAGE)
+        uuid = serializer.validated_data['uuid']
+        chunk_obj = _get_or_create_chunk(user, StonesDetectionChunk.TYPE_COVERAGE)
+        base_path = f'{chunk_obj.gcs_path}{uuid}'
 
         try:
             client = _gcs_client()
-            bucket = client.bucket(request.user.stone_google_folder)
-            bucket.blob(f'{chunk_obj.gcs_path}{uuid}/{uuid}.json').upload_from_string(
-                json.dumps(dict(data)).encode('utf-8'), content_type='application/json'
+            bucket = client.bucket(user.stone_google_folder)
+            if image_file:
+                bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
+                    image_file.read(), content_type='image/jpeg'
+                )
+            bucket.blob(f'{base_path}/{uuid}.json').upload_from_string(
+                json.dumps(metadata).encode('utf-8'), content_type='application/json'
             )
-        except Exception:
+        except GoogleCloudError:
             logger.exception(
                 'GCS upload failed for coverage: user=%s, uuid=%s',
-                request.user.id, uuid,
+                user.id, uuid,
             )
             return Response(
                 {'detail': 'Failed to store coverage. Please try again.'},

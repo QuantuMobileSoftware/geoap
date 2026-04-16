@@ -139,8 +139,7 @@ class UploadMissions(models.Model):
 
 
 class CameraToken(models.Model):
-    token = models.CharField(max_length=64, unique=True, verbose_name='Token')
-    cam_serial_num = models.CharField(max_length=128, verbose_name='Camera serial number')
+    cam_serial_num = models.CharField(max_length=128, unique=True, verbose_name='Camera serial number')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='camera_tokens', verbose_name='User')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
 
@@ -160,11 +159,13 @@ class StonesDetectionChunk(models.Model):
         (TYPE_COVERAGE, 'Coverage'),
     ]
 
+    STATUS_UPLOADING = 'uploading'
     STATUS_PENDING = 'pending'
     STATUS_PROCESSING = 'processing'
     STATUS_DONE = 'done'
     STATUS_FAILED = 'failed'
     STATUS_CHOICES = [
+        (STATUS_UPLOADING, 'Uploading'),
         (STATUS_PENDING, 'Pending'),
         (STATUS_PROCESSING, 'Processing'),
         (STATUS_DONE, 'Done'),
@@ -216,5 +217,3 @@ class Transaction(models.Model):
         else:
             return settings.DEFAULT_TRANSACTION_ERROR
 
-
-curl -X POST http://localhost:8000/api/predictions -H "Authorization: Bearer tokentokentokentiktoken" -H "Content-Type: multipart/form-data; boundary=oakstone-567993672876688217" --data-binary @/home/alien/projects/quantumobile/soilmate/body.bin

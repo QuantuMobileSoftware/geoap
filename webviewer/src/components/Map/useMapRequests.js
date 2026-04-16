@@ -157,6 +157,11 @@ export const useMapRequests = (selectedArea, map) => {
           interactive: true
         });
         layer.addEventListener('click', async e => {
+          const label = e.layer?.properties?.label;
+          if (label) {
+            L.popup().setLatLng(e.latlng).setContent(label).openOn(map);
+            return;
+          }
           const coords = { lat: e.latlng.lng, lng: e.latlng.lat };
           const resp = await API.areas.getField(selectedLayer.id, coords);
           addNewField(createField(resp.data.polygon));

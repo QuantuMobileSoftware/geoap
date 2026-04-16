@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from datetime import datetime, timedelta
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
@@ -25,6 +26,11 @@ from waffle import switch_is_active
 from google.cloud import storage
 
 logger = logging.getLogger(__name__)
+
+DATA_VIDEO_FILENAME_RE = re.compile(
+    r'^[A-Z0-9]+_UNIT\d{2}\d{14}_\d{4}\.MP4$',
+    re.IGNORECASE,
+)
 
 
 class RegisterView(BasicRegisterView):
@@ -195,6 +201,24 @@ class GenerateResumableUploadURLAPIView(APIView):
                 {"detail": f"upload_type must be one of: {', '.join(upload_folders)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        if upload_type == 'data_video' and not DATA_VIDEO_FILENAME_RE.match(file_name):
+            return Response(
+                {"detail": "data_video file name must match the format: PREFIX_UNITnn{YYYYMMDD}{HHMMSS}_ssss.MP4 (e.g. 00SAIRS_UNIT0120251028071253_0010.MP4)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if upload_type == 'calibration_video':
+            _, ext = os.path.splitext(file_name)
+            file_name = f'calibration{ext}'
+
+        if mission:
+            existing_names = {f['name'] for f in (mission.uploaded_files or [])}
+            if file_name in existing_names:
+                return Response(
+                    {'detail': f"File '{file_name}' has already been uploaded to this session."},
+                    status=status.HTTP_409_CONFLICT,
+                )
 
         if not session_folder:
             now = datetime.now()
@@ -492,8 +516,15 @@ class UploadMissionsRemoveFilesAPIView(APIView):
         remove_set = set(files_to_remove)
         mission.uploaded_files = [f for f in uploaded_files if f['name'] not in remove_set]
 
+        remaining_videos = [f for f in mission.uploaded_files if f.get('type') == 'data_video']
+
         mission.trajectory_request = None
         mission.save(update_fields=['uploaded_files', 'trajectory_request'])
+
+        if not remaining_videos:
+            data = UploadMissionsSerializer(mission).data
+            data['suggest_delete'] = True
+            return Response(data, status=status.HTTP_200_OK)
 
         if component and request.user.stone_google_folder:
             full_gcs_path = (

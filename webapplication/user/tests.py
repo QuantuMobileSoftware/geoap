@@ -1,13 +1,17 @@
+import json
 import re
 from unittest import mock
 
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
-from rest_framework.test import APITestCase
 from django.contrib.auth.models import Group, Permission
-from django.urls import reverse
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+from google.cloud.exceptions import GoogleCloudError
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
+from rest_framework.test import APITestCase
 
-from user.models import User, UploadMissions
+import user.stone_device_views as stone_views
+from user.models import CameraToken, StonesDetectionChunk, User, UploadMissions
 from user.upload_utils import get_upload_config
 
 
@@ -321,7 +325,8 @@ class TransactionTestCase(UserBase):
                 "comment": "",
                 "error": None,
                 "completed": False,
-                "rolled_back": False
+                "rolled_back": False,
+                "area_sq_km": None
             }
         ]
         url = reverse("get_transactions_list")
@@ -343,7 +348,8 @@ class TransactionTestCase(UserBase):
                 "comment": "",
                 "error": None,
                 "completed": True,
-                "rolled_back": False
+                "rolled_back": False,
+                "area_sq_km": None
             },
             {
                 "id": 1002,
@@ -355,7 +361,8 @@ class TransactionTestCase(UserBase):
                 "comment": "",
                 "error": None,
                 "completed": False,
-                "rolled_back": False
+                "rolled_back": False,
+                "area_sq_km": None
             },
             {
                 "id": 1001,
@@ -367,7 +374,8 @@ class TransactionTestCase(UserBase):
                 "comment": "",
                 "error": None,
                 "completed": True,
-                "rolled_back": False
+                "rolled_back": False,
+                "area_sq_km": None
             }
         ]
         url = reverse("get_transactions_list")
@@ -660,6 +668,8 @@ class UploadMissionsTestCase(UserBase):
 class GenerateUploadURLTestCase(UserBase):
     fixtures = ('user/fixtures/user_fixtures.json',)
 
+    VALID_DATA_VIDEO_NAME = '00SAIRS_UNIT0120251028071253_0010.MP4'
+
     _DEFAULT_UPLOAD_CONFIG = {
         'unit_folder': 'unit',
         'upload': {
@@ -713,6 +723,14 @@ class GenerateUploadURLTestCase(UserBase):
         response = self.client.get(url, {'file_name': 'test.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
         self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
 
+    def test_invalid_data_video_filename_returns_400(self):
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        for bad_name in ('video.mp4', 'random.MP4', 'UNIT0120251028071253_0010.MP4', '00SAIRS_UNIT0120251028071253.MP4'):
+            response = self.client.get(url, {'file_name': bad_name, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+            self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST, msg=f"Expected 400 for filename: {bad_name}")
+            self.assertIn('detail', response.data)
+
     @mock.patch('user.views.storage.Client.from_service_account_json')
     def test_generates_upload_url_for_data_video(self, mock_gcs_cls):
         mock_client, mock_blob, _ = self._mock_gcs()
@@ -720,7 +738,7 @@ class GenerateUploadURLTestCase(UserBase):
 
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
-        response = self.client.get(url, {'file_name': 'video.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        response = self.client.get(url, {'file_name': self.VALID_DATA_VIDEO_NAME, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIn('upload_url', response.data)
         self.assertIn('session_folder', response.data)
@@ -729,7 +747,7 @@ class GenerateUploadURLTestCase(UserBase):
         # Verify blob path includes DCIM folder for data_video
         blob_path = mock_client.bucket.return_value.blob.call_args[0][0]
         self.assertIn('DCIM', blob_path)
-        self.assertIn('video.mp4', blob_path)
+        self.assertIn(self.VALID_DATA_VIDEO_NAME, blob_path)
         self.assertIn(self.ex_2_user.username, blob_path)
 
     @mock.patch('user.views.storage.Client.from_service_account_json')
@@ -757,10 +775,11 @@ class GenerateUploadURLTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         blob_path = mock_client.bucket.return_value.blob.call_args[0][0]
-        # calibration_video has no subfolder
+        # calibration_video has no subfolder and name is forced to 'calibration.<ext>'
         self.assertNotIn('DCIM', blob_path)
         self.assertNotIn('GPS_LOG', blob_path)
-        self.assertIn('calib.mp4', blob_path)
+        self.assertIn('calibration.mp4', blob_path)
+        self.assertNotIn('calib.mp4', blob_path)
 
     @mock.patch('user.views.storage.Client.from_service_account_json')
     def test_session_folder_reused_when_provided(self, mock_gcs_cls):
@@ -777,7 +796,7 @@ class GenerateUploadURLTestCase(UserBase):
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
         response = self.client.get(url, {
-            'file_name': 'video.mp4',
+            'file_name': self.VALID_DATA_VIDEO_NAME,
             'file_type': 'video/mp4',
             'upload_type': 'data_video',
             'session_folder': '2024/2024-01-01_10-00-00',
@@ -798,7 +817,7 @@ class GenerateUploadURLTestCase(UserBase):
 
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
-        response = self.client.get(url, {'file_name': 'video.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        response = self.client.get(url, {'file_name': self.VALID_DATA_VIDEO_NAME, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         session_folder = response.data['session_folder']
@@ -814,7 +833,7 @@ class GenerateUploadURLTestCase(UserBase):
 
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
-        response = self.client.get(url, {'file_name': 'video.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        response = self.client.get(url, {'file_name': self.VALID_DATA_VIDEO_NAME, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         blob_path = mock_client.bucket.return_value.blob.call_args[0][0]
@@ -835,7 +854,7 @@ class GenerateUploadURLTestCase(UserBase):
         url = reverse('generate_upload_url')
         # session_folder that doesn't exist in DB
         response = self.client.get(url, {
-            'file_name': 'video.mp4',
+            'file_name': self.VALID_DATA_VIDEO_NAME,
             'file_type': 'video/mp4',
             'upload_type': 'data_video',
             'session_folder': '2099/2099-01-01_00-00-00',
@@ -848,9 +867,73 @@ class GenerateUploadURLTestCase(UserBase):
         mock_gcs_cls.side_effect = Exception("GCS error")
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
-        response = self.client.get(url, {'file_name': 'video.mp4', 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        response = self.client.get(url, {'file_name': self.VALID_DATA_VIDEO_NAME, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertIn('detail', response.data)
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_duplicate_file_in_session_returns_409(self, mock_gcs_cls):
+        mock_client, mock_blob, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_IN_PROGRESS,
+            uploaded_files=[{'name': self.VALID_DATA_VIDEO_NAME, 'type': 'data_video', 'size': 1024}],
+        )
+
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        response = self.client.get(url, {
+            'file_name': self.VALID_DATA_VIDEO_NAME,
+            'file_type': 'video/mp4',
+            'upload_type': 'data_video',
+            'session_folder': '2024/2024-01-01_10-00-00',
+        })
+        self.assertEqual(response.status_code, HTTP_409_CONFLICT)
+        self.assertIn('already been uploaded', response.data['detail'])
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_calibration_video_name_forced_to_calibration(self, mock_gcs_cls):
+        """Any calibration_video upload is stored as calibration.<ext> regardless of the original name."""
+        mock_client, mock_blob, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        response = self.client.get(url, {
+            'file_name': 'MY_CALIB_2024.MP4',
+            'file_type': 'video/mp4',
+            'upload_type': 'calibration_video',
+        })
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        blob_path = mock_client.bucket.return_value.blob.call_args[0][0]
+        self.assertIn('calibration.MP4', blob_path)
+        self.assertNotIn('MY_CALIB_2024', blob_path)
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_duplicate_calibration_video_in_session_returns_409(self, mock_gcs_cls):
+        """Second calibration upload to the same session is rejected (both renamed to calibration.<ext>)."""
+        mock_client, mock_blob, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_IN_PROGRESS,
+            uploaded_files=[{'name': 'calibration.mp4', 'type': 'calibration_video', 'size': 512}],
+        )
+
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        response = self.client.get(url, {
+            'file_name': 'other_calib.mp4',
+            'file_type': 'video/mp4',
+            'upload_type': 'calibration_video',
+            'session_folder': '2024/2024-01-01_10-00-00',
+        })
+        self.assertEqual(response.status_code, HTTP_409_CONFLICT)
 
 
 class GenerateDownloadURLTestCase(UserBase):
@@ -1214,3 +1297,421 @@ class GoogleBucketFolderAPIViewTestCase(UserBase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertIn('detail', response.data)
+
+
+VALID_PREDICTIONS_METADATA = {
+    'uuid': 'test-uuid-1234',
+    'version': '1',
+    'gprmc': '$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
+    'model_name': 'stone_v1',
+    'predictions': [{'x': 1, 'y': 2, 'confidence': 0.9}],
+    'time_since_boot_sec': 123.45,
+    'serial': 'CAM-001',
+}
+
+VALID_COVERAGE_METADATA = {
+    'uuid': 'test-uuid-5678',
+    'version': '1',
+    'gprmc': '$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
+    'serial': 'CAM-001',
+}
+
+SMALL_JPEG = b'\xff\xd8\xff\xe0' + b'\x00' * 16
+
+
+class StoneDeviceViewsBase(APITestCase):
+    def setUp(self):
+        stone_views._gcs_client_instance = None
+
+        self.user = User.objects.create_user(
+            username='camerauser',
+            password='testpass',
+            stone_google_folder='test-bucket',
+        )
+        self.camera_token = CameraToken.objects.create(
+            cam_serial_num='CAM-001',
+            user=self.user,
+        )
+
+    def _mock_gcs(self):
+        mock_client = mock.MagicMock()
+        mock_bucket = mock.MagicMock()
+        mock_client.bucket.return_value = mock_bucket
+        return mock_client, mock_bucket
+
+    def _metadata_file(self, data):
+        return SimpleUploadedFile('meta.json', json.dumps(data).encode(), content_type='application/json')
+
+    def _image_file(self, content=SMALL_JPEG):
+        return SimpleUploadedFile('img.jpg', content, content_type='image/jpeg')
+
+
+class PredictionsAPIViewTest(StoneDeviceViewsBase):
+
+    def _post(self, data=None):
+        return self.client.post(
+            reverse('device_predictions'),
+            data or {},
+            format='multipart',
+        )
+
+    # --- auth ---
+
+    def test_unknown_serial_returns_403(self):
+        bad_meta = {**VALID_PREDICTIONS_METADATA, 'serial': 'UNKNOWN-CAM'}
+        response = self._post({'metadata': self._metadata_file(bad_meta), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    # --- missing files ---
+
+    def test_missing_both_files_returns_400(self):
+        response = self._post()
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('required', response.data['detail'])
+
+    def test_missing_image_returns_400(self):
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA)})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_missing_metadata_returns_400(self):
+        response = self._post({'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # --- metadata validation ---
+
+    def test_invalid_json_metadata_returns_400(self):
+        bad_file = SimpleUploadedFile('meta.json', b'not json', content_type='application/json')
+        response = self._post({'metadata': bad_file, 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('metadata must be valid JSON', response.data['detail'])
+
+    def test_missing_required_metadata_fields_returns_400(self):
+        incomplete = {'uuid': 'abc', 'version': '1'}
+        response = self._post({'metadata': self._metadata_file(incomplete), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_invalid_field_type_returns_400(self):
+        bad_data = {**VALID_PREDICTIONS_METADATA, 'time_since_boot_sec': 'not-a-number'}
+        response = self._post({'metadata': self._metadata_file(bad_data), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # --- image size ---
+
+    def test_image_too_large_returns_400(self):
+        big_image = self._image_file(b'\xff' * (10 * 1024 * 1024 + 1))
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': big_image})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('Image exceeds', response.data['detail'])
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_image_at_size_limit_is_accepted(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+        exact_image = self._image_file(b'\xff' * (10 * 1024 * 1024))
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': exact_image})
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+
+    # --- bucket not configured ---
+
+    def test_no_bucket_configured_returns_400(self):
+        self.user.stone_google_folder = None
+        self.user.save()
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('Storage bucket', response.data['detail'])
+
+    # --- GCS upload ---
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_returns_201_with_uuid(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
+
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(response.data['uuid'], VALID_PREDICTIONS_METADATA['uuid'])
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_uploads_jpg_and_json_to_gcs(self, mock_gcs_fn):
+        mock_client, mock_bucket = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
+
+        blob_paths = [call[0][0] for call in mock_bucket.blob.call_args_list]
+        uuid = VALID_PREDICTIONS_METADATA['uuid']
+        self.assertTrue(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
+        self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_creates_predictions_chunk(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
+
+        self.assertTrue(
+            StonesDetectionChunk.objects.filter(user=self.user, type=StonesDetectionChunk.TYPE_PREDICTIONS).exists()
+        )
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_gcs_error_returns_500(self, mock_gcs_fn):
+        mock_client = mock.MagicMock()
+        mock_client.bucket.side_effect = GoogleCloudError('GCS down')
+        mock_gcs_fn.return_value = mock_client
+
+        response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn('Failed to store prediction', response.data['detail'])
+
+
+class CoverageAPIViewTest(StoneDeviceViewsBase):
+
+    def _post(self, data=None):
+        return self.client.post(
+            reverse('device_coverage'),
+            data or {},
+            format='multipart',
+        )
+
+    # --- auth ---
+
+    def test_unknown_serial_returns_403(self):
+        bad_meta = {**VALID_COVERAGE_METADATA, 'serial': 'UNKNOWN-CAM'}
+        response = self._post({'metadata': self._metadata_file(bad_meta)})
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    # --- missing files ---
+
+    def test_missing_both_files_returns_400(self):
+        response = self._post()
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('required', response.data['detail'])
+
+    def test_missing_image_is_allowed(self):
+        # metadata-only upload is valid; image is optional
+        pass
+
+    def test_missing_metadata_returns_400(self):
+        response = self._post({'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # --- metadata validation ---
+
+    def test_invalid_json_metadata_returns_400(self):
+        bad_file = SimpleUploadedFile('meta.json', b'not json', content_type='application/json')
+        response = self._post({'metadata': bad_file, 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('metadata must be valid JSON', response.data['detail'])
+
+    def test_missing_required_metadata_fields_returns_400(self):
+        incomplete = {'uuid': 'abc'}
+        response = self._post({'metadata': self._metadata_file(incomplete), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # --- image size ---
+
+    def test_image_too_large_returns_400(self):
+        big_image = self._image_file(b'\xff' * (10 * 1024 * 1024 + 1))
+        response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': big_image})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('Image exceeds', response.data['detail'])
+
+    # --- bucket not configured ---
+
+    def test_no_bucket_configured_returns_400(self):
+        self.user.stone_google_folder = None
+        self.user.save()
+        response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # --- GCS upload ---
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_returns_201_with_uuid(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
+
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(response.data['uuid'], VALID_COVERAGE_METADATA['uuid'])
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_uploads_jpg_and_json_to_gcs(self, mock_gcs_fn):
+        mock_client, mock_bucket = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
+
+        blob_paths = [call[0][0] for call in mock_bucket.blob.call_args_list]
+        uuid = VALID_COVERAGE_METADATA['uuid']
+        self.assertTrue(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
+        self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_success_creates_coverage_chunk(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
+
+        self.assertTrue(
+            StonesDetectionChunk.objects.filter(user=self.user, type=StonesDetectionChunk.TYPE_COVERAGE).exists()
+        )
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_gcs_error_returns_500(self, mock_gcs_fn):
+        mock_client = mock.MagicMock()
+        mock_client.bucket.side_effect = GoogleCloudError('GCS down')
+        mock_gcs_fn.return_value = mock_client
+
+        response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn('Failed to store coverage', response.data['detail'])
+
+    # --- metadata-only (no image) ---
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_metadata_only_returns_201(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA)})
+
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(response.data['uuid'], VALID_COVERAGE_METADATA['uuid'])
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_metadata_only_uploads_json_but_not_jpg(self, mock_gcs_fn):
+        mock_client, mock_bucket = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA)})
+
+        blob_paths = [call[0][0] for call in mock_bucket.blob.call_args_list]
+        uuid = VALID_COVERAGE_METADATA['uuid']
+        self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
+        self.assertFalse(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
+
+
+class GcsClientSingletonTest(StoneDeviceViewsBase):
+
+    @mock.patch('user.stone_device_views.storage')
+    def test_client_instantiated_once(self, mock_storage):
+        mock_storage.Client.from_service_account_json.return_value = mock.MagicMock()
+
+        stone_views._gcs_client()
+        stone_views._gcs_client()
+        stone_views._gcs_client()
+
+
+class UploadMissionsRemoveFilesTestCase(UserBase):
+    fixtures = (
+        'user/fixtures/user_fixtures.json',
+        'aoi/fixtures/notebook_fixtures.json',
+    )
+
+    _DEFAULT_UPLOAD_CONFIG = {
+        'unit_folder': 'unit',
+        'upload': {
+            'data_video': 'DCIM',
+            'log': 'GPS_LOG',
+            'calibration_video': None,
+        }
+    }
+
+    def setUp(self):
+        super().setUp()
+        from aoi.models import Component
+        component = Component.objects.create(
+            name='Remove Files Component',
+            image='test-image',
+            upload_config=self._DEFAULT_UPLOAD_CONFIG,
+        )
+        self.ex_2_user.stone_google_folder = 'test-bucket'
+        self.ex_2_user.default_upload_component = component
+        self.ex_2_user.save(update_fields=['stone_google_folder', 'default_upload_component'])
+        self.component = component
+
+    def _make_completed_mission(self, uploaded_files):
+        return UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=self.component,
+            uploaded_files=uploaded_files,
+        )
+
+    def _mock_gcs(self):
+        mock_client = mock.MagicMock()
+        mock_bucket = mock.MagicMock()
+        mock_client.bucket.return_value = mock_bucket
+        return mock_client, mock_bucket
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_suggest_delete_when_all_videos_removed(self, mock_gcs_cls):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = self._make_completed_mission([
+            {'name': 'video.mp4', 'type': 'data_video', 'size': 1024},
+        ])
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_remove_files', kwargs={'pk': mission.pk})
+        response = self.client.post(url, {'files_to_remove': ['video.mp4']}, format='json')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTrue(response.data.get('suggest_delete'))
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_no_suggest_delete_when_videos_remain(self, mock_gcs_cls):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = self._make_completed_mission([
+            {'name': 'video1.mp4', 'type': 'data_video', 'size': 1024},
+            {'name': 'video2.mp4', 'type': 'data_video', 'size': 2048},
+        ])
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_remove_files', kwargs={'pk': mission.pk})
+        response = self.client.post(url, {'files_to_remove': ['video1.mp4']}, format='json')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertNotIn('suggest_delete', response.data)
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_suggest_delete_when_only_log_remains_after_video_removed(self, mock_gcs_cls):
+        """Removing the only video while a log file remains still triggers suggest_delete."""
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = self._make_completed_mission([
+            {'name': 'video.mp4', 'type': 'data_video', 'size': 1024},
+            {'name': 'gps.log', 'type': 'log', 'size': 512},
+        ])
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_remove_files', kwargs={'pk': mission.pk})
+        response = self.client.post(url, {'files_to_remove': ['video.mp4']}, format='json')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTrue(response.data.get('suggest_delete'))
+
+    @mock.patch('user.views.storage.Client.from_service_account_json')
+    def test_suggest_delete_skips_trajectory_request_creation(self, mock_gcs_cls):
+        """When all videos are removed no new trajectory request should be created."""
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_cls.return_value = mock_client
+
+        mission = self._make_completed_mission([
+            {'name': 'video.mp4', 'type': 'data_video', 'size': 1024},
+        ])
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_remove_files', kwargs={'pk': mission.pk})
+        self.client.post(url, {'files_to_remove': ['video.mp4']}, format='json')
+
+        mission.refresh_from_db()
+        self.assertIsNone(mission.trajectory_request_id)
