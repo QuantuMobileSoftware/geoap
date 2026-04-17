@@ -18,9 +18,25 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    area_sq_km = serializers.SerializerMethodField()
+
+    def get_area_sq_km(self, obj):
+        req = obj.request
+        if req is None:
+            return None
+        if obj.amount > 0:
+            # Refund transaction: show the area difference for which money was returned
+            charged = req.charged_area_sq_km
+            processed = req.processed_area_sq_km
+            if charged is not None and processed is not None:
+                return round(charged - processed, 4)
+            return None
+        # Charge transaction: show the full charged area
+        return req.charged_area_sq_km
+
     class Meta:
         model = Transaction
-        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed', 'rolled_back')
+        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed', 'rolled_back', 'area_sq_km')
         read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed',
                             'rolled_back')
 
@@ -45,6 +61,8 @@ class UploadMissionsSerializer(serializers.ModelSerializer):
             'id': req.id,
             'calculated': req.calculated,
             'success': req.success,
+            'error': req.error or None,
+            'finished_at': req.finished_at,
         }
 
 
@@ -52,3 +70,16 @@ class PasswordResetSerializer(DefaultPasswordResetSerializer):
     @property
     def password_reset_form_class(self):
         return PasswordResetForm
+
+
+class CoverageMetadataSerializer(serializers.Serializer):
+    uuid = serializers.CharField(max_length=64)
+    version = serializers.CharField(max_length=64)
+    gprmc = serializers.CharField(max_length=256)
+    serial = serializers.CharField(max_length=128)
+
+
+class PredictionsMetadataSerializer(CoverageMetadataSerializer):
+    model_name = serializers.CharField(max_length=128)
+    predictions = serializers.ListField()
+    time_since_boot_sec = serializers.FloatField(min_value=0)

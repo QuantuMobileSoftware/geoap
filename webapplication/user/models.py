@@ -138,6 +138,45 @@ class UploadMissions(models.Model):
     )
 
 
+class StonesDetectionChunk(models.Model):
+    TYPE_PREDICTIONS = 'predictions'
+    TYPE_COVERAGE = 'coverage'
+    TYPE_CHOICES = [
+        (TYPE_PREDICTIONS, 'Predictions'),
+        (TYPE_COVERAGE, 'Coverage'),
+    ]
+
+    STATUS_UPLOADING = 'uploading'
+    STATUS_PENDING = 'pending'
+    STATUS_PROCESSING = 'processing'
+    STATUS_DONE = 'done'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_UPLOADING, 'Uploading'),
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_DONE, 'Done'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='stones_chunks', verbose_name='User')
+    date = models.DateField(verbose_name='UTC date')
+    chunk = models.IntegerField(verbose_name='Chunk index (0–5)')
+    type = models.CharField(max_length=16, choices=TYPE_CHOICES, verbose_name='Type')
+    gcs_path = models.CharField(max_length=500, verbose_name='GCS base path')
+    processing_start_date = models.DateTimeField(verbose_name='Processing start date (UTC)')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, verbose_name='Status')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
+
+    class Meta:
+        unique_together = ('user', 'date', 'chunk', 'type')
+        verbose_name = 'Stones Detection Chunk'
+        verbose_name_plural = 'Stones Detection Chunks'
+
+    def __str__(self):
+        return f'{self.user.username} / {self.date} / chunk {self.chunk} / {self.type}'
+
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
     amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)

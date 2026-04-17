@@ -21,6 +21,9 @@ const removeMissionFiles = (id, fileNames) =>
   axiosInstance.post(`${uploadEndpoints.uploadMissions}${id}/remove_files/`, {
     files_to_remove: fileNames
   });
+const rerunTrajectory = id =>
+  axiosInstance.post(`${uploadEndpoints.uploadMissions}${id}/rerun_trajectory/`);
+
 const getDownloadURL = (fileName, uploadType, sessionFolder) =>
   axiosInstance.get(uploadEndpoints.generateDownloadUrl, {
     params: {
@@ -37,5 +40,6 @@ export const uploadRequests = {
   updateMission,
   deleteMission,
   removeMissionFiles,
+  rerunTrajectory,
   getDownloadURL
 };

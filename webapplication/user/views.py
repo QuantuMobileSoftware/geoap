@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from datetime import datetime, timedelta
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
@@ -10,7 +11,7 @@ from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
@@ -25,6 +26,11 @@ from waffle import switch_is_active
 from google.cloud import storage
 
 logger = logging.getLogger(__name__)
+
+DATA_VIDEO_FILENAME_RE = re.compile(
+    r'^[A-Z0-9]+_UNIT\d{2}\d{14}_\d{4}\.MP4$',
+    re.IGNORECASE,
+)
 
 
 class RegisterView(BasicRegisterView):
@@ -196,6 +202,24 @@ class GenerateResumableUploadURLAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if upload_type == 'data_video' and not DATA_VIDEO_FILENAME_RE.match(file_name):
+            return Response(
+                {"detail": "data_video file name must match the format: PREFIX_UNITnn{YYYYMMDD}{HHMMSS}_ssss.MP4 (e.g. 00SAIRS_UNIT0120251028071253_0010.MP4)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if upload_type == 'calibration_video':
+            _, ext = os.path.splitext(file_name)
+            file_name = f'calibration{ext}'
+
+        if mission:
+            existing_names = {f['name'] for f in (mission.uploaded_files or [])}
+            if file_name in existing_names:
+                return Response(
+                    {'detail': f"File '{file_name}' has already been uploaded to this session."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
         if not session_folder:
             now = datetime.now()
             session_folder = f"{now.strftime('%Y')}/{now.strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -352,6 +376,10 @@ class UploadMissionsUpdateAPIView(UpdateAPIView):
         return UploadMissions.objects.filter(user=self.request.user)
 
     def perform_update(self, serializer):
+        instance = self.get_object()
+        new_status = serializer.validated_data.get('status')
+        if new_status == UploadMissions.STATUS_FAILED and instance.status == UploadMissions.STATUS_COMPLETED:
+            raise ValidationError('Cannot mark a completed upload as failed.')
         instance = serializer.save()
         if (
             instance.status == UploadMissions.STATUS_COMPLETED
@@ -492,8 +520,15 @@ class UploadMissionsRemoveFilesAPIView(APIView):
         remove_set = set(files_to_remove)
         mission.uploaded_files = [f for f in uploaded_files if f['name'] not in remove_set]
 
+        remaining_videos = [f for f in mission.uploaded_files if f.get('type') == 'data_video']
+
         mission.trajectory_request = None
         mission.save(update_fields=['uploaded_files', 'trajectory_request'])
+
+        if not remaining_videos:
+            data = UploadMissionsSerializer(mission).data
+            data['suggest_delete'] = True
+            return Response(data, status=status.HTTP_200_OK)
 
         if component and request.user.stone_google_folder:
             full_gcs_path = (
@@ -513,5 +548,56 @@ class UploadMissionsRemoveFilesAPIView(APIView):
 
         serializer = UploadMissionsSerializer(mission)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UploadMissionsRerunTrajectoryAPIView(APIView):
+    """Re-run trajectory processing for a completed mission with a failed trajectory."""
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            mission = UploadMissions.objects.select_related(
+                'component', 'trajectory_request'
+            ).get(pk=pk, user=request.user)
+        except UploadMissions.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if mission.status != UploadMissions.STATUS_COMPLETED:
+            return Response(
+                {"detail": "Only completed missions can have their trajectory re-run."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        req = mission.trajectory_request
+        trajectory_failed = req and (req.error or (req.finished_at and not req.success))
+        if not trajectory_failed:
+            return Response(
+                {"detail": "Trajectory has not failed; re-run is not needed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        component = mission.component or request.user.default_upload_component
+        if not component or not request.user.stone_google_folder:
+            return Response(
+                {"detail": "Component or storage bucket is not configured for this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        full_gcs_path = (
+            f"{request.user.stone_google_folder}"
+            f"/{request.user.username}"
+            f"/{mission.gcs_path}/"
+        )
+        new_request = Request.objects.create(
+            user=request.user,
+            component=component,
+            aoi=None,
+            polygon=None,
+            additional_parameter=full_gcs_path,
+        )
+        mission.trajectory_request = new_request
+        mission.save(update_fields=['trajectory_request'])
+
+        return Response(UploadMissionsSerializer(mission).data, status=status.HTTP_200_OK)
 
 
