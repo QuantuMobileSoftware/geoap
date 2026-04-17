@@ -9,7 +9,7 @@ server {
     listen 8090;
     server_name portal.soilmate.ai;
 
-    location ~ ^/api/user/(predictions|coverage) {
+    location ~ ^/api/(predictions|coverage) {
         uwsgi_pass webapplication;
         include /etc/nginx/uwsgi_params;
     }
