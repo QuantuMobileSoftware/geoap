@@ -127,14 +127,20 @@ const formatDate = iso => {
 const getTrajectoryInfo = ts => {
   if (!ts) return { status: null, label: 'Not started' };
   if (ts.success) return { status: 'traj_done', label: 'Ready' };
+  if (ts.error || (ts.finished_at && !ts.success))
+    return { status: 'traj_failed', label: 'Failed' };
   if (ts.calculated) return { status: 'processing', label: 'Publishing…' };
   return { status: 'processing', label: 'Processing…' };
 };
 
 // Returns true when a mission still needs live status updates.
 // Keep polling while upload is running OR trajectory exists but hasn't finished yet.
-const needsPolling = m =>
-  m.status === 'in_progress' || (m.trajectory_status && !m.trajectory_status.calculated);
+const needsPolling = m => {
+  if (m.status === 'in_progress') return true;
+  const ts = m.trajectory_status;
+  if (!ts) return false;
+  return !ts.success && !ts.error && !ts.finished_at;
+};
 
 export const UploadMissions = () => {
   const [selectedTab, setSelectedTab] = useState(TABS.LIST);
@@ -196,27 +202,14 @@ export const UploadMissions = () => {
           if (m.status === 'in_progress' && m.id !== currentId) {
             API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
           }
-          if (
-            m.status === 'completed' &&
-            m.trajectory_status?.calculated &&
-            !m.trajectory_status?.success
-          ) {
-            API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
-          }
         });
 
         setMissions(prev => {
           const detailsMap = Object.fromEntries(prev.map(m => [m.id, m.showDetails]));
           return data.map(m => ({
             ...m,
-            // Show failed immediately in UI without waiting for the patch response
             status:
-              (m.status === 'in_progress' && m.id !== currentId) ||
-              (m.status === 'completed' &&
-                m.trajectory_status?.calculated &&
-                !m.trajectory_status?.success)
-                ? 'failed'
-                : m.status,
+              m.status === 'in_progress' && m.id !== currentId ? 'failed' : m.status,
             showDetails: detailsMap[m.id] ?? false
           }));
         });
@@ -563,6 +556,19 @@ export const UploadMissions = () => {
     e.target.value = '';
   };
 
+  const handleRerunTrajectory = async missionId => {
+    try {
+      const { data } = await API.upload.rerunTrajectory(missionId);
+      setMissions(prev =>
+        prev.map(m =>
+          m.id === missionId ? { ...m, ...data, showDetails: m.showDetails } : m
+        )
+      );
+    } catch {
+      // silently ignore — polling will reflect actual state
+    }
+  };
+
   const handleDownload = async (fileName, fileType, gcsPath) => {
     try {
       const { data } = await API.upload.getDownloadURL(fileName, fileType, gcsPath);
@@ -732,6 +738,15 @@ export const UploadMissions = () => {
                         </StatusChip>
                       )}
                     </StatusGroup>
+                    {trajInfo.status === 'traj_failed' && (
+                      <RemoveFilesButton
+                        title='Re-run trajectory processing'
+                        onClick={() => handleRerunTrajectory(mission.id)}
+                        style={{ padding: '2px 10px', fontSize: 12 }}
+                      >
+                        Re-run
+                      </RemoveFilesButton>
+                    )}
                     {isFailed && (
                       <DeleteMissionButton
                         title='Delete this upload and remove its files from storage'

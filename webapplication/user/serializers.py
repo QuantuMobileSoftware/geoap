@@ -61,6 +61,8 @@ class UploadMissionsSerializer(serializers.ModelSerializer):
             'id': req.id,
             'calculated': req.calculated,
             'success': req.success,
+            'error': req.error or None,
+            'finished_at': req.finished_at,
         }
 
 

@@ -11,7 +11,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FO
 from rest_framework.test import APITestCase
 
 import user.stone_device_views as stone_views
-from user.models import CameraToken, StonesDetectionChunk, User, UploadMissions
+from devices.models import Camera
+from user.models import StonesDetectionChunk, User, UploadMissions
 from user.upload_utils import get_upload_config
 
 
@@ -624,6 +625,113 @@ class UploadMissionsTestCase(UserBase):
         self.assertEqual(traj['id'], req.pk)
         self.assertFalse(traj['calculated'])
         self.assertFalse(traj['success'])
+        self.assertIsNone(traj['error'])
+
+    def test_patch_completed_mission_to_failed_without_trajectory_error_returns_400(self):
+        self.client.force_login(self.ex_2_user)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+        )
+        url = reverse('upload_mission_detail', kwargs={'pk': mission.pk})
+        response = self.client.patch(url, {'status': UploadMissions.STATUS_FAILED}, format='json')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        mission.refresh_from_db()
+        self.assertEqual(mission.status, UploadMissions.STATUS_COMPLETED)
+
+    def test_patch_completed_mission_to_failed_is_always_blocked(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component, error='Processing failed')
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_detail', kwargs={'pk': mission.pk})
+        response = self.client.patch(url, {'status': UploadMissions.STATUS_FAILED}, format='json')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        mission.refresh_from_db()
+        self.assertEqual(mission.status, UploadMissions.STATUS_COMPLETED)
+
+    def test_trajectory_status_fields_exposed(self):
+        from django.utils import timezone
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        finished = timezone.now()
+        req = Request.objects.create(
+            user=self.ex_2_user, component=component,
+            error='Something went wrong', finished_at=finished,
+        )
+        UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        self.client.force_login(self.ex_2_user)
+        response = self.client.get(reverse('upload_missions_list'))
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        traj = response.data[0]['trajectory_status']
+        self.assertEqual(traj['error'], 'Something went wrong')
+        self.assertIsNotNone(traj['finished_at'])
+
+    def test_rerun_trajectory_creates_new_request(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        self.ex_2_user.stone_google_folder = 'test-bucket'
+        self.ex_2_user.save(update_fields=['stone_google_folder'])
+        failed_req = Request.objects.create(
+            user=self.ex_2_user, component=component, error='Processing failed'
+        )
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=failed_req,
+        )
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_rerun_trajectory', kwargs={'pk': mission.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        mission.refresh_from_db()
+        self.assertNotEqual(mission.trajectory_request_id, failed_req.pk)
+        new_req = Request.objects.get(pk=mission.trajectory_request_id)
+        self.assertEqual(new_req.component, component)
+        self.assertIsNone(new_req.error)
+
+    def test_rerun_trajectory_blocked_when_not_failed(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component, success=True)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_rerun_trajectory', kwargs={'pk': mission.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_rerun_trajectory_blocked_when_mission_not_completed(self):
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_IN_PROGRESS,
+        )
+        self.client.force_login(self.ex_2_user)
+        url = reverse('upload_mission_rerun_trajectory', kwargs={'pk': mission.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
     def test_patch_mission_unauthenticated_returns_403(self):
         mission = UploadMissions.objects.create(
@@ -1328,7 +1436,7 @@ class StoneDeviceViewsBase(APITestCase):
             password='testpass',
             stone_google_folder='test-bucket',
         )
-        self.camera_token = CameraToken.objects.create(
+        self.camera = Camera.objects.create(
             cam_serial_num='CAM-001',
             user=self.user,
         )

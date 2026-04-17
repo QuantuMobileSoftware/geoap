@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from user.models import CameraToken, StonesDetectionChunk
+from devices.models import Camera
+from user.models import StonesDetectionChunk
 from user.serializers import CoverageMetadataSerializer, PredictionsMetadataSerializer
 
 logger = logging.getLogger(__name__)
@@ -64,8 +65,8 @@ def _gcs_client():
 def _resolve_user_by_serial(serial):
     """Return the User linked to this camera serial number, or None if not found."""
     try:
-        return CameraToken.objects.select_related('user').get(cam_serial_num=serial).user
-    except CameraToken.DoesNotExist:
+        return Camera.objects.select_related('user').get(cam_serial_num=serial).user
+    except Camera.DoesNotExist:
         return None
 
 

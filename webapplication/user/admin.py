@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 from django_json_widget.widgets import JSONEditorWidget
 
-from user.models import User, Transaction, UploadMissions, CameraToken, StonesDetectionChunk
+from user.models import User, Transaction, UploadMissions, StonesDetectionChunk
 
 
 class UserForm(forms.ModelForm):
@@ -71,15 +71,6 @@ class UploadMissionsAdmin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget},
     }
-
-
-@admin.register(CameraToken)
-class CameraTokenAdmin(admin.ModelAdmin):
-    list_display = ('cam_serial_num', 'user', 'created_at')
-    list_filter = ('user',)
-    search_fields = ('cam_serial_num', 'user__username')
-    readonly_fields = ('created_at',)
-    raw_id_fields = ('user',)
 
 
 @admin.register(StonesDetectionChunk)

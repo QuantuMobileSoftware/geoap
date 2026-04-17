@@ -138,19 +138,6 @@ class UploadMissions(models.Model):
     )
 
 
-class CameraToken(models.Model):
-    cam_serial_num = models.CharField(max_length=128, unique=True, verbose_name='Camera serial number')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='camera_tokens', verbose_name='User')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
-
-    class Meta:
-        verbose_name = 'Camera Token'
-        verbose_name_plural = 'Camera Tokens'
-
-    def __str__(self):
-        return f'{self.cam_serial_num} → {self.user.username}'
-
-
 class StonesDetectionChunk(models.Model):
     TYPE_PREDICTIONS = 'predictions'
     TYPE_COVERAGE = 'coverage'
@@ -172,7 +159,7 @@ class StonesDetectionChunk(models.Model):
         (STATUS_FAILED, 'Failed'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stones_chunks', verbose_name='User')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='stones_chunks', verbose_name='User')
     date = models.DateField(verbose_name='UTC date')
     chunk = models.IntegerField(verbose_name='Chunk index (0–5)')
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, verbose_name='Type')
