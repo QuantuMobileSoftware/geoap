@@ -315,7 +315,7 @@ class TransactionTestCase(UserBase):
     )
 
     def test_get_transactions_list_authorized(self):
-        response_data = [
+        expected_results = [
             {
                 "id": 1002,
                 "user": 1002,
@@ -327,18 +327,22 @@ class TransactionTestCase(UserBase):
                 "error": None,
                 "completed": False,
                 "rolled_back": False,
-                "area_sq_km": None
+                "area_sq_km": None,
+                "processed_area_sq_km": None
             }
         ]
         url = reverse("get_transactions_list")
         self.client.force_login(self.ex_2_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(len(response.data), len(response_data))
-        self.assertEqual(response.json(), response_data)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+        self.assertIsNone(data["next"])
+        self.assertIsNone(data["previous"])
+        self.assertEqual(data["results"], expected_results)
 
     def test_get_transactions_list_authorized_as_admin(self):
-        response_data = [
+        expected_results = [
             {
                 "id": 1003,
                 "user": 1003,
@@ -350,7 +354,8 @@ class TransactionTestCase(UserBase):
                 "error": None,
                 "completed": True,
                 "rolled_back": False,
-                "area_sq_km": None
+                "area_sq_km": None,
+                "processed_area_sq_km": None
             },
             {
                 "id": 1002,
@@ -363,7 +368,8 @@ class TransactionTestCase(UserBase):
                 "error": None,
                 "completed": False,
                 "rolled_back": False,
-                "area_sq_km": None
+                "area_sq_km": None,
+                "processed_area_sq_km": None
             },
             {
                 "id": 1001,
@@ -376,15 +382,19 @@ class TransactionTestCase(UserBase):
                 "error": None,
                 "completed": True,
                 "rolled_back": False,
-                "area_sq_km": None
+                "area_sq_km": None,
+                "processed_area_sq_km": None
             }
         ]
         url = reverse("get_transactions_list")
         self.client.force_login(self.staff_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(len(response.data), len(response_data))
-        self.assertEqual(response.json(), response_data)
+        data = response.json()
+        self.assertEqual(data["count"], 3)
+        self.assertIsNone(data["next"])
+        self.assertIsNone(data["previous"])
+        self.assertEqual(data["results"], expected_results)
 
     def test_get_transactions_list_not_authorized(self):
         url = reverse("get_transactions_list")
@@ -396,6 +406,64 @@ class TransactionTestCase(UserBase):
         url = reverse("get_transactions_list")
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 405)
+
+    def test_get_transactions_list_month_year_filter(self):
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.staff_user)
+        response = self.client.get(url, {"month": 2, "year": 2023})
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        data = response.json()
+        # All 3 fixture transactions are in Feb 2023
+        self.assertEqual(data["count"], 3)
+        self.assertEqual(len(data["results"]), 3)
+
+    def test_get_transactions_list_month_year_filter_no_match(self):
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.staff_user)
+        response = self.client.get(url, {"month": 1, "year": 2023})
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["count"], 0)
+        self.assertEqual(data["results"], [])
+
+    def test_get_transactions_list_month_filter_ignored_without_year(self):
+        # Partial filter (only month, no year) should return all transactions
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.staff_user)
+        response = self.client.get(url, {"month": 2})
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["count"], 3)
+
+    def test_get_transactions_list_pagination_page_size(self):
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.staff_user)
+        response = self.client.get(url, {"page_size": 2})
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["count"], 3)
+        self.assertEqual(len(data["results"]), 2)
+        self.assertIsNotNone(data["next"])
+        self.assertIsNone(data["previous"])
+
+    def test_get_transactions_list_pagination_second_page(self):
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.staff_user)
+        response = self.client.get(url, {"page_size": 2, "page": 2})
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["count"], 3)
+        self.assertEqual(len(data["results"]), 1)
+        self.assertIsNone(data["next"])
+        self.assertIsNotNone(data["previous"])
+
+    def test_transaction_serializer_processed_area_sq_km_null_when_no_request(self):
+        url = reverse("get_transactions_list")
+        self.client.force_login(self.ex_2_user)
+        response = self.client.get(url)
+        result = response.json()["results"][0]
+        self.assertIn("processed_area_sq_km", result)
+        self.assertIsNone(result["processed_area_sq_km"])
 
 
 class UploadMissionsTestCase(UserBase):
