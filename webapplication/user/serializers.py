@@ -19,24 +19,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     area_sq_km = serializers.SerializerMethodField()
+    processed_area_sq_km = serializers.SerializerMethodField()
 
     def get_area_sq_km(self, obj):
-        req = obj.request
-        if req is None:
+        if obj.request is None:
             return None
-        if obj.amount > 0:
-            # Refund transaction: show the area difference for which money was returned
-            charged = req.charged_area_sq_km
-            processed = req.processed_area_sq_km
-            if charged is not None and processed is not None:
-                return round(charged - processed, 4)
+        return obj.request.charged_area_sq_km
+
+    def get_processed_area_sq_km(self, obj):
+        if obj.request is None:
             return None
-        # Charge transaction: show the full charged area
-        return req.charged_area_sq_km
+        return obj.request.processed_area_sq_km
 
     class Meta:
         model = Transaction
-        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed', 'rolled_back', 'area_sq_km')
+        fields = ('id', 'user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed',
+                  'rolled_back', 'area_sq_km', 'processed_area_sq_km')
         read_only_fields = ('user', 'amount', 'created_at', 'updated_at', 'request', 'comment', 'error', 'completed',
                             'rolled_back')
 

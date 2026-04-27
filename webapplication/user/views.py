@@ -10,6 +10,7 @@ from django.http import Http404
 from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
@@ -73,17 +74,27 @@ class VerifyEmailView(APIView, ConfirmEmailView):
         return Response(data=_("Email has been successfully confirmed!"), status=HTTP_200_OK)
 
 
+class TransactionPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class TransactionListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated, )
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
-    pagination_class = None
+    pagination_class = TransactionPagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user.has_perm("user.view_all_transactions"):
-            return queryset
-        return queryset.filter(user=self.request.user)
+        if not self.request.user.has_perm("user.view_all_transactions"):
+            queryset = queryset.filter(user=self.request.user)
+        month = self.request.query_params.get('month')
+        year = self.request.query_params.get('year')
+        if month and year:
+            queryset = queryset.filter(created_at__month=month, created_at__year=year)
+        return queryset
 
 
 class GoogleBucketFolderAPIView(APIView):

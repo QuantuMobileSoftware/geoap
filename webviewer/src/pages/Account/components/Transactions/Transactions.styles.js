@@ -51,3 +51,17 @@ export const NotebookName = styled.span`
 export const StyledButton = styled(Button)`
   font-size: ${em(16)};
 `;
+
+export const Pagination = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${em(16)};
+  padding: ${em(20)} 0;
+`;
+
+export const PageInfo = styled.span`
+  ${({ theme }) => `
+    color: ${theme.colors.nature.n3};
+    font-size: ${em(14)};
+  `}
+`;
