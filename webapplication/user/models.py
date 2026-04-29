@@ -167,6 +167,10 @@ class StonesDetectionChunk(models.Model):
     processing_start_date = models.DateTimeField(verbose_name='Processing start date (UTC)')
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, verbose_name='Status')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
+    gpx_request = models.OneToOneField(
+        Request, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='stones_chunk', verbose_name='GPX Request',
+    )
 
     class Meta:
         unique_together = ('user', 'date', 'chunk', 'type')
