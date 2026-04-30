@@ -437,6 +437,11 @@ class GPXFile(File):
             if x and y:
                 route_polygon = Polygon(zip(x, y))
             if not (x and y):
+                if waypoints_stones:
+                    hull = geometry.MultiPoint([(p.x, p.y) for p in waypoints_stones]).convex_hull
+                    if not isinstance(hull, geometry.Polygon):
+                        hull = hull.buffer(0.00002)
+                    return orient(hull, sign=1.0)
                 match = re.search(r"request_(\d+)", file_path)
                 if match:
                     request = Request.objects.get(id=match.group(1))
@@ -474,7 +479,10 @@ class GPXFile(File):
         return
 
     def bounding_polygon(self):
-        return GEOSGeometry(f"{self.parse_gpx_file(self.path)}", srid=4326)
+        polygon = self.parse_gpx_file(self.path)
+        if polygon is None:
+            return None
+        return GEOSGeometry(f"{polygon}", srid=4326)
 
     def create_mvt_style(self, df, output_path):
         def get_color(row):

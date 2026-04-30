@@ -1891,3 +1891,131 @@ class UploadMissionsRemoveFilesTestCase(UserBase):
 
         mission.refresh_from_db()
         self.assertIsNone(mission.trajectory_request_id)
+
+
+# ---------------------------------------------------------------------------
+# process_closed_chunks management command
+# ---------------------------------------------------------------------------
+
+class ProcessClosedChunksTest(APITestCase):
+
+    def setUp(self):
+        from aoi.models import Component
+        self.user = User.objects.create_user(
+            username='chunkuser',
+            password='pass',
+            stone_google_folder='test-bucket',
+        )
+        self.component = Component.objects.create(name='Stone GPX', image='gpx-image')
+
+    def _make_pending_chunk(self, boundary):
+        return StonesDetectionChunk.objects.create(
+            user=self.user,
+            date=boundary.date(),
+            chunk=boundary.hour // 4,
+            type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path=f'chunkuser/{boundary.date()}/{boundary.hour // 4}/predictions/',
+            processing_start_date=boundary,
+            status=StonesDetectionChunk.STATUS_PENDING,
+        )
+
+    @mock.patch('user.management.commands.process_closed_chunks.datetime')
+    def test_no_pending_chunks_does_nothing(self, mock_dt):
+        from django.core.management import call_command
+        from datetime import datetime, timezone
+        boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
+        mock_dt.now.return_value = boundary
+        call_command('process_closed_chunks')
+        from aoi.models import Request
+        self.assertEqual(Request.objects.filter(component=self.component).count(), 0)
+
+    @mock.patch('user.management.commands.process_closed_chunks.datetime')
+    def test_missing_component_logs_error_and_skips(self, mock_dt):
+        from django.core.management import call_command
+        from datetime import datetime, timezone
+        from aoi.models import Component
+        Component.objects.filter(name='Stone GPX').delete()
+        boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
+        mock_dt.now.return_value = boundary
+        self._make_pending_chunk(boundary)
+        call_command('process_closed_chunks')
+        chunk = StonesDetectionChunk.objects.get(user=self.user)
+        self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_PENDING)
+
+    @mock.patch('user.management.commands.process_closed_chunks.datetime')
+    def test_user_without_google_folder_skips_chunk(self, mock_dt):
+        from django.core.management import call_command
+        from datetime import datetime, timezone
+        self.user.stone_google_folder = None
+        self.user.save(update_fields=['stone_google_folder'])
+        boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
+        mock_dt.now.return_value = boundary
+        self._make_pending_chunk(boundary)
+        call_command('process_closed_chunks')
+        chunk = StonesDetectionChunk.objects.get(user=self.user)
+        self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_PENDING)
+        self.assertIsNone(chunk.gpx_request)
+
+    @mock.patch('user.management.commands.process_closed_chunks.datetime')
+    def test_happy_path_creates_request_and_sets_processing(self, mock_dt):
+        from django.core.management import call_command
+        from datetime import datetime, timezone
+        from aoi.models import Request
+        boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
+        mock_dt.now.return_value = boundary
+        chunk = self._make_pending_chunk(boundary)
+        call_command('process_closed_chunks')
+        chunk.refresh_from_db()
+        self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_PROCESSING)
+        self.assertIsNotNone(chunk.gpx_request)
+        req = Request.objects.get(component=self.component, user=self.user)
+        self.assertEqual(chunk.gpx_request_id, req.pk)
+        expected_path = f'test-bucket/chunkuser/{boundary.date()}/{boundary.hour // 4}/'
+        self.assertEqual(req.additional_parameter, expected_path)
+
+
+# ---------------------------------------------------------------------------
+# sync_stones_chunk_status signal
+# ---------------------------------------------------------------------------
+
+class SyncStonesChunkStatusSignalTest(APITestCase):
+
+    def setUp(self):
+        from aoi.models import Component, Request
+        self.user = User.objects.create_user(username='signaluser', password='pass')
+        self.component = Component.objects.create(name='Stone GPX Signal', image='gpx-image')
+        self.request = Request.objects.create(user=self.user, component=self.component)
+        self.chunk = StonesDetectionChunk.objects.create(
+            user=self.user,
+            date='2026-04-29',
+            chunk=2,
+            type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='signaluser/2026-04-29/2/predictions/',
+            processing_start_date='2026-04-29T08:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+            gpx_request=self.request,
+        )
+
+    def test_calculated_true_sets_chunk_done(self):
+        self.request.calculated = True
+        self.request.save(update_fields=['calculated'])
+        self.chunk.refresh_from_db()
+        self.assertEqual(self.chunk.status, StonesDetectionChunk.STATUS_DONE)
+
+    def test_error_set_sets_chunk_failed(self):
+        self.request.error = 'something went wrong'
+        self.request.save(update_fields=['error'])
+        self.chunk.refresh_from_db()
+        self.assertEqual(self.chunk.status, StonesDetectionChunk.STATUS_FAILED)
+
+    def test_no_relevant_change_leaves_chunk_unchanged(self):
+        self.request.additional_parameter = 'new-path'
+        self.request.save(update_fields=['additional_parameter'])
+        self.chunk.refresh_from_db()
+        self.assertEqual(self.chunk.status, StonesDetectionChunk.STATUS_PROCESSING)
+
+    def test_request_without_chunk_does_not_raise(self):
+        from aoi.models import Request
+        orphan = Request.objects.create(user=self.user, component=self.component)
+        orphan.calculated = True
+        orphan.save(update_fields=['calculated'])
