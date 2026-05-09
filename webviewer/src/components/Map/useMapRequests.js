@@ -162,6 +162,27 @@ export const useMapRequests = (selectedArea, map) => {
             L.popup().setLatLng(e.latlng).setContent(label).openOn(map);
             return;
           }
+          if (selectedLayer.filepath?.endsWith('.gpx')) {
+            const coords = { lat: e.latlng.lng, lng: e.latlng.lat };
+            const resp = await API.areas.getStone(selectedLayer.id, coords);
+            const { image_url, name } = resp.data;
+            const content = `
+              <div style="width:300px;text-align:center;font-family:sans-serif">
+                <b style="font-size:13px">${name}</b>
+                <a href="${image_url}" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:8px">
+                  <img src="${image_url}" style="width:100%;height:220px;object-fit:cover;border-radius:4px;cursor:pointer" />
+                </a>
+                <a href="${image_url}" target="_blank" rel="noopener noreferrer"
+                   style="display:inline-block;margin-top:6px;font-size:12px;color:#1a73e8;text-decoration:none">
+                  Open full image ↗
+                </a>
+              </div>`;
+            L.popup({ maxWidth: 320 })
+              .setLatLng(e.latlng)
+              .setContent(content)
+              .openOn(map);
+            return;
+          }
           const coords = { lat: e.latlng.lng, lng: e.latlng.lat };
           const resp = await API.areas.getField(selectedLayer.id, coords);
           addNewField(createField(resp.data.polygon));

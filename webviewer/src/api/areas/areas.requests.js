@@ -53,6 +53,10 @@ const getField = (id, data) => {
   return axiosInstance.get(areasEndpoints.field(id), { params: data });
 };
 
+const getStone = (id, data) => {
+  return axiosInstance.get(areasEndpoints.stone(id), { params: data });
+};
+
 const getStoneLayer = () => {
   return axiosInstance.get(areasEndpoints.stoneLayer);
 };
@@ -71,5 +75,6 @@ export const areasRequests = {
   patchArea,
   getLayers,
   getField,
+  getStone,
   getStoneLayer
 };
