@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import status
 from django.conf import settings
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound
 from django.http import HttpResponse
 from .models import Result
 from .serializers import ResultSerializer, PointSerializer
@@ -171,6 +171,42 @@ class ResultRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
 
+class GetStoneFromResultAPIView(RetrieveAPIView):
+    permission_classes = (ModelPermissions, ResultByACLPermission)
+    queryset = Result.objects.all()
+    serializer_class = PointSerializer
+    lookup_url_kwarg = "pk"
+
+    def get_queryset(self):
+        if self.request.user.has_perm('publisher.view_unreleased_result'):
+            return self.queryset
+        return self.queryset.filter(released=True)
+
+    def get(self, request, *args, **kwargs):
+        result = self.get_object()
+        data = {'lat': request.query_params.get('lat'), 'lng': request.query_params.get('lng')}
+        point_serializer = self.get_serializer(data=data)
+        point_serializer.is_valid(raise_exception=True)
+        click_lat = point_serializer.validated_data['lng']
+        click_lon = point_serializer.validated_data['lat']
+
+        file_path = os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{result.filepath}")
+        try:
+            with open(file_path, 'r') as gpx_file:
+                gpx = gpxpy.parse(gpx_file)
+        except Exception:
+            raise APIException(detail=f'result with id {result.pk} does not contain a valid GPX file')
+
+        if not gpx.waypoints:
+            raise NotFound(detail=f'result with id {result.pk} has no waypoints')
+
+        nearest = min(
+            gpx.waypoints,
+            key=lambda wp: (wp.latitude - click_lat) ** 2 + (wp.longitude - click_lon) ** 2,
+        )
+        return Response({'image_url': nearest.description, 'name': nearest.name})
+
+
 class GetFieldFromResultAPIView(RetrieveAPIView):
     permission_classes = (ModelPermissions, ResultByACLPermission)
     queryset = Result.objects.all()
@@ -200,7 +236,7 @@ class GetFieldFromResultAPIView(RetrieveAPIView):
             polygons that contain {point}')
 
         if len(output) == 0:
-            raise APIException(detail=f'result with id {self.kwargs[self.lookup_url_kwarg]} does not have any polygons \
+            raise NotFound(detail=f'result with id {self.kwargs[self.lookup_url_kwarg]} does not have any polygons \
             that contain {point}')
 
         polygon = f"SRID={output.crs.srs.split(':')[1]};{output.iloc[0]['geometry'].wkt}"
