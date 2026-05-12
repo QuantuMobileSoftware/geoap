@@ -1,3 +1,4 @@
 0 0 * * * python -m manage clean_sattelite_cache
 0 5 * * * python -m manage check_trial
 */5 * * * * python -m manage check_remote_server
+0 0,4,8,12,16,20 * * * python -m manage process_closed_chunks

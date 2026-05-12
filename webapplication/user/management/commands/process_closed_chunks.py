@@ -8,7 +8,7 @@ from user.models import StonesDetectionChunk
 
 logger = logging.getLogger(__name__)
 
-GPX_COMPONENT_NAME = "Stone GPX"
+GPX_COMPONENT_NAME = "Edge Detection Assembler"
 
 
 class Command(BaseCommand):
@@ -21,8 +21,8 @@ class Command(BaseCommand):
 
         chunks = StonesDetectionChunk.objects.filter(
             type=StonesDetectionChunk.TYPE_PREDICTIONS,
-            processing_start_date=boundary,
-            status=StonesDetectionChunk.STATUS_PENDING,
+            processing_start_date__lte=boundary,
+            status__in=[StonesDetectionChunk.STATUS_UPLOADING, StonesDetectionChunk.STATUS_PENDING],
         ).select_related("user")
 
         if not chunks.exists():
