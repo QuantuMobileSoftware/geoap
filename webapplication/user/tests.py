@@ -840,6 +840,109 @@ class UploadMissionsTestCase(UserBase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data, [])
 
+    def test_error_field_in_response(self):
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_FAILED,
+            error='data_video file name must match the format',
+        )
+        self.client.force_login(self.ex_2_user)
+        response = self.client.get(reverse('upload_missions_list'))
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.data[0]['error'], 'data_video file name must match the format')
+
+    def test_patch_mission_with_error_field(self):
+        self.client.force_login(self.ex_2_user)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_IN_PROGRESS,
+        )
+        url = reverse('upload_mission_detail', kwargs={'pk': mission.pk})
+        response = self.client.patch(
+            url,
+            {'status': UploadMissions.STATUS_FAILED, 'error': 'Upload failed: HTTP 400'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        mission.refresh_from_db()
+        self.assertEqual(mission.status, UploadMissions.STATUS_FAILED)
+        self.assertEqual(mission.error, 'Upload failed: HTTP 400')
+
+    def test_error_field_empty_by_default(self):
+        self.client.force_login(self.ex_2_user)
+        self.client.post(reverse('upload_missions_list'), {})
+        response = self.client.get(reverse('upload_missions_list'))
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.data[0]['error'], '')
+
+    def test_signal_syncs_trajectory_error_to_mission(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        req.error = 'Processing failed: out of memory'
+        req.save(update_fields=['error'])
+        mission.refresh_from_db()
+        self.assertEqual(mission.error, 'Processing failed: out of memory')
+
+    def test_signal_uses_fallback_message_when_no_error_text(self):
+        from django.utils import timezone
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        req.finished_at = timezone.now()
+        req.success = False
+        req.save(update_fields=['finished_at', 'success'])
+        mission.refresh_from_db()
+        self.assertEqual(mission.error, 'Processing failed')
+
+    def test_signal_does_not_sync_on_success(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component)
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_COMPLETED,
+            component=component,
+            trajectory_request=req,
+        )
+        req.success = True
+        req.calculated = True
+        req.save(update_fields=['success', 'calculated'])
+        mission.refresh_from_db()
+        self.assertEqual(mission.error, '')
+
+    def test_signal_does_not_touch_unrelated_missions(self):
+        from aoi.models import Component, Request
+        component = Component.objects.get(pk=1001)
+        req = Request.objects.create(user=self.ex_2_user, component=component)
+        # Mission has no trajectory_request link
+        mission = UploadMissions.objects.create(
+            user=self.ex_2_user,
+            gcs_path='2024/2024-01-01_10-00-00',
+            status=UploadMissions.STATUS_IN_PROGRESS,
+        )
+        req.error = 'Processing failed'
+        req.save(update_fields=['error'])
+        mission.refresh_from_db()
+        self.assertEqual(mission.error, '')
+
 
 class GenerateUploadURLTestCase(UserBase):
     fixtures = ('user/fixtures/user_fixtures.json',)
@@ -902,7 +1005,15 @@ class GenerateUploadURLTestCase(UserBase):
     def test_invalid_data_video_filename_returns_400(self):
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
-        for bad_name in ('video.mp4', 'random.MP4', 'UNIT0120251028071253_0010.MP4', '00SAIRS_UNIT0120251028071253.MP4'):
+        bad_names = (
+            'video.mp4',
+            'random.MP4',
+            'UNIT0120251028071253_0010.MP4',
+            '00SAIRS_UNIT0120251028071253.MP4',
+            # _IMP suffix — the real-world case that triggered this fix
+            '00SAIRS_UNIT0120251028041252_0006_IMP.MP4',
+        )
+        for bad_name in bad_names:
             response = self.client.get(url, {'file_name': bad_name, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
             self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST, msg=f"Expected 400 for filename: {bad_name}")
             self.assertIn('detail', response.data)
@@ -1044,6 +1155,25 @@ class GenerateUploadURLTestCase(UserBase):
         self.client.force_login(self.ex_2_user)
         url = reverse('generate_upload_url')
         response = self.client.get(url, {'file_name': self.VALID_DATA_VIDEO_NAME, 'file_type': 'video/mp4', 'upload_type': 'data_video'})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
+
+    def test_missing_upload_config_returns_400_not_500(self):
+        """Regression: UnboundLocalError was raised when upload_config missing,
+        turning a clean 400 into a 500. The _, ext = os.path.splitext() later
+        in the same function shadowed the translation _ import."""
+        from aoi.models import Component
+        component = Component.objects.create(name='No Config Component', image='test-image')
+        self.ex_2_user.default_upload_component = component
+        self.ex_2_user.save(update_fields=['default_upload_component'])
+
+        self.client.force_login(self.ex_2_user)
+        url = reverse('generate_upload_url')
+        response = self.client.get(url, {
+            'file_name': self.VALID_DATA_VIDEO_NAME,
+            'file_type': 'video/mp4',
+            'upload_type': 'data_video',
+        })
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertIn('detail', response.data)
 

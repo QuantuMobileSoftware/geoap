@@ -87,6 +87,8 @@ const SIZE_WARN_MB = 5000;
 const toMB = bytes => (bytes / 1024 / 1024).toFixed(2);
 const mkFileItem = file => ({ file, progress: 0, uploading: false });
 
+const DATA_VIDEO_RE = /^[A-Z0-9]+_UNIT\d{2}\d{14}_\d{4}\.MP4$/i;
+
 // Returns the name the backend will store for calibration files
 const getCalibDisplayName = file => {
   const ext = file.name.split('.').pop();
@@ -153,6 +155,7 @@ export const UploadMissions = () => {
 
   // ── Upload form ───────────────────────────────────────────────────
   const [dcimFiles, setDcimFiles] = useState([]);
+  const [invalidDcimFiles, setInvalidDcimFiles] = useState([]);
   const [gpsFiles, setGpsFiles] = useState([]);
   const [calibFile, setCalibFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -184,7 +187,11 @@ export const UploadMissions = () => {
     (calibFile ? calibFile.file.size : 0);
 
   const canStart =
-    !uploading && !!calibFile && dcimFiles.length > 0 && gpsFiles.length > 0;
+    !uploading &&
+    !!calibFile &&
+    dcimFiles.length > 0 &&
+    gpsFiles.length > 0 &&
+    invalidDcimFiles.length === 0;
 
   // ── API ───────────────────────────────────────────────────────────
 
@@ -200,7 +207,12 @@ export const UploadMissions = () => {
         const currentId = missionIdRef.current;
         data.forEach(m => {
           if (m.status === 'in_progress' && m.id !== currentId) {
-            API.upload.updateMission(m.id, { status: 'failed' }).catch(() => {});
+            API.upload
+              .updateMission(m.id, {
+                status: 'failed',
+                error: 'Upload interrupted (page was reloaded)'
+              })
+              .catch(() => {});
           }
         });
 
@@ -489,20 +501,28 @@ export const UploadMissions = () => {
       });
       missionIdRef.current = null;
       setDcimFiles([]);
+      setInvalidDcimFiles([]);
       setGpsFiles([]);
       setCalibFile(null);
       setLiveUpload(null);
       getMissions();
       setShowSuccess(true);
-    } catch {
+    } catch (err) {
+      const errorMsg =
+        (typeof err === 'string' ? err : null) ||
+        err?.data?.detail ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        (err?.status ? `Server error (HTTP ${err.status})` : null) ||
+        'Upload failed. Please try again.';
       if (missionIdRef.current) {
         API.upload
-          .updateMission(missionIdRef.current, { status: 'failed' })
+          .updateMission(missionIdRef.current, { status: 'failed', error: errorMsg })
           .catch(() => {});
         missionIdRef.current = null;
       }
       setLiveUpload(null);
-      setUploadError('Upload failed. Please try again.');
+      setUploadError(errorMsg);
     } finally {
       setUploading(false);
       xhrRefs.current = {};
@@ -525,7 +545,7 @@ export const UploadMissions = () => {
     missionIdRef.current = null;
     if (id) {
       API.upload
-        .updateMission(id, { status: 'failed' })
+        .updateMission(id, { status: 'failed', error: 'Upload cancelled' })
         .then(() => API.upload.deleteMission(id))
         .catch(() => {})
         .finally(() => getMissionsRef.current());
@@ -534,10 +554,20 @@ export const UploadMissions = () => {
 
   const handleDcimChange = e => {
     const files = Array.from(e.target.files);
-    setDcimFiles(prev => {
-      const names = new Set(prev.map(f => f.file.name));
-      return [...prev, ...files.filter(f => !names.has(f.name)).map(mkFileItem)];
-    });
+    const valid = files.filter(f => DATA_VIDEO_RE.test(f.name));
+    const invalid = files.filter(f => !DATA_VIDEO_RE.test(f.name));
+    if (valid.length > 0) {
+      setDcimFiles(prev => {
+        const names = new Set(prev.map(f => f.file.name));
+        return [...prev, ...valid.filter(f => !names.has(f.name)).map(mkFileItem)];
+      });
+    }
+    if (invalid.length > 0) {
+      setInvalidDcimFiles(prev => {
+        const names = new Set(prev.map(f => f.name));
+        return [...prev, ...invalid.filter(f => !names.has(f.name))];
+      });
+    }
     e.target.value = '';
   };
 
@@ -768,6 +798,14 @@ export const UploadMissions = () => {
                   </MissionItemInfo>
                 </MissionItem>
 
+                {/* ── Error message (upload or processing failure) ── */}
+                {(isFailed || trajInfo.status === 'traj_failed') &&
+                  (mission.error || mission.trajectory_status?.error) && (
+                    <StatusMessage style={{ padding: '2px 12px 6px', fontSize: 12 }}>
+                      {mission.error || mission.trajectory_status?.error}
+                    </StatusMessage>
+                  )}
+
                 {/* ── Expanded: session metadata + file list ── */}
                 {mission.showDetails && (
                   <>
@@ -838,7 +876,7 @@ export const UploadMissions = () => {
         {/* Data Videos */}
         <SectionCard>
           <SectionTitle>Videos</SectionTitle>
-          {dcimFiles.length === 0 ? (
+          {dcimFiles.length === 0 && invalidDcimFiles.length === 0 ? (
             <UploadInfo>No videos added yet</UploadInfo>
           ) : (
             <FileList>
@@ -847,7 +885,33 @@ export const UploadMissions = () => {
                   setDcimFiles(prev => prev.filter((_, j) => j !== i))
                 )
               )}
+              {invalidDcimFiles.map(file => (
+                <FileItem key={file.name}>
+                  <FileName title={file.name} style={{ color: 'red' }}>
+                    {file.name}
+                  </FileName>
+                  <FileItemInfo>
+                    <FileSize style={{ color: 'red' }}>Invalid name</FileSize>
+                    {!uploading && (
+                      <RemoveButton
+                        onClick={() =>
+                          setInvalidDcimFiles(prev =>
+                            prev.filter(f => f.name !== file.name)
+                          )
+                        }
+                      >
+                        <Icon>Delete</Icon>
+                      </RemoveButton>
+                    )}
+                  </FileItemInfo>
+                </FileItem>
+              ))}
             </FileList>
+          )}
+          {invalidDcimFiles.length > 0 && (
+            <StatusMessage style={{ fontSize: 11, marginTop: 4 }}>
+              Expected: PREFIX_UNITnn&#123;YYYYMMDDHHMMSS&#125;_&#123;ssss&#125;.MP4
+            </StatusMessage>
           )}
           <AddFileLabel htmlFor='dcim-input' $disabled={uploading}>
             <Icon>Plus</Icon> Add Videos

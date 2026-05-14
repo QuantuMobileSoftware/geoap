@@ -220,7 +220,7 @@ class GenerateResumableUploadURLAPIView(APIView):
             )
 
         if upload_type == 'calibration_video':
-            _, ext = os.path.splitext(file_name)
+            ext = os.path.splitext(file_name)[1]
             file_name = f'calibration{ext}'
 
         if mission:

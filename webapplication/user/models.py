@@ -136,6 +136,7 @@ class UploadMissions(models.Model):
         'aoi.Request', null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name='Trajectory Grid Preview request'
     )
+    error = models.TextField(blank=True, default='', verbose_name='Error message')
 
 
 class StonesDetectionChunk(models.Model):
