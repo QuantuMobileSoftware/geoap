@@ -2036,7 +2036,7 @@ class ProcessClosedChunksTest(APITestCase):
             password='pass',
             stone_google_folder='test-bucket',
         )
-        self.component = Component.objects.create(name='Stone GPX', image='gpx-image')
+        self.component = Component.objects.create(name='Edge Detection Assembler', image='gpx-image')
 
     def _make_pending_chunk(self, boundary):
         return StonesDetectionChunk.objects.create(
@@ -2064,7 +2064,7 @@ class ProcessClosedChunksTest(APITestCase):
         from django.core.management import call_command
         from datetime import datetime, timezone
         from aoi.models import Component
-        Component.objects.filter(name='Stone GPX').delete()
+        Component.objects.filter(name='Edge Detection Assembler').delete()
         boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
         mock_dt.now.return_value = boundary
         self._make_pending_chunk(boundary)
