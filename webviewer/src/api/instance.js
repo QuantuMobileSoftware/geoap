@@ -10,7 +10,10 @@ export const axiosInstance = axios.create({
 
 const handleError = error => {
   let parsedError = error.response;
-  areasEvents.toggleErrorModal(parsedError);
+
+  if (!error.config?.skipErrorModal) {
+    areasEvents.toggleErrorModal(parsedError);
+  }
 
   if (error.response.data.detail) {
     parsedError = error.response.data.detail;

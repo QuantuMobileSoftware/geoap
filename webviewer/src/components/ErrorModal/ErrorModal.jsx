@@ -32,7 +32,7 @@ export const ErrorModal = () => {
     return areasEvents.onToggleErrorModal(({ error }) => {
       const isIgnoreError =
         catchErrRoutes.some(route => matchPath(location.pathname, route)) &&
-        error.status === 400;
+        [400, 401, 403].includes(error.status);
 
       if (isIgnoreError) {
         setError(null);

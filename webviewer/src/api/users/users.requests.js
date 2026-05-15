@@ -1,8 +1,8 @@
 import { axiosInstance } from 'api/instance';
 import { usersEndpoints } from './users.endpoints';
 
-const getCurrentUser = body => {
-  return axiosInstance.get(usersEndpoints.current, body);
+const getCurrentUser = () => {
+  return axiosInstance.get(usersEndpoints.current, { skipErrorModal: true });
 };
 
 const updateUser = data => {
