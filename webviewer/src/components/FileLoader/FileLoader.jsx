@@ -28,7 +28,8 @@ export const FileLoader = ({ selectedIdResults, areaName }) => {
       const response = await API.files.getFile(filepath, progress => {
         setDownloadProgress(state => ({ ...state, [id]: { ...progress, name } }));
       });
-      zip.file(`${name}.${getFileFormat(filepath)}`, response);
+      const safeName = name.replace(/[<>:"/\\|?*]/g, '_');
+      zip.file(`${safeName}.${getFileFormat(filepath)}`, response);
     });
     await Promise.all(promises);
     const zipBlob = await zip.generateAsync({ type: 'blob' });
