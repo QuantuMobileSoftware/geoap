@@ -57,8 +57,12 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}"), "r") as gpx_file:
-            gpx = gpxpy.parse(gpx_file)
+        try:
+            with open(os.path.join(settings.PERSISTENT_STORAGE_PATH, f"results/{instance.filepath}"), "r") as gpx_file:
+                gpx = gpxpy.parse(gpx_file)
+        except gpxpy.gpx.GPXXMLSyntaxException as e:
+            return Response({"detail": f"GPX file is malformed and cannot be loaded: {e}"},
+                            status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         return Response(gpx_to_json_format(gpx), status=status.HTTP_200_OK)
 
@@ -75,8 +79,12 @@ class UpdateGpxFileAPIView(generics.RetrieveUpdateAPIView):
         if not os.path.exists(original_filepath):
             shutil.copy(file_path, original_filepath)
 
-        with open(file_path, "r") as gpx_file:
-            gpx = gpxpy.parse(gpx_file)
+        try:
+            with open(file_path, "r") as gpx_file:
+                gpx = gpxpy.parse(gpx_file)
+        except gpxpy.gpx.GPXXMLSyntaxException as e:
+            return Response({"detail": f"GPX file is malformed and cannot be validated: {e}"},
+                            status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         for desc, data in request.data.items():
             matching_waypoints = [
