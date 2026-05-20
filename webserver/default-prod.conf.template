@@ -52,8 +52,14 @@ server {
         sub_filter_once off;
     }
 
-    rewrite ^/results/(.*)$ /api/files/results/$1 last;
-    rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+    #rewrite ^/results/(.*)$ /api/files/results/$1 last;
+    location /results {
+        alias /data/results;
+    }
+    #rewrite ^/tiles/(.*)$ /api/files/tiles/$1 last;
+    location /tiles {
+        alias /data/tiles;
+    }
 
     location /api {
         uwsgi_pass  webapplication;
@@ -82,8 +88,9 @@ server {
         alias /data;
     }
 
-    location ~^/file_download/tiles/mapbox/(.*)/(.*)/(.*).png$ {
-        internal;
+    #location ~^/file_download/tiles/mapbox/(.*)/(.*)/(.*).png$ {
+    location ~^/tiles/mapbox/(.*)/(.*)/(.*).png$ {
+        #internal;
         # resolver 127.0.0.11 ipv6=off;
         resolver 8.8.8.8;
     
