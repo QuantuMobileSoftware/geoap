@@ -1632,7 +1632,7 @@ class StoneDeviceViewsBase(APITestCase):
         self.user = User.objects.create_user(
             username='camerauser',
             password='testpass',
-            stone_google_folder='test-bucket',
+            stones_storage_edge='test-bucket',
         )
         self.camera = Camera.objects.create(
             cam_serial_num='CAM-001',
@@ -1720,7 +1720,7 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
     # --- bucket not configured ---
 
     def test_no_bucket_configured_returns_400(self):
-        self.user.stone_google_folder = None
+        self.user.stones_storage_edge = None
         self.user.save()
         response = self._post({'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA), 'image': self._image_file()})
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -1828,7 +1828,7 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
     # --- bucket not configured ---
 
     def test_no_bucket_configured_returns_400(self):
-        self.user.stone_google_folder = None
+        self.user.stones_storage_edge = None
         self.user.save()
         response = self._post({'metadata': self._metadata_file(VALID_COVERAGE_METADATA), 'image': self._image_file()})
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -2034,7 +2034,7 @@ class ProcessClosedChunksTest(APITestCase):
         self.user = User.objects.create_user(
             username='chunkuser',
             password='pass',
-            stone_google_folder='test-bucket',
+            stones_storage_edge='test-bucket',
         )
         self.component = Component.objects.create(name='Edge Detection Assembler', image='gpx-image')
 
@@ -2076,8 +2076,8 @@ class ProcessClosedChunksTest(APITestCase):
     def test_user_without_google_folder_skips_chunk(self, mock_dt):
         from django.core.management import call_command
         from datetime import datetime, timezone
-        self.user.stone_google_folder = None
-        self.user.save(update_fields=['stone_google_folder'])
+        self.user.stones_storage_edge = None
+        self.user.save(update_fields=['stones_storage_edge'])
         boundary = datetime(2026, 4, 29, 8, 0, 0, tzinfo=timezone.utc)
         mock_dt.now.return_value = boundary
         self._make_pending_chunk(boundary)

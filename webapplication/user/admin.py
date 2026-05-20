@@ -41,7 +41,7 @@ class UserAdmin(BaseUserAdmin):
         ('User permissions', {'fields': ('user_permissions', )}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Email notification', {'fields': ('receive_news', )}),
-        ('Stone Detection', {'fields': ('stone_google_folder', )}),
+        ('Stone Detection', {'fields': ('stone_google_folder', 'stones_storage_edge')}),
         ('Upload', {'fields': ('default_upload_component', )}),
     )
     readonly_fields = ('balance',)

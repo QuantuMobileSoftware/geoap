@@ -43,9 +43,9 @@ class Command(BaseCommand):
 
         for chunk in chunks:
             user = chunk.user
-            if not user or not user.stone_google_folder:
+            if not user or not user.stones_storage_edge:
                 logger.warning(
-                    f"Skipping chunk pk={chunk.pk}: user has no stone_google_folder."
+                    f"Skipping chunk pk={chunk.pk}: user has no stones_storage_edge."
                 )
                 skipped += 1
                 continue
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             # GOOGLE_BUCKET_PATH = "<bucket>/<user>/<date>/<chunk>/"
             # bucket_prefix_from_env() in the component splits this on the first "/"
             base_path = f"{user.username}/{chunk.date}/{chunk.chunk}/"
-            gcs_path = f"{user.stone_google_folder}/{base_path}"
+            gcs_path = f"{user.stones_storage_edge}/{base_path}"
 
             gpx_request = Request.objects.create(
                 user=user,

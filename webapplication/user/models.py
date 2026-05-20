@@ -29,6 +29,7 @@ class User(AbstractUser):
     receive_notification = models.BooleanField(default=True, verbose_name='Receive Notification')
     receive_news = models.BooleanField(default=False, verbose_name='Receive News')
     stone_google_folder = models.CharField(max_length=64, verbose_name='Google bucket folder for stone detection', null=True, default=None, blank=True)
+    stones_storage_edge = models.CharField(max_length=64, verbose_name='GCS bucket for automatic edge detection uploads', null=True, default=None, blank=True)
     default_upload_component = models.ForeignKey(
         'aoi.Component', null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name='Default auto-run component after upload'
