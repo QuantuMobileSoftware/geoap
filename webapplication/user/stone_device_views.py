@@ -106,7 +106,7 @@ class PredictionsAPIView(APIView):
         if user is None:
             return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if not user.stone_google_folder:
+        if not user.stones_storage_edge:
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -118,7 +118,7 @@ class PredictionsAPIView(APIView):
 
         try:
             client = _gcs_client()
-            bucket = client.bucket(user.stone_google_folder)
+            bucket = client.bucket(user.stones_storage_edge)
             bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
                 image_file.read(), content_type='image/jpeg'
             )
@@ -174,7 +174,7 @@ class CoverageAPIView(APIView):
         if user is None:
             return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if not user.stone_google_folder:
+        if not user.stones_storage_edge:
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -186,7 +186,7 @@ class CoverageAPIView(APIView):
 
         try:
             client = _gcs_client()
-            bucket = client.bucket(user.stone_google_folder)
+            bucket = client.bucket(user.stones_storage_edge)
             if image_file:
                 bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
                     image_file.read(), content_type='image/jpeg'
