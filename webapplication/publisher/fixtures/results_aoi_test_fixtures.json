@@ -1,0 +1,93 @@
+[
+  {
+    "model": "publisher.result",
+    "pk": 2001,
+    "fields": {
+      "filepath": "ex_2/aoi_result_1.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/results/aoi_result_1.geojson",
+      "released": true,
+      "request": 1001
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2002,
+    "fields": {
+      "filepath": "ex_2/aoi_result_2.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/results/aoi_result_2.geojson",
+      "released": true,
+      "request": 1001
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2003,
+    "fields": {
+      "filepath": "ex_3/aoi_result_3.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/results/aoi_result_3.geojson",
+      "released": true,
+      "request": 1001
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2004,
+    "fields": {
+      "filepath": "ex_3/aoi_result_4.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/results/aoi_result_4.geojson",
+      "released": true,
+      "request": 1001
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2005,
+    "fields": {
+      "filepath": "example/aoi_result_5.geojson",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "GEOJSON",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/results/aoi_result_5.geojson",
+      "released": true,
+      "request": 1001
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2006,
+    "fields": {
+      "filepath": "aoi_result_6.tif",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "XYZ",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/tiles/aoi_result_6/{z}/{x}/{y}.png",
+      "released": true,
+      "request": 1004
+    }
+  },
+  {
+    "model": "publisher.result",
+    "pk": 2008,
+    "fields": {
+      "filepath": "aoi_result_8.tif",
+      "modifiedat": "2020-11-16T11:14:31.380000Z",
+      "layer_type": "XYZ",
+      "bounding_polygon": "SRID=4326;POLYGON ((36.1 49.6, 36.2 49.6, 36.2 49.7, 36.1 49.7, 36.1 49.6))",
+      "rel_url": "/tiles/aoi_result_8/{z}/{x}/{y}.png",
+      "released": true,
+      "request": 1005
+    }
+  }
+]

@@ -71,6 +71,7 @@ class AOILimitedTestCase(UserBase):
         
 class AOITestCase(UserBase):
     fixtures = ['user/fixtures/user_fixtures.json', 'aoi/fixtures/aoi_fixtures.json',
+                'aoi/fixtures/notebook_fixtures.json', 'aoi/fixtures/request_fixtures.json',
                 'aoi/fixtures/results_bbox_fixtures.json']
 
     def setUp(self):
@@ -255,9 +256,9 @@ class AOIResultRestrictedAclTestCase(UserBase):
         'aoi/fixtures/notebook_fixtures.json',
         'aoi/fixtures/request_fixtures.json',
         'publisher/fixtures/acl_fixtures.json',
-        'publisher/fixtures/results_restricted_acl_fixtures.json'
+        'publisher/fixtures/results_aoi_test_fixtures.json'
     ]
-    
+
     def test_get_aoi_results_as_ex_2_user(self):
         expected_results_len = 3
         self.client.force_authenticate(user=self.ex_2_user)
@@ -269,12 +270,12 @@ class AOIResultRestrictedAclTestCase(UserBase):
         self.get_aoi_results(1003, expected_results_len)
 
     def test_get_aoi_results_as_all_results_user(self):
-        expected_results_len = 5
+        expected_results_len = 1
         self.client.force_authenticate(user=self.all_results_user)
         self.get_aoi_results(1004, expected_results_len)
-    
+
     def test_get_aoi_results_as_all_results_no_acl_user(self):
-        expected_results_len = 5
+        expected_results_len = 1
         self.client.force_authenticate(user=self.all_results_no_acl_user)
         self.get_aoi_results(1005, expected_results_len)
         
