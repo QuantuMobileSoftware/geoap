@@ -11,7 +11,7 @@
       "released": true
     }
   },
-    {
+  {
     "model": "publisher.result",
     "pk": 1002,
     "fields": {
@@ -23,7 +23,7 @@
       "released": true
     }
   },
-    {
+  {
     "model": "publisher.result",
     "pk": 1003,
     "fields": {
@@ -35,7 +35,7 @@
       "released": true
     }
   },
-    {
+  {
     "model": "publisher.result",
     "pk": 1004,
     "fields": {
@@ -47,7 +47,7 @@
       "released": true
     }
   },
-    {
+  {
     "model": "publisher.result",
     "pk": 1005,
     "fields": {
