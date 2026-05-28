@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { areasEvents } from '_events';
 
-import { API_CSRF_TOKEN_KEY, COOKIE_CSRF_TOKEN_VALUE } from '_constants';
+import { API_CSRF_TOKEN_KEY, COOKIE_CSRF_TOKEN_VALUE, ROUTES } from '_constants';
 
 export const axiosInstance = axios.create({
   baseURL: '/api',
@@ -10,6 +10,15 @@ export const axiosInstance = axios.create({
 
 const handleError = error => {
   let parsedError = error.response;
+
+  if (
+    error.response?.status === 403 &&
+    error.response?.data?.detail === 'Authentication credentials were not provided.' &&
+    window.location.pathname !== ROUTES.AUTH
+  ) {
+    window.location.replace(ROUTES.AUTH);
+    return Promise.reject(parsedError);
+  }
 
   if (!error.config?.skipErrorModal) {
     areasEvents.toggleErrorModal(parsedError);
