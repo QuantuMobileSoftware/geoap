@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, GEOSException
 from django.db import transaction
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.serializers import ValidationError, as_serializer_error
@@ -116,7 +117,13 @@ class AOIResultsListAPIView(ListAPIView):
 
     def get_queryset(self):
         area_of_interest = get_object_or_404(AoI, id=self.kwargs[self.lookup_url_kwarg], user=self.request.user)
-        qs = self.queryset.filter(bounding_polygon__bboverlaps=area_of_interest.polygon, request_id__isnull=False)
+        qs = self.queryset.filter(
+            bounding_polygon__bboverlaps=area_of_interest.polygon,
+            request__isnull=False,
+        ).filter(
+            Q(request__aoi=area_of_interest) |
+            Q(request__aoi__isnull=True, request__user=self.request.user)
+        )
         if not self.request.user.has_perm('publisher.view_unreleased_result'):
             qs = qs.filter(released=True)
         return qs
