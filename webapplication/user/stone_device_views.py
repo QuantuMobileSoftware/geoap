@@ -79,12 +79,20 @@ class PredictionsAPIView(APIView):
         image_file = request.FILES.get('image')
 
         if not metadata_file or not image_file:
+            logger.warning(
+                'predictions: missing required fields: metadata=%s image=%s ip=%s',
+                bool(metadata_file), bool(image_file), request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': "Both 'metadata' and 'image' fields are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if image_file.size > MAX_IMAGE_SIZE:
+            logger.warning(
+                'predictions: image too large: size=%d ip=%s',
+                image_file.size, request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': f'Image exceeds maximum allowed size of {MAX_IMAGE_SIZE // (1024 * 1024)} MB.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -93,6 +101,10 @@ class PredictionsAPIView(APIView):
         try:
             metadata = json.loads(metadata_file.read())
         except (json.JSONDecodeError, UnicodeDecodeError):
+            logger.warning(
+                'predictions: invalid metadata JSON ip=%s',
+                request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': 'metadata must be valid JSON.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -100,13 +112,26 @@ class PredictionsAPIView(APIView):
 
         serializer = PredictionsMetadataSerializer(data=metadata)
         if not serializer.is_valid():
+            logger.warning(
+                'predictions: metadata validation failed: serial=%s errors=%s ip=%s',
+                metadata.get('serial'), serializer.errors, request.META.get('REMOTE_ADDR'),
+            )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = _resolve_user_by_serial(serializer.validated_data['serial'])
+        serial = serializer.validated_data['serial']
+        user = _resolve_user_by_serial(serial)
         if user is None:
+            logger.warning(
+                'predictions: unknown serial=%s ip=%s',
+                serial, request.META.get('REMOTE_ADDR'),
+            )
             return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
 
         if not user.stones_storage_edge:
+            logger.warning(
+                'predictions: storage bucket not configured for serial=%s user=%s ip=%s',
+                serial, user.id, request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -147,12 +172,20 @@ class CoverageAPIView(APIView):
         image_file = request.FILES.get('image')
 
         if not metadata_file:
+            logger.warning(
+                'coverage: missing metadata field ip=%s',
+                request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': "'metadata' field is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if image_file and image_file.size > MAX_IMAGE_SIZE:
+            logger.warning(
+                'coverage: image too large: size=%d ip=%s',
+                image_file.size, request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': f'Image exceeds maximum allowed size of {MAX_IMAGE_SIZE // (1024 * 1024)} MB.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -161,6 +194,10 @@ class CoverageAPIView(APIView):
         try:
             metadata = json.loads(metadata_file.read())
         except (json.JSONDecodeError, UnicodeDecodeError):
+            logger.warning(
+                'coverage: invalid metadata JSON ip=%s',
+                request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': 'metadata must be valid JSON.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -168,13 +205,26 @@ class CoverageAPIView(APIView):
 
         serializer = CoverageMetadataSerializer(data=metadata)
         if not serializer.is_valid():
+            logger.warning(
+                'coverage: metadata validation failed: serial=%s errors=%s ip=%s',
+                metadata.get('serial'), serializer.errors, request.META.get('REMOTE_ADDR'),
+            )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = _resolve_user_by_serial(serializer.validated_data['serial'])
+        serial = serializer.validated_data['serial']
+        user = _resolve_user_by_serial(serial)
         if user is None:
+            logger.warning(
+                'coverage: unknown serial=%s ip=%s',
+                serial, request.META.get('REMOTE_ADDR'),
+            )
             return Response({'detail': 'Unknown camera serial number.'}, status=status.HTTP_403_FORBIDDEN)
 
         if not user.stones_storage_edge:
+            logger.warning(
+                'coverage: storage bucket not configured for serial=%s user=%s ip=%s',
+                serial, user.id, request.META.get('REMOTE_ADDR'),
+            )
             return Response(
                 {'detail': 'Storage bucket is not configured for this account.'},
                 status=status.HTTP_400_BAD_REQUEST,
