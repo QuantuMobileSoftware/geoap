@@ -18,7 +18,6 @@ export const useUserActions = () => {
     async body => {
       await handleAsync(async () => {
         await API.auth.login(body);
-        dispatch(userActions.login());
       });
     },
     [dispatch, handleAsync]
@@ -37,7 +36,11 @@ export const useUserActions = () => {
   const logout = useCallback(
     isAutoLogged => {
       handleAsync(async () => {
-        await API.auth.logout();
+        try {
+          await API.auth.logout();
+        } catch (e) {
+          // session already expired — treat as logged out
+        }
         dispatch(userActions.logout(isAutoLogged));
       });
     },
@@ -60,9 +63,9 @@ export const useUserActions = () => {
         dispatch(userActions.setEntity({ ...user, isDemo }));
       });
     } catch (error) {
-      logout(false);
+      dispatch(userActions.logout(false));
     }
-  }, [dispatch, handleAsync, logout]);
+  }, [dispatch, handleAsync]);
 
   const registerUser = useCallback(
     async data => {

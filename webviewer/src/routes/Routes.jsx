@@ -19,7 +19,6 @@ import {
   UploadMissions
 } from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
-import { Spinner } from 'components/_shared/Spinner';
 
 const { REACT_APP_HOTJAR_ID, REACT_APP_HOTJAR_SV } = process.env;
 
@@ -39,7 +38,7 @@ export const Routes = () => {
     }
   }, []);
 
-  if (load) return <Spinner />;
+  if (load) return null;
 
   return (
     <Switch>

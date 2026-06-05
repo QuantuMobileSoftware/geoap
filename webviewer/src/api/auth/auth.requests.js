@@ -17,9 +17,13 @@ const login = async body => {
 };
 
 const logout = async body => {
-  const response = await axiosInstance.post(authEndpoints.logout, body);
-  Cookie.remove(COOKIE_CSRF_TOKEN_KEY);
-  return response;
+  try {
+    return await axiosInstance.post(authEndpoints.logout, body, {
+      skipErrorModal: true
+    });
+  } finally {
+    Cookie.remove(COOKIE_CSRF_TOKEN_KEY);
+  }
 };
 
 export const authRequests = { login, logout };
