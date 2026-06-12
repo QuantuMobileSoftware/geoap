@@ -7,6 +7,7 @@ import { Header as PageHeader } from 'components/Header';
 import { Spinner } from 'components/_shared/Spinner';
 import { API } from 'api';
 import { ROUTES } from '_constants';
+import { areasEvents } from '_events';
 import { ImageViewer, Header, ImageList } from './components';
 import { STONE_STATUS } from './constants';
 import { Container, NoDataText } from './StoneValidation.styles';
@@ -57,17 +58,26 @@ export const StoneValidation = () => {
       return;
     }
     async function fetchData() {
-      const response = await API.files.getStoneImages(result.id);
-      if (isEmpty(response)) {
+      try {
+        const response = await API.files.getStoneImages(result.id);
+        if (isEmpty(response)) {
+          await API.areas.deleteResult(result.id).catch(() => {});
+          history.push(ROUTES.ROOT);
+          areasEvents.toggleErrorModal(
+            'No stones detected. The result file has been removed.'
+          );
+          return;
+        }
+        const images = Object.entries(response).map(([path, data], i) => [
+          path,
+          { ...data, id: i }
+        ]);
+        setImages(images);
+        setCurrentImg(0);
+      } catch (e) {
         setIsEmptyResult(true);
-        return;
+        areasEvents.toggleErrorModal('Failed to load validation file.');
       }
-      const images = Object.entries(response).map(([path, data], i) => [
-        path,
-        { ...data, id: i }
-      ]);
-      setImages(images);
-      setCurrentImg(0);
     }
     fetchData();
   }, [result, history]);
