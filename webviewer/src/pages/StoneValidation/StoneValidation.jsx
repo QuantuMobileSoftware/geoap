@@ -63,7 +63,9 @@ export const StoneValidation = () => {
         if (isEmpty(response)) {
           await API.areas.deleteResult(result.id).catch(() => {});
           history.push(ROUTES.ROOT);
-          areasEvents.toggleErrorModal('No stones detected. The result file has been removed.');
+          areasEvents.toggleErrorModal(
+            'No stones detected. The result file has been removed.'
+          );
           return;
         }
         const images = Object.entries(response).map(([path, data], i) => [
