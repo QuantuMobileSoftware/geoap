@@ -183,6 +183,59 @@ class StonesDetectionChunk(models.Model):
         return f'{self.user.username} / {self.date} / chunk {self.chunk} / {self.type}'
 
 
+class EdgeCoverage(models.Model):
+  uuid = models.UUIDField(primary_key=True, editable=False)
+  chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='coverages')
+
+  # Telemetry Metadata
+  serial = models.CharField(max_length=50, db_index=True)
+  version = models.CharField(max_length=10, default='1')
+  gprmc = models.CharField(max_length=255, blank=True, null=True, help_text="Raw NMEA string")
+
+  image_path = models.CharField(max_length=512, blank=True, null=True, help_text='Relative GCS path to image')
+
+  # Geographic representation
+  location = models.PointField(srid=4326, geography=True, spatial_index=True, null=True, blank=True)
+
+  created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
+
+  class Meta:
+    verbose_name = 'Edge Coverage'
+    verbose_name_plural = 'Edge Coverages'
+
+  def __str__(self):
+    return f'Coverage {self.uuid} ({self.serial})'
+
+
+class EdgePrediction(models.Model):
+  uuid = models.UUIDField(primary_key=True, editable=False)
+  chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='predictions')
+
+  # Telemetry Metadata
+  serial = models.CharField(max_length=50, db_index=True)
+  version = models.CharField(max_length=10, default='1')
+  gprmc = models.CharField(max_length=255, blank=True, null=True, help_text='Raw NMEA string')
+  model_name = models.CharField(max_length=255, blank=True, null=True)
+  time_since_boot_sec = models.FloatField(null=True, blank=True)
+
+  # Non-geographic artifacts
+  predictions = models.JSONField(default=list, blank=True, help_text='Bounding boxes and confidences')
+
+  image_path = models.CharField(max_length=512, blank=True, null=True, help_text='Relative GCS path to image')
+
+  # Geographic representation
+  location = models.PointField(srid=4326, geography=True, spatial_index=True, null=True, blank=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    verbose_name = 'Edge Prediction'
+    verbose_name_plural = 'Edge Predictions'
+
+  def __str__(self):
+    return f'Prediction {self.uuid} ({self.serial})'
+
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="transactions")
     amount = models.DecimalField(_("Amount"), max_digits=9, decimal_places=2)

@@ -4,15 +4,17 @@ import os
 from datetime import datetime, timezone, timedelta
 
 from django.conf import settings
+from django.contrib.gis.geos import Point
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
+import pynmea2
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from devices.models import Camera
-from user.models import StonesDetectionChunk
+from user.models import EdgeCoverage, EdgePrediction, StonesDetectionChunk
 from user.serializers import CoverageMetadataSerializer, PredictionsMetadataSerializer
 
 logger = logging.getLogger(__name__)
@@ -70,6 +72,22 @@ def _resolve_user_by_serial(serial):
         return None
 
 
+def parse_nmea_to_point(gprmc_string):
+  """Parses an NMEA $GPRMC string into a Point(lon, lat) geographic object.
+  Returns None if the signal is invalid (status == 'V').
+  """
+  if not gprmc_string:
+    return None
+  try:
+    msg = pynmea2.parse(gprmc_string)
+    if hasattr(msg, 'status') and msg.status == 'A':
+      return Point(msg.longitude, msg.latitude, srid=4326)
+    return None
+  except Exception as error:
+    logger.warning('Failed to parse NMEA string: %s, error: %s', gprmc_string, error)
+    return None
+
+
 class PredictionsAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -118,7 +136,8 @@ class PredictionsAPIView(APIView):
             )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serial = serializer.validated_data['serial']
+        data = serializer.validated_data
+        serial = data['serial']
         user = _resolve_user_by_serial(serial)
         if user is None:
             logger.warning(
@@ -137,16 +156,16 @@ class PredictionsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uuid = serializer.validated_data['uuid']
+        uuid = data['uuid']
         chunk_obj = _get_or_create_chunk(user, StonesDetectionChunk.TYPE_PREDICTIONS)
         base_path = f'{chunk_obj.gcs_path}{uuid}'
+        image_rel_path = f'{chunk_obj.gcs_path}{uuid}/{uuid}.jpg'
 
         try:
             client = _gcs_client()
             bucket = client.bucket(user.stones_storage_edge)
-            bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
-                image_file.read(), content_type='image/jpeg'
-            )
+            image_blob = bucket.blob(image_rel_path)
+            image_blob.upload_from_string(image_file.read(), content_type='image/jpeg')
             bucket.blob(f'{base_path}/{uuid}.json').upload_from_string(
                 json.dumps(metadata).encode('utf-8'), content_type='application/json'
             )
@@ -159,6 +178,24 @@ class PredictionsAPIView(APIView):
                 {'detail': 'Failed to store prediction. Please try again.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        try:
+            gprmc_str = data.get('gprmc')
+            EdgePrediction.objects.create(
+                uuid=uuid,
+                chunk=chunk_obj,
+                serial=serial,
+                version=data.get('version', '1'),
+                gprmc=gprmc_str,
+                model_name=data.get('model_name'),
+                time_since_boot_sec=data.get('time_since_boot_sec'),
+                predictions=data.get('predictions', []),
+                image_path=image_rel_path,
+                location=parse_nmea_to_point(gprmc_str),
+            )
+        except Exception:
+            logger.exception('Database write failed for prediction data: user=%s, uuid=%s',
+                             user.id, uuid)
 
         return Response({'uuid': uuid}, status=status.HTTP_201_CREATED)
 
@@ -211,7 +248,8 @@ class CoverageAPIView(APIView):
             )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serial = serializer.validated_data['serial']
+        data = serializer.validated_data
+        serial = data['serial']
         user = _resolve_user_by_serial(serial)
         if user is None:
             logger.warning(
@@ -230,15 +268,17 @@ class CoverageAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uuid = serializer.validated_data['uuid']
+        uuid = data['uuid']
         chunk_obj = _get_or_create_chunk(user, StonesDetectionChunk.TYPE_COVERAGE)
         base_path = f'{chunk_obj.gcs_path}{uuid}'
+
+        image_rel_path = f'{base_path}/{uuid}.jpg' if image_file else None
 
         try:
             client = _gcs_client()
             bucket = client.bucket(user.stones_storage_edge)
             if image_file:
-                bucket.blob(f'{base_path}/{uuid}.jpg').upload_from_string(
+                bucket.blob(image_rel_path).upload_from_string(
                     image_file.read(), content_type='image/jpeg'
                 )
             bucket.blob(f'{base_path}/{uuid}.json').upload_from_string(
@@ -252,6 +292,23 @@ class CoverageAPIView(APIView):
             return Response(
                 {'detail': 'Failed to store coverage. Please try again.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        try:
+            gprmc_str = data.get('gprmc')
+            EdgeCoverage.objects.create(
+                uuid=uuid,
+                chunk=chunk_obj,
+                serial=serial,
+                version=data.get('version', '1'),
+                gprmc=gprmc_str,
+                image_path=image_rel_path,
+                location=parse_nmea_to_point(gprmc_str),
+            )
+        except Exception:
+            logger.exception(
+                'Database write failed for coverage data: user=%s, uuid=%s',
+                user.id, uuid
             )
 
         return Response({'uuid': uuid}, status=status.HTTP_201_CREATED)
