@@ -1606,7 +1606,7 @@ class GoogleBucketFolderAPIViewTestCase(UserBase):
 
 
 VALID_PREDICTIONS_METADATA = {
-    'uuid': '123e4567-e89b-12d3-a456-426614174000',
+    'uuid': 'test-uuid-1234',
     'version': '1',
     'gprmc': '$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
     'model_name': 'stone_v1',
@@ -1616,7 +1616,7 @@ VALID_PREDICTIONS_METADATA = {
 }
 
 VALID_COVERAGE_METADATA = {
-    'uuid': '98765432-e89b-12d3-a456-426614174000',
+    'uuid': 'test-uuid-5678',
     'version': '1',
     'gprmc': '$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
     'serial': 'CAM-001',
@@ -1787,7 +1787,7 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
-        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*23'
+        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*33'
         meta = {**VALID_PREDICTIONS_METADATA, 'gprmc': void_gprmc}
 
         self._post(
@@ -1795,6 +1795,20 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
         )
 
         self.assertIsNone(EdgePrediction.objects.get(uuid=meta['uuid']).location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_db_failure_returns_500(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        with mock.patch.object(EdgePrediction.objects, 'create', side_effect=Exception('DB Error')):
+            response = self._post({
+                'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA),
+                'image': self._image_file(),
+            })
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['detail'], 'Failed to save prediction to database.')
 
 
 class CoverageAPIViewTest(StoneDeviceViewsBase):
@@ -1949,12 +1963,40 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
-        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*23'
+        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*33'
         meta = {**VALID_COVERAGE_METADATA, 'gprmc': void_gprmc}
 
         self._post({'metadata': self._metadata_file(meta)})
 
         self.assertIsNone(EdgeCoverage.objects.get(uuid=meta['uuid']).location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_empty_coords_status_a_sets_location_to_none(self, mock_gcs_fn):
+        """Ensures $GPRMC with status 'A' but missing lat/lon sets location to None instead of Null Island."""
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        gprmc_no_coords = '$GPRMC,123519,A,,,,,,,230394,,*24'
+        meta = {**VALID_COVERAGE_METADATA, 'gprmc': gprmc_no_coords}
+
+        self._post({'metadata': self._metadata_file(meta)})
+
+        coverage = EdgeCoverage.objects.get(uuid=meta['uuid'])
+        self.assertIsNone(coverage.location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_db_failure_returns_500(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        with mock.patch.object(EdgeCoverage.objects, 'create', side_effect=Exception('DB Error')):
+            response = self._post({
+                'metadata': self._metadata_file(VALID_COVERAGE_METADATA),
+                'image': self._image_file(),
+            })
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['detail'], 'Failed to save coverage to database.')
 
 
 class GcsClientSingletonTest(StoneDeviceViewsBase):

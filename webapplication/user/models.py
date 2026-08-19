@@ -184,13 +184,13 @@ class StonesDetectionChunk(models.Model):
 
 
 class EdgeCoverage(models.Model):
-  uuid = models.UUIDField(primary_key=True, editable=False)
+  uuid = models.CharField(max_length=64, primary_key=True)
   chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='coverages')
 
   # Telemetry Metadata
-  serial = models.CharField(max_length=50, db_index=True)
-  version = models.CharField(max_length=10, default='1')
-  gprmc = models.CharField(max_length=255, blank=True, null=True, help_text="Raw NMEA string")
+  serial = models.CharField(max_length=128, db_index=True)
+  version = models.CharField(max_length=64, default='1')
+  gprmc = models.CharField(max_length=256, blank=True, null=True, help_text='Raw NMEA string')
 
   image_path = models.CharField(max_length=512, blank=True, null=True, help_text='Relative GCS path to image')
 
@@ -208,14 +208,14 @@ class EdgeCoverage(models.Model):
 
 
 class EdgePrediction(models.Model):
-  uuid = models.UUIDField(primary_key=True, editable=False)
+  uuid = models.CharField(max_length=64, primary_key=True)
   chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='predictions')
 
   # Telemetry Metadata
-  serial = models.CharField(max_length=50, db_index=True)
-  version = models.CharField(max_length=10, default='1')
-  gprmc = models.CharField(max_length=255, blank=True, null=True, help_text='Raw NMEA string')
-  model_name = models.CharField(max_length=255, blank=True, null=True)
+  serial = models.CharField(max_length=128, db_index=True)
+  version = models.CharField(max_length=64, default='1')
+  gprmc = models.CharField(max_length=256, blank=True, null=True, help_text='Raw NMEA string')
+  model_name = models.CharField(max_length=128, blank=True, null=True)
   time_since_boot_sec = models.FloatField(null=True, blank=True)
 
   # Non-geographic artifacts

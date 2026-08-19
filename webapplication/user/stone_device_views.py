@@ -74,15 +74,20 @@ def _resolve_user_by_serial(serial):
 
 def parse_nmea_to_point(gprmc_string):
   """Parses an NMEA $GPRMC string into a Point(lon, lat) geographic object.
-  Returns None if the signal is invalid (status == 'V').
+  Returns None if the signal is invalid (status == 'V') or coordinates are missing.
   """
   if not gprmc_string:
     return None
   try:
     msg = pynmea2.parse(gprmc_string)
-    if hasattr(msg, 'status') and msg.status == 'A':
-      return Point(msg.longitude, msg.latitude, srid=4326)
-    return None
+    if getattr(msg, 'status', None) != 'A':
+      return None
+    if not msg.lat or not msg.lon:
+      # pynmea2 returns 0.0 for latitude/longitude when the raw fields are
+      # empty, even though status is 'A'. Guard against Null Island.
+      logger.warning('GPRMC string has status A but missing coordinates: %s', gprmc_string)
+      return None
+    return Point(msg.longitude, msg.latitude, srid=4326)
   except Exception as error:
     logger.warning('Failed to parse NMEA string: %s, error: %s', gprmc_string, error)
     return None
@@ -196,6 +201,10 @@ class PredictionsAPIView(APIView):
         except Exception:
             logger.exception('Database write failed for prediction data: user=%s, uuid=%s',
                              user.id, uuid)
+            return Response(
+                {'detail': 'Failed to save prediction to database.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response({'uuid': uuid}, status=status.HTTP_201_CREATED)
 
@@ -306,9 +315,11 @@ class CoverageAPIView(APIView):
                 location=parse_nmea_to_point(gprmc_str),
             )
         except Exception:
-            logger.exception(
-                'Database write failed for coverage data: user=%s, uuid=%s',
-                user.id, uuid
+            logger.exception('Database write failed for coverage data: user=%s, uuid=%s',
+                             user.id, uuid)
+            return Response(
+                {'detail': 'Failed to save coverage to database.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response({'uuid': uuid}, status=status.HTTP_201_CREATED)

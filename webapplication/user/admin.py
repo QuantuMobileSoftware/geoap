@@ -110,28 +110,33 @@ class TransactionModel(admin.ModelAdmin):
 
 @admin.register(EdgeCoverage)
 class EdgeCoverageAdmin(gis_admin.OSMGeoAdmin):
-  gis_widget_kwargs = {'attrs': {'default_zoom': 12}}
+  default_zoom = 12
 
   list_display = ('uuid', 'serial', 'chunk', 'version', 'created_at')
   list_filter = ('version', 'created_at')
   search_fields = ('uuid', 'serial', 'gprmc', 'chunk__id')
-  readonly_fields = ('uuid', 'created_at')
+  readonly_fields = ('created_at',)
 
   fieldsets = (
-      ('General Info', {'fields': ('uuid', 'serial', 'version', 'created_at')}),
+      ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
       ('Telemetry', {'fields': ('gprmc', 'image_path')}),
       ('Location (GIS)', {'fields': ('location', )}),
   )
 
+  def get_readonly_fields(self, request, obj=None):
+      if obj:
+          return self.readonly_fields + ('uuid',)
+      return self.readonly_fields
+
 
 @admin.register(EdgePrediction)
 class EdgePredictionAdmin(gis_admin.OSMGeoAdmin):
-  gis_widget_kwargs = {'attrs': {'default_zoom': 12}}
+  default_zoom = 12
 
   list_display = ('uuid', 'serial', 'chunk', 'model_name', 'predictions_count', 'created_at')
   list_filter = ('model_name', 'version', 'created_at')
   search_fields = ('uuid', 'serial', 'model_name', 'gprmc', 'chunk__id')
-  readonly_fields = ('uuid', 'created_at', 'predictions_count')
+  readonly_fields = ('created_at', 'predictions_count')
 
   fieldsets = (
       ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
@@ -139,6 +144,11 @@ class EdgePredictionAdmin(gis_admin.OSMGeoAdmin):
       ('Telemetry', {'fields': ('gprmc', 'image_path')}),
       ('Location (GIS)', {'fields': ('location', )}),
   )
+
+  def get_readonly_fields(self, request, obj=None):
+      if obj:
+          return self.readonly_fields + ('uuid',)
+      return self.readonly_fields
 
   def predictions_count(self, obj):
     return len(obj.predictions) if isinstance(obj.predictions, list) else 0
