@@ -1,12 +1,13 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.gis import admin as gis_admin
 from django.db.models import JSONField
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 from django_json_widget.widgets import JSONEditorWidget
 
-from user.models import User, Transaction, UploadMissions, StonesDetectionChunk
+from user.models import User, Transaction, UploadMissions, StonesDetectionChunk, EdgeCoverage, EdgePrediction
 
 
 class UserForm(forms.ModelForm):
@@ -105,3 +106,50 @@ class TransactionModel(admin.ModelAdmin):
             'fields': ('amount', 'user', 'request', 'comment', 'error', 'completed')
         }),
     )
+
+
+@admin.register(EdgeCoverage)
+class EdgeCoverageAdmin(gis_admin.OSMGeoAdmin):
+  default_zoom = 12
+
+  list_display = ('uuid', 'serial', 'chunk', 'version', 'created_at')
+  list_filter = ('version', 'created_at')
+  search_fields = ('uuid', 'serial', 'gprmc', 'chunk__id')
+  readonly_fields = ('created_at',)
+
+  fieldsets = (
+      ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
+      ('Telemetry', {'fields': ('gprmc', 'image_path')}),
+      ('Location (GIS)', {'fields': ('location', )}),
+  )
+
+  def get_readonly_fields(self, request, obj=None):
+      if obj:
+          return self.readonly_fields + ('uuid',)
+      return self.readonly_fields
+
+
+@admin.register(EdgePrediction)
+class EdgePredictionAdmin(gis_admin.OSMGeoAdmin):
+  default_zoom = 12
+
+  list_display = ('uuid', 'serial', 'chunk', 'model_name', 'predictions_count', 'created_at')
+  list_filter = ('model_name', 'version', 'created_at')
+  search_fields = ('uuid', 'serial', 'model_name', 'gprmc', 'chunk__id')
+  readonly_fields = ('created_at', 'predictions_count')
+
+  fieldsets = (
+      ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
+      ('ML Model & Predictions', {'fields': ('model_name', 'time_since_boot_sec', 'predictions_count', 'predictions')}),
+      ('Telemetry', {'fields': ('gprmc', 'image_path')}),
+      ('Location (GIS)', {'fields': ('location', )}),
+  )
+
+  def get_readonly_fields(self, request, obj=None):
+      if obj:
+          return self.readonly_fields + ('uuid',)
+      return self.readonly_fields
+
+  def predictions_count(self, obj):
+    return len(obj.predictions) if isinstance(obj.predictions, list) else 0
+  predictions_count.short_description = 'Prediction count'

@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 
 import user.stone_device_views as stone_views
 from devices.models import Camera
-from user.models import StonesDetectionChunk, User, UploadMissions
+from user.models import StonesDetectionChunk, User, UploadMissions, EdgePrediction, EdgeCoverage
 from user.upload_utils import get_upload_config
 
 
@@ -1737,6 +1737,7 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
 
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(response.data['uuid'], VALID_PREDICTIONS_METADATA['uuid'])
+        self.assertTrue(EdgePrediction.objects.filter(uuid=VALID_PREDICTIONS_METADATA['uuid']).exists())
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_success_uploads_jpg_and_json_to_gcs(self, mock_gcs_fn):
@@ -1749,9 +1750,10 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
         uuid = VALID_PREDICTIONS_METADATA['uuid']
         self.assertTrue(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
         self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
+        self.assertTrue(EdgePrediction.objects.filter(uuid=VALID_PREDICTIONS_METADATA['uuid']).exists())
 
     @mock.patch('user.stone_device_views._gcs_client')
-    def test_success_creates_predictions_chunk(self, mock_gcs_fn):
+    def test_success_creates_predictions_chunk_and_prediction_in_db(self, mock_gcs_fn):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
@@ -1760,6 +1762,12 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
         self.assertTrue(
             StonesDetectionChunk.objects.filter(user=self.user, type=StonesDetectionChunk.TYPE_PREDICTIONS).exists()
         )
+
+        prediction = EdgePrediction.objects.filter(uuid=VALID_PREDICTIONS_METADATA['uuid']).first()
+        self.assertIsNotNone(prediction)
+        self.assertEqual(prediction.serial, VALID_PREDICTIONS_METADATA['serial'])
+        self.assertEqual(prediction.model_name, VALID_PREDICTIONS_METADATA['model_name'])
+        self.assertTrue(prediction.image_path.endswith('.jpg'))
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_gcs_error_returns_500(self, mock_gcs_fn):
@@ -1771,6 +1779,36 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
 
         self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertIn('Failed to store prediction', response.data['detail'])
+
+    # --- NMEA & DB failure cases ---
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_void_gprmc_sets_location_to_none(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*33'
+        meta = {**VALID_PREDICTIONS_METADATA, 'gprmc': void_gprmc}
+
+        self._post(
+            {'metadata': self._metadata_file(meta), 'image': self._image_file()}
+        )
+
+        self.assertIsNone(EdgePrediction.objects.get(uuid=meta['uuid']).location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_db_failure_returns_500(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        with mock.patch.object(EdgePrediction.objects, 'create', side_effect=Exception('DB Error')):
+            response = self._post({
+                'metadata': self._metadata_file(VALID_PREDICTIONS_METADATA),
+                'image': self._image_file(),
+            })
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['detail'], 'Failed to save prediction to database.')
 
 
 class CoverageAPIViewTest(StoneDeviceViewsBase):
@@ -1845,6 +1883,8 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(response.data['uuid'], VALID_COVERAGE_METADATA['uuid'])
 
+        self.assertTrue(EdgeCoverage.objects.filter(uuid=VALID_COVERAGE_METADATA['uuid']).exists())
+
     @mock.patch('user.stone_device_views._gcs_client')
     def test_success_uploads_jpg_and_json_to_gcs(self, mock_gcs_fn):
         mock_client, mock_bucket = self._mock_gcs()
@@ -1856,9 +1896,10 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         uuid = VALID_COVERAGE_METADATA['uuid']
         self.assertTrue(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
         self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
+        self.assertTrue(EdgeCoverage.objects.filter(uuid=VALID_COVERAGE_METADATA['uuid']).exists())
 
     @mock.patch('user.stone_device_views._gcs_client')
-    def test_success_creates_coverage_chunk(self, mock_gcs_fn):
+    def test_success_creates_coverage_chunk_and_coverage_in_db(self, mock_gcs_fn):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
@@ -1867,6 +1908,10 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         self.assertTrue(
             StonesDetectionChunk.objects.filter(user=self.user, type=StonesDetectionChunk.TYPE_COVERAGE).exists()
         )
+        coverage = EdgeCoverage.objects.filter(uuid=VALID_COVERAGE_METADATA['uuid']).first()
+        self.assertIsNotNone(coverage)
+        self.assertEqual(coverage.serial, VALID_COVERAGE_METADATA['serial'])
+        self.assertTrue(coverage.image_path.endswith('.jpg'))
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_gcs_error_returns_500(self, mock_gcs_fn):
@@ -1891,6 +1936,9 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(response.data['uuid'], VALID_COVERAGE_METADATA['uuid'])
 
+        coverage = EdgeCoverage.objects.get(uuid=VALID_COVERAGE_METADATA['uuid'])
+        self.assertIsNone(coverage.image_path)
+
     @mock.patch('user.stone_device_views._gcs_client')
     def test_metadata_only_uploads_json_but_not_jpg(self, mock_gcs_fn):
         mock_client, mock_bucket = self._mock_gcs()
@@ -1902,6 +1950,53 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         uuid = VALID_COVERAGE_METADATA['uuid']
         self.assertTrue(any(path.endswith(f'{uuid}.json') for path in blob_paths))
         self.assertFalse(any(path.endswith(f'{uuid}.jpg') for path in blob_paths))
+
+        coverage = EdgeCoverage.objects.filter(uuid=VALID_COVERAGE_METADATA['uuid']).first()
+        self.assertIsNotNone(coverage)
+        self.assertEqual(coverage.serial, VALID_COVERAGE_METADATA['serial'])
+        self.assertIsNone(coverage.image_path)
+
+    # --- NMEA & DB failure cases ---
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_void_gprmc_sets_location_to_none(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        void_gprmc = '$GPRMC,123519,V,,,,,,,230394,,*33'
+        meta = {**VALID_COVERAGE_METADATA, 'gprmc': void_gprmc}
+
+        self._post({'metadata': self._metadata_file(meta)})
+
+        self.assertIsNone(EdgeCoverage.objects.get(uuid=meta['uuid']).location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_empty_coords_status_a_sets_location_to_none(self, mock_gcs_fn):
+        """Ensures $GPRMC with status 'A' but missing lat/lon sets location to None instead of Null Island."""
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        gprmc_no_coords = '$GPRMC,123519,A,,,,,,,230394,,*24'
+        meta = {**VALID_COVERAGE_METADATA, 'gprmc': gprmc_no_coords}
+
+        self._post({'metadata': self._metadata_file(meta)})
+
+        coverage = EdgeCoverage.objects.get(uuid=meta['uuid'])
+        self.assertIsNone(coverage.location)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_db_failure_returns_500(self, mock_gcs_fn):
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        with mock.patch.object(EdgeCoverage.objects, 'create', side_effect=Exception('DB Error')):
+            response = self._post({
+                'metadata': self._metadata_file(VALID_COVERAGE_METADATA),
+                'image': self._image_file(),
+            })
+
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['detail'], 'Failed to save coverage to database.')
 
 
 class GcsClientSingletonTest(StoneDeviceViewsBase):
