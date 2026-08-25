@@ -5,6 +5,7 @@ from unittest import mock
 from django.contrib.auth.models import Group, Permission
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 from google.cloud.exceptions import GoogleCloudError
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
@@ -2008,6 +2009,148 @@ class GcsClientSingletonTest(StoneDeviceViewsBase):
         stone_views._gcs_client()
         stone_views._gcs_client()
         stone_views._gcs_client()
+
+
+@override_settings(EDGE_ASSEMBLER_API_TOKEN='test-internal-token')
+class EdgeChunkDataAPIViewTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='edgechunkuser',
+            password='pass',
+            stones_storage_edge='test-bucket',
+        )
+        self.predictions_chunk = StonesDetectionChunk.objects.create(
+            user=self.user,
+            date='2026-04-29',
+            chunk=2,
+            type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='edgechunkuser/2026-04-29/2/predictions/',
+            processing_start_date='2026-04-29T12:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+        self.coverage_chunk = StonesDetectionChunk.objects.create(
+            user=self.user,
+            date='2026-04-29',
+            chunk=2,
+            type=StonesDetectionChunk.TYPE_COVERAGE,
+            gcs_path='edgechunkuser/2026-04-29/2/coverage/',
+            processing_start_date='2026-04-29T12:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+        self.prediction = EdgePrediction.objects.create(
+            uuid='pred-uuid-1',
+            chunk=self.predictions_chunk,
+            serial='CAM-001',
+            version='1',
+            gprmc='$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
+            model_name='stone_v1',
+            predictions=[{'xmin': 0.1, 'ymin': 0.1, 'xmax': 0.2, 'ymax': 0.2, 'confidence': 0.9}],
+            image_path='edgechunkuser/2026-04-29/2/predictions/pred-uuid-1/pred-uuid-1.jpg',
+        )
+        self.coverage = EdgeCoverage.objects.create(
+            uuid='cov-uuid-1',
+            chunk=self.coverage_chunk,
+            serial='CAM-001',
+            version='1',
+            gprmc='$GPRMC,075513.00,A,5025.390269,N,03030.408529,E,0.0,98.2,100426,6.0,E,A,V*79',
+            image_path='edgechunkuser/2026-04-29/2/coverage/cov-uuid-1/cov-uuid-1.jpg',
+        )
+
+    def _get(self, token='test-internal-token', **params):
+        query = {'username': 'edgechunkuser', 'date': '2026-04-29', 'chunk': '2'}
+        query.update(params)
+        headers = {'HTTP_X_INTERNAL_TOKEN': token} if token is not None else {}
+        return self.client.get(reverse('edge_chunk_data'), query, **headers)
+
+    def test_missing_token_returns_403(self):
+        response = self._get(token=None)
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    def test_wrong_token_returns_403(self):
+        response = self._get(token='not-the-right-token')
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    @override_settings(EDGE_ASSEMBLER_API_TOKEN='')
+    def test_unconfigured_token_returns_403_even_with_matching_empty_token(self):
+        response = self._get(token='')
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    def test_missing_query_params_returns_400(self):
+        query = reverse('edge_chunk_data')
+        response = self.client.get(
+            query, {'username': 'edgechunkuser', 'date': '2026-04-29'},
+            HTTP_X_INTERNAL_TOKEN='test-internal-token',
+        )
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_non_integer_chunk_returns_400_not_500(self):
+        response = self._get(chunk='not-a-number')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_malformed_date_returns_400_not_500(self):
+        response = self._get(date='not-a-date')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_returns_predictions_and_coverage_for_chunk(self):
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['predictions']), 1)
+        self.assertEqual(len(response.data['coverage']), 1)
+
+        prediction_data = response.data['predictions'][0]
+        self.assertEqual(prediction_data['serial'], 'CAM-001')
+        self.assertEqual(prediction_data['image_path'], self.prediction.image_path)
+        self.assertEqual(prediction_data['predictions'], self.prediction.predictions)
+
+        coverage_data = response.data['coverage'][0]
+        self.assertEqual(coverage_data['serial'], 'CAM-001')
+        self.assertEqual(coverage_data['image_path'], self.coverage.image_path)
+
+    def test_does_not_leak_data_from_other_chunks(self):
+        other_user = User.objects.create_user(
+            username='otherchunkuser', password='pass', stones_storage_edge='other-bucket',
+        )
+        other_chunk = StonesDetectionChunk.objects.create(
+            user=other_user,
+            date='2026-04-29',
+            chunk=3,
+            type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='otherchunkuser/2026-04-29/3/predictions/',
+            processing_start_date='2026-04-29T16:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+        EdgePrediction.objects.create(
+            uuid='pred-uuid-other',
+            chunk=other_chunk,
+            serial='CAM-002',
+            version='1',
+            predictions=[],
+            image_path='otherchunkuser/2026-04-29/3/predictions/pred-uuid-other/pred-uuid-other.jpg',
+        )
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['predictions']), 1)
+        self.assertEqual(response.data['predictions'][0]['serial'], 'CAM-001')
+
+    def test_empty_lists_when_chunk_has_no_data(self):
+        response = self._get(chunk='5')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.data['predictions'], [])
+        self.assertEqual(response.data['coverage'], [])
+
+    @mock.patch('user.models.EdgePrediction.objects.filter')
+    def test_db_failure_returns_500(self, mock_filter):
+        mock_filter.side_effect = Exception('Database connection error')
+        response = self._get()
+        self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(
+            response.data['detail'], 'Failed to fetch chunk data from database.'
+        )
 
 
 class UploadMissionsRemoveFilesTestCase(UserBase):

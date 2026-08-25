@@ -64,6 +64,11 @@ class ComponentExecutionHelper():
                 'GEOAP_CREDS':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS),
                 'GEOAP_CREDS_KYIV':os.path.join(settings.NOTEBOOK_POD_DATA_VOLUME_MOUNT_PATH, settings.GEOAP_CREDS_KYIV)
             })
+        if request.component.edge_chunk_data_api_required:
+            env_update.update({
+                'GEOAPP_API_BASE_URL': settings.GEOAPP_INTERNAL_API_BASE_URL,
+                'EDGE_ASSEMBLER_API_TOKEN': settings.EDGE_ASSEMBLER_API_TOKEN,
+            })
         if request.component.additional_parameter:
             env_update.update(
                 {

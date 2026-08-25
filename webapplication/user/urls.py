@@ -11,7 +11,7 @@ from user.views import (
     UploadMissionsRemoveFilesAPIView,
     UploadMissionsRerunTrajectoryAPIView,
 )
-from user.stone_device_views import PredictionsAPIView, CoverageAPIView
+from user.stone_device_views import PredictionsAPIView, CoverageAPIView, EdgeChunkDataAPIView
 
 urlpatterns = [
     path('transactions/', TransactionListAPIView.as_view(), name='get_transactions_list'),
@@ -25,4 +25,5 @@ urlpatterns = [
     path('upload_missions/<int:pk>/rerun_trajectory/', UploadMissionsRerunTrajectoryAPIView.as_view(), name='upload_mission_rerun_trajectory'),
     path('predictions', PredictionsAPIView.as_view(), name='device_predictions'),
     path('coverage', CoverageAPIView.as_view(), name='device_coverage'),
+    path('edge-chunk-data/', EdgeChunkDataAPIView.as_view(), name='edge_chunk_data'),
 ]

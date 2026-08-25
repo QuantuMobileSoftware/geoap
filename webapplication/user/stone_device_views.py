@@ -1,10 +1,12 @@
 import json
 import logging
 import os
+import secrets
 from datetime import datetime, timezone, timedelta
 
 from django.conf import settings
 from django.contrib.gis.geos import Point
+from django.utils.dateparse import parse_date
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 import pynmea2
@@ -323,3 +325,66 @@ class CoverageAPIView(APIView):
             )
 
         return Response({'uuid': uuid}, status=status.HTTP_201_CREATED)
+
+
+class EdgeChunkDataAPIView(APIView):
+    """Internal endpoint used by the Edge Detection Assembler
+    container to read EdgeCoverage/EdgePrediction rows instead of listing and
+    downloading the metadata JSON blobs it used to read from GCS.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        token = request.headers.get('X-Internal-Token', '')
+        if not settings.EDGE_ASSEMBLER_API_TOKEN or not secrets.compare_digest(
+            token, settings.EDGE_ASSEMBLER_API_TOKEN
+        ):
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+
+        username = request.query_params.get('username')
+        date = request.query_params.get('date')
+        chunk = request.query_params.get('chunk')
+        if not (username and date and chunk):
+            return Response(
+                {'detail': "'username', 'date' and 'chunk' query params are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            chunk_index = int(chunk)
+        except ValueError:
+            return Response({'detail': "'chunk' must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        parsed_date = parse_date(date)
+        if parsed_date is None:
+            return Response(
+                {'detail': "'date' must be in YYYY-MM-DD format."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            predictions = list(
+                EdgePrediction.objects.filter(
+                    chunk__user__username=username,
+                    chunk__date=parsed_date,
+                    chunk__chunk=chunk_index,
+                ).values('serial', 'gprmc', 'predictions', 'image_path')
+            )
+            coverage = list(
+                EdgeCoverage.objects.filter(
+                    chunk__user__username=username,
+                    chunk__date=parsed_date,
+                    chunk__chunk=chunk_index,
+                ).values('serial', 'gprmc', 'image_path')
+            )
+
+        except Exception:
+            logger.exception(
+                f'Database query failed for EdgeChunkDataAPIView:'
+                f' username={username}, date={date}, chunk={chunk}'
+            )
+            return Response(
+                {'detail': 'Failed to fetch chunk data from database.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({'predictions': predictions, 'coverage': coverage})
