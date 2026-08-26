@@ -89,6 +89,8 @@ class Component(models.Model):
                                                        verbose_name='Sentinel 1 AWS credentials are required')
     scihub_creds_required = models.BooleanField(default=False,
                                                 verbose_name='Copernicus Open Access Hub credentials are required')
+    edge_chunk_data_api_required = models.BooleanField(default=False,
+                                               verbose_name='Edge chunk data API access is required')
     date_type = models.IntegerField(choices=DATE_TYPE_CHOICES, default=DATE_RANGE_TYPE)
     geoap_creds_required = models.BooleanField(default=False,
                                                            verbose_name='Geoap creds is required')
