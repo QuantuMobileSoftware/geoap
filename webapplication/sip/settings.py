@@ -255,7 +255,7 @@ GPU_CORES_PER_NOTEBOOK = int(os.getenv('GPU_CORES_PER_NOTEBOOK', 1))
 
 GOOGLE_CLOUD_UPLOAD_ORIGIN = 'http://localhost:3000'
 
-GEOAPP_INTERNAL_API_BASE_URL = os.getenv('GEOAPP_INTERNAL_API_BASE_URL', 'http://webapplication:9000')
+GEOAPP_INTERNAL_API_BASE_URL = os.getenv('GEOAPP_INTERNAL_API_BASE_URL', 'http://webserver:9000')
 try:
     with open(os.path.join(PERSISTENT_STORAGE_PATH, '.secret/edge_assembler_api_token.txt')) as f:
         EDGE_ASSEMBLER_API_TOKEN = f.read().strip()
