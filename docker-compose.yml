@@ -21,6 +21,7 @@ services:
       - POSTGRES_DB=sip_db
       - POSTGRES_USER=sip
       - POSTGRES_PASSWORD=eiJ2koo6
+      - EXECUTOR_CONTAINER_NETWORK=geoap_default
     volumes:
       - ./webapplication:/code
       - ./data:/data
