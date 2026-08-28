@@ -67,6 +67,7 @@ class Container:
                 device_requests=self.device_requests,
                 name=self.container_name,
                 labels=self.labels,
+                network=settings.EXECUTOR_CONTAINER_NETWORK,
                 detach=True,
                 user="root")
         if self.component.run_on_gpu:
