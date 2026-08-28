@@ -2343,6 +2343,178 @@ class ProcessClosedChunksTest(APITestCase):
 
 
 # ---------------------------------------------------------------------------
+# fill_edge_chunks management command
+# ---------------------------------------------------------------------------
+
+class FillEdgeChunksTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            password='pass',
+            stones_storage_edge='test-bucket',
+        )
+
+    @staticmethod
+    def _blob(name, metadata):
+        blob = mock.MagicMock()
+        blob.name = name
+        blob.download_as_bytes.return_value = json.dumps(metadata).encode()
+        return blob
+
+    @staticmethod
+    def _mock_client(blobs):
+        mock_client = mock.MagicMock()
+        mock_client.list_blobs.return_value = blobs
+        return mock_client
+
+    def _run(self, blobs, **options):
+        from django.core.management import call_command
+        with mock.patch('user.management.commands.fill_edge_chunks._gcs_client') as mock_gcs_fn:
+            mock_gcs_fn.return_value = self._mock_client(blobs)
+            call_command('fill_edge_chunks', **options)
+
+    def test_no_users_with_bucket_does_nothing(self):
+        self.user.stones_storage_edge = None
+        self.user.save(update_fields=['stones_storage_edge'])
+        self._run([])
+        self.assertEqual(StonesDetectionChunk.objects.count(), 0)
+
+    def test_creates_prediction_from_valid_blob(self):
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.json',
+            VALID_PREDICTIONS_METADATA,
+        )
+        self._run([blob])
+
+        prediction = EdgePrediction.objects.get(uuid='test-uuid-1234')
+        self.assertEqual(prediction.serial, VALID_PREDICTIONS_METADATA['serial'])
+        self.assertEqual(prediction.model_name, VALID_PREDICTIONS_METADATA['model_name'])
+        self.assertEqual(
+            prediction.image_path,
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.jpg',
+        )
+
+        chunk = prediction.chunk
+        self.assertEqual(chunk.user, self.user)
+        self.assertEqual(chunk.date.isoformat(), '2026-05-10')
+        self.assertEqual(chunk.chunk, 4)
+        self.assertEqual(chunk.type, StonesDetectionChunk.TYPE_PREDICTIONS)
+        self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_DONE)
+
+    def test_creates_coverage_from_valid_blob(self):
+        blob = self._blob(
+            'user/2026-05-10/4/coverage/test-uuid-5678/test-uuid-5678.json',
+            VALID_COVERAGE_METADATA,
+        )
+        self._run([blob])
+
+        coverage = EdgeCoverage.objects.get(uuid='test-uuid-5678')
+        self.assertEqual(coverage.serial, VALID_COVERAGE_METADATA['serial'])
+        self.assertEqual(coverage.chunk.type, StonesDetectionChunk.TYPE_COVERAGE)
+        self.assertEqual(coverage.chunk.status, StonesDetectionChunk.STATUS_UPLOADING)
+
+    def test_skips_existing_uuid(self):
+        from datetime import date, datetime, timezone
+        chunk = StonesDetectionChunk.objects.create(
+            user=self.user, date=date(2026, 5, 10), chunk=4, type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='user/2026-05-10/4/predictions/',
+            processing_start_date=datetime(2026, 5, 10, 20, 0, 0, tzinfo=timezone.utc),
+            status=StonesDetectionChunk.STATUS_DONE,
+        )
+        EdgePrediction.objects.create(uuid='test-uuid-1234', chunk=chunk, serial='CAM-001')
+
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.json',
+            VALID_PREDICTIONS_METADATA,
+        )
+        self._run([blob])
+
+        self.assertEqual(EdgePrediction.objects.filter(uuid='test-uuid-1234').count(), 1)
+
+    def test_dry_run_creates_nothing(self):
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.json',
+            VALID_PREDICTIONS_METADATA,
+        )
+        self._run([blob], dry_run=True)
+
+        self.assertFalse(EdgePrediction.objects.filter(uuid='test-uuid-1234').exists())
+        self.assertEqual(StonesDetectionChunk.objects.count(), 0)
+
+    def test_limit_stops_after_n(self):
+        blobs = [
+            self._blob(
+                f'user/2026-05-10/4/predictions/uuid-{i}/uuid-{i}.json',
+                {**VALID_PREDICTIONS_METADATA, 'uuid': f'uuid-{i}'},
+            )
+            for i in range(3)
+        ]
+        self._run(blobs, limit=1)
+
+        self.assertEqual(EdgePrediction.objects.count(), 1)
+
+    def test_invalid_metadata_is_skipped(self):
+        incomplete = {'uuid': 'test-uuid-1234', 'version': '1'}  # missing gprmc/serial
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.json',
+            incomplete,
+        )
+        self._run([blob])
+
+        self.assertFalse(EdgePrediction.objects.filter(uuid='test-uuid-1234').exists())
+        self.assertEqual(StonesDetectionChunk.objects.count(), 0)
+
+    def test_non_matching_blob_name_is_ignored(self):
+        blob = self._blob('user/some_other_file.txt', {})
+        self._run([blob])
+        self.assertEqual(StonesDetectionChunk.objects.count(), 0)
+
+    def test_uuid_mismatch_between_path_and_metadata_is_skipped(self):
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/folder-uuid/folder-uuid.json',
+            {**VALID_PREDICTIONS_METADATA, 'uuid': 'different-uuid'},
+        )
+        self._run([blob])
+        self.assertEqual(EdgePrediction.objects.count(), 0)
+
+    def test_username_filter_scopes_to_one_user(self):
+        other_user = User.objects.create_user(
+            username='OtherUserr', password='pass', stones_storage_edge='other-bucket',
+        )
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/uuid-a/uuid-a.json',
+            {**VALID_PREDICTIONS_METADATA, 'uuid': 'uuid-a'},
+        )
+        self._run([blob], username='user')
+
+        self.assertTrue(EdgePrediction.objects.filter(uuid='uuid-a').exists())
+        self.assertFalse(StonesDetectionChunk.objects.filter(user=other_user).exists())
+
+    def test_existing_chunk_status_is_not_overwritten(self):
+        """A chunk that already exists (e.g. status=failed from a botched GPX
+        run) keeps its status - fill_edge_chunks only fills in missing
+        prediction/coverage rows, it never touches the status of a chunk
+        that already exists."""
+        from datetime import date, datetime, timezone
+        chunk = StonesDetectionChunk.objects.create(
+            user=self.user, date=date(2026, 5, 10), chunk=4, type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='user/2026-05-10/4/predictions/',
+            processing_start_date=datetime(2026, 5, 10, 20, 0, 0, tzinfo=timezone.utc),
+            status=StonesDetectionChunk.STATUS_FAILED,
+        )
+        blob = self._blob(
+            'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.json',
+            VALID_PREDICTIONS_METADATA,
+        )
+        self._run([blob])
+
+        chunk.refresh_from_db()
+        self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_FAILED)
+        self.assertTrue(EdgePrediction.objects.filter(uuid='test-uuid-1234', chunk=chunk).exists())
+
+
+# ---------------------------------------------------------------------------
 # sync_stones_chunk_status signal
 # ---------------------------------------------------------------------------
 
