@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime, timezone
 from unittest import mock
 
 from django.contrib.auth.models import Group, Permission
@@ -1769,6 +1770,8 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
         self.assertEqual(prediction.serial, VALID_PREDICTIONS_METADATA['serial'])
         self.assertEqual(prediction.model_name, VALID_PREDICTIONS_METADATA['model_name'])
         self.assertTrue(prediction.image_path.endswith('.jpg'))
+        self.assertEqual(prediction.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(prediction.speed, 0.0)
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_gcs_error_returns_500(self, mock_gcs_fn):
@@ -1784,7 +1787,7 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
     # --- NMEA & DB failure cases ---
 
     @mock.patch('user.stone_device_views._gcs_client')
-    def test_void_gprmc_sets_location_to_none(self, mock_gcs_fn):
+    def test_void_gprmc_sets_location_captured_at_speed_to_none(self, mock_gcs_fn):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
@@ -1795,7 +1798,27 @@ class PredictionsAPIViewTest(StoneDeviceViewsBase):
             {'metadata': self._metadata_file(meta), 'image': self._image_file()}
         )
 
-        self.assertIsNone(EdgePrediction.objects.get(uuid=meta['uuid']).location)
+        prediction = EdgePrediction.objects.get(uuid=meta['uuid'])
+        self.assertIsNone(prediction.location)
+        self.assertIsNone(prediction.captured_at)
+        self.assertIsNone(prediction.speed)
+
+    @mock.patch('user.stone_device_views._gcs_client')
+    def test_empty_coords_status_a_sets_location_captured_at_speed_to_none(self, mock_gcs_fn):
+        """$GPRMC with status 'A' but missing lat/lon (Null Island) must set
+        location, captured_at, and speed to None together, not only location."""
+        mock_client, _ = self._mock_gcs()
+        mock_gcs_fn.return_value = mock_client
+
+        gprmc_no_coords = '$GPRMC,123519,A,,,,,,,230394,,*24'
+        meta = {**VALID_PREDICTIONS_METADATA, 'gprmc': gprmc_no_coords}
+
+        self._post({'metadata': self._metadata_file(meta), 'image': self._image_file()})
+
+        prediction = EdgePrediction.objects.get(uuid=meta['uuid'])
+        self.assertIsNone(prediction.location)
+        self.assertIsNone(prediction.captured_at)
+        self.assertIsNone(prediction.speed)
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_db_failure_returns_500(self, mock_gcs_fn):
@@ -1913,6 +1936,8 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
         self.assertIsNotNone(coverage)
         self.assertEqual(coverage.serial, VALID_COVERAGE_METADATA['serial'])
         self.assertTrue(coverage.image_path.endswith('.jpg'))
+        self.assertEqual(coverage.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(coverage.speed, 0.0)
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_gcs_error_returns_500(self, mock_gcs_fn):
@@ -1960,7 +1985,7 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
     # --- NMEA & DB failure cases ---
 
     @mock.patch('user.stone_device_views._gcs_client')
-    def test_void_gprmc_sets_location_to_none(self, mock_gcs_fn):
+    def test_void_gprmc_sets_location_captured_at_speed_to_none(self, mock_gcs_fn):
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
@@ -1969,11 +1994,15 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
 
         self._post({'metadata': self._metadata_file(meta)})
 
-        self.assertIsNone(EdgeCoverage.objects.get(uuid=meta['uuid']).location)
+        coverage = EdgeCoverage.objects.get(uuid=meta['uuid'])
+        self.assertIsNone(coverage.location)
+        self.assertIsNone(coverage.captured_at)
+        self.assertIsNone(coverage.speed)
 
     @mock.patch('user.stone_device_views._gcs_client')
-    def test_empty_coords_status_a_sets_location_to_none(self, mock_gcs_fn):
-        """Ensures $GPRMC with status 'A' but missing lat/lon sets location to None instead of Null Island."""
+    def test_empty_coords_status_a_sets_location_captured_at_speed_to_none(self, mock_gcs_fn):
+        """$GPRMC with status 'A' but missing lat/lon (Null Island) must set
+        location, captured_at, and speed to None together, not only location."""
         mock_client, _ = self._mock_gcs()
         mock_gcs_fn.return_value = mock_client
 
@@ -1984,6 +2013,8 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
 
         coverage = EdgeCoverage.objects.get(uuid=meta['uuid'])
         self.assertIsNone(coverage.location)
+        self.assertIsNone(coverage.captured_at)
+        self.assertIsNone(coverage.speed)
 
     @mock.patch('user.stone_device_views._gcs_client')
     def test_db_failure_returns_500(self, mock_gcs_fn):
@@ -1998,6 +2029,69 @@ class CoverageAPIViewTest(StoneDeviceViewsBase):
 
         self.assertEqual(response.status_code, HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['detail'], 'Failed to save coverage to database.')
+
+
+# ---------------------------------------------------------------------------
+# parse_gprmc
+# ---------------------------------------------------------------------------
+
+class ParseGprmcTest(APITestCase):
+
+    def test_valid_gprmc_populates_all_three_fields(self):
+        fix = stone_views.parse_gprmc(VALID_PREDICTIONS_METADATA['gprmc'])
+        self.assertIsNotNone(fix.location)
+        self.assertEqual(fix.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(fix.speed, 0.0)
+
+    def test_void_gprmc_returns_all_none(self):
+        fix = stone_views.parse_gprmc('$GPRMC,123519,V,,,,,,,230394,,*33')
+        self.assertIsNone(fix.location)
+        self.assertIsNone(fix.captured_at)
+        self.assertIsNone(fix.speed)
+
+    def test_null_island_returns_all_none(self):
+        """status 'A' with blank lat/lon must set all three fields to None,
+        not only location. The fix is not valid, so captured_at and speed
+        must not be trusted either."""
+        fix = stone_views.parse_gprmc('$GPRMC,123519,A,,,,,,,230394,,*24')
+        self.assertIsNone(fix.location)
+        self.assertIsNone(fix.captured_at)
+        self.assertIsNone(fix.speed)
+
+    def test_empty_string_returns_all_none(self):
+        fix = stone_views.parse_gprmc('')
+        self.assertIsNone(fix.location)
+        self.assertIsNone(fix.captured_at)
+        self.assertIsNone(fix.speed)
+
+    def test_unparseable_string_returns_all_none(self):
+        fix = stone_views.parse_gprmc('not a gprmc string at all')
+        self.assertIsNone(fix.location)
+        self.assertIsNone(fix.captured_at)
+        self.assertIsNone(fix.speed)
+
+    def test_isolated_datetime_failure_keeps_location(self):
+        """A bad date/time value must not remove a location that already
+        parsed OK. The date/time try/except block must stay separate from
+        the rest of the parser."""
+
+        class _BadDatestampMsg:
+            status = 'A'
+            lat = '5025.390269'
+            lon = '03030.408529'
+            longitude = 50.42317115
+            latitude = -30.50680881666667
+            spd_over_grnd = 0.0
+
+            @property
+            def datestamp(self):
+                raise ValueError('bad datestamp')
+
+        with mock.patch('pynmea2.parse', return_value=_BadDatestampMsg()):
+            fix = stone_views.parse_gprmc(VALID_PREDICTIONS_METADATA['gprmc'])
+
+        self.assertIsNotNone(fix.location)
+        self.assertIsNone(fix.captured_at)
 
 
 class GcsClientSingletonTest(StoneDeviceViewsBase):
@@ -2394,6 +2488,8 @@ class FillEdgeChunksTest(APITestCase):
             prediction.image_path,
             'user/2026-05-10/4/predictions/test-uuid-1234/test-uuid-1234.jpg',
         )
+        self.assertEqual(prediction.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(prediction.speed, 0.0)
 
         chunk = prediction.chunk
         self.assertEqual(chunk.user, self.user)
@@ -2413,6 +2509,8 @@ class FillEdgeChunksTest(APITestCase):
         self.assertEqual(coverage.serial, VALID_COVERAGE_METADATA['serial'])
         self.assertEqual(coverage.chunk.type, StonesDetectionChunk.TYPE_COVERAGE)
         self.assertEqual(coverage.chunk.status, StonesDetectionChunk.STATUS_UPLOADING)
+        self.assertEqual(coverage.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(coverage.speed, 0.0)
 
     def test_skips_existing_uuid(self):
         from datetime import date, datetime, timezone
@@ -2512,6 +2610,95 @@ class FillEdgeChunksTest(APITestCase):
         chunk.refresh_from_db()
         self.assertEqual(chunk.status, StonesDetectionChunk.STATUS_FAILED)
         self.assertTrue(EdgePrediction.objects.filter(uuid='test-uuid-1234', chunk=chunk).exists())
+
+
+# ---------------------------------------------------------------------------
+# backfill_captured_at_speed management command
+# ---------------------------------------------------------------------------
+
+class BackfillCapturedAtSpeedTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='backfilluser', password='pass')
+        self.coverage_chunk = StonesDetectionChunk.objects.create(
+            user=self.user, date='2026-05-10', chunk=4, type=StonesDetectionChunk.TYPE_COVERAGE,
+            gcs_path='backfilluser/2026-05-10/4/coverage/',
+            processing_start_date=datetime(2026, 5, 10, 20, 0, 0, tzinfo=timezone.utc),
+        )
+        self.prediction_chunk = StonesDetectionChunk.objects.create(
+            user=self.user, date='2026-05-10', chunk=4, type=StonesDetectionChunk.TYPE_PREDICTIONS,
+            gcs_path='backfilluser/2026-05-10/4/predictions/',
+            processing_start_date=datetime(2026, 5, 10, 20, 0, 0, tzinfo=timezone.utc),
+        )
+
+    @staticmethod
+    def _run(**options):
+        from django.core.management import call_command
+        call_command('backfill_captured_at_speed', **options)
+
+    def test_valid_gprmc_populates_fields(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-valid', chunk=self.coverage_chunk, serial='CAM-001',
+            gprmc=VALID_COVERAGE_METADATA['gprmc'],
+        )
+        self._run()
+        coverage.refresh_from_db()
+        self.assertEqual(coverage.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(coverage.speed, 0.0)
+
+    def test_invalid_gprmc_stays_none(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-void', chunk=self.coverage_chunk, serial='CAM-001',
+            gprmc='$GPRMC,123519,V,,,,,,,230394,,*33',
+        )
+        self._run()
+        coverage.refresh_from_db()
+        self.assertIsNone(coverage.captured_at)
+        self.assertIsNone(coverage.speed)
+
+    def test_covers_both_models(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-valid-2', chunk=self.coverage_chunk, serial='CAM-001',
+            gprmc=VALID_COVERAGE_METADATA['gprmc'],
+        )
+        prediction = EdgePrediction.objects.create(
+            uuid='pred-valid', chunk=self.prediction_chunk, serial='CAM-001',
+            gprmc=VALID_PREDICTIONS_METADATA['gprmc'],
+        )
+        self._run()
+        coverage.refresh_from_db()
+        prediction.refresh_from_db()
+        self.assertIsNotNone(coverage.captured_at)
+        self.assertIsNotNone(prediction.captured_at)
+
+    def test_dry_run_makes_no_db_changes(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-dry', chunk=self.coverage_chunk, serial='CAM-001',
+            gprmc=VALID_COVERAGE_METADATA['gprmc'],
+        )
+        self._run(dry_run=True)
+        coverage.refresh_from_db()
+        self.assertIsNone(coverage.captured_at)
+        self.assertIsNone(coverage.speed)
+
+    def test_idempotent_on_rerun(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-rerun', chunk=self.coverage_chunk, serial='CAM-001',
+            gprmc=VALID_COVERAGE_METADATA['gprmc'],
+        )
+        self._run()
+        self._run()
+        coverage.refresh_from_db()
+        self.assertEqual(coverage.captured_at, datetime(2026, 4, 10, 7, 55, 13, tzinfo=timezone.utc))
+        self.assertEqual(coverage.speed, 0.0)
+
+    def test_rows_without_gprmc_are_left_alone(self):
+        coverage = EdgeCoverage.objects.create(
+            uuid='cov-nogprmc', chunk=self.coverage_chunk, serial='CAM-001', gprmc=None,
+        )
+        self._run()  # should not raise
+        coverage.refresh_from_db()
+        self.assertIsNone(coverage.captured_at)
 
 
 # ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import secrets
+from collections import namedtuple
 from datetime import datetime, timezone, timedelta
 
 from django.conf import settings
@@ -74,25 +75,48 @@ def _resolve_user_by_serial(serial):
         return None
 
 
-def parse_nmea_to_point(gprmc_string):
-  """Parses an NMEA $GPRMC string into a Point(lon, lat) geographic object.
-  Returns None if the signal is invalid (status == 'V') or coordinates are missing.
+GprmcFix = namedtuple('GprmcFix', ['location', 'captured_at', 'speed'])
+
+
+def parse_gprmc(gprmc_string):
+  """Parse an NMEA $GPRMC string. Return location, captured_at, and speed.
+
+  All three values are None if the string is empty or cannot be parsed.
+  All three values are also None if the fix is not valid: status is not
+  'A', or the coordinates are missing even when status is 'A'.
+
+  A date/time parse error sets only captured_at to None. The location
+  value stays valid in that case.
   """
   if not gprmc_string:
-    return None
+    return GprmcFix(None, None, None)
   try:
     msg = pynmea2.parse(gprmc_string)
-    if getattr(msg, 'status', None) != 'A':
-      return None
-    if not msg.lat or not msg.lon:
-      # pynmea2 returns 0.0 for latitude/longitude when the raw fields are
-      # empty, even though status is 'A'. Guard against Null Island.
-      logger.warning('GPRMC string has status A but missing coordinates: %s', gprmc_string)
-      return None
-    return Point(msg.longitude, msg.latitude, srid=4326)
   except Exception as error:
     logger.warning('Failed to parse NMEA string: %s, error: %s', gprmc_string, error)
-    return None
+    return GprmcFix(None, None, None)
+
+  if getattr(msg, 'status', None) != 'A':
+    return GprmcFix(None, None, None)
+
+  if not msg.lat or not msg.lon:
+    # pynmea2 returns 0.0 for latitude/longitude when the raw fields are
+    # empty, even if status is 'A'. This is the Null Island case. The fix
+    # is not valid here. Set captured_at and speed to None too, not only
+    # location.
+    logger.warning('GPRMC string has status A but missing coordinates: %s', gprmc_string)
+    return GprmcFix(None, None, None)
+
+  location = Point(msg.longitude, msg.latitude, srid=4326)
+
+  captured_at = None
+  try:
+    if msg.datestamp and msg.timestamp:
+      captured_at = datetime.combine(msg.datestamp, msg.timestamp, tzinfo=timezone.utc)
+  except Exception as error:
+    logger.warning('Failed to parse GPRMC date/time: %s, error: %s', gprmc_string, error)
+
+  return GprmcFix(location, captured_at, msg.spd_over_grnd)
 
 
 class PredictionsAPIView(APIView):
@@ -188,6 +212,7 @@ class PredictionsAPIView(APIView):
 
         try:
             gprmc_str = data.get('gprmc')
+            fix = parse_gprmc(gprmc_str)
             EdgePrediction.objects.create(
                 uuid=uuid,
                 chunk=chunk_obj,
@@ -198,7 +223,9 @@ class PredictionsAPIView(APIView):
                 time_since_boot_sec=data.get('time_since_boot_sec'),
                 predictions=data.get('predictions', []),
                 image_path=image_rel_path,
-                location=parse_nmea_to_point(gprmc_str),
+                location=fix.location,
+                captured_at=fix.captured_at,
+                speed=fix.speed,
             )
         except Exception:
             logger.exception('Database write failed for prediction data: user=%s, uuid=%s',
@@ -307,6 +334,7 @@ class CoverageAPIView(APIView):
 
         try:
             gprmc_str = data.get('gprmc')
+            fix = parse_gprmc(gprmc_str)
             EdgeCoverage.objects.create(
                 uuid=uuid,
                 chunk=chunk_obj,
@@ -314,7 +342,9 @@ class CoverageAPIView(APIView):
                 version=data.get('version', '1'),
                 gprmc=gprmc_str,
                 image_path=image_rel_path,
-                location=parse_nmea_to_point(gprmc_str),
+                location=fix.location,
+                captured_at=fix.captured_at,
+                speed=fix.speed,
             )
         except Exception:
             logger.exception('Database write failed for coverage data: user=%s, uuid=%s',

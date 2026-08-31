@@ -196,6 +196,8 @@ class EdgeCoverage(models.Model):
 
   # Geographic representation
   location = models.PointField(srid=4326, geography=True, spatial_index=True, null=True, blank=True)
+  captured_at = models.DateTimeField(null=True, blank=True, help_text='UTC timestamp parsed from the GPRMC datestamp/timestamp')
+  speed = models.FloatField(null=True, blank=True, help_text='Speed over ground in knots, parsed from GPRMC spd_over_grnd')
 
   created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
 
@@ -225,6 +227,8 @@ class EdgePrediction(models.Model):
 
   # Geographic representation
   location = models.PointField(srid=4326, geography=True, spatial_index=True, null=True, blank=True)
+  captured_at = models.DateTimeField(null=True, blank=True, help_text='UTC timestamp parsed from the GPRMC datestamp/timestamp')
+  speed = models.FloatField(null=True, blank=True, help_text='Speed over ground in knots, parsed from GPRMC spd_over_grnd')
 
   created_at = models.DateTimeField(auto_now_add=True)
 
