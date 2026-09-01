@@ -188,7 +188,7 @@ class EdgeCoverage(models.Model):
   chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='coverages')
 
   # Telemetry Metadata
-  serial = models.CharField(max_length=128, db_index=True)
+  serial = models.CharField(max_length=128)
   version = models.CharField(max_length=64, default='1')
   gprmc = models.CharField(max_length=256, blank=True, null=True, help_text='Raw NMEA string')
 
@@ -204,6 +204,10 @@ class EdgeCoverage(models.Model):
   class Meta:
     verbose_name = 'Edge Coverage'
     verbose_name_plural = 'Edge Coverages'
+    indexes = [
+        models.Index(fields=['serial', 'captured_at'], name='edgecov_serial_captured_idx'),
+        models.Index(fields=['serial', 'created_at'], name='edgecov_serial_created_idx'),
+    ]
 
   def __str__(self):
     return f'Coverage {self.uuid} ({self.serial})'
@@ -214,7 +218,7 @@ class EdgePrediction(models.Model):
   chunk = models.ForeignKey(StonesDetectionChunk, on_delete=models.CASCADE, related_name='predictions')
 
   # Telemetry Metadata
-  serial = models.CharField(max_length=128, db_index=True)
+  serial = models.CharField(max_length=128)
   version = models.CharField(max_length=64, default='1')
   gprmc = models.CharField(max_length=256, blank=True, null=True, help_text='Raw NMEA string')
   model_name = models.CharField(max_length=128, blank=True, null=True)
@@ -235,6 +239,10 @@ class EdgePrediction(models.Model):
   class Meta:
     verbose_name = 'Edge Prediction'
     verbose_name_plural = 'Edge Predictions'
+    indexes = [
+        models.Index(fields=['serial', 'captured_at'], name='edgepred_serial_captured_idx'),
+        models.Index(fields=['serial', 'created_at'], name='edgepred_serial_created_idx'),
+    ]
 
   def __str__(self):
     return f'Prediction {self.uuid} ({self.serial})'
