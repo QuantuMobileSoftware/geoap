@@ -119,7 +119,7 @@ class EdgeCoverageAdmin(gis_admin.OSMGeoAdmin):
 
   fieldsets = (
       ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
-      ('Telemetry', {'fields': ('gprmc', 'image_path')}),
+      ('Telemetry', {'fields': ('gprmc', 'image_path', 'captured_at', 'speed')}),
       ('Location (GIS)', {'fields': ('location', )}),
   )
 
@@ -141,7 +141,7 @@ class EdgePredictionAdmin(gis_admin.OSMGeoAdmin):
   fieldsets = (
       ('General Info', {'fields': ('uuid', 'chunk', 'serial', 'version', 'created_at')}),
       ('ML Model & Predictions', {'fields': ('model_name', 'time_since_boot_sec', 'predictions_count', 'predictions')}),
-      ('Telemetry', {'fields': ('gprmc', 'image_path')}),
+      ('Telemetry', {'fields': ('gprmc', 'image_path', 'captured_at', 'speed')}),
       ('Location (GIS)', {'fields': ('location', )}),
   )
 

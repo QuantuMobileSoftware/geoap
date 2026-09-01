@@ -10,7 +10,7 @@ from google.cloud import storage
 
 from user.models import EdgeCoverage, EdgePrediction, StonesDetectionChunk, User
 from user.serializers import CoverageMetadataSerializer, PredictionsMetadataSerializer
-from user.stone_device_views import parse_nmea_to_point
+from user.stone_device_views import parse_gprmc
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +149,7 @@ class Command(BaseCommand):
 
                 image_rel_path = blob.name[: -len('.json')] + '.jpg'
                 gprmc_str = data.get('gprmc')
+                fix = parse_gprmc(gprmc_str)
                 common_fields = dict(
                     uuid=uuid,
                     chunk=chunk_obj,
@@ -156,7 +157,9 @@ class Command(BaseCommand):
                     version=data.get('version', '1'),
                     gprmc=gprmc_str,
                     image_path=image_rel_path,
-                    location=parse_nmea_to_point(gprmc_str),
+                    location=fix.location,
+                    captured_at=fix.captured_at,
+                    speed=fix.speed,
                 )
 
                 try:
