@@ -35,7 +35,7 @@ class UserAdmin(BaseUserAdmin):
         ('Personal', {'fields': ('username', 'first_name', 'last_name',
                                  'email', 'area_limit_ha', 'planet_api_key',
                                  'receive_notification', 'units_of_measurement',
-                                 'country')}),
+                                 'country', 'timezone')}),
         ('Billing', {'fields': ('balance', 'on_hold', 'discount')}),
         ('Top up', {'fields': ('top_up_balance', 'top_up_comment')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', )}),

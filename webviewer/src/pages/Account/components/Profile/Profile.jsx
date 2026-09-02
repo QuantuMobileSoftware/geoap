@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { selectUser, useUserActions, useInterfaceActions } from 'state';
-import { ROUTES } from '_constants';
+import { ROUTES, TIMEZONE_OPTIONS } from '_constants';
 import { ProfileModal } from './ProfileModal';
 import { Button } from 'components/_shared/Button';
+import { Select } from 'components/_shared/Select';
 import {
   InfoItem,
   InfoTitle,
@@ -30,12 +31,27 @@ export const Profile = () => {
     if (user.trial_finished_at && !user.is_trial_end_notified)
       updateUser({ is_trial_end_notified: true });
   };
+  const handleTimezoneSelect = item => {
+    if (item.value !== user.timezone) updateUser({ timezone: item.value });
+  };
+  const timezoneItems =
+    user.timezone && !TIMEZONE_OPTIONS.some(option => option.value === user.timezone)
+      ? [...TIMEZONE_OPTIONS, { name: user.timezone, value: user.timezone }]
+      : TIMEZONE_OPTIONS;
 
   return (
     <div>
       <InfoItem>
         <InfoTitle>Email address:</InfoTitle>
         <InfoValue>{user.email}</InfoValue>
+      </InfoItem>
+      <InfoItem>
+        <Select
+          items={timezoneItems}
+          label='Timezone'
+          value={user.timezone}
+          onSelect={handleTimezoneSelect}
+        />
       </InfoItem>
       {user.trial_finished_at ? (
         <>
