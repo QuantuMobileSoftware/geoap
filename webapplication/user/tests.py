@@ -5,6 +5,7 @@ from unittest import mock
 
 from django.contrib.auth.models import Group, Permission
 from django.core import mail
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -148,7 +149,8 @@ class AuthTestCase(UserBase):
             'server_for_calculation_is_needed': False,
             'stone_google_folder': None,
             'country': 'US',
-            'units_of_measurement': 'km'
+            'units_of_measurement': 'km',
+            'timezone': 'America/Regina'
         }
         url = reverse("rest_user_details")
         response = self.client.get(url)
@@ -173,7 +175,8 @@ class AuthTestCase(UserBase):
             'planet_api_key': "secret-api-key",
             'balance': 12345,
             'on_hold': 5,
-            'discount': 100
+            'discount': 100,
+            'timezone': 'Europe/Kyiv'
         }
         response_data = {
             'pk': 1001,
@@ -192,7 +195,8 @@ class AuthTestCase(UserBase):
             'receive_notification': True,
             'stone_google_folder': None,
             'country': 'US',
-            'units_of_measurement': 'km'
+            'units_of_measurement': 'km',
+            'timezone': 'Europe/Kyiv'
         }
         url = reverse("rest_user_details")
         response = self.client.patch(url, input_data)
@@ -210,7 +214,8 @@ class AuthTestCase(UserBase):
             'planet_api_key': "secret-api-key",
             'balance': 12345,
             'on_hold': 5,
-            'discount': 100
+            'discount': 100,
+            'timezone': 'Europe/Kyiv'
         }
         response_data = {
             'pk': 1001,
@@ -229,12 +234,39 @@ class AuthTestCase(UserBase):
             'receive_notification': True,
             'stone_google_folder': None,
             'country': 'US',
-            'units_of_measurement': 'km'
+            'units_of_measurement': 'km',
+            'timezone': 'Europe/Kyiv'
         }
         url = reverse("rest_user_details")
         response = self.client.put(url, input_data)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data, response_data)
+
+    def test_current_user_update_invalid_timezone(self):
+        self.client.force_login(self.staff_user)
+        url = reverse("rest_user_details")
+        response = self.client.patch(url, {'timezone': 'not/a-zone'})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('timezone', response.data)
+        self.staff_user.refresh_from_db()
+        self.assertEqual(self.staff_user.timezone, 'America/Regina')
+
+    def test_user_timezone_default(self):
+        new_user = User.objects.create(username='timezone_default_user')
+        self.assertEqual(new_user.timezone, 'America/Regina')
+
+    def test_user_model_rejects_invalid_timezone(self):
+        new_user = User(username='timezone_invalid_user', password='secret', timezone='not/a-zone')
+        with self.assertRaises(DjangoValidationError) as context:
+            new_user.full_clean()
+        self.assertIn('timezone', context.exception.message_dict)
+
+    def test_user_model_accepts_valid_timezone(self):
+        new_user = User(username='timezone_valid_user', password='secret', timezone='Europe/Kyiv')
+        new_user.full_clean()
+        new_user.save()
+        new_user.refresh_from_db()
+        self.assertEqual(new_user.timezone, 'Europe/Kyiv')
 
     def test_user_signup_with_confirmation(self):
         username = "new_user"

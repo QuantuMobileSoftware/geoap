@@ -5,10 +5,19 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django_countries.fields import CountryField
+import pytz
 
 from aoi.models import AoI, Request
+
+DEFAULT_TIMEZONE = 'America/Regina'
+
+
+def validate_timezone(value):
+    if value not in pytz.all_timezones:
+        raise ValidationError(f'{value} is not a valid timezone.')
 
 
 class User(AbstractUser):
@@ -41,6 +50,13 @@ class User(AbstractUser):
         default='km',
     )
     country = CountryField(default='US')
+    timezone = models.CharField(
+        max_length=64,
+        default=DEFAULT_TIMEZONE,
+        validators=[validate_timezone],
+        verbose_name='Account timezone',
+        help_text='IANA timezone name, e.g. America/Regina',
+    )
 
     class Meta:
         permissions = (

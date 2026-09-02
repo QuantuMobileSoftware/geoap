@@ -14,7 +14,8 @@ const USER_DEFAULT_STATE = {
   isAuthorized: false,
   isAutoLogged: false,
   isShowLogoutModal: false,
-  planet_api_key: null
+  planet_api_key: null,
+  timezone: null
 };
 
 const USER_INITIAL_STATE = mergeObjects(USER_DEFAULT_STATE, {

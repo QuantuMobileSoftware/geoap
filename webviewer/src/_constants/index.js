@@ -4,3 +4,4 @@ export * from './props';
 export * from './routes';
 export * from './map';
 export * from './errors';
+export * from './timezones';

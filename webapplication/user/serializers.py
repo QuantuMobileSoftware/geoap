@@ -1,3 +1,4 @@
+import pytz
 from dj_rest_auth.serializers import PasswordResetSerializer as DefaultPasswordResetSerializer
 from rest_framework import serializers
 
@@ -12,9 +13,15 @@ class UserSerializer(serializers.ModelSerializer):
                   'area_limit_ha', 'planet_api_key', 'balance', 'on_hold',
                   'discount', 'trial_started_at', 'trial_finished_at',
                   'is_trial_end_notified', 'receive_notification',
-                  'stone_google_folder', 'units_of_measurement', 'country')
+                  'stone_google_folder', 'units_of_measurement', 'country',
+                  'timezone')
         read_only_fields = ('email', 'area_limit_ha', 'balance', 'on_hold',
                             'discount', 'trial_started_at', 'trial_finished_at')
+
+    def validate_timezone(self, value):
+        if value not in pytz.all_timezones:
+            raise serializers.ValidationError(f'{value} is not a valid timezone.')
+        return value
 
 
 class TransactionSerializer(serializers.ModelSerializer):
