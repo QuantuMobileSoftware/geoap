@@ -1,12 +1,14 @@
 import logging
 import os
 import re
+from collections import namedtuple
 from datetime import datetime, timedelta
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.views import RegisterView as BasicRegisterView
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.http import Http404
+from django.utils import timezone as dj_timezone
 from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
@@ -18,10 +20,11 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from dj_rest_auth.views import UserDetailsView
 
-from user.models import Transaction, User, UploadMissions
+from devices.models import Camera
+from user.models import EdgeCoverage, Transaction, User, UploadMissions
 from aoi.models import Component, Request
-from django.db.models import Q
-from user.serializers import TransactionSerializer, UserSerializer, UploadMissionsSerializer
+from django.db.models import OuterRef, Q, Subquery
+from user.serializers import TransactionSerializer, UnitSerializer, UserSerializer, UploadMissionsSerializer
 from user.upload_utils import get_upload_config
 from waffle import switch_is_active
 from google.cloud import storage
@@ -612,3 +615,56 @@ class UploadMissionsRerunTrajectoryAPIView(APIView):
         return Response(UploadMissionsSerializer(mission).data, status=status.HTTP_200_OK)
 
 
+UnitRow = namedtuple('UnitRow', [
+'unit_id', 'machine_label', 'last_received_at', 'last_captured_at', 'lat', 'lng', 'has_recent_image',
+])
+
+
+def _build_units(user):
+    latest_uuid_subquery = (
+        EdgeCoverage.objects
+        .filter(
+            serial=OuterRef('cam_serial_num'),
+            chunk__user_id=OuterRef('user_id'),
+            chunk__user=user,
+        )
+        .order_by('-created_at')
+        .values('uuid')[:1]
+    )
+
+    cameras = list(
+        Camera.objects
+        .filter(user=user)
+        .annotate(latest_coverage_uuid=Subquery(latest_uuid_subquery))
+        .order_by('cam_serial_num')
+    )
+
+    latest_uuids = [c.latest_coverage_uuid for c in cameras if c.latest_coverage_uuid]
+    coverage_by_uuid = {
+        cov.uuid: cov for cov in EdgeCoverage.objects.filter(uuid__in=latest_uuids)
+    }
+
+    rows = []
+    for cam in cameras:
+        cov = coverage_by_uuid.get(cam.latest_coverage_uuid)
+        rows.append(UnitRow(
+            unit_id=cam.cam_serial_num,
+            machine_label=cam.cam_serial_num,
+            last_received_at=cov.created_at if cov else None,
+            last_captured_at=cov.captured_at if cov else None,
+            lat=cov.location.y if (cov and cov.location) else None,
+            lng=cov.location.x if (cov and cov.location) else None,
+            has_recent_image=(cov.image_path is not None) if cov else None,
+        ))
+    return rows
+
+
+class UnitListAPIView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        return Response({
+            'timezone': request.user.timezone,
+            'server_time': dj_timezone.now(),
+            'units': UnitSerializer(_build_units(request.user), many=True).data,
+        })
