@@ -1,13 +1,13 @@
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from unittest import mock
 
 from django.contrib.auth.models import Group, Permission
 from django.core import mail
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 from google.cloud.exceptions import GoogleCloudError
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
@@ -17,6 +17,7 @@ import user.stone_device_views as stone_views
 from devices.models import Camera
 from user.models import StonesDetectionChunk, User, UploadMissions, EdgePrediction, EdgeCoverage
 from user.upload_utils import get_upload_config
+from user.utils import day_window
 
 
 class UserBase(APITestCase):
@@ -2778,3 +2779,29 @@ class SyncStonesChunkStatusSignalTest(APITestCase):
         orphan = Request.objects.create(user=self.user, component=self.component)
         orphan.calculated = True
         orphan.save(update_fields=['calculated'])
+
+
+class DayWindowTestCase(SimpleTestCase):
+    def test_normal_day(self):
+        start, end = day_window(date(2026, 8, 26), 'America/Winnipeg')
+        self.assertEqual(start, datetime(2026, 8, 26, 5, 0, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 8, 27, 5, 0, tzinfo=timezone.utc))
+        self.assertEqual(end - start, timedelta(hours=24))
+
+    def test_spring_forward_23_hour_day(self):
+        start, end = day_window(date(2026, 3, 8), 'America/Winnipeg')
+        self.assertEqual(start, datetime(2026, 3, 8, 6, 0, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 3, 9, 5, 0, tzinfo=timezone.utc))
+        self.assertEqual(end - start, timedelta(hours=23))
+
+    def test_fall_back_25_hour_day(self):
+        start, end = day_window(date(2026, 11, 1), 'America/Winnipeg')
+        self.assertEqual(start, datetime(2026, 11, 1, 5, 0, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 11, 2, 6, 0, tzinfo=timezone.utc))
+        self.assertEqual(end - start, timedelta(hours=25))
+
+    def test_no_dst_zone_regina(self):
+        start, end = day_window(date(2026, 3, 8), 'America/Regina')
+        self.assertEqual(start, datetime(2026, 3, 8, 6, 0, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 3, 9, 6, 0, tzinfo=timezone.utc))
+        self.assertEqual(end - start, timedelta(hours=24))
