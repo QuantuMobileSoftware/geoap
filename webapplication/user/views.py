@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.http import Http404
 from django.utils import timezone as dj_timezone
+from django.utils.dateparse import parse_date
 from rest_framework import status
 from django.utils.translation import gettext_lazy as _
 from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
@@ -24,8 +25,10 @@ from devices.models import Camera
 from user.models import EdgeCoverage, Transaction, User, UploadMissions
 from aoi.models import Component, Request
 from django.db.models import OuterRef, Q, Subquery
-from user.serializers import TransactionSerializer, UnitSerializer, UserSerializer, UploadMissionsSerializer
+from user.serializers import TransactionSerializer, UnitSerializer, UnitTelemetrySerializer, UserSerializer, UploadMissionsSerializer
+from user.telemetry import BUCKET_MINUTES, build_unit_telemetry
 from user.upload_utils import get_upload_config
+from user.utils import day_window, rolling_window
 from waffle import switch_is_active
 from google.cloud import storage
 
@@ -667,4 +670,60 @@ class UnitListAPIView(APIView):
             'timezone': request.user.timezone,
             'server_time': dj_timezone.now(),
             'units': UnitSerializer(_build_units(request.user), many=True).data,
+        })
+
+
+TRUTHY_VALUES = {'true', '1'}
+
+
+class UnitTelemetryAPIView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        day_param = request.query_params.get('day')
+        rolling_param = request.query_params.get('rolling')
+
+        if bool(day_param) == bool(rolling_param):
+            return Response(
+                {'detail': "Exactly one of 'day' or 'rolling' query params is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if day_param:
+            try:
+                parsed_date = parse_date(day_param)
+            except ValueError:
+                parsed_date = None
+            if parsed_date is None:
+                return Response(
+                    {'detail': "'day' must be in YYYY-MM-DD format."}, status=status.HTTP_400_BAD_REQUEST,
+                )
+            start, end = day_window(parsed_date, request.user.timezone)
+        else:
+            if rolling_param.lower() not in TRUTHY_VALUES:
+                return Response(
+                    {'detail': "'rolling' must be a truthy value ('true' or '1')."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            start, end = rolling_window()
+
+        cameras = Camera.objects.filter(user=request.user).order_by('cam_serial_num')
+
+        unit_id = request.query_params.get('unit_id')
+        if unit_id:
+            cameras = cameras.filter(cam_serial_num=unit_id)
+            if not cameras.exists():
+                raise Http404
+
+        units = [
+            build_unit_telemetry(camera, request.user, start, end)
+            for camera in cameras
+        ]
+
+        return Response({
+            'timezone': request.user.timezone,
+            'from': start,
+            'to': end,
+            'bucket_minutes': BUCKET_MINUTES,
+            'units': UnitTelemetrySerializer(units, many=True).data,
         })

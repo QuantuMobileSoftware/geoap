@@ -98,3 +98,28 @@ class UnitSerializer(serializers.Serializer):
     last_lat = serializers.FloatField(source='lat')
     last_lng = serializers.FloatField(source='lng')
     has_recent_image = serializers.BooleanField()
+
+
+class TelemetryTrackPointSerializer(serializers.Serializer):
+    t = serializers.DateTimeField()
+    lat = serializers.FloatField()
+    lng = serializers.FloatField()
+    img = serializers.BooleanField()
+    det = serializers.IntegerField()
+
+
+class TelemetryTotalsSerializer(serializers.Serializer):
+    messages = serializers.IntegerField()
+    distance_km = serializers.FloatField()
+    images = serializers.IntegerField()
+    detections = serializers.IntegerField()
+    first_at = serializers.DateTimeField(allow_null=True)
+    last_at = serializers.DateTimeField(allow_null=True)
+    gap_minutes = serializers.IntegerField()
+
+
+class UnitTelemetrySerializer(serializers.Serializer):
+    unit_id = serializers.CharField()
+    track = TelemetryTrackPointSerializer(many=True)
+    buckets = serializers.ListField(child=serializers.IntegerField())
+    totals = TelemetryTotalsSerializer()

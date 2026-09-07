@@ -10,6 +10,7 @@ from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone as dj_timezone
 from google.cloud.exceptions import GoogleCloudError
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
 from rest_framework.test import APITestCase
@@ -2979,3 +2980,308 @@ class UnitListAPIViewTestCase(APITestCase):
 
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(len(response.data['units']), 3)
+
+
+class UnitTelemetryAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='telemetryuser', password='pass', timezone='America/Regina')
+        self.camera = Camera.objects.create(cam_serial_num='TEL-100', user=self.user)
+
+    def _make_chunk(self, user, chunk=0, type=StonesDetectionChunk.TYPE_COVERAGE):
+        return StonesDetectionChunk.objects.create(
+            user=user,
+            date='2026-06-01',
+            chunk=chunk,
+            type=type,
+            gcs_path=f'{user.username}/2026-06-01/{chunk}/{type}/',
+            processing_start_date='2026-06-01T12:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+
+    def _set_created_at(self, model, uuid, created_at):
+        model.objects.filter(uuid=uuid).update(created_at=created_at)
+
+    @staticmethod
+    def _iso(value):
+        # from/to are datetime objects; per-unit fields are ISO strings.
+        if isinstance(value, datetime):
+            return value
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+
+    def _get(self, **params):
+        self.client.force_login(self.user)
+        return self.client.get(reverse('unit_telemetry'), params)
+
+    # -- auth / param validation --------------------------------------
+
+    def test_unauthenticated_returns_403(self):
+        response = self.client.get(reverse('unit_telemetry'), {'day': '2026-06-01'})
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    def test_both_day_and_rolling_returns_400(self):
+        response = self._get(day='2026-06-01', rolling='true')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_neither_day_nor_rolling_returns_400(self):
+        response = self._get()
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_malformed_day_returns_400(self):
+        response = self._get(day='not-a-date')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_calendar_invalid_day_returns_400(self):
+        response = self._get(day='2026-13-01')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_non_truthy_rolling_returns_400(self):
+        response = self._get(rolling='false')
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    # -- ownership -------------------------------------------------------
+
+    def test_foreign_unit_id_returns_404_not_403(self):
+        other_user = User.objects.create_user(username='telemetryother', password='pass')
+        Camera.objects.create(cam_serial_num='TEL-OTHER', user=other_user)
+        response = self._get(day='2026-06-01', unit_id='TEL-OTHER')
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+
+    def test_unit_id_filters_to_a_single_unit(self):
+        Camera.objects.create(cam_serial_num='TEL-101', user=self.user)
+        response = self._get(day='2026-06-01', unit_id='TEL-100')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['units']), 1)
+        self.assertEqual(response.data['units'][0]['unit_id'], 'TEL-100')
+
+    def test_coverage_from_reassigned_serial_is_not_attached(self):
+        # Same serial, but the chunk belongs to a different account
+        other_user = User.objects.create_user(username='telemetryother2', password='pass')
+        other_chunk = self._make_chunk(other_user, chunk=1)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-leak',
+            chunk=other_chunk,
+            serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326),
+            image_path='leak.jpg',
+        )
+        response = self._get(day='2026-06-01')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['messages'], 0)
+        self.assertEqual(unit['track'], [])
+
+    # -- window resolution -------------------------------------------------
+
+    def test_day_mode_window_matches_day_window_across_dst_fixtures(self):
+        fixtures = [
+            ('America/Winnipeg', date(2026, 8, 26)),   # 24h
+            ('America/Winnipeg', date(2026, 3, 8)),    # 23h spring-forward
+            ('America/Winnipeg', date(2026, 11, 1)),   # 25h fall-back
+            ('America/Regina', date(2026, 3, 8)),      # no DST
+        ]
+        for tz_name, day in fixtures:
+            with self.subTest(tz=tz_name, day=day):
+                self.user.timezone = tz_name
+                self.user.save(update_fields=['timezone'])
+                expected_start, expected_end = day_window(day, tz_name)
+
+                response = self._get(day=day.isoformat())
+
+                self.assertEqual(response.status_code, HTTP_200_OK)
+                self.assertEqual(self._iso(response.data['from']), expected_start)
+                self.assertEqual(self._iso(response.data['to']), expected_end)
+                self.assertEqual(
+                    len(response.data['units'][0]['buckets']),
+                    int((expected_end - expected_start).total_seconds() // 900),
+                )
+
+    def test_rolling_mode_is_trailing_24h_ending_now(self):
+        before = dj_timezone.now()
+        response = self._get(rolling='true')
+        after = dj_timezone.now()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        to = self._iso(response.data['to'])
+        from_ = self._iso(response.data['from'])
+        self.assertTrue(before <= to <= after + timedelta(seconds=5))
+        self.assertEqual(to - from_, timedelta(hours=24))
+
+    # -- captured_at/created_at fallback -------------------------------
+
+    def test_captured_at_null_falls_back_to_created_at(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-nofix',
+            chunk=chunk,
+            serial='TEL-100',
+            captured_at=None,
+            location=None,
+            image_path=None,
+        )
+        self._set_created_at(EdgeCoverage, 'tel-cov-nofix', datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc))
+
+        response = self._get(day='2026-06-01')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['messages'], 1)
+        self.assertEqual(self._iso(unit['totals']['first_at']), datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc))
+
+    # -- union-of-both-tables vs coverage-only ----------------------------
+
+    def test_totals_reflect_union_but_buckets_are_coverage_only(self):
+        chunk = self._make_chunk(self.user)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-1', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        EdgePrediction.objects.create(
+            uuid='tel-pred-1', chunk=pred_chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 9, 30, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326),
+            predictions=[{'confidence': 0.9}],
+            image_path='pred.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        totals = unit['totals']
+        self.assertEqual(totals['messages'], 2)
+        self.assertEqual(totals['images'], 2)
+        self.assertEqual(totals['detections'], 1)
+        self.assertEqual(self._iso(totals['first_at']), datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc))
+        self.assertEqual(self._iso(totals['last_at']), datetime(2026, 6, 1, 9, 30, tzinfo=timezone.utc))
+
+        # Prediction lands in bucket 14, which has no coverage - must read 0.
+        self.assertEqual(unit['buckets'][14], 0)
+
+    def test_no_detections_when_no_predictions_exist(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-nodet', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['detections'], 0)
+        self.assertTrue(all(p['det'] == 0 for p in unit['track']))
+
+    def test_gap_minutes_counts_quiet_time_between_coverage_messages(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-a', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-b', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 45, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['gap_minutes'], 30)
+
+    def test_gap_minutes_is_zero_with_a_single_coverage_message(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-solo', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['gap_minutes'], 0)
+
+    def test_predictions_are_not_used_as_a_liveness_signal_for_gap_minutes(self):
+        chunk = self._make_chunk(self.user)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-c', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-d', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 45, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        # A stray prediction lands in the middle of the coverage gap. It must
+        # not be treated as a heartbeat and must not shrink gap_minutes.
+        EdgePrediction.objects.create(
+            uuid='tel-pred-mid-gap', chunk=pred_chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 20, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326),
+            predictions=[{'confidence': 0.5}], image_path=None,
+        )
+
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['gap_minutes'], 30)
+
+    # -- distance / track ---------------------------------------------------
+
+    def test_distance_correctness(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-p1', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+        EdgeCoverage.objects.create(
+            uuid='tel-cov-p2', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 5, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.1, srid=4326), image_path=None,
+        )
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        # ~0.1 degree latitude is ~11.0-11.2 real km; loose bounds, not exact.
+        self.assertGreaterEqual(unit['totals']['distance_km'], 11.0)
+        self.assertLessEqual(unit['totals']['distance_km'], 11.2)
+        self.assertEqual(len(unit['track']), 2)
+
+    def test_track_point_cap(self):
+        chunk = self._make_chunk(self.user)
+        start = datetime(2026, 6, 1, 6, 0, tzinfo=timezone.utc)
+        n = 1600
+        rows = [
+            EdgeCoverage(
+                uuid=f'tel-cov-cap-{i}',
+                chunk=chunk,
+                serial='TEL-100',
+                captured_at=start + timedelta(seconds=i * 10),
+                # zigzag so simplify doesn't collapse the path before the cap kicks in
+                location=Point(-98.0 + i * 0.0001, 50.0 + (0.01 if i % 2 == 0 else -0.01), srid=4326),
+                image_path=None,
+            )
+            for i in range(n)
+        ]
+        EdgeCoverage.objects.bulk_create(rows)
+
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+        self.assertLessEqual(len(unit['track']), 1500)
+        self.assertEqual(unit['totals']['messages'], n)  # totals computed pre-decimation
+
+    # -- empty state -----------------------------------------------------
+
+    def test_unit_with_no_telemetry_still_appears_with_zeroed_totals(self):
+        response = self._get(day='2026-06-01')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['units']), 1)
+        unit = response.data['units'][0]
+        self.assertEqual(unit['unit_id'], 'TEL-100')
+        self.assertEqual(unit['track'], [])
+        self.assertEqual(unit['totals']['messages'], 0)
+        self.assertIsNone(unit['totals']['first_at'])
+        self.assertIsNone(unit['totals']['last_at'])
+        self.assertEqual(len(unit['buckets']), 96)  # 24h / 15min, America/Regina has no DST
+        self.assertTrue(all(b == 0 for b in unit['buckets']))
