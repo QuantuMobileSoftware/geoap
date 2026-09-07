@@ -88,3 +88,13 @@ class PredictionsMetadataSerializer(CoverageMetadataSerializer):
     model_name = serializers.CharField(max_length=128)
     predictions = serializers.ListField()
     time_since_boot_sec = serializers.FloatField(min_value=0)
+
+
+class UnitSerializer(serializers.Serializer):
+    unit_id = serializers.CharField()
+    machine_label = serializers.CharField()
+    last_received_at = serializers.DateTimeField()
+    last_captured_at = serializers.DateTimeField()
+    last_lat = serializers.FloatField(source='lat')
+    last_lng = serializers.FloatField(source='lng')
+    has_recent_image = serializers.BooleanField()

@@ -10,6 +10,7 @@ from user.views import (
     UploadMissionsDeleteAPIView,
     UploadMissionsRemoveFilesAPIView,
     UploadMissionsRerunTrajectoryAPIView,
+    UnitListAPIView,
 )
 from user.stone_device_views import PredictionsAPIView, CoverageAPIView, EdgeChunkDataAPIView
 
@@ -26,4 +27,5 @@ urlpatterns = [
     path('predictions', PredictionsAPIView.as_view(), name='device_predictions'),
     path('coverage', CoverageAPIView.as_view(), name='device_coverage'),
     path('edge-chunk-data/', EdgeChunkDataAPIView.as_view(), name='edge_chunk_data'),
+    path('units', UnitListAPIView.as_view(), name='unit_list'),
 ]

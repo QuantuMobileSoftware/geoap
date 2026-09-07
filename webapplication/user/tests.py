@@ -6,6 +6,7 @@ from unittest import mock
 from django.contrib.auth.models import Group, Permission
 from django.core import mail
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
@@ -2805,3 +2806,176 @@ class DayWindowTestCase(SimpleTestCase):
         self.assertEqual(start, datetime(2026, 3, 8, 6, 0, tzinfo=timezone.utc))
         self.assertEqual(end, datetime(2026, 3, 9, 6, 0, tzinfo=timezone.utc))
         self.assertEqual(end - start, timedelta(hours=24))
+
+
+class UnitListAPIViewTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='unituser', password='pass')
+        self.camera = Camera.objects.create(cam_serial_num='CAM-100', user=self.user)
+
+    def _make_chunk(self, user, chunk=0):
+        return StonesDetectionChunk.objects.create(
+            user=user,
+            date='2026-04-29',
+            chunk=chunk,
+            type=StonesDetectionChunk.TYPE_COVERAGE,
+            gcs_path=f'{user.username}/2026-04-29/{chunk}/coverage/',
+            processing_start_date='2026-04-29T12:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+
+    def _set_created_at(self, uuid, created_at):
+        EdgeCoverage.objects.filter(uuid=uuid).update(created_at=created_at)
+
+    def test_unauthenticated_returns_403(self):
+        response = self.client.get(reverse('unit_list'))
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    def test_response_shape_has_no_tier_or_staff(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertIn('timezone', response.data)
+        self.assertIn('server_time', response.data)
+        self.assertIn('units', response.data)
+        response_str = json.dumps(response.data, default=str)
+        self.assertNotIn('tier', response_str)
+        self.assertNotIn('staff', response_str)
+
+    def test_camera_with_no_coverage_appears_with_null_fields(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['units']), 1)
+        unit = response.data['units'][0]
+        self.assertEqual(unit['unit_id'], 'CAM-100')
+        self.assertEqual(unit['machine_label'], 'CAM-100')
+        for field in ('last_received_at', 'last_captured_at', 'last_lat', 'last_lng', 'has_recent_image'):
+            self.assertIsNone(unit[field])
+
+    def test_coverage_with_invalid_gps_fix_has_null_position(self):
+        # A coverage row can exist (real received/captured time, an image)
+        # with location still null - the GPS fix was invalid at that moment.
+        # Distinct from "no coverage at all": only lat/lng should be null.
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='cov-no-fix',
+            chunk=chunk,
+            serial='CAM-100',
+            captured_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
+            location=None,
+            image_path='frame.jpg',
+        )
+        self._set_created_at('cov-no-fix', datetime(2026, 6, 1, tzinfo=timezone.utc))
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        unit = response.data['units'][0]
+        self.assertIsNone(unit['last_lat'])
+        self.assertIsNone(unit['last_lng'])
+        self.assertIsNotNone(unit['last_received_at'])
+        self.assertIsNotNone(unit['last_captured_at'])
+        self.assertEqual(unit['has_recent_image'], True)
+
+    def test_camera_owned_by_other_user_is_excluded(self):
+        other_user = User.objects.create_user(username='otherunituser', password='pass')
+        Camera.objects.create(cam_serial_num='CAM-OTHER', user=other_user)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        serials = [unit['unit_id'] for unit in response.data['units']]
+        self.assertEqual(serials, ['CAM-100'])
+
+    def test_coverage_from_reassigned_serial_is_not_attached(self):
+        # Simulate serial reuse/reassignment: an EdgeCoverage row matches
+        # self.camera's serial, but its chunk belongs to a different user.
+        other_user = User.objects.create_user(username='otherunituser2', password='pass')
+        other_chunk = self._make_chunk(other_user, chunk=1)
+        EdgeCoverage.objects.create(
+            uuid='cov-leak-1',
+            chunk=other_chunk,
+            serial='CAM-100',
+            image_path='leak.jpg',
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['units']), 1)
+        unit = response.data['units'][0]
+        for field in ('last_received_at', 'last_captured_at', 'last_lat', 'last_lng', 'has_recent_image'):
+            self.assertIsNone(unit[field])
+
+    def test_latest_created_at_row_wins_and_fields_are_not_mixed(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='cov-older',
+            chunk=chunk,
+            serial='CAM-100',
+            captured_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
+            location=Point(10.0, 20.0, srid=4326),
+            image_path='older.jpg',
+        )
+        self._set_created_at('cov-older', datetime(2026, 4, 1, tzinfo=timezone.utc))
+
+        EdgeCoverage.objects.create(
+            uuid='cov-newer',
+            chunk=chunk,
+            serial='CAM-100',
+            captured_at=datetime(2026, 1, 1, tzinfo=timezone.utc),  # earlier captured_at
+            location=Point(30.0, 40.0, srid=4326),
+            image_path=None,
+        )
+        self._set_created_at('cov-newer', datetime(2026, 5, 1, tzinfo=timezone.utc))
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        unit = response.data['units'][0]
+        self.assertEqual(unit['last_received_at'][:10], '2026-05-01')
+        self.assertEqual(unit['last_captured_at'][:10], '2026-01-01')
+        self.assertEqual(unit['last_lat'], 40.0)
+        self.assertEqual(unit['last_lng'], 30.0)
+        self.assertEqual(unit['has_recent_image'], False)  # not None - distinguishes "has row, no image" from "no row"
+
+    def test_unit_id_and_machine_label_are_both_serial(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+        unit = response.data['units'][0]
+        self.assertEqual(unit['unit_id'], unit['machine_label'])
+        self.assertEqual(unit['unit_id'], self.camera.cam_serial_num)
+
+    def test_multiple_owned_cameras_and_one_not_owned(self):
+        camera2 = Camera.objects.create(cam_serial_num='CAM-101', user=self.user)
+        other_user = User.objects.create_user(username='otherunituser3', password='pass')
+        Camera.objects.create(cam_serial_num='CAM-NOT-OWNED', user=other_user)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('unit_list'))
+
+        serials = sorted(unit['unit_id'] for unit in response.data['units'])
+        self.assertEqual(serials, ['CAM-100', 'CAM-101'])
+
+    def test_query_count_is_constant_regardless_of_camera_count(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(uuid='cov-a', chunk=chunk, serial='CAM-100')
+
+        camera2 = Camera.objects.create(cam_serial_num='CAM-101', user=self.user)
+        chunk2 = self._make_chunk(self.user, chunk=1)
+        EdgeCoverage.objects.create(uuid='cov-b', chunk=chunk2, serial='CAM-101')
+
+        Camera.objects.create(cam_serial_num='CAM-102', user=self.user)
+
+        self.client.force_authenticate(self.user)
+        with self.assertNumQueries(2):
+            response = self.client.get(reverse('unit_list'))
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(len(response.data['units']), 3)
