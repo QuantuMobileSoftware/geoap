@@ -175,25 +175,46 @@ def _fetch_distance_and_simplified_track(serial, user, start, end):
     return distance_m, points
 
 
+def _row_matches_point(row, lng, lat, epsilon):
+    return abs(row.location.x - lng) < epsilon and abs(row.location.y - lat) < epsilon
+
+
 def _reattach_track_metadata(stream, simplified_points, epsilon=1e-5):
     """Matches simplified points back to source rows by coordinate -
-    simplification only removes points, never adds new ones."""
+    simplification only removes points, never adds new ones. Several rows
+    can share one coordinate (stationary unit, stuck GPS clock); every
+    matching row is aggregated into the point instead of only the first,
+    and enough rows are always held back for the remaining points so none
+    are silently dropped."""
     located = [r for r in stream if r.location is not None]
+    n_points = len(simplified_points)
     track = []
     j = 0
-    for lng, lat in simplified_points:
-        while j < len(located) - 1 and not (
-            abs(located[j].location.x - lng) < epsilon and abs(located[j].location.y - lat) < epsilon
-        ):
+    for point_index, (lng, lat) in enumerate(simplified_points):
+        remaining_after = n_points - point_index - 1
+
+        while j < len(located) - 1 and not _row_matches_point(located[j], lng, lat, epsilon):
             j += 1
-        row = located[j] if j < len(located) else None
-        track.append({
-            't': row.ts if row else None,
-            'lat': lat,
-            'lng': lng,
-            'img': bool(row.image_path) if row else False,
-            'det': row.det if row else 0,
-        })
+
+        matched = []
+        while j < len(located) and _row_matches_point(located[j], lng, lat, epsilon) \
+                and len(located) - j > remaining_after:
+            matched.append(located[j])
+            j += 1
+        if not matched and j < len(located):
+            matched.append(located[j])
+            j += 1
+
+        if matched:
+            track.append({
+                't': matched[-1].ts,
+                'lat': lat,
+                'lng': lng,
+                'img': any(bool(row.image_path) for row in matched),
+                'det': sum(row.det for row in matched),
+            })
+        else:
+            track.append({'t': None, 'lat': lat, 'lng': lng, 'img': False, 'det': 0})
     return track
 
 
