@@ -707,7 +707,17 @@ class UnitTelemetryAPIView(APIView):
                 )
             start, end = rolling_window()
 
-        cameras = Camera.objects.filter(user=request.user).order_by('cam_serial_num')
+        latest_coverage_subquery = (
+            EdgeCoverage.objects
+            .filter(serial=OuterRef('cam_serial_num'), chunk__user=request.user)
+            .order_by('-created_at')
+            .values('created_at')[:1]
+        )
+        cameras = (
+            Camera.objects.filter(user=request.user)
+            .annotate(latest_coverage_created_at=Subquery(latest_coverage_subquery))
+            .order_by('cam_serial_num')
+        )
 
         unit_id = request.query_params.get('unit_id')
         if unit_id:
@@ -715,8 +725,9 @@ class UnitTelemetryAPIView(APIView):
             if not cameras.exists():
                 raise Http404
 
+        now = dj_timezone.now()
         units = [
-            build_unit_telemetry(camera, request.user, start, end)
+            build_unit_telemetry(camera, request.user, start, end, camera.latest_coverage_created_at, now)
             for camera in cameras
         ]
 

@@ -118,8 +118,15 @@ class TelemetryTotalsSerializer(serializers.Serializer):
     gap_minutes = serializers.IntegerField()
 
 
+class AlertSerializer(serializers.Serializer):
+    rule = serializers.CharField()
+    severity = serializers.CharField()
+    copy = serializers.CharField()
+
+
 class UnitTelemetrySerializer(serializers.Serializer):
     unit_id = serializers.CharField()
     track = TelemetryTrackPointSerializer(many=True)
     buckets = serializers.ListField(child=serializers.IntegerField())
     totals = TelemetryTotalsSerializer()
+    alerts = AlertSerializer(many=True)

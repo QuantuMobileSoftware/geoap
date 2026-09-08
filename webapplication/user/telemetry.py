@@ -6,9 +6,10 @@ from collections import namedtuple
 from django.db import connection
 from django.db.models import Q
 
+from user.alert_config import TRACK_POINT_CAP
+from user.alerts import evaluate_unit_alerts
 from user.models import EdgeCoverage, EdgePrediction
 
-TRACK_POINT_CAP = 1500
 SIMPLIFY_TOLERANCE_M = 5
 BUCKET_MINUTES = 15
 
@@ -22,7 +23,7 @@ def _window_q(start, end):
     )
 
 
-def _fetch_stream(serial, user, start, end):
+def fetch_stream(serial, user, start, end):
     """Merged, time-ordered coverage + prediction rows for one camera.
     Filters on both serial and chunk.user to check ownership."""
     coverage_rows = EdgeCoverage.objects.filter(
@@ -247,9 +248,9 @@ def _compute_distance_and_track(serial, user, start, end, stream):
     return distance_km, track
 
 
-def build_unit_telemetry(camera, user, start, end):
+def build_unit_telemetry(camera, user, start, end, last_received_at, now):
     serial = camera.cam_serial_num
-    stream = _fetch_stream(serial, user, start, end)
+    stream = fetch_stream(serial, user, start, end)
     coverage_stream = [r for r in stream if r.source == 'coverage']
 
     totals = _compute_totals(stream)
@@ -264,4 +265,5 @@ def build_unit_telemetry(camera, user, start, end):
         'track': track,
         'buckets': buckets,
         'totals': totals,
+        'alerts': evaluate_unit_alerts(stream, last_received_at, now),
     }
