@@ -3247,6 +3247,33 @@ class UnitTelemetryAPIViewTestCase(APITestCase):
         self.assertLessEqual(unit['totals']['distance_km'], 11.2)
         self.assertEqual(len(unit['track']), 2)
 
+    def test_track_conserves_detections_when_coordinates_repeat(self):
+        # Several messages at the exact same location (stationary unit, or a
+        # stuck GPS clock) must not lose detections when track points collapse.
+        chunk = self._make_chunk(self.user)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        same_point = Point(-98.0, 50.0, srid=4326)
+
+        for i in range(4):
+            EdgeCoverage.objects.create(
+                uuid=f'tel-cov-dup-{i}', chunk=chunk, serial='TEL-100',
+                captured_at=datetime(2026, 6, 1, 7, i, tzinfo=timezone.utc),
+                location=same_point, image_path=None,
+            )
+        EdgePrediction.objects.create(
+            uuid='tel-pred-dup', chunk=pred_chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 4, tzinfo=timezone.utc),
+            location=same_point,
+            predictions=[{'confidence': 0.9}, {'confidence': 0.8}, {'confidence': 0.7}],
+            image_path=None,
+        )
+
+        response = self._get(day='2026-06-01')
+        unit = response.data['units'][0]
+
+        self.assertEqual(unit['totals']['detections'], 3)
+        self.assertEqual(sum(p['det'] for p in unit['track']), 3)
+
     def test_track_point_cap(self):
         chunk = self._make_chunk(self.user)
         start = datetime(2026, 6, 1, 6, 0, tzinfo=timezone.utc)
