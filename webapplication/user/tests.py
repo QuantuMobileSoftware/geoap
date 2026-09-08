@@ -3312,3 +3312,262 @@ class UnitTelemetryAPIViewTestCase(APITestCase):
         self.assertIsNone(unit['totals']['last_at'])
         self.assertEqual(len(unit['buckets']), 96)  # 24h / 15min, America/Regina has no DST
         self.assertTrue(all(b == 0 for b in unit['buckets']))
+
+
+class UnitAlertsTestCase(UnitTelemetryAPIViewTestCase):
+    """the `alerts` key on GET /api/units/telemetry"""
+
+    def _rules(self, unit):
+        return {alert['rule'] for alert in unit['alerts']}
+
+    # -- empty state -------------------------------------------------------
+
+    def test_ok_when_everything_is_normal(self):
+        chunk = self._make_chunk(self.user)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-ok', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        EdgePrediction.objects.create(
+            uuid='alert-pred-ok', chunk=pred_chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 1, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326),
+            predictions=[{'confidence': 0.9}], image_path='pred.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertEqual(unit['alerts'], [
+            {'rule': 'ok', 'severity': 'ok', 'copy': "Everything looks normal for this unit."},
+        ])
+
+    # -- not_reporting / late -----------------------------------------------
+
+    def test_not_reporting_when_last_coverage_is_over_an_hour_old(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-old', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-old', dj_timezone.now() - timedelta(hours=2))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('not_reporting', self._rules(unit))
+
+    def test_late_when_last_coverage_is_between_5_minutes_and_an_hour_old(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-late', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-late', dj_timezone.now() - timedelta(minutes=30))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('late', self._rules(unit))
+
+    def test_reporting_within_5_minutes_fires_neither(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-fresh', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertNotIn('not_reporting', self._rules(unit))
+        self.assertNotIn('late', self._rules(unit))
+
+    def test_just_under_5_minutes_is_still_reporting(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-boundary-5m-under', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-boundary-5m-under', dj_timezone.now() - timedelta(minutes=5) + timedelta(seconds=1))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertNotIn('not_reporting', self._rules(unit))
+        self.assertNotIn('late', self._rules(unit))
+
+    def test_just_over_5_minutes_is_late(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-boundary-5m-over', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-boundary-5m-over', dj_timezone.now() - timedelta(minutes=5, seconds=1))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('late', self._rules(unit))
+        self.assertNotIn('not_reporting', self._rules(unit))
+
+    def test_just_under_1_hour_is_still_late(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-boundary-1h-under', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-boundary-1h-under', dj_timezone.now() - timedelta(hours=1) + timedelta(seconds=1))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('late', self._rules(unit))
+        self.assertNotIn('not_reporting', self._rules(unit))
+
+    def test_just_over_1_hour_is_not_reporting(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-boundary-1h-over', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-boundary-1h-over', dj_timezone.now() - timedelta(hours=1, seconds=1))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('not_reporting', self._rules(unit))
+        self.assertNotIn('late', self._rules(unit))
+
+    def test_no_coverage_ever_is_not_reporting_not_a_crash(self):
+        response = self._get(day='2026-06-01')
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        unit = response.data['units'][0]
+        self.assertEqual(self._rules(unit), {'not_reporting'})
+
+    # -- no_images -----------------------------------------------------------
+
+    def test_no_images_fires_when_window_has_messages_but_no_image(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-noimg', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path=None,
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('no_images', self._rules(unit))
+
+    def test_no_images_does_not_fire_on_a_fully_empty_window(self):
+        chunk = self._make_chunk(self.user)
+        # Real message exists, but outside the queried day - the window itself is empty.
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-outside', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 5, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertEqual(unit['totals']['messages'], 0)
+        self.assertNotIn('no_images', self._rules(unit))
+
+    # -- no_gps_fix ------------------------------------------------------
+
+    def test_no_gps_fix_when_every_coverage_message_has_a_null_location(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-nogps', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=None, image_path='cov.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('no_gps_fix', self._rules(unit))
+
+    def test_no_gps_fix_does_not_fire_when_any_message_has_a_location(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-mixed-1', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=None, image_path='cov.jpg',
+        )
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-mixed-2', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 5, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertNotIn('no_gps_fix', self._rules(unit))
+
+    # -- detection_not_running ------------------------------------------
+
+    def test_detection_not_running_when_coverage_present_but_no_predictions(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-nodet', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertIn('detection_not_running', self._rules(unit))
+
+    def test_detection_not_running_does_not_fire_when_predictions_exist(self):
+        chunk = self._make_chunk(self.user)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-hasdet', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326), image_path='cov.jpg',
+        )
+        EdgePrediction.objects.create(
+            uuid='alert-pred-hasdet', chunk=pred_chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 1, tzinfo=timezone.utc),
+            location=Point(-98.0, 50.0, srid=4326),
+            predictions=[{'confidence': 0.9}], image_path='pred.jpg',
+        )
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertNotIn('detection_not_running', self._rules(unit))
+
+    # -- ordering -------------------------------------------------------
+
+    def test_multiple_rules_fire_together_in_spec_order(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='alert-cov-multi', chunk=chunk, serial='TEL-100',
+            captured_at=datetime(2026, 6, 1, 7, 0, tzinfo=timezone.utc),
+            location=None, image_path=None,
+        )
+        self._set_created_at(EdgeCoverage, 'alert-cov-multi', dj_timezone.now() - timedelta(minutes=30))
+
+        response = self._get(day='2026-06-01')
+
+        unit = response.data['units'][0]
+        self.assertEqual(
+            [alert['rule'] for alert in unit['alerts']],
+            ['late', 'no_images', 'no_gps_fix', 'detection_not_running'],
+        )
