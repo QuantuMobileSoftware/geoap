@@ -12,6 +12,7 @@ from user.views import (
     UploadMissionsRerunTrajectoryAPIView,
     UnitListAPIView,
     UnitTelemetryAPIView,
+    UnitLatestImageURLAPIView,
 )
 from user.stone_device_views import PredictionsAPIView, CoverageAPIView, EdgeChunkDataAPIView
 
@@ -30,4 +31,5 @@ urlpatterns = [
     path('edge-chunk-data/', EdgeChunkDataAPIView.as_view(), name='edge_chunk_data'),
     path('units', UnitListAPIView.as_view(), name='unit_list'),
     path('units/telemetry', UnitTelemetryAPIView.as_view(), name='unit_telemetry'),
+    path('units/<str:unit_id>/latest_image_url/', UnitLatestImageURLAPIView.as_view(), name='unit_latest_image_url'),
 ]

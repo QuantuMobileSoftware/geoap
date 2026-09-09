@@ -3571,3 +3571,193 @@ class UnitAlertsTestCase(UnitTelemetryAPIViewTestCase):
             [alert['rule'] for alert in unit['alerts']],
             ['late', 'no_images', 'no_gps_fix', 'detection_not_running'],
         )
+
+
+class UnitLatestImageURLTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='imageuser', password='pass')
+        self.user.stones_storage_edge = 'test-edge-bucket'
+        self.user.save(update_fields=['stones_storage_edge'])
+        self.camera = Camera.objects.create(cam_serial_num='IMG-100', user=self.user)
+
+    def _make_chunk(self, user, chunk=0, type=StonesDetectionChunk.TYPE_COVERAGE):
+        return StonesDetectionChunk.objects.create(
+            user=user,
+            date='2026-06-01',
+            chunk=chunk,
+            type=type,
+            gcs_path=f'{user.username}/2026-06-01/{chunk}/{type}/',
+            processing_start_date='2026-06-01T12:00:00Z',
+            status=StonesDetectionChunk.STATUS_PROCESSING,
+        )
+
+    def _set_created_at(self, model, uuid, created_at):
+        model.objects.filter(uuid=uuid).update(created_at=created_at)
+
+    def _get(self, unit_id='IMG-100'):
+        self.client.force_login(self.user)
+        return self.client.get(reverse('unit_latest_image_url', args=[unit_id]))
+
+    def test_unauthenticated_returns_403(self):
+        response = self.client.get(reverse('unit_latest_image_url', args=['IMG-100']))
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    def test_foreign_unit_id_returns_404(self):
+        other_user = User.objects.create_user(username='imageother', password='pass')
+        Camera.objects.create(cam_serial_num='IMG-OTHER', user=other_user)
+        response = self._get(unit_id='IMG-OTHER')
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+
+    def test_unknown_unit_id_returns_404(self):
+        response = self._get(unit_id='DOES-NOT-EXIST')
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+
+    def test_no_coverage_rows_returns_404(self):
+        response = self._get()
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertIn('detail', response.data)
+
+    def test_coverage_without_images_returns_404(self):
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-noimg', chunk=chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            image_path=None,
+        )
+        response = self._get()
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+
+    @mock.patch('user.views._gcs_client')
+    def test_falls_back_to_prediction_image_when_no_coverage_image(self, mock_gcs_client):
+        mock_client = mock.MagicMock()
+        mock_blob = mock.MagicMock()
+        mock_blob.generate_signed_url.return_value = 'https://storage.googleapis.com/signed/image'
+        mock_client.bucket.return_value.blob.return_value = mock_blob
+        mock_gcs_client.return_value = mock_client
+
+        chunk = self._make_chunk(self.user, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        captured_at = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
+        EdgePrediction.objects.create(
+            uuid='img-pred-1', chunk=chunk, serial='IMG-100',
+            captured_at=captured_at, image_path='IMG-100/2026-06-01/img-pred-1.jpg',
+        )
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.data['captured_at'], captured_at)
+        mock_client.bucket.return_value.blob.assert_called_once_with('IMG-100/2026-06-01/img-pred-1.jpg')
+
+    @mock.patch('user.views._gcs_client')
+    def test_prefers_newer_prediction_image_over_older_coverage_image(self, mock_gcs_client):
+        mock_client = mock.MagicMock()
+        mock_blob = mock.MagicMock()
+        mock_blob.generate_signed_url.return_value = 'https://storage.googleapis.com/signed/image'
+        mock_client.bucket.return_value.blob.return_value = mock_blob
+        mock_gcs_client.return_value = mock_client
+
+        cov_chunk = self._make_chunk(self.user, chunk=0, type=StonesDetectionChunk.TYPE_COVERAGE)
+        pred_chunk = self._make_chunk(self.user, chunk=1, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-older', chunk=cov_chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc), image_path='old-cov.jpg',
+        )
+        EdgePrediction.objects.create(
+            uuid='img-pred-newer', chunk=pred_chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc), image_path='new-pred.jpg',
+        )
+        self._set_created_at(EdgeCoverage, 'img-cov-older', datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc))
+        self._set_created_at(EdgePrediction, 'img-pred-newer', datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc))
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        mock_client.bucket.return_value.blob.assert_called_once_with('new-pred.jpg')
+
+    def test_coverage_from_reassigned_serial_is_not_used(self):
+        # Same serial, but the chunk belongs to a different account
+        other_user = User.objects.create_user(username='imageother2', password='pass')
+        other_chunk = self._make_chunk(other_user, chunk=1)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-leak', chunk=other_chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            image_path='leak.jpg',
+        )
+        other_pred_chunk = self._make_chunk(other_user, chunk=2, type=StonesDetectionChunk.TYPE_PREDICTIONS)
+        EdgePrediction.objects.create(
+            uuid='img-pred-leak', chunk=other_pred_chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            image_path='pred-leak.jpg',
+        )
+        response = self._get()
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+
+    @mock.patch('user.views._gcs_client')
+    def test_happy_path_returns_signed_url_and_captured_at(self, mock_gcs_client):
+        mock_client = mock.MagicMock()
+        mock_blob = mock.MagicMock()
+        mock_blob.generate_signed_url.return_value = 'https://storage.googleapis.com/signed/image'
+        mock_client.bucket.return_value.blob.return_value = mock_blob
+        mock_gcs_client.return_value = mock_client
+
+        chunk = self._make_chunk(self.user)
+        captured_at = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-1', chunk=chunk, serial='IMG-100',
+            captured_at=captured_at, image_path='IMG-100/2026-06-01/img-cov-1.jpg',
+        )
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.data['url'], 'https://storage.googleapis.com/signed/image')
+        self.assertEqual(response.data['captured_at'], captured_at)
+
+        mock_client.bucket.assert_called_once_with('test-edge-bucket')
+        mock_client.bucket.return_value.blob.assert_called_once_with('IMG-100/2026-06-01/img-cov-1.jpg')
+        mock_blob.generate_signed_url.assert_called_once_with(
+            expiration=timedelta(hours=1), method='GET', version='v4',
+        )
+
+    @mock.patch('user.views._gcs_client')
+    def test_picks_most_recent_row_that_has_an_image(self, mock_gcs_client):
+        mock_client = mock.MagicMock()
+        mock_blob = mock.MagicMock()
+        mock_blob.generate_signed_url.return_value = 'https://storage.googleapis.com/signed/image'
+        mock_client.bucket.return_value.blob.return_value = mock_blob
+        mock_gcs_client.return_value = mock_client
+
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-old', chunk=chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc),
+            image_path='old.jpg',
+        )
+        EdgeCoverage.objects.create(
+            uuid='img-cov-new', chunk=chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            image_path=None,
+        )
+        self._set_created_at(EdgeCoverage, 'img-cov-old', datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc))
+        self._set_created_at(EdgeCoverage, 'img-cov-new', datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc))
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        mock_client.bucket.return_value.blob.assert_called_once_with('old.jpg')
+
+    @mock.patch('user.views._gcs_client')
+    def test_gcs_exception_returns_400(self, mock_gcs_client):
+        mock_gcs_client.side_effect = Exception("GCS error")
+
+        chunk = self._make_chunk(self.user)
+        EdgeCoverage.objects.create(
+            uuid='img-cov-err', chunk=chunk, serial='IMG-100',
+            captured_at=datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc),
+            image_path='err.jpg',
+        )
+
+        response = self._get()
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
