@@ -9,6 +9,7 @@ const MODELS = `${ROOT}models`;
 const TERMS = `${ROOT}terms`;
 const POLICY = `${ROOT}policy`;
 const STONE_VALIDATION = `${ROOT}stone-validation/:id`;
+const EDGE_UNITS = `${ROOT}edge-units`;
 
 const PASSWORD_ROOT = `${ROOT}password`;
 const RESET_PASSWORD = `${PASSWORD_ROOT}/reset`;
@@ -29,5 +30,6 @@ export const ROUTES = {
   CONFIRM_PASSWORD,
   TERMS,
   POLICY,
-  STONE_VALIDATION
+  STONE_VALIDATION,
+  EDGE_UNITS
 };

@@ -16,7 +16,8 @@ import {
   Policy,
   StoneValidation,
   Upload,
-  UploadMissions
+  UploadMissions,
+  EdgeUnits
 } from 'pages';
 import { ForgotPassword } from 'pages/ForgotPassword';
 
@@ -55,6 +56,7 @@ export const Routes = () => {
       <Route path={ROUTES.CONFIRM_PASSWORD} component={ChangePassword} />
       <Route isPrivate path={ROUTES.STONE_VALIDATION} component={StoneValidation} />
       <Route isPrivate path={ROUTES.RESET_PASSWORD} component={ChangePassword} />
+      <Route isPrivate path={ROUTES.EDGE_UNITS} component={EdgeUnits} />
       <Route isPrivate path={ROUTES.ROOT} component={PageMain} />
     </Switch>
   );

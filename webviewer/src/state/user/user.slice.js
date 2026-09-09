@@ -53,3 +53,5 @@ export const selectIsAuthorized = createSelector(
 );
 
 export const selectIsAutoLogged = state => state.user.isAutoLogged;
+
+export const selectUserTimezone = state => state.user.timezone;
