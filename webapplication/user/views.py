@@ -22,10 +22,11 @@ from rest_framework.views import APIView
 from dj_rest_auth.views import UserDetailsView
 
 from devices.models import Camera
-from user.models import EdgeCoverage, Transaction, User, UploadMissions
+from user.models import EdgeCoverage, EdgePrediction, Transaction, User, UploadMissions
 from aoi.models import Component, Request
 from django.db.models import OuterRef, Q, Subquery
 from user.serializers import TransactionSerializer, UnitSerializer, UnitTelemetrySerializer, UserSerializer, UploadMissionsSerializer
+from user.stone_device_views import _gcs_client
 from user.telemetry import BUCKET_MINUTES, build_unit_telemetry
 from user.upload_utils import get_upload_config
 from user.utils import day_window, rolling_window
@@ -738,3 +739,54 @@ class UnitTelemetryAPIView(APIView):
             'bucket_minutes': BUCKET_MINUTES,
             'units': UnitTelemetrySerializer(units, many=True).data,
         })
+
+
+class UnitLatestImageURLAPIView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, unit_id, *args, **kwargs):
+        camera = Camera.objects.filter(user=request.user, cam_serial_num=unit_id).first()
+        if camera is None:
+            raise Http404
+
+        candidates = []
+        for model in (EdgeCoverage, EdgePrediction):
+            row = (
+                model.objects
+                .filter(serial=unit_id, chunk__user=request.user, image_path__isnull=False)
+                .order_by('-created_at')
+                .values('image_path', 'captured_at', 'created_at')
+                .first()
+            )
+            if row is not None:
+                candidates.append(row)
+
+        if not candidates:
+            return Response(
+                {'detail': "No image has been received for this unit yet."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        latest = max(candidates, key=lambda row: row['created_at'])
+        captured_at = latest['captured_at'] or latest['created_at']
+
+        try:
+            client = _gcs_client()
+            bucket = client.bucket(request.user.stones_storage_edge)
+            url = bucket.blob(latest['image_path']).generate_signed_url(
+                expiration=timedelta(hours=1),
+                method="GET",
+                version="v4",
+            )
+        except Exception as error:
+            logger.exception(
+                "GCS error generating latest-image URL for user=%s, unit=%s: %s",
+                request.user.id, unit_id, error,
+            )
+            return Response(
+                {'detail': "Storage bucket is not available. Please check the bucket name in your account settings."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger.info(f"Latest-image URL generated for user={request.user.id}, unit={unit_id}")
+        return Response({'url': url, 'captured_at': captured_at})
