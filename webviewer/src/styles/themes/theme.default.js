@@ -31,7 +31,9 @@ const colors = {
 };
 
 const fonts = {
-  primary: 'Poppins'
+  primary: 'Poppins',
+  display: '"Barlow Condensed","Oswald","Arial Narrow",system-ui,sans-serif',
+  mono: '"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
 };
 
 const spacing = [2, 4, 6, 8, 10, 12, 14, 16, 20, 22, 24, 32, 40, 48, 64, 96, 128];
