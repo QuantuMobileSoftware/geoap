@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Header as PageHeader } from 'components/Header';
 import { Skeleton } from 'components/_shared/Skeleton';
 import { Button } from 'components/_shared/Button';
-import { AccountClock } from 'components/_shared/AccountClock';
-import { useGetUnitsQuery, useGetUnitsTelemetryQuery } from 'state';
+import { useGetUnitsQuery, useGetUnitsTelemetryQuery, selectUserTimezone } from 'state';
+import { useFleetStatus } from 'hooks';
+import { getAccountToday, shiftDate } from 'utils';
+import { AccountHeader, FleetStatus, FilterChips, DayBar } from './components';
 import {
-  ClockRow,
   PageContainer,
   StatusLine,
   ChipsRow,
-  DayBar,
+  DayBarRow,
   UnitCardsStrip,
   MapArea,
   TimelineStrip,
@@ -19,6 +21,7 @@ import {
 } from './EdgeUnits.styles';
 
 const POLLING_INTERVAL_MS = 30000;
+const MIN_UNITS_FOR_CHIPS = 6;
 
 const Section = ({ isLoading, isError, onRetry, skeleton, children }) => {
   if (isLoading) return skeleton;
@@ -34,59 +37,118 @@ const Section = ({ isLoading, isError, onRetry, skeleton, children }) => {
 };
 
 export const EdgeUnits = () => {
-  // FE-06 will replace this with the day bar's actual selection state.
-  const [windowArgs] = useState({ rolling: true });
+  const timezone = useSelector(selectUserTimezone);
+  const today = timezone ? getAccountToday(timezone) : null;
+
+  const [day, setDay] = useState(null);
+  const [rolling, setRolling] = useState(true);
+  const [stateFilter, setStateFilter] = useState('all');
+
+  const resolvedDay = day ?? today;
+  const windowArgs = rolling ? { rolling: true } : { day: resolvedDay };
 
   const {
+    data: unitsData,
     isLoading: isUnitsLoading,
     isError: isUnitsError,
     refetch: refetchUnits
   } = useGetUnitsQuery();
 
   const {
+    data: telemetryData,
     isLoading: isTelemetryLoading,
     isError: isTelemetryError,
     refetch: refetchTelemetry
-  } = useGetUnitsTelemetryQuery(windowArgs, { pollingInterval: POLLING_INTERVAL_MS });
+  } = useGetUnitsTelemetryQuery(windowArgs, {
+    skip: !rolling && !resolvedDay,
+    pollingInterval: rolling || resolvedDay === today ? POLLING_INTERVAL_MS : 0
+  });
+
+  const fleetStatus = useFleetStatus(unitsData?.units, telemetryData?.units);
+
+  // Don't leave a filter active once the chip row that set it is hidden.
+  useEffect(() => {
+    if (fleetStatus.counts.all < MIN_UNITS_FOR_CHIPS && stateFilter !== 'all') {
+      setStateFilter('all');
+    }
+  }, [fleetStatus.counts.all, stateFilter]);
+
+  const handleRetryOverview = () => {
+    refetchUnits();
+    refetchTelemetry();
+  };
+
+  const handlePrevDay = () => {
+    setRolling(false);
+    setDay(shiftDate(resolvedDay, -1));
+  };
+
+  const handleNextDay = () => {
+    if (rolling || resolvedDay >= today) return;
+    setRolling(false);
+    setDay(shiftDate(resolvedDay, 1));
+  };
+
+  const handleSelectDay = iso => {
+    setRolling(false);
+    setDay(iso);
+  };
+
+  const handleToday = () => {
+    setRolling(false);
+    setDay(today);
+  };
+
+  const handleToggleRolling = () => setRolling(value => !value);
 
   return (
     <div>
       <PageHeader />
-      {/* FE-04 will move this into the page's own header/status line */}
-      <ClockRow>
-        <AccountClock />
-      </ClockRow>
       <PageContainer>
+        <AccountHeader />
         <StatusLine data-testid='status-line'>
           <Section
-            isLoading={isUnitsLoading}
-            isError={isUnitsError}
-            onRetry={refetchUnits}
+            isLoading={isUnitsLoading || isTelemetryLoading}
+            isError={isUnitsError || isTelemetryError}
+            onRetry={handleRetryOverview}
             skeleton={<Skeleton height='20px' />}
           >
-            {/* FE-04: status line */}
+            <FleetStatus fleetStatus={fleetStatus} />
           </Section>
         </StatusLine>
         <ChipsRow data-testid='filter-chips'>
           <Section
-            isLoading={isUnitsLoading}
-            isError={isUnitsError}
-            onRetry={refetchUnits}
+            isLoading={isUnitsLoading || isTelemetryLoading}
+            isError={isUnitsError || isTelemetryError}
+            onRetry={handleRetryOverview}
             skeleton={<Skeleton height='24px' width='240px' />}
           >
-            {/* FE-05: filter chips */}
+            <FilterChips
+              counts={fleetStatus.counts}
+              stateFilter={stateFilter}
+              onChangeFilter={setStateFilter}
+            />
           </Section>
         </ChipsRow>
-        <DayBar data-testid='day-bar'>
+        <DayBarRow data-testid='day-bar'>
           <Section
-            isLoading={isUnitsLoading}
+            isLoading={isUnitsLoading || !today}
             isError={isUnitsError}
             onRetry={refetchUnits}
             skeleton={<Skeleton height='32px' />}
           >
-            {/* FE-06: day bar */}
+            <DayBar
+              day={resolvedDay}
+              today={today}
+              rolling={rolling}
+              onPrevDay={handlePrevDay}
+              onNextDay={handleNextDay}
+              onSelectDay={handleSelectDay}
+              onToday={handleToday}
+              onToggleRolling={handleToggleRolling}
+            />
           </Section>
-        </DayBar>
+        </DayBarRow>
         <UnitCardsStrip data-testid='unit-cards'>
           <Section
             isLoading={isUnitsLoading}

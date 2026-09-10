@@ -11,12 +11,6 @@ const placeholderRegion = css`
   `}
 `;
 
-export const ClockRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  padding: ${em(8)} ${em(20)} 0;
-`;
-
 export const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -25,20 +19,21 @@ export const PageContainer = styled.div`
 `;
 
 export const StatusLine = styled.div`
-  ${placeholderRegion}
+  ${({ theme }) => css`
+    padding: ${em(10)} 0;
+    border-bottom: ${theme.borders.default({ fontSize: theme.fontSizes[2] })};
+  `}
 `;
 
 export const ChipsRow = styled.nav`
-  ${placeholderRegion}
   display: flex;
-  gap: ${em(8)};
 `;
 
-export const DayBar = styled.div`
-  ${placeholderRegion}
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+export const DayBarRow = styled.div`
+  ${({ theme }) => css`
+    padding: ${em(10)} 0;
+    border-bottom: ${theme.borders.default({ fontSize: theme.fontSizes[2] })};
+  `}
 `;
 
 export const UnitCardsStrip = styled.div`
