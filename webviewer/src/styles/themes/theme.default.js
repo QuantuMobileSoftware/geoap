@@ -23,6 +23,12 @@ const colors = {
   danger: '#CB0000',
   black: '#000000',
 
+  status: {
+    live: '#3F6B4A',
+    late: '#D99A16',
+    silent: '#A8452F'
+  },
+
   misc: {
     background: '#F9F9F9',
     background2: '#FAFBFD',
