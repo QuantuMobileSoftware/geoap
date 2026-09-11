@@ -30,27 +30,45 @@ export const computeFleetStatus = (units = [], telemetryUnits = []) => {
   const worstState = counts.silent > 0 ? 'silent' : counts.late > 0 ? 'late' : 'live';
 
   const hasDataThisWindow = telemetryUnits.some(unit => unit.totals?.messages > 0);
+  const reportedCount = telemetryUnits.filter(unit => unit.totals?.messages > 0).length;
 
   const newestMessageAt = telemetryUnits.reduce((newest, unit) => {
     if (!unit.totals?.last_at) return newest;
     return !newest || unit.totals.last_at > newest ? unit.totals.last_at : newest;
   }, null);
 
-  return { stateByUnitId, counts, worstState, hasDataThisWindow, newestMessageAt };
+  return {
+    stateByUnitId,
+    counts,
+    worstState,
+    hasDataThisWindow,
+    reportedCount,
+    newestMessageAt
+  };
 };
 
 export const useFleetStatus = (units = [], telemetryUnits = []) =>
   useMemo(() => computeFleetStatus(units, telemetryUnits), [units, telemetryUnits]);
 
 export const getFleetStatusCopy = (
-  { counts, hasDataThisWindow, newestMessageAt },
-  now = new Date()
+  { counts, hasDataThisWindow, reportedCount, newestMessageAt },
+  now = new Date(),
+  isLiveWindow = true
 ) => {
   if (!hasDataThisWindow) {
     return 'No telemetry for this day. Nothing was recorded in the selected window.';
   }
 
   const n = counts.all;
+
+  if (!isLiveWindow) {
+    if (reportedCount === n) {
+      const subject = n === 1 ? 'Your unit' : n === 2 ? 'Both units' : `All ${n} units`;
+      return `${subject} reported on this day.`;
+    }
+    return `${reportedCount} of ${n} units reported on this day.`;
+  }
+
   const bad = counts.late + counts.silent;
   const ago = newestMessageAt ? formatRelativeTime(newestMessageAt, now) : 'unknown';
 

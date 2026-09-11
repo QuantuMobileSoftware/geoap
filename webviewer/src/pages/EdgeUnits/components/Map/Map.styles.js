@@ -6,6 +6,7 @@ export const MapHolder = styled.div`
   position: relative;
   width: 100%;
   height: ${em(360)};
+  isolation: isolate;
 `;
 
 export const StyledMapContainer = styled(MapContainer)`

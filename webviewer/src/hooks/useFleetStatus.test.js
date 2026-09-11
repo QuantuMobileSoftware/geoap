@@ -117,4 +117,28 @@ describe('getFleetStatusCopy', () => {
       '1 of 3 units needs attention. Newest message 5 min ago.'
     );
   });
+
+  it('past day, unit reported: says so plainly, no "ago"', () => {
+    const status = runFleetStatus(
+      [unit('A')],
+      [telemetryUnit('A', { alerts: [NOT_REPORTING_ALERT] })]
+    );
+
+    expect(getFleetStatusCopy(status, now, false)).toBe(
+      'Your unit reported on this day.'
+    );
+  });
+
+  it('past day, only some units reported', () => {
+    const units = [unit('A'), unit('B')];
+    const telemetry = [
+      telemetryUnit('A', { alerts: [NOT_REPORTING_ALERT] }),
+      telemetryUnit('B', { messages: 0, lastAt: null, alerts: [OK_ALERT] })
+    ];
+    const status = runFleetStatus(units, telemetry);
+
+    expect(getFleetStatusCopy(status, now, false)).toBe(
+      '1 of 2 units reported on this day.'
+    );
+  });
 });

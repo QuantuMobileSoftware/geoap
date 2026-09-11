@@ -54,6 +54,7 @@ export const EdgeUnits = () => {
 
   const resolvedDay = day ?? today;
   const windowArgs = rolling ? { rolling: true } : { day: resolvedDay };
+  const isLiveWindow = rolling || resolvedDay === today;
 
   const {
     data: unitsData,
@@ -69,7 +70,7 @@ export const EdgeUnits = () => {
     refetch: refetchTelemetry
   } = useGetUnitsTelemetryQuery(windowArgs, {
     skip: !rolling && !resolvedDay,
-    pollingInterval: rolling || resolvedDay === today ? POLLING_INTERVAL_MS : 0
+    pollingInterval: isLiveWindow ? POLLING_INTERVAL_MS : 0
   });
 
   const fleetStatus = useFleetStatus(unitsData?.units, telemetryData?.units);
@@ -136,7 +137,7 @@ export const EdgeUnits = () => {
             onRetry={handleRetryOverview}
             skeleton={<Skeleton height='20px' />}
           >
-            <FleetStatus fleetStatus={fleetStatus} />
+            <FleetStatus fleetStatus={fleetStatus} isLiveWindow={isLiveWindow} />
           </Section>
         </StatusLine>
         <ChipsRow data-testid='filter-chips'>
