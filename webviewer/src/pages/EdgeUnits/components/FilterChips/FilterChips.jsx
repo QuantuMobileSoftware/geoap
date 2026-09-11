@@ -1,11 +1,10 @@
 import React from 'react';
+import { STATE_LABELS } from '../../constants';
 import { Row, Chip, Swatch, Count, Label } from './FilterChips.styles';
 
 const CHIPS = [
   { key: 'all', label: 'All' },
-  { key: 'live', label: 'Reporting' },
-  { key: 'late', label: 'Late' },
-  { key: 'silent', label: 'Not reporting' }
+  ...Object.entries(STATE_LABELS).map(([key, label]) => ({ key, label }))
 ];
 
 const MIN_UNITS_TO_SHOW = 6;

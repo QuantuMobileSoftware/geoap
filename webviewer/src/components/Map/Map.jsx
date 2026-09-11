@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import L from 'leaflet';
 import 'leaflet-editable';
-import { TileLayer, FeatureGroup } from 'react-leaflet';
+import { FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
 import { useAreaData } from 'hooks';
@@ -15,6 +15,7 @@ import {
 } from '_constants';
 import { areasEvents } from '_events';
 import { MapColorBar, MapControls, MapRange, MapPolygon } from './components';
+import { SatelliteTileLayer } from './SatelliteTileLayer';
 import { Popup } from 'components/_shared/Popup';
 import { Spinner } from 'components/_shared/Spinner';
 import { StyledMapContainer, MapHolder } from './Map.styles';
@@ -46,8 +47,6 @@ const getShapePositions = polygon => {
 };
 
 const getFilteredAreas = (areas, type) => areas.filter(area => area.type === type);
-
-const { REACT_APP_IS_MAPBOX_AVAILABLE } = process.env;
 
 export const Map = ({ selectedArea, currentResult }) => {
   const [map, setMap] = useState(null);
@@ -179,20 +178,7 @@ export const Map = ({ selectedArea, currentResult }) => {
         zoomControl={false}
         whenCreated={setMap}
       >
-        {REACT_APP_IS_MAPBOX_AVAILABLE ? (
-          <TileLayer
-            attribution='Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
-            url='/tiles/mapbox/{z}/{x}/{y}.png'
-            tileSize={512}
-            maxZoom={17}
-            zoomOffset={-1}
-          />
-        ) : (
-          <TileLayer
-            attribution="&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors'>OpenStreetMap</a>"
-            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-          />
-        )}
+        <SatelliteTileLayer />
         <FeatureGroup>
           <EditControl
             position='topright'
