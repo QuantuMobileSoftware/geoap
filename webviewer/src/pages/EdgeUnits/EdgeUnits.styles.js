@@ -37,14 +37,12 @@ export const DayBarRow = styled.div`
 `;
 
 export const UnitCardsStrip = styled.div`
-  ${placeholderRegion}
   display: flex;
   gap: ${em(12)};
   overflow-x: auto;
 `;
 
 export const MapArea = styled.div`
-  ${placeholderRegion}
   min-height: ${em(360)};
 `;
 
